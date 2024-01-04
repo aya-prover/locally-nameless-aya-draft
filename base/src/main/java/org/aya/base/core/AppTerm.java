@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 
 public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
   @Override public @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
-    return new AppTerm(fun.bindAt(var, depth), arg.bindAt(var, depth));
+    var newFun = fun.bindAt(var, depth);
+    var newArg = arg.bindAt(var, depth);
+    if (newFun == fun && newArg == arg) return this;
+    return new AppTerm(newFun, newArg);
   }
 }

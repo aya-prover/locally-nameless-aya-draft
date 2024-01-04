@@ -5,6 +5,8 @@ import org.jetbrains.annotations.NotNull;
 
 public record LamTerm(Term body) implements Term {
   @Override public @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
-    return new LamTerm(body.bindAt(var, depth + 1));
+    var newBody = body.bindAt(var, depth + 1);
+    if (newBody == body) return this;
+    return new LamTerm(newBody);
   }
 }
