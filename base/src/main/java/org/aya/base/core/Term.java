@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 
 public sealed interface Term extends Serializable
-  permits FreeTerm, LamTerm, LocalTerm {
+    permits AppTerm, FreeTerm, LamTerm, LocalTerm {
   @ApiStatus.Internal
   @NotNull Term bindAt(@NotNull LocalVar var, int depth);
 
