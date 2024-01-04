@@ -1,6 +1,6 @@
-package org.aya.base.core;
+package org.aya.syntax.core;
 
-import org.aya.base.generic.LocalVar;
+import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
 public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {

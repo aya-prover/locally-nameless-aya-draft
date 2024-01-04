@@ -1,7 +1,6 @@
-package org.aya.base.core;
+package org.aya.syntax.core;
 
-import kala.collection.mutable.MutableList;
-import org.aya.base.generic.LocalVar;
+import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
 public record LamTerm(Term body) implements Term {

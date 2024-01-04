@@ -1,6 +1,6 @@
-package org.aya.base.core;
+package org.aya.syntax.core;
 
-import org.aya.base.generic.LocalVar;
+import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ public sealed interface Term extends Serializable
 
   /**
    * Corresponds to <emph>instantiate</emph> operator in [MM 2004].
-   * Could be called <code>apply</code>
+   * Could be called <code>apply</code> similar to Mini-TT.
    */
   default @NotNull Term instantiate(Term arg) {
     return replace(0, arg);

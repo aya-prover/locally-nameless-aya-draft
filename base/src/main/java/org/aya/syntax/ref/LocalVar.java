@@ -1,4 +1,4 @@
-package org.aya.base.generic;
+package org.aya.syntax.ref;
 
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
