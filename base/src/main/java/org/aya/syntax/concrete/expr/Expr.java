@@ -9,7 +9,6 @@ import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 public sealed interface Expr {
@@ -25,20 +24,20 @@ public sealed interface Expr {
   record Param(
     @NotNull SourcePos sourcePos,
     @NotNull LocalVar ref,
-    @NotNull Expr type,
+    @NotNull Node type,
     boolean explicit
     // @ForLSP MutableValue<Result> theCore
   ) {
     public Param(@NotNull SourcePos sourcePos, @NotNull LocalVar var, boolean explicit) {
-      this(sourcePos, var, new Hole(false, null), explicit);
+      this(sourcePos, var, new Node(sourcePos, new Hole(false, null)), explicit);
     }
 
-    public @NotNull Param update(@NotNull Expr type) {
+    public @NotNull Param update(@NotNull Node type) {
       return type == type() ? this : new Param(sourcePos, ref, type, explicit);
     }
 
-    public @NotNull Param descent(@NotNull Function<@NotNull Expr, @NotNull Expr> f) {
-      return update(f.apply(type));
+    public @NotNull Param descent(@NotNull UnaryOperator<Expr> f) {
+      return update(type.map(f));
     }
   }
 
