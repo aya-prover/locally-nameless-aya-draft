@@ -7,8 +7,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-public record WithPos<T>(@NotNull SourcePos sourcePos, T data) {
+public record WithPos<T>(@NotNull SourcePos sourcePos, T data) implements SourceNode {
   public <U> @Contract("_->new") WithPos<U> map(@NotNull Function<T, U> mapper) {
-    return new WithPos<>(sourcePos, mapper.apply(data));
+    var result = mapper.apply(data);
+    return result == data ? ((WithPos<U>) this) : new WithPos<>(sourcePos, mapper.apply(data));
   }
 }
