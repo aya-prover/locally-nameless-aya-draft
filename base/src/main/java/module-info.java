@@ -16,5 +16,6 @@ module aya.base {
   exports org.aya.syntax.core.def;
   exports org.aya.syntax.core.term;
   exports org.aya.syntax.ref;
-  exports org.aya.syntax.concrete.expr;
+  exports org.aya.generic;
+  exports org.aya.syntax.concrete;
 }
