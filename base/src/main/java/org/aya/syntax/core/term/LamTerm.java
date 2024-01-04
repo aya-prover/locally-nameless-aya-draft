@@ -1,9 +1,9 @@
-package org.aya.syntax.core;
+package org.aya.syntax.core.term;
 
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
-public record LamTerm(Term body) implements Term {
+public record LamTerm(Term body) implements Term, Term.StableWHNF {
   @Override public @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
     var newBody = body.bindAt(var, depth + 1);
     if (newBody == body) return this;

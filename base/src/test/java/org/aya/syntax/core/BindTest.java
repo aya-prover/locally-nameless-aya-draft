@@ -1,5 +1,9 @@
 package org.aya.syntax.core;
 
+import org.aya.syntax.core.term.AppTerm;
+import org.aya.syntax.core.term.FreeTerm;
+import org.aya.syntax.core.term.LamTerm;
+import org.aya.syntax.core.term.LocalTerm;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.SourcePos;
 import org.junit.jupiter.api.Test;

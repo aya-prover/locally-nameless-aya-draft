@@ -1,4 +1,4 @@
-package org.aya.syntax.core;
+package org.aya.syntax.core.term;
 
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.ApiStatus;
@@ -35,4 +35,6 @@ public sealed interface Term extends Serializable
   default @NotNull Term instantiate(Term arg) {
     return replace(0, arg);
   }
+
+  interface StableWHNF {}
 }

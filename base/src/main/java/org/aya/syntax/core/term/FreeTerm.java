@@ -1,4 +1,4 @@
-package org.aya.syntax.core;
+package org.aya.syntax.core.term;
 
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;

@@ -12,6 +12,9 @@ module aya.base {
   requires org.commonmark;
 
   exports org.aya.prelude;
-  exports org.aya.syntax.core;
+  exports org.aya.syntax.concrete.decl;
+  exports org.aya.syntax.core.def;
+  exports org.aya.syntax.core.term;
   exports org.aya.syntax.ref;
+  exports org.aya.syntax.concrete.expr;
 }
