@@ -6,10 +6,18 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public record WithPos<T>(@NotNull SourcePos sourcePos, T data) implements SourceNode {
   public <U> @Contract("_->new") WithPos<U> map(@NotNull Function<T, U> mapper) {
-    var result = mapper.apply(data);
-    return result == data ? ((WithPos<U>) this) : new WithPos<>(sourcePos, mapper.apply(data));
+    return new WithPos<>(sourcePos, mapper.apply(data));
+  }
+
+  public @NotNull WithPos<T> update(@NotNull T data) {
+    return data == this.data ? this : new WithPos<>(sourcePos, data);
+  }
+
+  public @NotNull WithPos<T> descent(@NotNull UnaryOperator<T> f) {
+    return update(f.apply(data));
   }
 }
