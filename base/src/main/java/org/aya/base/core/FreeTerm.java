@@ -8,4 +8,8 @@ public record FreeTerm(@NotNull LocalVar name) implements Term {
     if (name == var) return new LocalTerm(depth);
     return this;
   }
+
+  @Override public @NotNull Term replace(int index, @NotNull Term arg) {
+    return this;
+  }
 }
