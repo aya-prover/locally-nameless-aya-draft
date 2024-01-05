@@ -92,12 +92,12 @@ public sealed interface Expr {
     }
   }
 
-  record Lam(@NotNull Param param, @NotNull WithPos<Expr> body) implements Expr {
-    public @NotNull Lam update(@NotNull Param param, @NotNull WithPos<Expr> body) {
-      return param == param() && body == body() ? this : new Lam(param, body);
+  record Lambda(@NotNull Param param, @NotNull WithPos<Expr> body) implements Expr {
+    public @NotNull Expr.Lambda update(@NotNull Param param, @NotNull WithPos<Expr> body) {
+      return param == param() && body == body() ? this : new Lambda(param, body);
     }
 
-    @Override public @NotNull Lam descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Expr.Lambda descent(@NotNull UnaryOperator<@NotNull Expr> f) {
       return update(param.descent(f), body.descent(f));
     }
   }
@@ -438,7 +438,7 @@ public sealed interface Expr {
   }
 
   static @NotNull WithPos<Expr> buildLam(@NotNull SourcePos sourcePos, @NotNull SeqView<Param> params, @NotNull WithPos<Expr> body) {
-    return buildNested(sourcePos, params, body, Lam::new);
+    return buildNested(sourcePos, params, body, Lambda::new);
   }
 
   static @NotNull WithPos<Expr> buildLet(@NotNull SourcePos sourcePos, @NotNull SeqView<LetBind> binds, @NotNull WithPos<Expr> body) {
