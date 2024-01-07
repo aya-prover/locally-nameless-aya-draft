@@ -9,6 +9,7 @@ import kala.value.MutableValue;
 import org.aya.generic.SortKind;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
+import org.aya.util.ForLSP;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -125,11 +126,11 @@ public sealed interface Expr {
   }
 
   record NamedArg(
-    @NotNull SourcePos sourcePos,
+    @Override @NotNull SourcePos sourcePos,
     @Override boolean explicit,
     @Nullable String name,
     @NotNull WithPos<Expr> arg
-  ) implements BinOpElem<Expr> {
+  ) implements SourceNode, BinOpElem<Expr> {
     @Override
     public @NotNull Expr term() {
       return arg.data();

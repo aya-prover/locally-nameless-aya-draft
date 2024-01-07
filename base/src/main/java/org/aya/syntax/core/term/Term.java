@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.Serializable;
 
 public sealed interface Term extends Serializable
-  permits AppTerm, FreeTerm, LamTerm, LocalTerm {
+  permits AppTerm, Formation, FreeTerm, LocalTerm, StableWHNF {
   @ApiStatus.Internal
   @NotNull Term bindAt(@NotNull LocalVar var, int depth);
 
@@ -35,6 +35,4 @@ public sealed interface Term extends Serializable
   default @NotNull Term instantiate(Term arg) {
     return replace(0, arg);
   }
-
-  interface StableWHNF {}
 }
