@@ -1,21 +1,20 @@
 package org.aya.syntax.core.term;
 
+import kala.function.IndexedFunction;
+import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
-public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
-  @Override public @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
-    var newFun = fun.bindAt(var, depth);
-    var newArg = arg.bindAt(var, depth);
-    if (newFun == fun && newArg == arg) return this;
-    return new AppTerm(newFun, newArg);
+public record AppTerm(@NotNull Term fun, @NotNull Arg<Term> arg) implements Term {
+  public @NotNull AppTerm update(@NotNull Term fun, @NotNull Arg<Term> arg) {
+    return fun == this.fun && arg == this.arg
+      ? this
+      : new AppTerm(fun, arg);
   }
 
-  @Override public @NotNull Term replace(int index, @NotNull Term incoming) {
-    var newArg = arg.replace(index, incoming);
-    var newFun = fun.replace(index, incoming);
-    if (newFun instanceof LamTerm(var body)) return body.instantiate(incoming);
-    if (newFun == fun && newArg == arg) return this;
-    return new AppTerm(newFun, newArg);
+  @Override
+  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+    return update(f.apply(0, fun), arg.descent(x -> f.apply(0, x)));
   }
 }

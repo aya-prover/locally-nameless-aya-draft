@@ -3,6 +3,7 @@
 package org.aya.syntax.core.term;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.function.IndexedFunction;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
@@ -16,17 +17,8 @@ public record SigmaTerm(@NotNull ImmutableSeq<Arg<Term>> params) implements Stab
   }
 
   @Override
-  public @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
-    return update(
-      params.mapIndexed((i, param) -> param.descent(x -> x.bindAt(var, depth + i)))
-    );
-  }
-
-  @Override
-  public @NotNull Term replace(int index, @NotNull Term arg) {
-    return update(
-      params.mapIndexed((i, param) -> param.descent(x -> x.replace(index + i, arg)))
-    );
+  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+    return update(params.mapIndexed((i, param) -> param.descent(t -> f.apply(i, t))));
   }
 
   // @Override public @NotNull SigmaTerm descent(@NotNull UnaryOperator<Term> f, @NotNull UnaryOperator<Pat> g) {

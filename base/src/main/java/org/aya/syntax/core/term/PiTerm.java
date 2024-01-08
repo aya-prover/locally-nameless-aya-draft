@@ -4,6 +4,7 @@ package org.aya.syntax.core.term;
 
 import kala.collection.SeqLike;
 import kala.collection.mutable.MutableList;
+import kala.function.IndexedFunction;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
@@ -19,22 +20,9 @@ public record PiTerm(@NotNull Arg<Term> param, @NotNull Term body) implements St
   }
 
   @Override
-  public @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
-    var newParam = param.descent(x -> x.bindAt(var, depth));    // use descent to get short path
-    var newBody = body.bindAt(var, depth + 1);
-    return update(newParam, newBody);
+  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+    return update(param.descent(t -> f.apply(0, t)), f.apply(1, body));
   }
-
-  @Override
-  public @NotNull Term replace(int index, @NotNull Term arg) {
-    var newParam = param.descent(x -> x.replace(index, arg));
-    var newBody = body.replace(index + 1, arg);
-    return update(newParam, newBody);
-  }
-
-  // public @NotNull PiTerm descent(@NotNull UnaryOperator<Term> f, @NotNull UnaryOperator<Pat> g) {
-  //   return update(param.descent(f), f.apply(body));
-  // }
 
   public static @NotNull Term unpi(@NotNull Term term, @NotNull UnaryOperator<Term> fmap, @NotNull MutableList<Arg<Term>> params) {
     if (fmap.apply(term) instanceof PiTerm(var param, var body)) {
