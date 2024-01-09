@@ -2,6 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
-public class ExprTycker {
-  public TyckState state;
+import org.aya.syntax.ref.LocalCtx;
+import org.jetbrains.annotations.NotNull;
+
+public record TyckState(
+  @NotNull LocalCtx ctx
+) {
 }

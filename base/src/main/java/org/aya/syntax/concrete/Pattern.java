@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.concrete;
 
@@ -56,12 +56,10 @@ public sealed interface Pattern {
   }
 
   /**
-   * @param userType only generated when a typed lambda is pushed into the patterns
-   * @param type     used in the LSP server
+   * @param type used in the LSP server
    */
   record Bind(
     @NotNull LocalVar bind
-    // @Nullable Expr userType
     // @ForLSP @NotNull MutableValue<@Nullable Term> type
   ) implements Pattern {
     @Override public @NotNull Bind descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
