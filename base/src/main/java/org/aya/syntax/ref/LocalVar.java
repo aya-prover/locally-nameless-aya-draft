@@ -5,6 +5,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record LocalVar(@NotNull String name, @NotNull SourcePos definition) {
+  public LocalVar(@NotNull String name) {
+    this(name, SourcePos.NONE);
+  }
+
+  public static final @NotNull LocalVar IGNORED = new LocalVar("_", SourcePos.NONE);
+
   @Override public boolean equals(@Nullable Object o) {
     return this == o;
   }
