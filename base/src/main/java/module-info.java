@@ -11,11 +11,13 @@ module aya.base {
   requires aya.ij.parsing.core;
   requires org.commonmark;
 
+  exports org.aya.generic;
   exports org.aya.prelude;
-  exports org.aya.syntax.concrete.decl;
+  exports org.aya.syntax.concrete.stmt;
+  exports org.aya.syntax.concrete.stmt.decl;
+  exports org.aya.syntax.concrete;
   exports org.aya.syntax.core.def;
   exports org.aya.syntax.core.term;
   exports org.aya.syntax.ref;
-  exports org.aya.generic;
-  exports org.aya.syntax.concrete;
+  exports org.aya.resolve.context;
 }

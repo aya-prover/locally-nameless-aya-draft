@@ -7,5 +7,5 @@ package org.aya.syntax.core.term;
  * Note that {@link PrimCall} may also be term formers, but not necessarily.
  */
 public sealed interface Formation extends Term
-  permits PiTerm, SigmaTerm {
+  permits DataCall, PiTerm, SigmaTerm, SortTerm {
 }

@@ -7,5 +7,5 @@ package org.aya.syntax.core.term;
  * after a substitution (this usually happens under face restrictions (aka cofibrations)).
  */
 public sealed interface StableWHNF extends Term
-  permits LamTerm, PiTerm, SigmaTerm, TupTerm {
+  permits DataCall, ErrorTerm, LamTerm, PiTerm, SigmaTerm, SortTerm, TupTerm {
 }

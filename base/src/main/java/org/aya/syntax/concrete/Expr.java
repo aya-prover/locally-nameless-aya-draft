@@ -6,13 +6,15 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import kala.value.MutableValue;
+import org.aya.generic.AyaDocile;
 import org.aya.generic.SortKind;
+import org.aya.pretty.doc.Doc;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
-import org.aya.util.ForLSP;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
+import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,8 +22,13 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-public sealed interface Expr {
+public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull UnaryOperator<@NotNull Expr> f);
+
+  @Override
+  default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+    throw new UnsupportedOperationException("TODO");    // TODO
+  }
 
   record Param(
     @Override @NotNull SourcePos sourcePos,
@@ -63,6 +70,17 @@ public sealed interface Expr {
 
     @Override public @NotNull Hole descent(@NotNull UnaryOperator<@NotNull Expr> f) {
       return update(filling == null ? null : f.apply(filling));
+    }
+  }
+
+  record Error(@NotNull AyaDocile description) implements Expr {
+    public Error(@NotNull Doc description) {
+      this((AyaDocile) null);
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    @Override public @NotNull Expr.Error descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+      return this;
     }
   }
 
