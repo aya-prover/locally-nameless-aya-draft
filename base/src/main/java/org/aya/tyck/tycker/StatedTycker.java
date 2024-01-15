@@ -25,30 +25,16 @@ import org.jetbrains.annotations.NotNull;
  * @see #defCall
  * @see #conOwnerSubst(ConCall)
  */
-public abstract sealed class StatedTycker implements Problematic {
-  public final @NotNull TyckState state;
-  private final @NotNull Reporter reporter;
+public sealed interface StatedTycker permits AbstractExprTycker {
+  @NotNull TyckState state();
 
-  protected StatedTycker(@NotNull Reporter reporter, @NotNull TyckState state) {
-    this.reporter = reporter;
-    this.state = state;
-  }
-
-  @Override
-  public @NotNull Reporter reporter() {
-    return reporter;
-  }
-
-  public @NotNull Term whnf(@NotNull Term term) {
-    throw new UnsupportedOperationException("TODO");    // TODO
-  }
-
+  @NotNull Term whnf(@NotNull Term term);
 
   /**
    * Elaborate partial applied call
    * {@code someCtor} -> {@code \ params -> someCtor params }
    */
-  protected final <D extends TeleDef, S extends TeleDecl<? extends Term>> @NotNull Result
+  default <D extends TeleDef, S extends TeleDecl<? extends Term>> @NotNull Result
   defCall(DefVar<D, S> defVar, Callable.Factory<D, S> function) {
     var tele = TeleDef.defTele(defVar);
     var spine = tele.mapIndexed((i, type) -> type.<Term>map(_ -> new LocalTerm(tele.size() - 1 - i)));    // λ. λ. λ. someCtor 2 1 0
