@@ -13,7 +13,7 @@ import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TeleDef;
-import org.aya.syntax.core.term.DataCall;
+import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;

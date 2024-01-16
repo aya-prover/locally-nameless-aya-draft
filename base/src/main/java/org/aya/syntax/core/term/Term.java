@@ -5,6 +5,7 @@ import kala.function.IndexedFunction;
 import org.aya.generic.AyaDocile;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;

@@ -2,6 +2,8 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import org.aya.syntax.core.term.call.DataCall;
+
 /**
  * Cubical-stable WHNF: those who will not change to other term formers
  * after a substitution (this usually happens under face restrictions (aka cofibrations)).

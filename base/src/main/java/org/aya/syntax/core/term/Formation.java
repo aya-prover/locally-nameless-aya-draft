@@ -2,6 +2,8 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import org.aya.syntax.core.term.call.DataCall;
+
 /**
  * Term formers, definitely.
  * Note that {@link PrimCall} may also be term formers, but not necessarily.

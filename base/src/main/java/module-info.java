@@ -20,4 +20,5 @@ module aya.base {
   exports org.aya.syntax.core.term;
   exports org.aya.syntax.ref;
   exports org.aya.resolve.context;
+  exports org.aya.syntax.core.term.call;
 }

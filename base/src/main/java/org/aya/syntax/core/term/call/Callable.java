@@ -1,11 +1,13 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.syntax.core.term;
+package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.term.AppTerm;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.Arg;
@@ -22,7 +24,7 @@ public sealed interface Callable extends Term permits Callable.Common {
   /**
    * Call to a {@link TeleDecl}.
    */
-  sealed interface Tele extends Common permits DataCall {
+  sealed interface Tele extends Common permits DataCall, FnCall {
     @Override @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> ref();
     int ulift();
   }
