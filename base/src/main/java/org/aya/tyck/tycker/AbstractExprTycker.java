@@ -8,7 +8,7 @@ import org.aya.tyck.TyckState;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public sealed abstract class AbstractExprTycker implements StatedTycker, ContextTycker, Problematic permits ExprTycker {
+public sealed abstract class AbstractExprTycker implements StateBased, ContextBased, Problematic permits ExprTycker {
   public @NotNull TyckState state;
   private @NotNull LocalCtx localCtx;
   public final @NotNull Reporter reporter;

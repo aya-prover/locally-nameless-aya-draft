@@ -3,11 +3,12 @@
 package org.aya.tyck.tycker;
 
 import org.aya.syntax.ref.LocalCtx;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public sealed interface ContextTycker permits AbstractExprTycker {
+public sealed interface ContextBased permits AbstractExprTycker {
   @NotNull LocalCtx localCtx();
 
   /**
@@ -16,8 +17,10 @@ public sealed interface ContextTycker permits AbstractExprTycker {
    * @param ctx new {@link LocalCtx}
    * @return old context
    */
+  @Contract(mutates = "this")
   @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx);
 
+  @Contract(mutates = "this")
   default <R> R subscoped(@NotNull Supplier<R> action) {
     var parentCtx = setLocalCtx(localCtx().derive());
     var result = action.get();

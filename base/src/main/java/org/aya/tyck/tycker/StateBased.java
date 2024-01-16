@@ -7,11 +7,11 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.Result;
 import org.aya.tyck.TyckState;
 import org.aya.util.Arg;
-import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * @see #defCall
  * @see #conOwnerSubst(ConCall)
  */
-public sealed interface StatedTycker permits AbstractExprTycker {
+public sealed interface StateBased permits AbstractExprTycker {
   @NotNull TyckState state();
 
   @NotNull Term whnf(@NotNull Term term);
