@@ -11,14 +11,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author re-xyr
  */
-public record SigmaTerm(@NotNull ImmutableSeq<Arg<Term>> params) implements StableWHNF, Formation {
-  public @NotNull SigmaTerm update(@NotNull ImmutableSeq<Arg<Term>> params) {
+public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHNF, Formation {
+  public @NotNull SigmaTerm update(@NotNull ImmutableSeq<Term> params) {
     return params.sameElements(params(), true) ? this : new SigmaTerm(params);
   }
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(params.mapIndexed((i, param) -> param.descent(t -> f.apply(i, t))));
+    return update(params.mapIndexed(f));
   }
 
   // @Override public @NotNull SigmaTerm descent(@NotNull UnaryOperator<Term> f, @NotNull UnaryOperator<Pat> g) {

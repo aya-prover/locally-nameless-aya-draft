@@ -16,4 +16,25 @@ public record LocalCtx(
   public @NotNull LocalCtx derive() {
     return new LocalCtx(MutableMap.create(), this);
   }
+
+  public @NotNull Term get(@NotNull LocalVar name) {
+    var ctx = this;
+    Term result;
+
+    while (ctx != null) {
+      result = ctx.getLocal(name);
+      if (result != null) return result;
+      ctx = ctx.parent;
+    }
+
+    throw new UnsupportedOperationException("?");
+  }
+
+  public @Nullable Term getLocal(@NotNull LocalVar name) {
+    return binds.getOrNull(name);
+  }
+
+  public void put(@NotNull LocalVar name, @NotNull Term type) {
+    binds.put(name, type);
+  }
 }

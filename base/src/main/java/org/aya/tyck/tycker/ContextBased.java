@@ -3,6 +3,7 @@
 package org.aya.tyck.tycker;
 
 import org.aya.syntax.ref.LocalCtx;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +18,7 @@ public sealed interface ContextBased permits AbstractExprTycker {
    * @param ctx new {@link LocalCtx}
    * @return old context
    */
+  @ApiStatus.Internal
   @Contract(mutates = "this")
   @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx);
 

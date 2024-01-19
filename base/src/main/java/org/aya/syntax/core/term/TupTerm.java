@@ -11,18 +11,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author re-xyr
  */
-public record TupTerm(@NotNull ImmutableSeq<Arg<Term>> items) implements StableWHNF {
-  private @NotNull TupTerm update(@NotNull ImmutableSeq<Arg<Term>> items) {
+public record TupTerm(@NotNull ImmutableSeq<Term> items) implements StableWHNF {
+  private @NotNull TupTerm update(@NotNull ImmutableSeq<Term> items) {
     return items.sameElements(items(), true) ? this : new TupTerm(items);
   }
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(items.map(x -> x.descent(t -> f.apply(0, t))));
-  }
-
-  @Contract("_ -> new") public static @NotNull TupTerm
-  explicits(@NotNull ImmutableSeq<Term> explicits) {
-    return new TupTerm(explicits.map(i -> new Arg<>(i, true)));
+    return update(items.map(x -> f.apply(0, x)));
   }
 }
