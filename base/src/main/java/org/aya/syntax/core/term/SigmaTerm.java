@@ -3,10 +3,12 @@
 package org.aya.syntax.core.term;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
-import org.aya.syntax.ref.LocalVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.function.BiFunction;
 
 /**
  * @author re-xyr
@@ -67,24 +69,25 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
    *
    * @return null if "too many items" error occur
    */
-  // public <T> @Nullable TupTerm check(@NotNull ImmutableSeq<? extends T> it, @NotNull BiFunction<T, Term, Term> inherit) {
-  //   var items = MutableList.<Arg<Term>>create();
-  //   var againstTele = params.view();
-  //   var subst = new Subst();
-  //   for (var iter = it.iterator(); iter.hasNext(); ) {
-  //     var item = iter.next();
-  //     var first = againstTele.getFirst().subst(subst);
-  //     var result = inherit.apply(item, first.type());
-  //     items.append(new Arg<>(result, first.explicit()));
-  //     var ref = first.ref();
-  //     againstTele = againstTele.drop(1);
-  //     if (againstTele.isNotEmpty())
-  //       // LGTM! The show must go on
-  //       subst.add(ref, result);
-  //     else if (iter.hasNext())
-  //       // Too many items
-  //       return null;
-  //   }
-  //   return new TupTerm(items.toImmutableArray());
-  // }
+  public <T> @Nullable TupTerm check(@NotNull ImmutableSeq<? extends T> it, @NotNull BiFunction<T, Term, Term> inherit) {
+    var items = MutableList.<Term>create();
+    var againstTele = params.view();
+    var spine = MutableList.<Term>create();
+    for (var iter = it.iterator(); iter.hasNext(); ) {
+      var item = iter.next();
+      var first = againstTele.getFirst()
+        // the closest term (0) is the last term in spine
+        .instantiateAll(spine.view().reversed());
+      var result = inherit.apply(item, first);
+      items.append(result);
+      againstTele = againstTele.drop(1);
+      if (againstTele.isNotEmpty())
+        // LGTM! The show must go on
+        spine.append(result);
+      else if (iter.hasNext())
+        // Too many items
+        return null;
+    }
+    return new TupTerm(items.toImmutableArray());
+  }
 }

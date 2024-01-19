@@ -1,5 +1,6 @@
 package org.aya.syntax.core.term;
 
+import kala.collection.SeqLike;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.generic.AyaDocile;
@@ -54,6 +55,13 @@ public sealed interface Term extends Serializable, AyaDocile
    */
   default @NotNull Term instantiate(Term arg) {
     return replace(0, arg);
+  }
+
+  /**
+   * Instantiate {@code 0..args.size()} with {@param args}
+   */
+  default @NotNull Term instantiateAll(@NotNull SeqLike<Term> args) {
+    return args.foldLeftIndexed(this, (i, acc, t) -> acc.replace(i, t));
   }
 
   /**

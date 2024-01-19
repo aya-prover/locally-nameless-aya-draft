@@ -28,7 +28,6 @@ public final class ExprTycker extends AbstractExprTycker {
     return switch (expr) {
       case Expr.App app -> throw new UnsupportedOperationException("TODO");
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
-      case Expr.Do aDo -> throw new UnsupportedOperationException("TODO");
       case Expr.Error error -> throw new UnsupportedOperationException("TODO");
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
       case Expr.Lambda(var param, var body) -> {
@@ -62,6 +61,7 @@ public final class ExprTycker extends AbstractExprTycker {
 
         yield new Result.Default(wellTyped, ty);
       }
+      case Expr.Do aDo -> throw new UnsupportedOperationException("desugared");
       case Expr.BinOpSeq _ -> throw new UnsupportedOperationException("deesugared");
       case Expr.Idiom _ -> throw new UnsupportedOperationException("desugared");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
