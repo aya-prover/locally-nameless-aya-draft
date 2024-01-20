@@ -29,19 +29,4 @@ public class BindTest {
     var expect = new LamTerm(true, new LamTerm(true, new AppTerm(new LocalTerm(1), Arg.ofExplicitly(new LocalTerm(0)))));
     assertEquals(expect, lamXYXY);
   }
-
-
-  @Test
-  public void tyckLam() {
-    var x = new LocalVar("x", SourcePos.NONE);
-    var y = new LocalVar("y", SourcePos.NONE);
-    // x y
-    var body = new Expr.App(new WithPos<>(SourcePos.NONE, new Expr.Ref(x)), new Expr.NamedArg(SourcePos.NONE, true, null, new WithPos<>(SourcePos.NONE, new Expr.Ref(y))));
-    // λ y. x y
-    var lamYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, y, true), new WithPos<>(SourcePos.NONE, body));
-    var lamXYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, x, true), new WithPos<>(SourcePos.NONE, lamYXY));
-    var tycker = new ExprTycker(null, new LocalCtx(MutableMap.create(), null), null);
-    var result = tycker.synthesize(lamXYXY);
-    return;
-  }
 }

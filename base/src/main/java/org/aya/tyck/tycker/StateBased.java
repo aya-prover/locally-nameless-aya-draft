@@ -37,7 +37,7 @@ public sealed interface StateBased permits AbstractExprTycker {
   default <D extends TeleDef, S extends TeleDecl<? extends Term>> @NotNull Result
   defCall(DefVar<D, S> defVar, Callable.Factory<D, S> function) {
     var tele = TeleDef.defTele(defVar);
-    var spine = tele.mapIndexed((i, type) -> type.<Term>map(_ -> new LocalTerm(tele.size() - 1 - i)));    // λ. λ. λ. someCtor 2 1 0
+    var spine = tele.mapIndexed((i, type) -> type.<Term>map(x -> new LocalTerm(tele.size() - 1 - i)));    // λ. λ. λ. someCtor 2 1 0
     Term body = function.make(defVar, 0, spine);
     var type = PiTerm.make(tele, TeleDef.defResult(defVar));
     if ((defVar.core instanceof FnDef fn && fn.modifiers.contains(Modifier.Inline)) /*|| defVar.core instanceof PrimDef*/) {
