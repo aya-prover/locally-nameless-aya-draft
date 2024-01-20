@@ -46,5 +46,4 @@ public sealed interface StateBased permits AbstractExprTycker {
 
     return new Result.Default(LamTerm.make(spine.map(Arg::explicit), body), type);
   }
-
 }

@@ -11,5 +11,5 @@ import org.jetbrains.annotations.Debug;
  * @author kiva, ice1000, HoshinoTented
  */
 @Debug.Renderer(text = "toTerm().toDoc(AyaPrettierOptions.debug()).debugRender()")
-public sealed interface Pat extends AyaDocile {
+public interface Pat extends AyaDocile {
 }

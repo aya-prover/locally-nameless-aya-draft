@@ -23,10 +23,6 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
     return update(params.mapIndexed(f));
   }
 
-  // @Override public @NotNull SigmaTerm descent(@NotNull UnaryOperator<Term> f, @NotNull UnaryOperator<Pat> g) {
-  //   return update(params.map(p -> p.descent(f)));
-  // }
-
   // public static @NotNull SortTerm lub(@NotNull SortTerm x, @NotNull SortTerm y) {
   //   int lift = Math.max(x.lift(), y.lift());
   //   if (x.kind() == SortKind.Set || y.kind() == SortKind.Set) {

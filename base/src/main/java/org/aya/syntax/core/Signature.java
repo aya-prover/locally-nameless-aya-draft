@@ -21,5 +21,6 @@ public record Signature<T extends Term>(
 ) implements AyaDocile {
   @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     // return Doc.sep(Doc.sep(param.view().map(p -> p.toDoc(options))), Doc.symbol("->"), result.toDoc(options));
+    throw new UnsupportedOperationException("TODO");
   }
 }
