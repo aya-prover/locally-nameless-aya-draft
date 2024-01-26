@@ -1,17 +1,12 @@
 package org.aya.syntax.core;
 
-import kala.collection.mutable.MutableMap;
-import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.LocalTerm;
-import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
-import org.aya.tyck.ExprTycker;
 import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;
-import org.aya.util.error.WithPos;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

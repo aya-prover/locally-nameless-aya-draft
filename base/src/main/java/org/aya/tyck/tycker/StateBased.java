@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  * @see #defCall
  * @see #conOwnerSubst(ConCall)
  */
-public sealed interface StateBased permits AbstractExprTycker {
+public interface StateBased {
   @NotNull TyckState state();
 
   @NotNull Term whnf(@NotNull Term term);

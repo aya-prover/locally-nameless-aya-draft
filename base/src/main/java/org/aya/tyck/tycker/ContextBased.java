@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
-public sealed interface ContextBased permits AbstractExprTycker {
+public interface ContextBased {
   @NotNull LocalCtx localCtx();
 
   /**

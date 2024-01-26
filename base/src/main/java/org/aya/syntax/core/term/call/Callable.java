@@ -24,7 +24,7 @@ public sealed interface Callable extends Term permits Callable.Common {
   /**
    * Call to a {@link TeleDecl}.
    */
-  sealed interface Tele extends Common permits DataCall, FnCall {
+  sealed interface Tele extends Common permits ConCallLike, DataCall, FnCall {
     @Override @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> ref();
     int ulift();
   }
