@@ -3,9 +3,9 @@
 package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.tyck.ExprTycker;
-import org.aya.util.Arg;
 import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +24,7 @@ public sealed abstract class UserDef<Ret extends Term>
    */
   public @Nullable ImmutableSeq<Problem> problems;
 
-  protected UserDef(@NotNull ImmutableSeq<Arg<Term>> telescope, @NotNull Ret result) {
+  protected UserDef(@NotNull ImmutableSeq<Param> telescope, @NotNull Ret result) {
     super(telescope, result);
   }
 }

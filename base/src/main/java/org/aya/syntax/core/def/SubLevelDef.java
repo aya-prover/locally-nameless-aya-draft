@@ -4,8 +4,8 @@ package org.aya.syntax.core.def;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,12 +14,12 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public sealed abstract class SubLevelDef implements TeleDef permits CtorDef {
-  public final @NotNull ImmutableSeq<Arg<Term>> selfTele;
+  public final @NotNull ImmutableSeq<Param> selfTele;
   public final @NotNull Term result;
   public final boolean coerce;
 
   protected SubLevelDef(
-    @NotNull ImmutableSeq<Arg<Term>> selfTele,
+    @NotNull ImmutableSeq<Param> selfTele,
     @NotNull Term result, boolean coerce
   ) {
     this.selfTele = selfTele;
@@ -27,7 +27,7 @@ public sealed abstract class SubLevelDef implements TeleDef permits CtorDef {
     this.coerce = coerce;
   }
 
-  public @NotNull SeqView<Arg<Term>> fullTelescope() {
+  public @NotNull SeqView<Param> fullTelescope() {
     return selfTele.view();
   }
 

@@ -4,9 +4,9 @@ package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -22,7 +22,7 @@ public final class CtorDef extends SubLevelDef {
    */
   public CtorDef(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef, @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
-    @NotNull ImmutableSeq<Arg<Term>> selfTele,
+    @NotNull ImmutableSeq<Param> selfTele,
     @NotNull Term result, boolean coerce
   ) {
     super(selfTele, result, coerce);
@@ -35,7 +35,7 @@ public final class CtorDef extends SubLevelDef {
     return ref;
   }
 
-  @Override public @NotNull ImmutableSeq<Arg<Term>> telescope() {
+  @Override public @NotNull ImmutableSeq<Param> telescope() {
     return fullTelescope().toImmutableSeq();
   }
 }

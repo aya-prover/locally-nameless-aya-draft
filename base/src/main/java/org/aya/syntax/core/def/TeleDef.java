@@ -6,10 +6,10 @@ import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,10 +20,10 @@ import java.util.Objects;
  */
 public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
   static @NotNull Term defType(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
-    return PiTerm.make(defTele(defVar), defResult(defVar));
+    return PiTerm.make(defTele(defVar).map(Param::type), defResult(defVar));
   }
 
-  static @NotNull ImmutableSeq<Arg<Term>> defTele(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
+  static @NotNull ImmutableSeq<Param> defTele(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
     if (defVar.core != null) return defVar.core.telescope();
     // guaranteed as this is already a core term
     var signature = defVar.concrete.signature;
@@ -46,5 +46,5 @@ public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
 
   @Override @NotNull DefVar<? extends TeleDef, ? extends Decl> ref();
   @NotNull Term result();
-  @NotNull ImmutableSeq<Arg<Term>> telescope();
+  @NotNull ImmutableSeq<Param> telescope();
 }

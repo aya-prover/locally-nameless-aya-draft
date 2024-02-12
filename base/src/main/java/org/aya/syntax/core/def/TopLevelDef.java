@@ -3,8 +3,8 @@
 package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,18 +13,18 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public sealed abstract class TopLevelDef<Ret extends Term> implements TeleDef permits UserDef {
-  public final @NotNull ImmutableSeq<Arg<Term>> telescope;
+  public final @NotNull ImmutableSeq<Param> telescope;
   public final @NotNull Ret result;
 
   protected TopLevelDef(
-    @NotNull ImmutableSeq<Arg<Term>> telescope,
+    @NotNull ImmutableSeq<Param> telescope,
     @NotNull Ret result
   ) {
     this.telescope = telescope;
     this.result = result;
   }
 
-  @Override public @NotNull ImmutableSeq<Arg<Term>> telescope() {
+  @Override public @NotNull ImmutableSeq<Param> telescope() {
     return telescope;
   }
 

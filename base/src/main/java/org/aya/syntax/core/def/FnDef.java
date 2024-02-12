@@ -6,9 +6,9 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
@@ -23,7 +23,7 @@ public final class FnDef extends UserDef<Term> {
   public final @NotNull Either<Term, ImmutableSeq<Term.Matching>> body;
 
   public FnDef(
-    @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref, @NotNull ImmutableSeq<Arg<Term>> telescope,
+    @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref, @NotNull ImmutableSeq<Param> telescope,
     @NotNull Term result,
     @NotNull EnumSet<Modifier> modifiers,
     @NotNull Either<Term, ImmutableSeq<Term.Matching>> body
