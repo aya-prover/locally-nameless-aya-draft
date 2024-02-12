@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface Callable extends Term permits Callable.Common {
   @NotNull AnyVar ref();
-  @NotNull ImmutableSeq<@NotNull Arg<Term>> args();
+  @NotNull ImmutableSeq<@NotNull Term> args();
   /**
    * Call to a {@link TeleDecl}.
    */
@@ -40,7 +40,7 @@ public sealed interface Callable extends Term permits Callable.Common {
     @Contract(pure = true, value = "_,_,_->new") @NotNull Callable make(
       DefVar<D, S> defVar,
       int ulift,
-      ImmutableSeq<@NotNull Arg<Term>> args
+      ImmutableSeq<@NotNull Term> args
     );
   }
 }

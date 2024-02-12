@@ -31,21 +31,21 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall {
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef,
     @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
     int ulift,
-    @NotNull ImmutableSeq<Arg<@NotNull Term>> dataArgs
+    @NotNull ImmutableSeq<@NotNull Term> dataArgs
   ) {
     public @NotNull DataCall underlyingDataCall() {
       return new DataCall(dataRef, ulift, dataArgs);
     }
 
     public @NotNull Head descent(@NotNull UnaryOperator<@NotNull Term> f) {
-      var args = dataArgs.map(arg -> arg.descent(f));
+      var args = dataArgs.map(f::apply);
       if (args.sameElements(dataArgs, true)) return this;
       return new Head(dataRef, ref, ulift, args);
     }
   }
 
   @NotNull ConCallLike.Head head();
-  @NotNull ImmutableSeq<Arg<Term>> conArgs();
+  @NotNull ImmutableSeq<Term> conArgs();
 
   @Override
   default @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref() {
@@ -53,9 +53,8 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall {
   }
 
   @Override
-  default @NotNull ImmutableSeq<Arg<@NotNull Term>> args() {
+  default @NotNull ImmutableSeq<@NotNull Term> args() {
     return head().dataArgs().view()
-      .map(Arg::implicitify)
       .concat(conArgs())
       .toImmutableSeq();
   }

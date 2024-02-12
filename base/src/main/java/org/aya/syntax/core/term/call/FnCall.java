@@ -14,14 +14,14 @@ import org.jetbrains.annotations.NotNull;
 public record FnCall(
   @Override @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref,
   @Override int ulift,
-  @Override @NotNull ImmutableSeq<Arg<@NotNull Term>> args
+  @Override @NotNull ImmutableSeq<@NotNull Term> args
 ) implements Callable.Tele {
-  public @NotNull FnCall update(@NotNull ImmutableSeq<Arg<Term>> args) {
+  public @NotNull FnCall update(@NotNull ImmutableSeq<Term> args) {
     return args.sameElements(args(), true) ? this : new FnCall(ref, ulift, args);
   }
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(args.map(x -> x.descent(t -> f.apply(0, t))));
+    return update(args.map(x -> f.apply(0, x)));
   }
 }

@@ -14,23 +14,23 @@ import org.jetbrains.annotations.NotNull;
 
 public record ConCall(
   @Override @NotNull ConCall.Head head,
-  @Override @NotNull ImmutableSeq<Arg<Term>> conArgs
+  @Override @NotNull ImmutableSeq<Term> conArgs
 ) implements ConCallLike {
-  public @NotNull ConCall update(@NotNull Head head, @NotNull ImmutableSeq<Arg<Term>> conArgs) {
+  public @NotNull ConCall update(@NotNull Head head, @NotNull ImmutableSeq<Term> conArgs) {
     return head == head() && conArgs.sameElements(conArgs(), true) ? this : new ConCall(head, conArgs);
   }
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(head.descent(x -> f.apply(0, x)), conArgs.map(x -> x.descent(t -> f.apply(0, t))));
+    return update(head.descent(x -> f.apply(0, x)), conArgs.map(x -> f.apply(0, x)));
   }
 
   public ConCall(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef,
     @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
-    @NotNull ImmutableSeq<Arg<@NotNull Term>> dataArgs,
+    @NotNull ImmutableSeq<@NotNull Term> dataArgs,
     int ulift,
-    @NotNull ImmutableSeq<Arg<@NotNull Term>> conArgs
+    @NotNull ImmutableSeq<@NotNull Term> conArgs
   ) {
     this(new Head(dataRef, ref, ulift, dataArgs), conArgs);
   }
