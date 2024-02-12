@@ -4,7 +4,7 @@ import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record LocalVar(@NotNull String name, @NotNull SourcePos definition) {
+public record LocalVar(@NotNull String name, @NotNull SourcePos definition) implements AnyVar {
   public LocalVar(@NotNull String name) {
     this(name, SourcePos.NONE);
   }

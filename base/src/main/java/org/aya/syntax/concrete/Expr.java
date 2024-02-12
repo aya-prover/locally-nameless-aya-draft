@@ -9,6 +9,7 @@ import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
 import org.aya.generic.SortKind;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
 import org.aya.util.error.SourceNode;
@@ -104,7 +105,7 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
-  record Ref(@NotNull LocalVar var) implements Expr {
+  record Ref(@NotNull AnyVar var) implements Expr {
     @Override
     public @NotNull Expr descent(@NotNull UnaryOperator<@NotNull Expr> f) {
       return this;
