@@ -6,8 +6,8 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
-public record AppTerm(@NotNull Term fun, @NotNull Arg<Term> arg) implements Term {
-  public @NotNull AppTerm update(@NotNull Term fun, @NotNull Arg<Term> arg) {
+public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
+  public @NotNull AppTerm update(@NotNull Term fun, @NotNull Term arg) {
     return fun == this.fun && arg == this.arg
       ? this
       : new AppTerm(fun, arg);
@@ -15,6 +15,6 @@ public record AppTerm(@NotNull Term fun, @NotNull Arg<Term> arg) implements Term
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(f.apply(0, fun), arg.descent(x -> f.apply(0, x)));
+    return update(f.apply(0, fun), f.apply(0, arg));
   }
 }

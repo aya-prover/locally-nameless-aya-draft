@@ -26,7 +26,12 @@ public final class ExprTycker extends AbstractExprTycker {
 
   private @NotNull Result doSynthesize(@NotNull Expr expr) {
     return switch (expr) {
-      case Expr.App app -> throw new UnsupportedOperationException("TODO");
+      case Expr.App(var f, var a) -> {
+        var resultF = synthesize(f.data());
+        var fTy = whnf(resultF.type());
+        if (!(fTy instanceof PiTerm)) throw new UnsupportedOperationException("TODO");
+        throw new UnsupportedOperationException("TODO");
+      }
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
       case Expr.Error error -> throw new UnsupportedOperationException("TODO");
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
@@ -36,9 +41,9 @@ public final class ExprTycker extends AbstractExprTycker {
         yield subscoped(() -> {
           localCtx().put(param.ref(), paramResult.wellTyped());
           var bodyResult = synthesize(body.data());
-          var lamTerm = new LamTerm(param.explicit(), bodyResult.wellTyped().bind(param.ref()));
+          var lamTerm = new LamTerm(bodyResult.wellTyped().bind(param.ref()));    // TODO: what should we do about licit?
           var ty = new PiTerm(
-            new Arg<>(paramResult.type(), param.explicit()),
+            paramResult.type(),
             bodyResult.type()   // TODO: do we need to `.bind` on type?
           );
           return new Result.Default(lamTerm, ty);

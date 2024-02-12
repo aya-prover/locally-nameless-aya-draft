@@ -5,11 +5,11 @@ import kala.function.BooleanConsumer;
 import kala.function.IndexedFunction;
 import org.jetbrains.annotations.NotNull;
 
-public record LamTerm(boolean explicit, Term body) implements StableWHNF {
+public record LamTerm(Term body) implements StableWHNF {
   public @NotNull LamTerm update(@NotNull Term body) {
     return body == this.body
       ? this
-      : new LamTerm(explicit, body);
+      : new LamTerm(body);
   }
 
   @Override
@@ -17,15 +17,13 @@ public record LamTerm(boolean explicit, Term body) implements StableWHNF {
     return update(f.apply(1, body));
   }
 
-  public static @NotNull Term unwrap(@NotNull Term term, @NotNull BooleanConsumer params) {
-    while (term instanceof LamTerm lambda) {
-      params.accept(lambda.explicit);
-      term = lambda.body;
-    }
-    return term;
-  }
+  public static @NotNull Term make(int paramSize, @NotNull Term body) {
+    var result = body;
 
-  public static @NotNull Term make(@NotNull SeqLike<Boolean> telescope, @NotNull Term body) {
-    return telescope.view().foldRight(body, LamTerm::new);
+    for (var i = 0; i < paramSize; ++i) {
+      result = new LamTerm(result);
+    }
+
+    return result;
   }
 }
