@@ -2,7 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
+import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -28,5 +31,9 @@ public interface ContextBased {
     var result = action.get();
     setLocalCtx(parentCtx);
     return result;
+  }
+
+  default @NotNull Term mockTerm(@NotNull Param param, @NotNull SourcePos pos) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

@@ -1,9 +1,6 @@
 package org.aya.syntax.core.term;
 
 import kala.function.IndexedFunction;
-import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.ref.LocalVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
@@ -16,5 +13,16 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(f.apply(0, fun), f.apply(0, arg));
+  }
+
+  public static @NotNull Term make(@NotNull Term f, @NotNull Term a) {
+    return make(new AppTerm(f, a));
+  }
+
+  public static @NotNull Term make(@NotNull AppTerm material) {
+    return switch (material.fun) {
+      case LamTerm(var body) -> body.instantiate(material.arg);
+      default -> material;
+    };
   }
 }

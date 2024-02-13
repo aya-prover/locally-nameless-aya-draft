@@ -24,4 +24,9 @@ public record FnCall(
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(args.map(x -> f.apply(0, x)));
   }
+
+  @Override
+  public @NotNull Tele applyTo(@NotNull Term arg) {
+    return new FnCall(ref, ulift, args);
+  }
 }

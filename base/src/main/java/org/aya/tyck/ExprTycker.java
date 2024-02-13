@@ -3,12 +3,18 @@
 package org.aya.tyck;
 
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.call.Callable;
+import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.tycker.AbstractExprTycker;
-import org.aya.util.Arg;
+import org.aya.tyck.tycker.ExprTyckerUtils;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public final class ExprTycker extends AbstractExprTycker {
   public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
@@ -17,7 +23,12 @@ public final class ExprTycker extends AbstractExprTycker {
 
   @Override
   public @NotNull Term whnf(@NotNull Term term) {
-    throw new UnsupportedOperationException("TODO");
+    // TODO
+    return term;
+  }
+
+  public @NotNull Result inherit(@NotNull Expr expr, @NotNull Term type) {
+    return synthesize(expr);
   }
 
   public @NotNull Result synthesize(@NotNull Expr expr) {
@@ -28,9 +39,19 @@ public final class ExprTycker extends AbstractExprTycker {
     return switch (expr) {
       case Expr.App(var f, var a) -> {
         var resultF = synthesize(f.data());
-        var fTy = whnf(resultF.type());
-        if (!(fTy instanceof PiTerm)) throw new UnsupportedOperationException("TODO");
-        throw new UnsupportedOperationException("TODO");
+        if (!(whnf(resultF.type()) instanceof PiTerm fTy)) throw new UnsupportedOperationException("TODO");
+
+        var wellF = whnf(resultF.wellTyped());
+        if (wellF instanceof Callable.Tele callF) {
+          yield checkAppOnCall(callF, fTy, a);
+        }
+
+        var param = fTy.param();
+        var wellArg = inherit(a.term(), param).wellTyped();
+        var app = AppTerm.make(wellF, wellArg);
+        var ty = fTy.body().instantiate(wellArg);
+
+        yield new Result.Default(app, ty);
       }
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
       case Expr.Error error -> throw new UnsupportedOperationException("TODO");
@@ -41,7 +62,7 @@ public final class ExprTycker extends AbstractExprTycker {
         yield subscoped(() -> {
           localCtx().put(param.ref(), paramResult.wellTyped());
           var bodyResult = synthesize(body.data());
-          var lamTerm = new LamTerm(bodyResult.wellTyped().bind(param.ref()));    // TODO: what should we do about licit?
+          var lamTerm = new LamTerm(bodyResult.wellTyped().bind(param.ref()));
           var ty = new PiTerm(
             paramResult.type(),
             bodyResult.type()   // TODO: do we need to `.bind` on type?
@@ -54,7 +75,11 @@ public final class ExprTycker extends AbstractExprTycker {
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
       case Expr.Pi(var param, var body) -> throw new UnsupportedOperationException("TODO");
       case Expr.RawSort rawSort -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref ref -> new Result.Default(new FreeTerm(ref.var()), localCtx().get(ref.var()));
+      case Expr.Ref ref -> switch (ref.var()) {
+        case LocalVar lVar -> new Result.Default(new FreeTerm(lVar), localCtx().get(lVar));
+        case DefVar<?, ?> defVar -> ExprTyckerUtils.inferDef(defVar);
+        default -> throw new UnsupportedOperationException("TODO");
+      };
       case Expr.Sigma sigma -> throw new UnsupportedOperationException("TODO");
       case Expr.Sort sort -> throw new UnsupportedOperationException("TODO");
       case Expr.Tuple(var items) -> {
@@ -71,5 +96,43 @@ public final class ExprTycker extends AbstractExprTycker {
       case Expr.Idiom _ -> throw new UnsupportedOperationException("desugared");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
     };
+  }
+
+  private @NotNull PiTerm ensurePi(Term term) {
+    if (term instanceof PiTerm pi) return pi;
+    // TODO
+    throw new UnsupportedOperationException("TODO: report NotPi");
+  }
+
+  private @NotNull Result checkAppOnCall(@NotNull Callable.Tele f, @NotNull PiTerm fTy, @NotNull Expr.NamedArg arg) {
+    var argLicit = arg.explicit();
+    var tele = TeleDef.defTele(f.ref());
+    var param = tele.get(f.args().size());    // always success
+
+    while (param.explicit() != argLicit
+      || (arg.name() != null && Objects.equals(param.name(), arg.name()))) {
+      if (argLicit || arg.name() != null) {
+        // We need to insert hole if:
+        // * the parameter is implicit but the argument is explicit
+        // * the parameter and the argument is both implicit but the argument is an named argument,
+        //   and the parameter is not the one.
+
+        // do insert hole
+        var hole = mockTerm(param, arg.sourcePos());
+        f = f.applyTo(hole);
+        var newTy = fTy.body().instantiate(hole);
+        fTy = ensurePi(newTy);
+        param = tele.get(f.args().size());
+      } else {
+        // the parameter is explicit but the argument is implicit
+        // which is TODO not cool.
+        throw new UnsupportedOperationException("TODO: report not cool");
+      }
+    }
+
+    // for now, we can safely apply {arg} to {f}
+
+    var wellArg = inherit(arg.term(), fTy.param()).wellTyped();
+    return new Result.Default(f.applyTo(wellArg), fTy.body().instantiate(wellArg));
   }
 }

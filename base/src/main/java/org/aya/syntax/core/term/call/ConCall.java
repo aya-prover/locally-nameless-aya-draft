@@ -7,9 +7,9 @@ import kala.function.IndexedFunction;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 public record ConCall(
@@ -33,5 +33,21 @@ public record ConCall(
     @NotNull ImmutableSeq<@NotNull Term> conArgs
   ) {
     this(new Head(dataRef, ref, ulift, dataArgs), conArgs);
+  }
+
+  @Override
+  public @NotNull Tele applyTo(@NotNull Term arg) {
+    var newHead = head;
+    var newArgs = conArgs;
+
+    if (TeleDef.defTele(head.dataRef()).sizeEquals(head.dataArgs().size())) {
+      // append to conArgs
+      newHead = new Head(head.dataRef(), head.ref(), head.ulift(), head.dataArgs().appended(arg));
+    } else {
+      // append to dataArgs
+      newArgs = conArgs.appended(arg);
+    }
+
+    return new ConCall(newHead, newArgs);
   }
 }

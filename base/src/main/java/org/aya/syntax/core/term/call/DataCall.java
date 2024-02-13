@@ -27,6 +27,11 @@ public record DataCall(
     return update(args.map(arg -> f.apply(0, arg)));
   }
 
+  @Override
+  public @NotNull Tele applyTo(@NotNull Term arg) {
+    return new DataCall(ref, ulift, args.appended(arg));
+  }
+
   // public @NotNull ConCall.Head conHead(@NotNull DefVar<CtorDef, TeleDecl.DataCtor> ctorRef) {
   //   return new ConCall.Head(ref, ctorRef, ulift, args);
   // }
