@@ -1,12 +1,19 @@
 package org.aya.syntax.core;
 
+import kala.collection.mutable.MutableMap;
+import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.LocalTerm;
+import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.tyck.ExprTycker;
 import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
+import org.aya.util.reporter.ThrowingReporter;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,12 +23,31 @@ public class BindTest {
     // λx. λy. x y
     var x = new LocalVar("x", SourcePos.NONE);
     var y = new LocalVar("y", SourcePos.NONE);
-    var body = new AppTerm(new FreeTerm(x), Arg.ofExplicitly(new FreeTerm(y)));
+    var body = new AppTerm(new FreeTerm(x), new FreeTerm(y));
     // λy. x y => λ. x 0
-    var lamYXY = new LamTerm(true, body.bind(y));
+    var lamYXY = new LamTerm(body.bind(y));
     // λx. λ. x 0 => λ. λ. 1 0
-    var lamXYXY = new LamTerm(true, lamYXY.bind(x));
-    var expect = new LamTerm(true, new LamTerm(true, new AppTerm(new LocalTerm(1), Arg.ofExplicitly(new LocalTerm(0)))));
+    var lamXYXY = new LamTerm(lamYXY.bind(x));
+    var expect = new LamTerm(new LamTerm(new AppTerm(new LocalTerm(1), new LocalTerm(0))));
     assertEquals(expect, lamXYXY);
+  }
+
+  @Test public void testTyckLam() {
+    var x = new LocalVar("x", SourcePos.NONE);
+    var y = new LocalVar("y", SourcePos.NONE);
+    var ty = new Expr.Type(0);
+    var pi = new Expr.Pi(new Expr.Param(SourcePos.NONE, LocalVar.IGNORED, of(ty), true), of(ty));   // Type -> Type
+    var refX = new Expr.Ref(x);
+    var refY = new Expr.Ref(y);
+    var XY = new Expr.App(of(refX), new Expr.NamedArg(SourcePos.NONE, true, null, of(refY)));
+    var YXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, y, of(ty), true), of(XY));
+    var XYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, x, of(pi), true), of(YXY));
+
+    var tycker = new ExprTycker(null, new LocalCtx(MutableMap.create(), null), null);
+    var result = tycker.synthesize(XYXY);
+  }
+
+  public static <T> @NotNull WithPos<T> of(T data) {
+    return new WithPos<>(SourcePos.NONE, data);
   }
 }

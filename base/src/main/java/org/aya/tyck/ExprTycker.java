@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
+import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
@@ -31,6 +32,25 @@ public final class ExprTycker extends AbstractExprTycker {
     return synthesize(expr);
   }
 
+  public @NotNull Term ty(@NotNull Expr expr) {
+    return doTy(expr);
+  }
+
+  private @NotNull Term doTy(@NotNull Expr expr) {
+    return switch (expr) {
+      case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());
+      case Expr.Pi(var param, var last) -> {
+        var wellParam = ty(param.type().data());
+        yield subscoped(() -> {
+          localCtx().put(param.ref(), wellParam);
+          var wellLast = ty(last.data());
+          return new PiTerm(wellParam, wellLast);
+        });
+      }
+      default -> synthesize(expr).wellTyped();
+    };
+  }
+
   public @NotNull Result synthesize(@NotNull Expr expr) {
     return doSynthesize(expr);
   }
@@ -53,8 +73,6 @@ public final class ExprTycker extends AbstractExprTycker {
 
         yield new Result.Default(app, ty);
       }
-      case Expr.Array array -> throw new UnsupportedOperationException("TODO");
-      case Expr.Error error -> throw new UnsupportedOperationException("TODO");
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
       case Expr.Lambda(var param, var body) -> {
         var paramResult = synthesize(param.type().data());
@@ -70,18 +88,22 @@ public final class ExprTycker extends AbstractExprTycker {
           return new Result.Default(lamTerm, ty);
         });
       }
-      case Expr.Let let -> throw new UnsupportedOperationException("TODO");
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Pi(var param, var body) -> throw new UnsupportedOperationException("TODO");
-      case Expr.RawSort rawSort -> throw new UnsupportedOperationException("TODO");
       case Expr.Ref ref -> switch (ref.var()) {
         case LocalVar lVar -> new Result.Default(new FreeTerm(lVar), localCtx().get(lVar));
         case DefVar<?, ?> defVar -> ExprTyckerUtils.inferDef(defVar);
         default -> throw new UnsupportedOperationException("TODO");
       };
       case Expr.Sigma sigma -> throw new UnsupportedOperationException("TODO");
-      case Expr.Sort sort -> throw new UnsupportedOperationException("TODO");
+      case Expr.Pi(var param, var body) -> {
+        var ty = ty(expr);
+        yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
+      }
+      case Expr.Sort sort -> {
+        var ty = ty(sort);
+        yield new Result.Default(ty, ty);       // FIXME: Type in Type
+      }
       case Expr.Tuple(var items) -> {
         var results = items.map(i -> synthesize(i.data()));
         var wellTypeds = results.map(Result::wellTyped);
@@ -91,6 +113,10 @@ public final class ExprTycker extends AbstractExprTycker {
 
         yield new Result.Default(wellTyped, ty);
       }
+      case Expr.Error error -> throw new UnsupportedOperationException("TODO");
+      case Expr.Let let -> throw new UnsupportedOperationException("TODO");
+      case Expr.Array array -> throw new UnsupportedOperationException("TODO");
+      case Expr.RawSort rawSort -> throw new UnsupportedOperationException("desugared");
       case Expr.Do aDo -> throw new UnsupportedOperationException("desugared");
       case Expr.BinOpSeq _ -> throw new UnsupportedOperationException("deesugared");
       case Expr.Idiom _ -> throw new UnsupportedOperationException("desugared");
