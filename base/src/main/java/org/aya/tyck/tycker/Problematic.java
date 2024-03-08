@@ -17,8 +17,8 @@ public interface Problematic {
     return fail(expr, ErrorTerm.typeOf(expr), prob);
   }
 
-  default @NotNull Result fail(@NotNull AyaDocile expr, @NotNull Term term, @NotNull Problem prob) {
+  default @NotNull Result fail(@NotNull AyaDocile expr, @NotNull Term type, @NotNull Problem prob) {
     reporter().report(prob);
-    return new Result.Default(new ErrorTerm(expr), term);
+    return new Result.Default(new ErrorTerm(expr), type);
   }
 }

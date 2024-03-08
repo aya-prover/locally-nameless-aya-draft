@@ -152,7 +152,7 @@ public sealed interface Expr extends AyaDocile {
     @Override boolean explicit,
     @Nullable String name,
     @NotNull WithPos<Expr> arg
-  ) implements SourceNode, BinOpElem<Expr> {
+  ) implements SourceNode, BinOpElem<Expr>, AyaDocile {
     @Override
     public @NotNull Expr term() {
       return arg.data();
@@ -160,6 +160,12 @@ public sealed interface Expr extends AyaDocile {
 
     public @NotNull NamedArg update(@NotNull WithPos<Expr> expr) {
       return expr == arg ? this : new NamedArg(sourcePos, explicit, name, expr);
+    }
+
+    @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+      var doc = name == null ? arg.data().toDoc(options) :
+        Doc.braced(Doc.sep(Doc.plain(name), Doc.symbol("=>"), arg.data().toDoc(options)));
+      return Doc.bracedUnless(doc, explicit);
     }
 
     public @NotNull NamedArg descent(@NotNull UnaryOperator<@NotNull Expr> f) {

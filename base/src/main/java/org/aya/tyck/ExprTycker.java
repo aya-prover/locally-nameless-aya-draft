@@ -7,9 +7,15 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.ref.*;
+import org.aya.syntax.ref.AnyVar;
+import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
+import org.aya.tyck.error.BadTypeError;
+import org.aya.tyck.error.LicitError;
 import org.aya.tyck.tycker.AbstractExprTycker;
 import org.aya.tyck.tycker.AppTycker;
+import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +64,7 @@ public final class ExprTycker extends AbstractExprTycker {
     return switch (expr.data()) {
       case Expr.App(var f, var a) -> {
         if (!(f.data() instanceof Expr.Ref(var ref))) throw new IllegalStateException("function must be Expr.Ref");
-        yield checkApplication(ref, a);
+        yield checkApplication(ref, expr.sourcePos(), a);
       }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
       case Expr.Lambda(var param, var body) -> {
@@ -77,13 +83,13 @@ public final class ExprTycker extends AbstractExprTycker {
       }
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref(var ref) -> checkApplication(ref, ImmutableSeq.empty());
+      case Expr.Ref(var ref) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       case Expr.Sigma _ -> {
         var ty = ty(expr);
         // TODO: type level
         yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
       }
-      case Expr.Pi _  -> {
+      case Expr.Pi _ -> {
         var ty = ty(expr);
         // TODO: type level
         yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
@@ -109,15 +115,25 @@ public final class ExprTycker extends AbstractExprTycker {
     };
   }
 
-  private @NotNull Result checkApplication(@NotNull AnyVar f, @NotNull ImmutableSeq<Expr.NamedArg> args) {
+  private @NotNull Result checkApplication(
+    @NotNull AnyVar f, @NotNull SourcePos sourcePos,
+    @NotNull ImmutableSeq<Expr.NamedArg> args
+  ) {
+    try {
+      return doCheckApplication(f, args);
+    } catch (NotPi notPi) {
+      var expr = new Expr.App(new WithPos<>(sourcePos, new Expr.Ref(f)), args);
+      return fail(expr, BadTypeError.pi(state, sourcePos, expr, notPi.actual));
+    }
+  }
+
+  private @NotNull Result doCheckApplication(
+    @NotNull AnyVar f, @NotNull ImmutableSeq<Expr.NamedArg> args
+  ) throws NotPi {
     return switch (f) {
-      case LocalVar lVar -> args.foldLeft(new Result.Default(new FreeTerm(lVar), localCtx().get(lVar)), (acc, arg) -> {
-        if (arg.name() != null || !arg.explicit()) throw new UnsupportedOperationException("TODO: named arg");
-        var pi = ensurePi(acc.type());
-        var wellTy = inherit(arg.arg(), pi.param()).wellTyped();
-        return new Result.Default(new AppTerm(acc.wellTyped(), wellTy), pi.substBody(wellTy));
-      });
-      case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, params -> {
+      case LocalVar lVar -> generateApplication(args,
+        new Result.Default(new FreeTerm(lVar), localCtx().get(lVar)));
+      case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, (params, k) -> {
         int argIx = 0, paramIx = 0;
         var result = MutableList.<Term>create();
         while (argIx < args.size() && paramIx < params.size()) {
@@ -126,7 +142,8 @@ public final class ExprTycker extends AbstractExprTycker {
           // Implicit insertion
           if (arg.explicit() != param.explicit()) {
             if (!arg.explicit()) {
-              throw new UnsupportedOperationException("TODO: implicit application to explicit param");
+              reporter.report(new LicitError.BadImplicitArg(arg));
+              break;
             } else if (arg.name() == null) {
               // here, arg.explicit() == true and param.explicit() == false
               result.append(mockTerm(param, arg.sourcePos()));
@@ -139,7 +156,7 @@ public final class ExprTycker extends AbstractExprTycker {
               }
               // ^ insert implicits before the named argument
               if (paramIx == params.size()) {
-                // report TODO: named arg not found
+                reporter.report(new LicitError.BadImplicitArg(arg));
                 break;
               }
             }
@@ -148,16 +165,37 @@ public final class ExprTycker extends AbstractExprTycker {
           argIx++;
           paramIx++;
         }
-        return result.toImmutableSeq();
+        if (argIx < args.size()) {
+          generateApplication(args.drop(argIx), k.apply(result.toImmutableSeq()));
+        } else if (paramIx < params.size()) {
+          // TODO: eta-expand
+          throw new UnsupportedOperationException("TODO");
+        }
+        return k.apply(result.toImmutableSeq());
       });
       default -> throw new UnsupportedOperationException("TODO");
     };
   }
 
+  private Result generateApplication(@NotNull ImmutableSeq<Expr.NamedArg> args, Result start) throws NotPi {
+    return args.foldLeftChecked(start, (acc, arg) -> {
+      if (arg.name() != null || !arg.explicit()) reporter.report(new LicitError.BadNamedArg(arg));
+      var pi = ensurePi(acc.type());
+      var wellTy = inherit(arg.arg(), pi.param()).wellTyped();
+      return new Result.Default(new AppTerm(acc.wellTyped(), wellTy), pi.substBody(wellTy));
+    });
+  }
 
-  private @NotNull PiTerm ensurePi(Term term) {
+  protected static final class NotPi extends Exception {
+    public final @NotNull Term actual;
+
+    public NotPi(@NotNull Term actual) {
+      this.actual = actual;
+    }
+  }
+
+  private @NotNull PiTerm ensurePi(Term term) throws NotPi {
     if (term instanceof PiTerm pi) return pi;
-    // TODO
-    throw new UnsupportedOperationException("TODO: report NotPi");
+    throw new NotPi(term);
   }
 }

@@ -3,7 +3,7 @@
 package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
-import org.aya.ref.AnyVar;
+import org.aya.syntax.ref.AnyVar;
 import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
