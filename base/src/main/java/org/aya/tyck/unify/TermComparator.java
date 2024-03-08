@@ -9,21 +9,26 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.tyck.error.LevelError;
+import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.StateBased;
 import org.aya.util.Ordering;
 import org.aya.util.Pair;
 import org.aya.util.error.InternalException;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-public abstract class TermComparator implements StateBased {
+public abstract class TermComparator implements StateBased, Problematic {
+  protected final @NotNull SourcePos pos;
   protected final @NotNull Ordering cmp;
   private FailureData failure;
 
-  public TermComparator(@NotNull Ordering cmp) {
+  public TermComparator(@NotNull SourcePos pos, @NotNull Ordering cmp) {
+    this.pos = pos;
     this.cmp = cmp;
   }
 
@@ -184,19 +189,19 @@ public abstract class TermComparator implements StateBased {
     return switch (cmp) {
       case Gt -> {
         if (! sortLt(r, l)) {
-          // TODO: report error
+          reporter().report(new LevelError(pos, l, r, false));
           yield false;
         } else yield true;
       }
       case Eq -> {
         if (! (l.kind() == r.kind() && l.lift() == r.lift())) {
-          // TODO: report error
+          reporter().report(new LevelError(pos, l, r, true));
           yield false;
         } else yield true;
       }
       case Lt -> {
         if (! sortLt(l, r)) {
-          // TODO: report error
+          reporter().report(new LevelError(pos, r, l, false));
           yield false;
         } else yield true;
       }
