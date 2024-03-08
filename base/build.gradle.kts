@@ -1,22 +1,14 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 import org.aya.gradle.GenerateVersionTask
 
-//CommonTasks.nativeImageConfig(project)
-
 dependencies {
-  api(project(":tools-kala"))
+  api(project(":syntax"))
   api(project(":tools-md"))
-  api(project(":pretty"))
   implementation(libs.aya.commonmark)
-  implementation(libs.aya.ij.core)
   testImplementation(libs.junit.params)
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)
-}
-
-plugins {
-  id("org.graalvm.buildtools.native")
 }
 
 val genDir = file("src/main/gen")

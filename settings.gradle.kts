@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 
 rootProject.name = "aya-prover"
@@ -15,6 +15,7 @@ include(
   "tools-kala",
   "tools-md",
   "tools-repl",
+  "syntax",
   "base",
   "pretty",
   "parser",
