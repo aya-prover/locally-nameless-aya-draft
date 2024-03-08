@@ -94,9 +94,8 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
   //       new Arg<>(AppTerm.make(M.toTerm(), new Arg<>(arg, param.explicit())), true))));
   // }
 
-  // TODO: inline and remove this method after refactor, this method is for compatibility.
   public @NotNull Term substBody(@NotNull Term term) {
-    return instantiate(term);
+    return body.instantiate(term);
   }
 
   public @NotNull Term parameters(@NotNull MutableList<@NotNull Term> params) {

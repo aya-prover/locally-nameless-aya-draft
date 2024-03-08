@@ -7,9 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
   public @NotNull AppTerm update(@NotNull Term fun, @NotNull Term arg) {
-    return fun == this.fun && arg == this.arg
-      ? this
-      : new AppTerm(fun, arg);
+    return fun == this.fun && arg == this.arg ? this : new AppTerm(fun, arg);
   }
 
   @Override

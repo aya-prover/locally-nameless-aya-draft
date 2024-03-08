@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -55,7 +56,10 @@ public final class ExprTycker extends AbstractExprTycker {
 
   private @NotNull Result doSynthesize(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
-      case Expr.App(var f, var a) -> checkApplication(f, a);
+      case Expr.App(var f, var a) -> {
+        if (!(f.data() instanceof Expr.Ref(var ref))) throw new IllegalStateException("function must be Expr.Ref");
+        yield checkApplication(ref, a);
+      }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
       case Expr.Lambda(var param, var body) -> {
         var paramResult = synthesize(param.type());
@@ -73,11 +77,7 @@ public final class ExprTycker extends AbstractExprTycker {
       }
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref ref -> switch (ref.var()) {
-        case LocalVar lVar -> new Result.Default(new FreeTerm(lVar), localCtx().get(lVar));
-        case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, _ -> ImmutableSeq.empty());
-        default -> throw new UnsupportedOperationException("TODO");
-      };
+      case Expr.Ref(var ref) -> checkApplication(ref, ImmutableSeq.empty());
       case Expr.Sigma sigma -> throw new UnsupportedOperationException("TODO");
       case Expr.Pi(var param, var body) -> {
         var ty = ty(expr);
@@ -107,9 +107,21 @@ public final class ExprTycker extends AbstractExprTycker {
     };
   }
 
-  private @NotNull Result checkApplication(WithPos<Expr> f, ImmutableSeq<Expr.NamedArg> a) {
-    throw new UnsupportedOperationException("TODO");
+  private @NotNull Result checkApplication(AnyVar f, ImmutableSeq<Expr.NamedArg> args) {
+    return switch (f) {
+      case LocalVar lVar -> args.foldLeft(new Result.Default(new FreeTerm(lVar), localCtx().get(lVar)), (acc, arg) -> {
+        if (arg.name() != null || !arg.explicit()) throw new UnsupportedOperationException("TODO: named arg");
+        var pi = ensurePi(acc.type());
+        var wellTy = inherit(arg.arg(), pi.param()).wellTyped();
+        return new Result.Default(new AppTerm(acc.wellTyped(), wellTy), pi.substBody(wellTy));
+      });
+      case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, params -> {
+        throw new UnsupportedOperationException("TODO");
+      });
+      default -> throw new UnsupportedOperationException("TODO");
+    };
   }
+
 
   private @NotNull PiTerm ensurePi(Term term) {
     if (term instanceof PiTerm pi) return pi;
