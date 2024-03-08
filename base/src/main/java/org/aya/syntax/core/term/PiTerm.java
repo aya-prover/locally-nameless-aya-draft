@@ -1,12 +1,10 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
 import kala.collection.SeqLike;
 import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
-import org.aya.syntax.ref.LocalVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -30,7 +28,7 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
       return unpi(body, fmap, params);
     } else return term;
   }
-  //
+
   // /**
   //  * @param fmap   usually whnf or identity
   //  * @param params will be of size unequal to limit in case of failure

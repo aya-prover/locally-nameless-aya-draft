@@ -1,6 +1,10 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
-import kala.collection.SeqLike;
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.generic.AyaDocile;
@@ -44,9 +48,20 @@ public sealed interface Term extends Serializable, AyaDocile
     return bindAt(var, 0);
   }
 
+  /**
+   * @see Term#replaceAllFrom(int, ImmutableSeq)
+   */
   @ApiStatus.Internal
   default @NotNull Term replace(int index, @NotNull Term arg) {
-    return descent((i, t) -> t.replace(index + i, arg));
+    return replaceAllFrom(index, ImmutableSeq.of(arg));
+  }
+
+  /**
+   * Replacing indexes from {@code from} to {@code from + list.size()} (exclusive) with {@code list}
+   */
+  @ApiStatus.Internal
+  default @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
+    return descent((i, t) -> t.replaceAllFrom(from + i, list));
   }
 
   /**
@@ -54,26 +69,22 @@ public sealed interface Term extends Serializable, AyaDocile
    * Could be called <code>apply</code> similar to Mini-TT.
    */
   default @NotNull Term instantiate(Term arg) {
-    return replace(0, arg);
+    return replaceAllFrom(0, ImmutableSeq.of(arg));
   }
 
   /**
-   * Instantiate {@code 0..args.size()} with {@param args}
+   * Instantiate {@code 0..args.size() - 1} with {@param args}
    */
-  default @NotNull Term instantiateAll(@NotNull SeqLike<Term> args) {
-    return args.foldLeftIndexed(this, (i, acc, t) -> acc.replace(i, t));
+  default @NotNull Term instantiateAll(@NotNull SeqView<Term> args) {
+    return replaceAllFrom(0, args.toImmutableSeq());
   }
 
   /**
-   * @implNote implements {@link Term#bindAt} and {@link Term#replace} if this term is a leaf node.
+   * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.
    */
   @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f);
 
-  record Matching(
-    @NotNull SourcePos sourcePos,
-    @NotNull ImmutableSeq<Arg<Pat>> patterns,
-    @NotNull Term body
-  ) {
+  record Matching(@NotNull SourcePos sourcePos, @NotNull ImmutableSeq<Arg<Pat>> patterns, @NotNull Term body) {
     public @NotNull Matching update(@NotNull ImmutableSeq<Arg<Pat>> patterns, @NotNull Term body) {
       return body == body() && patterns.sameElements(patterns(), true) ? this
         : new Matching(sourcePos, patterns, body);

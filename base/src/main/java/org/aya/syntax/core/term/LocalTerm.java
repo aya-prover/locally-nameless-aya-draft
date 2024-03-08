@@ -1,5 +1,8 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
@@ -14,8 +17,8 @@ public record LocalTerm(int index) implements Term {
     return this;
   }
 
-  @Override public @NotNull Term replace(int incoming, @NotNull Term arg) {
-    if (index == incoming) return arg;
+  @Override public @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
+    if (index - from < list.size()) return list.get(index - from);
     return this;
   }
 }
