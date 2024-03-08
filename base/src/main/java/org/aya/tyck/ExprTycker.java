@@ -78,9 +78,14 @@ public final class ExprTycker extends AbstractExprTycker {
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
       case Expr.Ref(var ref) -> checkApplication(ref, ImmutableSeq.empty());
-      case Expr.Sigma sigma -> throw new UnsupportedOperationException("TODO");
-      case Expr.Pi(var param, var body) -> {
+      case Expr.Sigma _ -> {
         var ty = ty(expr);
+        // TODO: type level
+        yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
+      }
+      case Expr.Pi _  -> {
+        var ty = ty(expr);
+        // TODO: type level
         yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
       }
       case Expr.Sort _ -> {
@@ -104,7 +109,7 @@ public final class ExprTycker extends AbstractExprTycker {
     };
   }
 
-  private @NotNull Result checkApplication(AnyVar f, ImmutableSeq<Expr.NamedArg> args) {
+  private @NotNull Result checkApplication(@NotNull AnyVar f, @NotNull ImmutableSeq<Expr.NamedArg> args) {
     return switch (f) {
       case LocalVar lVar -> args.foldLeft(new Result.Default(new FreeTerm(lVar), localCtx().get(lVar)), (acc, arg) -> {
         if (arg.name() != null || !arg.explicit()) throw new UnsupportedOperationException("TODO: named arg");

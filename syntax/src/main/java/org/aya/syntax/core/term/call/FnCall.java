@@ -29,4 +29,8 @@ public record FnCall(
   public @NotNull Tele applyTo(@NotNull Term arg) {
     return new FnCall(ref, ulift, args);
   }
+
+  @Override public Tele elevate(int level) {
+    return new FnCall(ref, ulift + level, args);
+  }
 }

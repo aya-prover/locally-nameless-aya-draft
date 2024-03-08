@@ -82,6 +82,10 @@ public sealed interface Term extends Serializable, AyaDocile
    */
   @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f);
 
+  default @NotNull Term elevate(int level) {
+    return descent((_, t) -> t.elevate(level));
+  }
+
   record Matching(@NotNull SourcePos sourcePos, @NotNull ImmutableSeq<Arg<Pat>> patterns, @NotNull Term body) {
     public @NotNull Matching update(@NotNull ImmutableSeq<Arg<Pat>> patterns, @NotNull Term body) {
       return body == body() && patterns.sameElements(patterns(), true) ? this

@@ -37,14 +37,4 @@ public sealed interface Callable extends Term permits Callable.Common {
     @Override @NotNull DefVar<? extends TeleDef, ? extends Decl> ref();
     int ulift();
   }
-
-  /** This exists solely for simplifying code in the tycker. */
-  @FunctionalInterface
-  interface Factory<D extends TeleDef, S extends Decl> {
-    @Contract(pure = true, value = "_,_,_->new") @NotNull Callable make(
-      DefVar<D, S> defVar,
-      int ulift,
-      ImmutableSeq<@NotNull Term> args
-    );
-  }
 }

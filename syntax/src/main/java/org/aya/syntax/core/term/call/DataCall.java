@@ -32,6 +32,10 @@ public record DataCall(
     return new DataCall(ref, ulift, args.appended(arg));
   }
 
+  @Override public Tele elevate(int level) {
+    return new DataCall(ref, ulift + level, args);
+  }
+
   // public @NotNull ConCall.Head conHead(@NotNull DefVar<CtorDef, TeleDecl.DataCtor> ctorRef) {
   //   return new ConCall.Head(ref, ctorRef, ulift, args);
   // }
