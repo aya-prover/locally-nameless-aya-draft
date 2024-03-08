@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.ref;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.InternalException;
@@ -39,5 +40,18 @@ public record DeBruijnCtx(@NotNull MutableList<Term> ctx) {
   public @NotNull Term pop() {
     if (ctx.isEmpty()) throw new InternalException("empty ctx");
     return ctx.removeLast();
+  }
+
+  public @NotNull ImmutableSeq<Term> popMany(int how) {
+    if (how < 0) throw new InternalException(STR."Unable to pop \{how} elements without elements");
+
+    var acc = MutableList.<Term>create();
+
+    while (how > 0) {
+      -- how;
+      acc.append(pop());
+    }
+
+    return acc.toImmutableSeq();
   }
 }

@@ -36,12 +36,19 @@ public abstract class TermComparator implements StateBased {
         case Pair(_, LamTerm rambda) -> compareLambda(rambda, lhs, pi);
         default -> false;
       };
-      case SigmaTerm(var components) -> {
-        components.forEachIndexed((i, iType) -> {
+      case SigmaTerm(var paramSeq) -> {
+        // We use view since we need to instantiate the remaining params after tyck some component.
+        var params = paramSeq.view();
+        var size = paramSeq.size();
+        for (var i = 0; i < size; ++ i) {
           var l = ProjTerm.make(lhs, i);
           var r = ProjTerm.make(rhs, i);
-        });
-        throw new UnsupportedOperationException("TODO: hoshino");
+          var param = params.getFirst();
+          if (! compare(l, r, param)) yield false;
+          params = params.drop(1).mapIndexed((j, term) ->
+            term.replace(j, l));
+        }
+        yield true;
       }
       default -> false;
     };
