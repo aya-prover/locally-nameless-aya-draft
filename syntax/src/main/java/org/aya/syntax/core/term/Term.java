@@ -21,7 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
-  permits AppTerm, Callable, Formation, FreeTerm, LocalTerm, StableWHNF {
+  permits AppTerm, Formation, FreeTerm, LocalTerm, ProjTerm, StableWHNF, Callable {
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     throw new UnsupportedOperationException("TODO");
