@@ -3,18 +3,18 @@
 package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableList;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.ref.AnyVar;
-import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.LocalCtx;
-import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.*;
 import org.aya.tyck.tycker.AbstractExprTycker;
 import org.aya.tyck.tycker.AppTycker;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public final class ExprTycker extends AbstractExprTycker {
   public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
@@ -99,10 +99,7 @@ public final class ExprTycker extends AbstractExprTycker {
       case Expr.Error error -> throw new UnsupportedOperationException("TODO");
       case Expr.Let let -> throw new UnsupportedOperationException("TODO");
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
-      case Expr.RawSort rawSort -> throw new UnsupportedOperationException("desugared");
-      case Expr.Do aDo -> throw new UnsupportedOperationException("desugared");
-      case Expr.BinOpSeq _ -> throw new UnsupportedOperationException("deesugared");
-      case Expr.Idiom _ -> throw new UnsupportedOperationException("desugared");
+      case Expr.Sugar _ -> throw new UnsupportedOperationException("desugared");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
     };
   }
@@ -116,7 +113,37 @@ public final class ExprTycker extends AbstractExprTycker {
         return new Result.Default(new AppTerm(acc.wellTyped(), wellTy), pi.substBody(wellTy));
       });
       case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, params -> {
-        throw new UnsupportedOperationException("TODO");
+        int argIx = 0, paramIx = 0;
+        var result = MutableList.<Term>create();
+        while (argIx < args.size() && paramIx < params.size()) {
+          var arg = args.get(argIx);
+          var param = params.get(paramIx);
+          // Implicit insertion
+          if (arg.explicit() != param.explicit()) {
+            if (!arg.explicit()) {
+              throw new UnsupportedOperationException("TODO: implicit application to explicit param");
+            } else if (arg.name() == null) {
+              // here, arg.explicit() == true and param.explicit() == false
+              result.append(mockTerm(param, arg.sourcePos()));
+              paramIx++;
+              continue;
+            } else {
+              while (paramIx < params.size() && !Objects.equals(param.name(), arg.name())) {
+                result.append(mockTerm(param, arg.sourcePos()));
+                paramIx++;
+              }
+              // ^ insert implicits before the named argument
+              if (paramIx == params.size()) {
+                // report TODO: named arg not found
+                break;
+              }
+            }
+          }
+          result.append(inherit(arg.arg(), param.type()).wellTyped());
+          argIx++;
+          paramIx++;
+        }
+        return result.toImmutableSeq();
       });
       default -> throw new UnsupportedOperationException("TODO");
     };

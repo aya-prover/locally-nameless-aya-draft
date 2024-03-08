@@ -26,6 +26,10 @@ import java.util.function.UnaryOperator;
 public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull UnaryOperator<@NotNull Expr> f);
 
+  /** Yes, please */
+  interface Sugar {
+  }
+
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     throw new UnsupportedOperationException("TODO");    // TODO
@@ -85,9 +89,7 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
-  record BinOpSeq(
-    @NotNull ImmutableSeq<NamedArg> seq
-  ) implements Expr {
+  record BinOpSeq(@NotNull ImmutableSeq<NamedArg> seq) implements Expr, Sugar {
     public @NotNull BinOpSeq update(@NotNull ImmutableSeq<NamedArg> seq) {
       return seq.sameElements(seq(), true) ? this : new BinOpSeq(seq);
     }
@@ -190,7 +192,7 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
-  record RawSort(@NotNull SourcePos sourcePos, @NotNull SortKind kind) implements Expr {
+  record RawSort(@NotNull SourcePos sourcePos, @NotNull SortKind kind) implements Expr, Sugar {
     @Override public @NotNull RawSort descent(@NotNull UnaryOperator<@NotNull Expr> f) {
       return this;
     }
@@ -245,7 +247,7 @@ public sealed interface Expr extends AyaDocile {
   record Idiom(
     @NotNull IdiomNames names,
     @NotNull ImmutableSeq<WithPos<Expr>> barredApps
-  ) implements Expr {
+  ) implements Expr, Sugar {
     public @NotNull Idiom update(@NotNull IdiomNames names, @NotNull ImmutableSeq<WithPos<Expr>> barredApps) {
       return names.identical(names()) && barredApps.sameElements(barredApps(), true) ? this
         : new Idiom(names, barredApps);
@@ -282,7 +284,7 @@ public sealed interface Expr extends AyaDocile {
   record Do(
     @NotNull Expr bindName,   // TODO: perhaps we don't need the source pos of (>>=)
     @NotNull ImmutableSeq<DoBind> binds
-  ) implements Expr {
+  ) implements Expr, Sugar {
     public @NotNull Do update(@NotNull Expr bindName, @NotNull ImmutableSeq<DoBind> binds) {
       return bindName == bindName() && binds.sameElements(binds(), true) ? this
         : new Do(bindName, binds);
