@@ -14,21 +14,24 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public sealed abstract class SubLevelDef implements TeleDef permits CtorDef {
+  public final @NotNull ImmutableSeq<Param> ownerTele;
   public final @NotNull ImmutableSeq<Param> selfTele;
   public final @NotNull Term result;
   public final boolean coerce;
 
   protected SubLevelDef(
+    @NotNull ImmutableSeq<Param> ownerTele,
     @NotNull ImmutableSeq<Param> selfTele,
     @NotNull Term result, boolean coerce
   ) {
+    this.ownerTele = ownerTele;
     this.selfTele = selfTele;
     this.result = result;
     this.coerce = coerce;
   }
 
   public @NotNull SeqView<Param> fullTelescope() {
-    return selfTele.view();
+    return ownerTele.view().concat(selfTele);
   }
 
   @Override public @NotNull Term result() {

@@ -6,16 +6,16 @@ import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record Param(
-  @Nullable String name,
-  @NotNull Term type,
-  boolean explicit
-) {
+public record Param(@Nullable String name, @NotNull Term type, boolean explicit) {
   public Param(@NotNull Term type, boolean explicit) {
     this(null, type, explicit);
   }
 
   public @NotNull Arg<Term> toArg() {
     return new Arg<>(type, explicit);
+  }
+
+  public @NotNull Param implicitize() {
+    return new Param(name, type, false);
   }
 }

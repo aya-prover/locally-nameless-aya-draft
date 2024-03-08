@@ -22,10 +22,10 @@ public final class CtorDef extends SubLevelDef {
    */
   public CtorDef(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef, @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
-    @NotNull ImmutableSeq<Param> selfTele,
+    @NotNull ImmutableSeq<Param> ownerTele, @NotNull ImmutableSeq<Param> selfTele,
     @NotNull Term result, boolean coerce
   ) {
-    super(selfTele, result, coerce);
+    super(ownerTele, selfTele, result, coerce);
     ref.core = this;
     this.dataRef = dataRef;
     this.ref = ref;

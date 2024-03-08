@@ -6,24 +6,31 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
+import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.Result;
 import org.jetbrains.annotations.NotNull;
 
-public final class ExprTyckerUtils {
-  private ExprTyckerUtils() {}
+import java.util.function.Function;
+
+public final class AppTycker {
+  private AppTycker() {}
 
   @SuppressWarnings("unchecked")
-  public static @NotNull Result inferDef(@NotNull DefVar<? extends Def, ? extends Decl> defVar) {
+  public static @NotNull Result checkDefApplication(
+    @NotNull DefVar<? extends Def, ? extends Decl> defVar,
+    Function<ImmutableSeq<Param>, ImmutableSeq<Term>> makeArgs
+  ) {
     var core = defVar.core;
     var concrete = defVar.concrete;
 
     if (core instanceof FnDef || concrete instanceof TeleDecl.FnDecl) {
       var fnVar = (DefVar<FnDef, TeleDecl.FnDecl>) defVar;
       new Result.Default(
-        new FnCall(fnVar, 0, ImmutableSeq.empty()),
+        new FnCall(fnVar, 0, makeArgs.apply(TeleDef.defTele(fnVar))),
         TeleDef.defType(fnVar)
       );
     } else if (core instanceof DataDef || concrete instanceof TeleDecl.DataDecl) {

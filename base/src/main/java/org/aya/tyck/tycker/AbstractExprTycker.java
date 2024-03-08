@@ -32,11 +32,11 @@ public sealed abstract class AbstractExprTycker implements StateBased, ContextBa
 
   @Override
   public @NotNull TyckState state() {
-    return this.state;
+    return state;
   }
 
   @Override
   public @NotNull Reporter reporter() {
-    return this.reporter;
+    return reporter;
   }
 }

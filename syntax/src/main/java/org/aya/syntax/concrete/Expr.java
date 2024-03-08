@@ -134,13 +134,14 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
-  record App(@NotNull WithPos<Expr> function, @NotNull NamedArg argument) implements Expr {
-    public @NotNull App update(@NotNull WithPos<Expr> function, @NotNull NamedArg argument) {
-      return function == function() && argument == argument() ? this : new App(function, argument);
+  record App(@NotNull WithPos<Expr> function, @NotNull ImmutableSeq<NamedArg> argument) implements Expr {
+    public @NotNull App update(@NotNull WithPos<Expr> function, @NotNull ImmutableSeq<NamedArg> argument) {
+      return function == function() && argument.sameElements(argument(), true)
+        ? this : new App(function, argument);
     }
 
     @Override public @NotNull App descent(@NotNull UnaryOperator<@NotNull Expr> f) {
-      return update(function.descent(f), argument.descent(f));
+      return update(function.descent(f), argument.map(arg -> arg.descent(f)));
     }
   }
 
