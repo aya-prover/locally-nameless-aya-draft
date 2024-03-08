@@ -17,9 +17,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public abstract class TermComparator implements StateBased {
   protected final @NotNull Ordering cmp;
+  private FailureData failure;
 
   public TermComparator(@NotNull Ordering cmp) {
     this.cmp = cmp;
@@ -219,5 +221,11 @@ public abstract class TermComparator implements StateBased {
       case Pair(SortTerm lhs, SortTerm rhs) -> compareSort(lhs, rhs);
       default -> false;
     };
+  }
+
+  public record FailureData(@NotNull Term lhs, @NotNull Term rhs) {
+    public @NotNull FailureData map(@NotNull UnaryOperator<Term> f) {
+      return new FailureData(f.apply(lhs), f.apply(rhs));
+    }
   }
 }
