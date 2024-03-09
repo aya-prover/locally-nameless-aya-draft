@@ -25,6 +25,8 @@ import java.util.function.UnaryOperator;
 public abstract class TermComparator implements StateBased, Problematic {
   protected final @NotNull SourcePos pos;
   protected final @NotNull Ordering cmp;
+  // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
+  protected boolean solveMeta = true;
   private FailureData failure;
 
   public TermComparator(@NotNull SourcePos pos, @NotNull Ordering cmp) {

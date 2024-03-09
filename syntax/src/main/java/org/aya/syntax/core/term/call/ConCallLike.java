@@ -38,7 +38,7 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall {
     }
 
     public @NotNull Head descent(@NotNull UnaryOperator<@NotNull Term> f) {
-      var args = dataArgs.map(f::apply);
+      var args = dataArgs.map(f);
       if (args.sameElements(dataArgs, true)) return this;
       return new Head(dataRef, ref, ulift, args);
     }
