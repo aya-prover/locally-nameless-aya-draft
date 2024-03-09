@@ -11,29 +11,36 @@ import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.ref.DeBruijnCtx;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.LocalCtx;
+import org.aya.tyck.TyckState;
 import org.aya.tyck.error.LevelError;
-import org.aya.tyck.tycker.ContextBased;
-import org.aya.tyck.tycker.Problematic;
-import org.aya.tyck.tycker.StateBased;
+import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.util.Ordering;
 import org.aya.util.Pair;
 import org.aya.util.error.InternalException;
 import org.aya.util.error.SourcePos;
+import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-public abstract class TermComparator implements StateBased, ContextBased, Problematic {
+// TODO: make unification TermComparator
+public abstract non-sealed class TermComparator extends AbstractTycker {
   protected final @NotNull SourcePos pos;
   protected final @NotNull Ordering cmp;
   // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
   protected boolean solveMeta = true;
   private FailureData failure;
 
-  public TermComparator(@NotNull SourcePos pos, @NotNull Ordering cmp) {
+  public TermComparator(
+    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull DeBruijnCtx dCtx, @NotNull Reporter reporter,
+    @NotNull SourcePos pos, @NotNull Ordering cmp
+  ) {
+    super(state, ctx, dCtx, reporter);
     this.pos = pos;
     this.cmp = cmp;
   }
@@ -101,7 +108,11 @@ public abstract class TermComparator implements StateBased, ContextBased, Proble
    */
   public boolean compare(@NotNull Term preLhs, @NotNull Term preRhs, @Nullable Term type) {
     if (preLhs == preRhs) return true;
-    if (compareApprox(preLhs, preRhs) != null) return true;
+    if (compareApprox(preLhs, preRhs) != null) {
+      // TODO: unify the result of {compareApprox} and {type}
+      //       Same for below
+      return true;
+    }
 
     var lhs = whnf(preLhs);
     var rhs = whnf(preRhs);

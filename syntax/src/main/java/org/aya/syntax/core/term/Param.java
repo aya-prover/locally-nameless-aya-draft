@@ -3,10 +3,16 @@
 package org.aya.syntax.core.term;
 
 import org.aya.util.Arg;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record Param(@Nullable String name, @NotNull Term type, boolean explicit) {
+  @Contract("_, _ -> new")
+  public static @NotNull Param ofExplicit(@Nullable String name, @NotNull Term type) {
+    return new Param(name, type, true);
+  }
+
   public Param(@NotNull Term type, boolean explicit) {
     this(null, type, explicit);
   }

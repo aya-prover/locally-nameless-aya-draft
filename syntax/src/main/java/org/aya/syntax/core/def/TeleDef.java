@@ -10,6 +10,7 @@ import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
+import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +29,7 @@ public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
     // guaranteed as this is already a core term
     var signature = defVar.concrete.signature;
     assert signature != null : defVar.name();
-    return signature.param();
+    return signature.param().map(WithPos::data);
   }
   static @NotNull Seq<CtorDef> dataBody(@NotNull DefVar<? extends DataDef, ? extends TeleDecl.DataDecl> defVar) {
     if (defVar.core != null) return defVar.core.body;

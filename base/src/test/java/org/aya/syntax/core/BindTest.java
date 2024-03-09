@@ -3,20 +3,17 @@
 package org.aya.syntax.core;
 
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableMap;
-import org.aya.prettier.AyaPrettierOptions;
+import org.aya.TestUtil;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.LocalTerm;
-import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
-import org.aya.util.Arg;
+import org.aya.tyck.TyckState;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
-import org.aya.util.reporter.ThrowingReporter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -48,8 +45,7 @@ public class BindTest {
     var YXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, y, of(ty), true), of(XY));
     var XYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, x, of(pi), true), of(YXY));
 
-    var tycker = new ExprTycker(null, new LocalCtx(MutableMap.create(), null),
-      new ThrowingReporter(AyaPrettierOptions.debug()));
+    var tycker = new ExprTycker(new TyckState(), TestUtil.makeLocalCtx(), TestUtil.makeDBLocalCtx(), TestUtil.THROWING);
     var result = tycker.synthesize(of(XYXY));
   }
 
