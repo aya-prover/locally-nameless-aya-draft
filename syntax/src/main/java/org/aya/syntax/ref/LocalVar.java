@@ -11,6 +11,11 @@ public record LocalVar(@NotNull String name, @NotNull SourcePos definition) impl
     this(name, SourcePos.NONE);
   }
 
+  public static @NotNull LocalVar make(@Nullable String name, @NotNull SourcePos sourcePos) {
+    if (name == null) return new LocalVar("_", sourcePos);
+    return new LocalVar(name, sourcePos);
+  }
+
   public static final @NotNull LocalVar IGNORED = new LocalVar("_", SourcePos.NONE);
 
   @Override public boolean equals(@Nullable Object o) {

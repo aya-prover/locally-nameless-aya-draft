@@ -7,7 +7,7 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.core.Signature;
+import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
