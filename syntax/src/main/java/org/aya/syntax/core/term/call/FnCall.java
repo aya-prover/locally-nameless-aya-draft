@@ -25,11 +25,6 @@ public record FnCall(
     return update(args.map(x -> f.apply(0, x)));
   }
 
-  @Override
-  public @NotNull Tele applyTo(@NotNull Term arg) {
-    return new FnCall(ref, ulift, args);
-  }
-
   @Override public @NotNull Tele elevate(int level) {
     return new FnCall(ref, ulift + level, args);
   }

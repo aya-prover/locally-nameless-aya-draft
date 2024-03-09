@@ -26,11 +26,6 @@ public sealed interface Callable extends Term permits Callable.Common {
   sealed interface Tele extends Common permits ConCallLike, DataCall, FnCall {
     @Override @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> ref();
     int ulift();
-    @NotNull Tele applyTo(@NotNull Term arg);
-
-    default boolean isFull() {
-      return TeleDef.defTele(ref()).sizeEquals(args().size());
-    }
   }
 
   sealed interface Common extends Callable permits Tele {

@@ -35,22 +35,6 @@ public record ConCall(
     this(new Head(dataRef, ref, ulift, dataArgs), conArgs);
   }
 
-  @Override
-  public @NotNull Tele applyTo(@NotNull Term arg) {
-    var newHead = head;
-    var newArgs = conArgs;
-
-    if (TeleDef.defTele(head.dataRef()).sizeEquals(head.dataArgs().size())) {
-      // append to conArgs
-      newHead = new Head(head.dataRef(), head.ref(), head.ulift(), head.dataArgs().appended(arg));
-    } else {
-      // append to dataArgs
-      newArgs = conArgs.appended(arg);
-    }
-
-    return new ConCall(newHead, newArgs);
-  }
-
   @Override public @NotNull Tele elevate(int level) {
     return new ConCall(new Head(head.dataRef(), head.ref(), head.ulift() + level, head.dataArgs()), conArgs);
   }

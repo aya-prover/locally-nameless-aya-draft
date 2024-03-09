@@ -40,9 +40,11 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
    * because later they will be used in the body of the type checking.
    */
   private Signature<Term> checkTele(ImmutableSeq<Expr.Param> telescope, Expr result, ExprTycker tycker) {
+    var names = MutableList.<LocalVar>create();
     var tele = telescope.map(p -> {
       var pTy = tycker.ty(p.type());
       tycker.localCtx().put(p.ref(), pTy);
+      names.append(p.ref());
       return new Param(p.ref().name(), pTy, p.explicit());
     });
     // TODO: check result, turn into indices

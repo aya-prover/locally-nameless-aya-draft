@@ -4,6 +4,7 @@ package org.aya.tyck.unify;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.SortKind;
+import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
@@ -45,10 +46,21 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
     this.cmp = cmp;
   }
 
+  /**
+   * Trying to solve {@param meta} with {@param rhs}
+   */
+  protected abstract @Nullable Term solveMeta(@NotNull /*MetaTerm*/ Term meta, @NotNull Term rhs, @Nullable Term type);
+
+  /// region Utilities
+
   private void fail(@NotNull Term lhs, @NotNull Term rhs) {
     if (failure == null) {
       failure = new FailureData(lhs, rhs);
     }
+  }
+
+  private @NotNull InternalException noRules(@NotNull Term term) {
+    return new InternalException(STR."\{term.getClass()}: \{term.toDoc(AyaPrettierOptions.debug()).debugRender()}");
   }
 
   /**
@@ -57,6 +69,8 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   private static boolean isCall(@NotNull Term term) {
     return term instanceof FnCall || term instanceof ConCallLike;     // TODO: PrimCall
   }
+
+  /// endregion Utilities
 
   /**
    * Compare {@param lhs} and {@param rhs} with whnf requirement.
@@ -80,7 +94,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   private @Nullable Term compareApprox(@NotNull Term lhs, @NotNull Term rhs) {
     return switch (new Pair<>(lhs, rhs)) {
       case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
-      case Pair(ConCallLike lCon, ConCallLike rCon) -> compareCallApprox(lCon, rCon, lCon.ref());
+      case Pair(ConCallLike lCon, ConCallLike rCon) -> compareConApprox(lCon, rCon);
       default -> null;
     };
   }
@@ -99,6 +113,18 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
 
     if (compareMany(lhs.args(), rhs.args(), argsTy)) return retTy;
     return null;
+  }
+
+  private @Nullable Term compareConApprox(@NotNull ConCallLike lhs, @NotNull ConCallLike rhs) {
+    if (lhs.ref() != rhs.ref()) return null;
+
+    var retTy = TeleDef.defResult(lhs.ref());   // TODO: use synthesizer instead
+    var dataArgsTy = TeleDef.defTele(lhs.head().dataRef()).map(Param::type);
+    var conArgsTy = lhs.ref().core.selfTele.map(Param::type);
+    // compare data args first
+    if (!compareMany(lhs.head().dataArgs(), rhs.head().dataArgs(), dataArgsTy)) return null;
+    if (!compareMany(lhs.conArgs(), rhs.conArgs(), conArgsTy)) return null;
+    return retTy;
   }
 
   /**
@@ -163,7 +189,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   /**
    * Compare whnf {@param preLhs} and whnf {@param preRhs} without type information.
    *
-   * @return the type of {@param preLhs} and {@param preRhs} if they are 'the same', null otherwise.
+   * @return the whnfed type of {@param preLhs} and {@param preRhs} if they are 'the same', null otherwise.
    */
   private @Nullable Term compareUntyped(@NotNull Term preLhs, @NotNull Term preRhs) {
     var result = compareApprox(preLhs, preRhs);
@@ -216,9 +242,9 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
       }
       // We already compare arguments in compareApprox, if we arrive here,
       // it means their arguments don't match (even the ref don't match),
-      // so we are unable to do more
+      // so we are unable to do more if we can't normalize them.
       case FnCall _ -> null;
-      default -> throw new UnsupportedOperationException("TODO");
+      default -> throw noRules(lhs);
     };
   }
 
@@ -333,7 +359,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
         compare(lhs.body(), rhs.body(), null));
       case Pair(SigmaTerm lhs, SigmaTerm rhs) -> compareTypesWith(lhs.params(), rhs.params(), () -> false, () -> true);
       case Pair(SortTerm lhs, SortTerm rhs) -> compareSort(lhs, rhs);
-      default -> false;
+      default -> throw noRules(preLhs);
     };
   }
 
