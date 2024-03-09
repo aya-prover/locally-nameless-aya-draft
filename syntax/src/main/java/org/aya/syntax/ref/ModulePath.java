@@ -11,4 +11,8 @@ public record ModulePath(@NotNull ImmutableSeq<String> module) {
     if (module.sizeLessThan(moduleName.size())) return false;
     return module.sliceView(0, moduleName.size()).sameElements(moduleName);
   }
+
+  public boolean sameElements(ModulePath other) {
+    return module.sameElements(other.module);
+  }
 }
