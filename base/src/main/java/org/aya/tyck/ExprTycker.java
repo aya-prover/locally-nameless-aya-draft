@@ -110,8 +110,8 @@ public final class ExprTycker extends AbstractExprTycker {
       case Expr.Error error -> throw new UnsupportedOperationException("TODO");
       case Expr.Let let -> throw new UnsupportedOperationException("TODO");
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
-      case Expr.Sugar _ -> throw new UnsupportedOperationException("desugared");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
+      case Expr.Sugar _ -> throw new IllegalArgumentException("these exprs are desugared, should be unreachable");
     };
   }
 
