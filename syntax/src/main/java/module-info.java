@@ -9,6 +9,7 @@ module aya.syntax {
   requires static org.jetbrains.annotations;
 
   exports org.aya.generic;
+  exports org.aya.prettier;
   exports org.aya.syntax.concrete.stmt.decl;
   exports org.aya.syntax.concrete.stmt;
   exports org.aya.syntax.concrete;
