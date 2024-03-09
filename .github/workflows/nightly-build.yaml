@@ -2,6 +2,7 @@ name: nightly
 on:
   push:
     # branches: [main, ci]
+    branches: []
 jobs:
   move-tag:
     runs-on: ubuntu-latest
