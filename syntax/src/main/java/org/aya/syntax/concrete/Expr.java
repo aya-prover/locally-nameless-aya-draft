@@ -115,11 +115,11 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record Lambda(@NotNull Param param, @NotNull WithPos<Expr> body) implements Expr {
-    public @NotNull Expr.Lambda update(@NotNull Param param, @NotNull WithPos<Expr> body) {
+    public @NotNull Lambda update(@NotNull Param param, @NotNull WithPos<Expr> body) {
       return param == param() && body == body() ? this : new Lambda(param, body);
     }
 
-    @Override public @NotNull Expr.Lambda descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Lambda descent(@NotNull UnaryOperator<@NotNull Expr> f) {
       return update(param.descent(f), body.descent(f));
     }
   }

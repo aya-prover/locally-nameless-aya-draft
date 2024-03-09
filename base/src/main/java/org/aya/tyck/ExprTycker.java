@@ -60,16 +60,12 @@ public final class ExprTycker extends AbstractTycker {
       }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
       case Expr.Lambda(var param, var body) -> {
-        var paramResult = synthesize(param.type());
-
+        var paramResult = ty(param.type());
         yield subscoped(() -> {
-          localCtx().put(param.ref(), paramResult.wellTyped());
-          var bodyResult = synthesize(body);
-          var lamTerm = new LamTerm(bodyResult.wellTyped().bind(param.ref()));
-          var ty = new PiTerm(
-            paramResult.type(),
-            bodyResult.type()   // TODO: do we need to `.bind` on type?
-          );
+          localCtx().put(param.ref(), paramResult);
+          var bodyResult = synthesize(body).bind(param.ref());
+          var lamTerm = new LamTerm(bodyResult.wellTyped());
+          var ty = new PiTerm(paramResult, bodyResult.type());
           return new Result.Default(lamTerm, ty);
         });
       }

@@ -66,6 +66,7 @@ public abstract class TermComparator implements StateBased, Problematic {
 
   /**
    * Compare arguments ONLY.
+   *
    * @see TermComparator#isCall(Term)
    */
   private @Nullable Term compareApprox(@NotNull Term lhs, @NotNull Term rhs) {
@@ -98,7 +99,7 @@ public abstract class TermComparator implements StateBased, Problematic {
 
     var lhs = whnf(preLhs);
     var rhs = whnf(preRhs);
-    if ((! (lhs == preLhs && rhs == preRhs)) && compareApprox(lhs, rhs) != null) return true;
+    if ((!(lhs == preLhs && rhs == preRhs)) && compareApprox(lhs, rhs) != null) return true;
 
     // TODO: solve meta
 
@@ -107,7 +108,7 @@ public abstract class TermComparator implements StateBased, Problematic {
     }
 
     var result = doCompareTyped(preLhs, preRhs, type);
-    if (! result) fail(lhs, rhs);
+    if (!result) fail(lhs, rhs);
     return result;
   }
 
@@ -153,7 +154,7 @@ public abstract class TermComparator implements StateBased, Problematic {
 
     var lhs = whnf(preLhs);
     var rhs = whnf(preRhs);
-    if (! (lhs == preLhs && rhs == preRhs)) {
+    if (!(lhs == preLhs && rhs == preRhs)) {
       result = compareApprox(lhs, rhs);
       if (result != null) return result;
     }
@@ -248,6 +249,7 @@ public abstract class TermComparator implements StateBased, Problematic {
 
   /**
    * Compare types and run the {@param continuation} with those types in context (reverse order).
+   *
    * @param onFailed run while failed (size doesn't match or compare failed)
    */
   private <R> R compareTypesWith(
@@ -256,7 +258,7 @@ public abstract class TermComparator implements StateBased, Problematic {
     @NotNull Supplier<R> onFailed,
     @NotNull Supplier<R> continuation
   ) {
-    if (! list.sizeEquals(rist)) return onFailed.get();
+    if (!list.sizeEquals(rist)) return onFailed.get();
     if (list.isEmpty()) return continuation.get();
     return compareTypeWith(list.getFirst(), rist.getFirst(), onFailed, () ->
       compareTypesWith(list.drop(1), rist.drop(1), onFailed, continuation));
@@ -278,19 +280,19 @@ public abstract class TermComparator implements StateBased, Problematic {
   private boolean compareSort(@NotNull SortTerm l, @NotNull SortTerm r) {
     return switch (cmp) {
       case Gt -> {
-        if (! sortLt(r, l)) {
+        if (!sortLt(r, l)) {
           reporter().report(new LevelError(pos, l, r, false));
           yield false;
         } else yield true;
       }
       case Eq -> {
-        if (! (l.kind() == r.kind() && l.lift() == r.lift())) {
+        if (!(l.kind() == r.kind() && l.lift() == r.lift())) {
           reporter().report(new LevelError(pos, l, r, true));
           yield false;
         } else yield true;
       }
       case Lt -> {
-        if (! sortLt(l, r)) {
+        if (!sortLt(l, r)) {
           reporter().report(new LevelError(pos, r, l, false));
           yield false;
         } else yield true;

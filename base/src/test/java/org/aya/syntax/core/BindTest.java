@@ -1,6 +1,10 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
+import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.FreeTerm;
@@ -39,12 +43,14 @@ public class BindTest {
     var pi = new Expr.Pi(new Expr.Param(SourcePos.NONE, LocalVar.IGNORED, of(ty), true), of(ty));   // Type -> Type
     var refX = new Expr.Ref(x);
     var refY = new Expr.Ref(y);
-    var XY = new Expr.App(of(refX), new Expr.NamedArg(SourcePos.NONE, true, null, of(refY)));
+    var XY = new Expr.App(of(refX), ImmutableSeq.of(
+      new Expr.NamedArg(SourcePos.NONE, true, null, of(refY))));
     var YXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, y, of(ty), true), of(XY));
     var XYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, x, of(pi), true), of(YXY));
 
-    var tycker = new ExprTycker(null, new LocalCtx(MutableMap.create(), null), null);
-    var result = tycker.synthesize(XYXY);
+    var tycker = new ExprTycker(null, new LocalCtx(MutableMap.create(), null),
+      new ThrowingReporter(AyaPrettierOptions.debug()));
+    var result = tycker.synthesize(of(XYXY));
   }
 
   public static <T> @NotNull WithPos<T> of(T data) {

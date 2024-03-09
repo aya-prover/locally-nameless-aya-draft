@@ -4,12 +4,18 @@ package org.aya.tyck;
 
 import org.aya.generic.AyaDocile;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface Result {
   @NotNull Term wellTyped();
   @NotNull Term type();
   @NotNull Result freezeHoles(@NotNull TyckState state);
+
+  default @NotNull Result.Default bind(@NotNull LocalVar var) {
+    return new Default(wellTyped().bind(var), type().bind(var));
+  }
+
   /**
    * {@link Default#type} is the type of {@link Default#wellTyped}.
    *
