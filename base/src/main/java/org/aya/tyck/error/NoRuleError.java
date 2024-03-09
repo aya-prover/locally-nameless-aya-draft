@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record NoRuleError(
-  @Override @NotNull Expr expr,
+  @NotNull Expr expr,
   @Override @NotNull SourcePos sourcePos,
   @Nullable Term term
 ) implements TyckError {

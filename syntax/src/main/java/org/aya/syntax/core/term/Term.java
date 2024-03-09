@@ -27,7 +27,6 @@ public sealed interface Term extends Serializable, AyaDocile
     throw new UnsupportedOperationException("TODO");
   }
 
-  @ApiStatus.Internal
   default @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
     return descent((i, t) -> t.bindAt(var, depth + i));
   }

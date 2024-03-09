@@ -10,6 +10,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.ref.*;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.LicitError;
+import org.aya.tyck.error.NoRuleError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
 import org.aya.util.error.SourcePos;
@@ -97,6 +98,7 @@ public final class ExprTycker extends AbstractTycker {
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
       case Expr.Sugar _ -> throw new IllegalArgumentException("these exprs are desugared, should be unreachable");
+      default -> fail(expr.data(), new NoRuleError(expr.data(), expr.sourcePos(), null));
     };
   }
 

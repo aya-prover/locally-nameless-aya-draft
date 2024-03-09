@@ -16,6 +16,7 @@ import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
+import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,19 +31,22 @@ import java.util.function.UnaryOperator;
  * @see Decl
  */
 public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
-  public @Nullable Expr result;
+  public @Nullable WithPos<Expr> result;
   // will change after resolve
   public @NotNull ImmutableSeq<Expr.Param> telescope;
   public @Nullable Signature<RetTy> signature;
   public @NotNull DeclInfo info;
 
-  protected TeleDecl(@NotNull DeclInfo info, @NotNull ImmutableSeq<Expr.Param> telescope, @Nullable Expr result) {
+  protected TeleDecl(
+    @NotNull DeclInfo info, @NotNull ImmutableSeq<Expr.Param> telescope,
+    @Nullable WithPos<Expr> result
+  ) {
     this.info = info;
     this.result = result;
     this.telescope = telescope;
   }
 
-  public void modifyResult(@NotNull UnaryOperator<Expr> f) {
+  public void modifyResult(@NotNull UnaryOperator<WithPos<Expr>> f) {
     if (result != null) result = f.apply(result);
   }
 
@@ -62,7 +66,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
 
     protected TopLevel(
       @NotNull DeclInfo info, @NotNull ImmutableSeq<Expr.Param> telescope,
-      @Nullable Expr result, @NotNull DeclInfo.Personality personality
+      @Nullable WithPos<Expr> result, @NotNull DeclInfo.Personality personality
     ) {
       super(info, telescope, result);
       this.personality = personality;
@@ -85,7 +89,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       @NotNull DeclInfo info,
       @NotNull String name,
       @NotNull ImmutableSeq<Expr.Param> telescope,
-      boolean coerce, @Nullable Expr result
+      boolean coerce, @Nullable WithPos<Expr> result
     ) {
       super(info, telescope, result);
       this.coerce = coerce;
@@ -114,7 +118,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       @NotNull DeclInfo info,
       @NotNull String name,
       @NotNull ImmutableSeq<Expr.Param> telescope,
-      @Nullable Expr result,
+      @Nullable WithPos<Expr> result,
       @NotNull ImmutableSeq<DataCtor> body,
       @NotNull DeclInfo.Personality personality
     ) {
@@ -166,7 +170,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       @NotNull EnumSet<Modifier> modifiers,
       @NotNull String name,
       @NotNull ImmutableSeq<Expr.Param> telescope,
-      @Nullable Expr result,
+      @Nullable WithPos<Expr> result,
       @NotNull FnBody body,
       @NotNull DeclInfo.Personality personality,
       boolean isAnonymous

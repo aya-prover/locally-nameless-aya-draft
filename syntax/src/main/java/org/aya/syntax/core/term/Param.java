@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -27,5 +28,9 @@ public record Param(@Nullable String name, @NotNull Term type, boolean explicit)
 
   public @NotNull Param implicitize() {
     return new Param(name, type, false);
+  }
+
+  public @NotNull Param bindAt(LocalVar ref, int i) {
+    return new Param(name, type.bindAt(ref, i), explicit);
   }
 }
