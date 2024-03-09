@@ -76,6 +76,9 @@ public sealed interface Term extends Serializable, AyaDocile
   default @NotNull Term instantiateAll(@NotNull SeqView<Term> args) {
     return replaceAllFrom(0, args.toImmutableSeq());
   }
+  default @NotNull Term instantiateAllVars(@NotNull SeqView<LocalVar> args) {
+    return instantiateAll(args.map(FreeTerm::new));
+  }
 
   /**
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.

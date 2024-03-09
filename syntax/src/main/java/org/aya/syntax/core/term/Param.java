@@ -11,6 +11,10 @@ public record Param(@Nullable String name, @NotNull Term type, boolean explicit)
     this(null, type, explicit);
   }
 
+  public boolean nameEq(@Nullable String otherName) {
+    return name != null && name.equals(otherName);
+  }
+
   public @NotNull Arg<Term> toArg() {
     return new Arg<>(type, explicit);
   }

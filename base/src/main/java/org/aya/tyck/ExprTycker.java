@@ -20,8 +20,6 @@ import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
-
 public final class ExprTycker extends AbstractExprTycker {
   public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
     super(state, ctx, reporter);
@@ -150,7 +148,7 @@ public final class ExprTycker extends AbstractExprTycker {
               paramIx++;
               continue;
             } else {
-              while (paramIx < params.size() && !Objects.equals(param.name(), arg.name())) {
+              while (paramIx < params.size() && !param.nameEq(arg.name())) {
                 result.append(mockTerm(param, arg.sourcePos()));
                 paramIx++;
               }
