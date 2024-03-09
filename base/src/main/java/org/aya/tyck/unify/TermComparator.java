@@ -4,11 +4,14 @@ package org.aya.tyck.unify;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.SortKind;
+import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.error.LevelError;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.StateBased;
@@ -34,10 +37,78 @@ public abstract class TermComparator implements StateBased, Problematic {
     this.cmp = cmp;
   }
 
-  public boolean compare(@NotNull Term lhs, @NotNull Term rhs, @Nullable Term type) {
-    // TODO
-    if (type == null) return compareUntyped(lhs, rhs) != null;
-    return doCompareTyped(lhs, rhs, type);
+  private void fail(@NotNull Term lhs, @NotNull Term rhs) {
+    if (failure == null) {
+      failure = new FailureData(lhs, rhs);
+    }
+  }
+
+  /**
+   * Check whether {@param term} is a call, so that we can compare its arguments first.
+   */
+  private static boolean isCall(@NotNull Term term) {
+    return term instanceof FnCall || term instanceof ConCallLike;     // TODO: PrimCall
+  }
+
+  /**
+   * Compare {@param lhs} and {@param rhs} with whnf requirement.
+   */
+  private boolean compareWHNF(@NotNull Term lhs, @NotNull Term rhs, @Nullable Term type) {
+    var mLhs = whnf(lhs);
+    var mRhs = whnf(rhs);
+    if (mLhs == lhs && mRhs == rhs) {
+      // Nothing change, doesn't satisfy the requirement
+      return false;
+    }
+
+    return compare(lhs, rhs, type);
+  }
+
+  /**
+   * Compare arguments ONLY.
+   * @see TermComparator#isCall(Term)
+   */
+  private @Nullable Term compareApprox(@NotNull Term lhs, @NotNull Term rhs) {
+    return switch (new Pair<>(lhs, rhs)) {
+      case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
+      case Pair(ConCallLike lCon, ConCallLike rCon) -> compareCallApprox(lCon, rCon, lCon.ref());
+      default -> null;
+    };
+  }
+
+  /**
+   * Compare the arguments of two callable ONLY, this method will NOT try to normalize and then compare (while the old project does).
+   */
+  private @Nullable Term compareCallApprox(
+    @NotNull Callable lhs, @NotNull Callable rhs,
+    @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> typeProvider
+  ) {
+    if (lhs.ref() != rhs.ref()) return null;
+
+    var retTy = new ErrorTerm(null);   // TODO: Synthesizer
+    var argsTy = TeleDef.defTele(typeProvider).map(Param::type);
+
+    if (compareMany(lhs.args(), rhs.args(), argsTy)) return retTy;
+    return null;
+  }
+
+  public boolean compare(@NotNull Term preLhs, @NotNull Term preRhs, @Nullable Term type) {
+    if (preLhs == preRhs) return true;
+    if (compareApprox(preLhs, preRhs) != null) return true;
+
+    var lhs = whnf(preLhs);
+    var rhs = whnf(preRhs);
+    if ((! (lhs == preLhs && rhs == preRhs)) && compareApprox(lhs, rhs) != null) return true;
+
+    // TODO: solve meta
+
+    if (type == null) {
+      return compareUntyped(lhs, rhs) != null;
+    }
+
+    var result = doCompareTyped(preLhs, preRhs, type);
+    if (! result) fail(lhs, rhs);
+    return result;
   }
 
   /**
@@ -72,13 +143,27 @@ public abstract class TermComparator implements StateBased, Problematic {
   }
 
   /**
-   * Compare whnf {@param lhs} and whnf {@param rhs} without type information.
+   * Compare whnf {@param preLhs} and whnf {@param preRhs} without type information.
    *
-   * @return the type of {@param lhs} and {@param rhs} if they are 'the same', null otherwise.
+   * @return the type of {@param preLhs} and {@param preRhs} if they are 'the same', null otherwise.
    */
-  private @Nullable Term compareUntyped(@NotNull Term lhs, @NotNull Term rhs) {
-    // TODO
-    return doCompareUntyped(lhs, rhs);
+  private @Nullable Term compareUntyped(@NotNull Term preLhs, @NotNull Term preRhs) {
+    var result = compareApprox(preLhs, preRhs);
+    if (result != null) return result;
+
+    var lhs = whnf(preLhs);
+    var rhs = whnf(preRhs);
+    if (! (lhs == preLhs && rhs == preRhs)) {
+      result = compareApprox(lhs, rhs);
+      if (result != null) return result;
+    }
+
+    // TODO: meta
+
+    result = doCompareUntyped(lhs, rhs);
+    if (result != null) return whnf(result);
+    fail(lhs, rhs);
+    return null;
   }
 
   private @Nullable Term doCompareUntyped(@NotNull Term lhs, @NotNull Term rhs) {
@@ -111,7 +196,10 @@ public abstract class TermComparator implements StateBased, Problematic {
         if (rhs instanceof LocalTerm(var rdx) && ldx == rdx) yield state().dCtx().get(ldx);
         yield null;
       }
-      case FnCall _ -> throw new InternalException("FnCall is compared in compareApprox");
+      // We already compare arguments in compareApprox, if we arrive here,
+      // it means their arguments don't match (even the ref don't match),
+      // so we are unable to do more
+      case FnCall _ -> null;
       default -> throw new UnsupportedOperationException("TODO");
     };
   }

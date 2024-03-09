@@ -14,10 +14,12 @@ public record ProjTerm(@NotNull Term of, int index) implements Term {
     return update(f.apply(0, of), index);
   }
 
+  /** Unwrap {@code of.index} if possible */
   public static @NotNull Term make(@NotNull Term of, int index) {
     return make(new ProjTerm(of, index));
   }
 
+  /** Unwrap the {@param material} if possible. */
   public static @NotNull Term make(@NotNull ProjTerm material) {
     return switch (material.of) {
       case TupTerm(var elems) -> elems.get(material.index);

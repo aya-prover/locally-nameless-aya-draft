@@ -30,7 +30,7 @@ public record FnCall(
     return new FnCall(ref, ulift, args);
   }
 
-  @Override public Tele elevate(int level) {
+  @Override public @NotNull Tele elevate(int level) {
     return new FnCall(ref, ulift + level, args);
   }
 }

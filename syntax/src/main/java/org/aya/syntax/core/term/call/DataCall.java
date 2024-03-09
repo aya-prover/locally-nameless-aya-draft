@@ -32,7 +32,7 @@ public record DataCall(
     return new DataCall(ref, ulift, args.appended(arg));
   }
 
-  @Override public Tele elevate(int level) {
+  @Override public @NotNull Tele elevate(int level) {
     return new DataCall(ref, ulift + level, args);
   }
 

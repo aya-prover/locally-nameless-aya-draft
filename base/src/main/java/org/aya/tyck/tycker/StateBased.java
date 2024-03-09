@@ -2,7 +2,8 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
-import org.aya.syntax.core.term.*;
+import org.aya.normalize.Normalizer;
+import org.aya.syntax.core.term.Term;
 import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface StateBased {
   @NotNull TyckState state();
-
-  @NotNull Term whnf(@NotNull Term term);
+  default @NotNull Term whnf(@NotNull Term term) {
+    return new Normalizer(state()).whnf(term);
+  }
 }

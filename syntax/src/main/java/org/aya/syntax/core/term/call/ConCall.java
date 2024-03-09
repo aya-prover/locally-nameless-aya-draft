@@ -51,7 +51,7 @@ public record ConCall(
     return new ConCall(newHead, newArgs);
   }
 
-  @Override public Tele elevate(int level) {
+  @Override public @NotNull Tele elevate(int level) {
     return new ConCall(new Head(head.dataRef(), head.ref(), head.ulift() + level, head.dataArgs()), conArgs);
   }
 }

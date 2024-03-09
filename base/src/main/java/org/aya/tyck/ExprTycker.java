@@ -13,22 +13,16 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.LicitError;
-import org.aya.tyck.tycker.AbstractExprTycker;
+import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public final class ExprTycker extends AbstractExprTycker {
+public final class ExprTycker extends AbstractTycker {
   public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
     super(state, ctx, reporter);
-  }
-
-  @Override
-  public @NotNull Term whnf(@NotNull Term term) {
-    // TODO
-    return term;
   }
 
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {

@@ -8,19 +8,18 @@ import org.aya.tyck.TyckState;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public sealed abstract class AbstractExprTycker implements StateBased, ContextBased, Problematic permits ExprTycker {
+public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits ExprTycker {
   public @NotNull TyckState state;
   private @NotNull LocalCtx localCtx;
   public final @NotNull Reporter reporter;
 
-  protected AbstractExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
+  protected AbstractTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
     this.state = state;
     this.localCtx = ctx;
     this.reporter = reporter;
   }
 
-  @Override
-  public @NotNull LocalCtx localCtx() {
+  @Override public @NotNull LocalCtx localCtx() {
     return this.localCtx;
   }
 
@@ -30,13 +29,11 @@ public sealed abstract class AbstractExprTycker implements StateBased, ContextBa
     return old;
   }
 
-  @Override
-  public @NotNull TyckState state() {
+  @Override public @NotNull TyckState state() {
     return state;
   }
 
-  @Override
-  public @NotNull Reporter reporter() {
+  @Override public @NotNull Reporter reporter() {
     return reporter;
   }
 }
