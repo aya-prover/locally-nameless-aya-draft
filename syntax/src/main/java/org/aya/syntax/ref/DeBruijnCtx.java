@@ -54,4 +54,8 @@ public record DeBruijnCtx(@NotNull MutableList<Term> ctx) {
 
     return acc.toImmutableSeq();
   }
+
+  public @NotNull DeBruijnCtx derive() {
+    return new DeBruijnCtx(MutableList.from(ctx));
+  }
 }

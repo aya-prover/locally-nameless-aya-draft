@@ -7,10 +7,7 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.ref.AnyVar;
-import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.LocalCtx;
-import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.*;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.LicitError;
 import org.aya.tyck.tycker.AbstractTycker;
@@ -21,8 +18,8 @@ import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
 public final class ExprTycker extends AbstractTycker {
-  public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
-    super(state, ctx, reporter);
+  public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull DeBruijnCtx dCtx, @NotNull Reporter reporter) {
+    super(state, ctx, dCtx, reporter);
   }
 
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {

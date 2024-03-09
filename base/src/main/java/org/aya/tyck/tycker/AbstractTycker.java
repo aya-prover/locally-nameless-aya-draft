@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
+import org.aya.syntax.ref.DeBruijnCtx;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.TyckState;
@@ -11,11 +12,13 @@ import org.jetbrains.annotations.NotNull;
 public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits ExprTycker {
   public @NotNull TyckState state;
   private @NotNull LocalCtx localCtx;
+  private @NotNull DeBruijnCtx deBruijnCtx;
   public final @NotNull Reporter reporter;
 
-  protected AbstractTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
+  protected AbstractTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull DeBruijnCtx dCtx, @NotNull Reporter reporter) {
     this.state = state;
     this.localCtx = ctx;
+    this.deBruijnCtx = dCtx;
     this.reporter = reporter;
   }
 
@@ -23,9 +26,19 @@ public sealed abstract class AbstractTycker implements StateBased, ContextBased,
     return this.localCtx;
   }
 
+  @Override public @NotNull DeBruijnCtx deBruijnCtx() {
+    return deBruijnCtx;
+  }
+
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
     var old = this.localCtx;
     this.localCtx = ctx;
+    return old;
+  }
+
+  @Override public @NotNull DeBruijnCtx setDeBruijnCtx(@NotNull DeBruijnCtx ctx) {
+    var old = this.deBruijnCtx;
+    this.deBruijnCtx = ctx;
     return old;
   }
 

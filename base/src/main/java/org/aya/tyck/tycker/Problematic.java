@@ -21,4 +21,8 @@ public interface Problematic {
     reporter().report(prob);
     return new Result.Default(new ErrorTerm(expr), type);
   }
+
+  default void fail(@NotNull Problem problem) {
+    reporter().report(problem);
+  }
 }

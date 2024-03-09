@@ -12,10 +12,11 @@ import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.tyck.tycker.Problematic;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public record StmtTycker(@NotNull Reporter reporter) {
+public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
   private @NotNull Def check(Decl predecl, ExprTycker tycker) {
     if (predecl instanceof TeleDecl<?> decl) {
       if (decl.signature != null) loadTele(decl.signature, tycker);

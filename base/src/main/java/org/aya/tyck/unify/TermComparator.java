@@ -13,6 +13,7 @@ import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.error.LevelError;
+import org.aya.tyck.tycker.ContextBased;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.StateBased;
 import org.aya.util.Ordering;
@@ -25,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-public abstract class TermComparator implements StateBased, Problematic {
+public abstract class TermComparator implements StateBased, ContextBased, Problematic {
   protected final @NotNull SourcePos pos;
   protected final @NotNull Ordering cmp;
   // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
@@ -93,6 +94,11 @@ public abstract class TermComparator implements StateBased, Problematic {
     return null;
   }
 
+  /**
+   * Compare two terms with the given {@param type} (if not null)
+   *
+   * @return true if they are 'the same' under {@param type}, false otherwise.
+   */
   public boolean compare(@NotNull Term preLhs, @NotNull Term preRhs, @Nullable Term type) {
     if (preLhs == preRhs) return true;
     if (compareApprox(preLhs, preRhs) != null) return true;
@@ -126,7 +132,7 @@ public abstract class TermComparator implements StateBased, Problematic {
       case TupTerm _ -> throw new InternalException("TupTerm is never type");
       case ErrorTerm _ -> true;
       case PiTerm pi -> switch (new Pair<>(lhs, rhs)) {
-        case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> state().dCtx().with(pi.param(),
+        case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> deBruijnCtx().with(pi.param(),
           () -> compare(lbody, rbody, pi.body()));
         case Pair(LamTerm lambda, _) -> compareLambda(lambda, rhs, pi);
         case Pair(_, LamTerm rambda) -> compareLambda(rambda, lhs, pi);
@@ -190,11 +196,11 @@ public abstract class TermComparator implements StateBased, Problematic {
         yield params.get(ldx).instantiateAll(spine.view().reversed());
       }
       case FreeTerm(var lvar) -> {
-        if (rhs instanceof FreeTerm(var rvar) && lvar == rvar) yield state().ctx().get(lvar);
+        if (rhs instanceof FreeTerm(var rvar) && lvar == rvar) yield localCtx().get(lvar);
         yield null;
       }
       case LocalTerm(var ldx) -> {
-        if (rhs instanceof LocalTerm(var rdx) && ldx == rdx) yield state().dCtx().get(ldx);
+        if (rhs instanceof LocalTerm(var rdx) && ldx == rdx) yield deBruijnCtx().get(ldx);
         yield null;
       }
       // We already compare arguments in compareApprox, if we arrive here,
@@ -209,7 +215,7 @@ public abstract class TermComparator implements StateBased, Problematic {
    * Compare {@param lambda} and {@param rhs} with {@param type}
    */
   private boolean compareLambda(@NotNull LamTerm lambda, @NotNull Term rhs, @NotNull PiTerm type) {
-    return state().dCtx().with(type.param(), () -> {
+    return deBruijnCtx().with(type.param(), () -> {
       // 0 : type.param()
       var lhsBody = lambda.body();
       var rhsBody = AppTerm.make(rhs, new LocalTerm(0));
@@ -244,7 +250,7 @@ public abstract class TermComparator implements StateBased, Problematic {
     @NotNull Supplier<R> continuation
   ) {
     if (!compare(lTy, rTy, null)) return onFailed.get();
-    return state().dCtx().with(lTy, continuation);
+    return deBruijnCtx().with(lTy, continuation);
   }
 
   /**
