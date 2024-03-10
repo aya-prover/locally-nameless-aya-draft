@@ -222,8 +222,8 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
         yield pi.body().instantiate(a);
       }
       case ProjTerm(var lof, var ldx) -> {
-        // Since the {lhs} and {rhs} are whnf, at this point, {lof} is unable to evaluate.
-        // Thus the only thing we can do is check whether {lof} and {rhs.of(}} (if rhs is ProjTerm) is 'the same'.
+        // Since {lhs} and {rhs} are whnf, at this point, {lof} is unable to evaluate.
+        // Thus the only thing we can do is check whether {lof} and {rhs.of(}} (if rhs is ProjTerm) are 'the same'.
         if (!(rhs instanceof ProjTerm(var rof, var rdx))) yield null;
         if (!(compareUntyped(lof, rof) instanceof SigmaTerm(var params))) yield null;
         if (ldx != rdx) yield null;

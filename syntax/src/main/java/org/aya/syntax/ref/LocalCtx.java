@@ -9,6 +9,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record LocalCtx(@NotNull MutableMap<LocalVar, Term> binds, @Nullable LocalCtx parent) {
+  public LocalCtx() {
+    this(MutableMap.create(), null);
+  }
+
   @Contract("-> new")
   public @NotNull LocalCtx derive() {
     return new LocalCtx(MutableMap.create(), this);

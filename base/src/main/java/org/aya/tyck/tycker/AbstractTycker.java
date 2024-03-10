@@ -16,6 +16,10 @@ public sealed abstract class AbstractTycker implements StateBased, ContextBased,
   private @NotNull DeBruijnCtx deBruijnCtx;
   public final @NotNull Reporter reporter;
 
+  protected AbstractTycker(@NotNull TyckState state, @NotNull Reporter reporter) {
+    this(state, new LocalCtx(), new DeBruijnCtx(), reporter);
+  }
+
   protected AbstractTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull DeBruijnCtx dCtx, @NotNull Reporter reporter) {
     this.state = state;
     this.localCtx = ctx;

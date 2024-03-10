@@ -16,6 +16,10 @@ import java.util.function.Supplier;
  * @param ctx reversed ctx, the last one is the type of 0.
  */
 public record DeBruijnCtx(@NotNull MutableList<Term> ctx) {
+  public DeBruijnCtx() {
+    this(MutableList.create());
+  }
+
   /**
    * Maps {@code 0} to {@code type}
    */
