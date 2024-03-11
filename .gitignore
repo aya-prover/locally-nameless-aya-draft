@@ -5,6 +5,7 @@ out/
 /.idea/modules/*
 /.idea/shelf/*
 /.idea/codeStyles/*
+/.idea/copilot/*
 /.idea/dictionaries/*
 /.idea/.name
 /.idea/inspectionProfiles/Project_Default.xml

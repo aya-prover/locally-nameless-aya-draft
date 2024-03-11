@@ -43,7 +43,7 @@ public final class ExprTycker extends AbstractTycker {
       //   yield SortTerm.Type0;
       // }
       default -> {
-        reporter.report(BadTypeError.univ(state, errorMsg.sourcePos(), errorMsg.data(), term));
+        reporter.report(BadTypeError.univ(state, errorMsg, term));
         yield SortTerm.Type0;
       }
     };
@@ -98,10 +98,7 @@ public final class ExprTycker extends AbstractTycker {
         // TODO: type level
         yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
       }
-      case Expr.Sort _ -> {
-        var ty = ty(expr);
-        yield new Result.Default(ty, ty);       // FIXME: Type in Type
-      }
+      case Expr.Sort sort -> sort(expr);
       case Expr.Tuple(var items) -> {
         var results = items.map(this::synthesize);
         var wellTypeds = results.map(Result::wellTyped);
@@ -128,7 +125,7 @@ public final class ExprTycker extends AbstractTycker {
       return doCheckApplication(f, args);
     } catch (NotPi notPi) {
       var expr = new Expr.App(new WithPos<>(sourcePos, new Expr.Ref(f)), args);
-      return fail(expr, BadTypeError.pi(state, sourcePos, expr, notPi.actual));
+      return fail(expr, BadTypeError.pi(state, new WithPos<>(sourcePos, expr), notPi.actual));
     }
   }
 
