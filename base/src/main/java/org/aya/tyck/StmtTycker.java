@@ -7,6 +7,7 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.term.SortTerm;
+import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -27,12 +28,13 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     switch (decl) {
       case TeleDecl.DataCtor con -> {}
       case TeleDecl.DataDecl data -> {
+        assert data.result != null;
         var signature = checkTele(data.telescope, data.result, tycker);
         SortTerm sort = SortTerm.Type0;
         if (signature.result() instanceof SortTerm userSort) {
           sort = userSort;
         } else {
-          // TODO: report
+          reporter.report(BadTypeError.univ(tycker.state, data.result, signature.result()));
         }
         data.signature = new Signature<>(signature.param(), sort);
       }

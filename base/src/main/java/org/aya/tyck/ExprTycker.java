@@ -31,6 +31,24 @@ public final class ExprTycker extends AbstractTycker {
     return doTy(expr);
   }
 
+  public @NotNull Result.Sort sort(@NotNull WithPos<Expr> expr) {
+    return new Result.Sort(sort(expr, ty(expr)));
+  }
+
+  private @NotNull SortTerm sort(@NotNull WithPos<Expr> errorMsg, @NotNull Term term) {
+    return switch (whnf(term)) {
+      case SortTerm u -> u;
+      // case MetaTerm hole -> {
+      //   unifyTyReported(hole, SortTerm.Type0, errorMsg);
+      //   yield SortTerm.Type0;
+      // }
+      default -> {
+        reporter.report(BadTypeError.univ(state, errorMsg.sourcePos(), errorMsg.data(), term));
+        yield SortTerm.Type0;
+      }
+    };
+  }
+
   private @NotNull Term doTy(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
       case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());

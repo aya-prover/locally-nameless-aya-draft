@@ -31,10 +31,10 @@ public interface TeleTycker {
     var tele = checkTeleFree(cTele, tycker);
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
     bindTele(locals, tele);
-    var result = bindResult(tycker.ty(cResult), locals);
     var finalParam = tele.zipView(cTele)
       .map(p -> new WithPos<>(p.component2().sourcePos(), p.component1()))
       .toImmutableSeq();
+    var result = bindResult(tycker.ty(cResult), locals);
     return new Signature<>(finalParam, result);
   }
 

@@ -3,6 +3,7 @@
 package org.aya.tyck;
 
 import org.aya.generic.AyaDocile;
+import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +29,16 @@ public sealed interface Result {
 
     @Override public @NotNull Default freezeHoles(@NotNull TyckState state) {
       throw new UnsupportedOperationException("TODO");
+    }
+  }
+
+  record Sort(@Override @NotNull SortTerm wellTyped) implements Result {
+    @Override public @NotNull SortTerm type() {
+      return wellTyped.succ();
+    }
+
+    @Override public @NotNull Sort freezeHoles(@NotNull TyckState state) {
+      return this;
     }
   }
 }
