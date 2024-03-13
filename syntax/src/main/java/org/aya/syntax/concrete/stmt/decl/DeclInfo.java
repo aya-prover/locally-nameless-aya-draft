@@ -3,14 +3,16 @@
 package org.aya.syntax.concrete.stmt.decl;
 
 import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.util.binop.OpDecl;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public record DeclInfo(
   @NotNull Stmt.Accessibility accessibility,
   @NotNull SourcePos sourcePos,
-  @NotNull SourcePos entireSourcePos
-  // @Nullable OpDecl.OpInfo opInfo,
+  @NotNull SourcePos entireSourcePos,
+  @Nullable OpDecl.OpInfo opInfo
   // @NotNull BindBlock bindBlock
 ) {
   /** @see org.aya.generic.Modifier */

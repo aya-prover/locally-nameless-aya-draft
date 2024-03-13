@@ -4,13 +4,18 @@ package org.aya.syntax.concrete;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
+import kala.value.MutableValue;
+import org.aya.syntax.concrete.stmt.QualifiedID;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
+import org.aya.util.ForLSP;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.UnaryOperator;
 
@@ -23,14 +28,14 @@ public sealed interface Pattern {
   @NotNull Pattern descent(@NotNull UnaryOperator<@NotNull Pattern> f);
 
   record Tuple(
-    @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns
+    @NotNull ImmutableSeq<WithPos<Pattern>> patterns
   ) implements Pattern {
-    public @NotNull Tuple update(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns) {
+    public @NotNull Tuple update(@NotNull ImmutableSeq<WithPos<Pattern>> patterns) {
       return patterns.sameElements(patterns(), true) ? this : new Tuple(patterns);
     }
 
     @Override public @NotNull Tuple descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
-      return update(patterns.map(a -> a.descent(x -> x.descent(f))));
+      return update(patterns.map(a -> a.descent(f)));
     }
   }
 
@@ -49,8 +54,11 @@ public sealed interface Pattern {
     }
   }
 
-  record CalmFace(@Override @NotNull SourcePos sourcePos) implements Pattern {
-    @Override public @NotNull CalmFace descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+  enum CalmFace implements Pattern {
+    INSTANCE;
+
+    @Override
+    public @NotNull Pattern descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
       return this;
     }
   }
@@ -120,6 +128,36 @@ public sealed interface Pattern {
 
     @Override public @NotNull As descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
       return update(pattern.descent(f));
+    }
+  }
+
+  /**
+   * @param qualifiedID a qualified QualifiedID ({@code isUnqualified == false})
+   */
+  record QualifiedRef(
+    @NotNull QualifiedID qualifiedID,
+    @Nullable WithPos<Expr> userType,
+    @ForLSP @NotNull MutableValue<@Nullable Term> type
+  ) implements Pattern {
+    public QualifiedRef(@NotNull QualifiedID qualifiedID) {
+      this(qualifiedID, null, MutableValue.create());
+    }
+
+    @Override public @NotNull QualifiedRef descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+      return this;
+    }
+  }
+
+  /** Sugared List Pattern */
+  record List(
+    @NotNull ImmutableSeq<WithPos<Pattern>> elements
+  ) implements Pattern {
+    public @NotNull List update(@NotNull ImmutableSeq<WithPos<Pattern>> elements) {
+      return elements.sameElements(elements(), true) ? this : new List(elements);
+    }
+
+    @Override public @NotNull List descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+      return update(elements.map(x -> x.descent(f));
     }
   }
 

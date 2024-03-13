@@ -3,12 +3,17 @@
 package org.aya.syntax.ref;
 
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record LocalVar(@NotNull String name, @NotNull SourcePos definition) implements AnyVar {
   public LocalVar(@NotNull String name) {
     this(name, SourcePos.NONE);
+  }
+
+  public static @NotNull LocalVar from(@NotNull WithPos<String> id) {
+    return make(id.data(), id.sourcePos());
   }
 
   public static @NotNull LocalVar make(@Nullable String name, @NotNull SourcePos sourcePos) {

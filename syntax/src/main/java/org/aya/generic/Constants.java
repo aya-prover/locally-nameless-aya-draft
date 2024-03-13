@@ -3,7 +3,9 @@
 package org.aya.generic;
 
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Global;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +38,10 @@ public interface Constants {
   @NotNull Expr applicativeApp = new Expr.Unresolved(APPLICATIVE_APP);
   @NotNull Expr functorPure = new Expr.Unresolved(FUNCTOR_PURE);
   @NotNull Expr monadBind = new Expr.Unresolved(MONAD_BIND);
+
+  static @NotNull LocalVar randomlyNamed(@NotNull SourcePos pos) {
+    return new LocalVar(randomName(pos), pos/*, GenerateKind.Anonymous.INSTANCE*/);
+  }
 
   @Contract(pure = true)
   static @NotNull String randomName(@NotNull Object pos) {

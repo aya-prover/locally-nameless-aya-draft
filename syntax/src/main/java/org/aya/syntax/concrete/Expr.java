@@ -9,6 +9,7 @@ import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
 import org.aya.generic.SortKind;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
@@ -62,19 +63,19 @@ public sealed interface Expr extends AyaDocile {
    */
   record Hole(
     boolean explicit,
-    @Nullable Expr filling, // TODO
+    @Nullable WithPos<Expr> filling, // TODO
     MutableValue<ImmutableSeq<LocalVar>> accessibleLocal
   ) implements Expr {
-    public Hole(boolean explicit, @Nullable Expr filling) {
+    public Hole(boolean explicit, @Nullable WithPos<Expr> filling) {
       this(explicit, filling, MutableValue.create());
     }
 
-    public @NotNull Hole update(@Nullable Expr filling) {
+    public @NotNull Hole update(@Nullable WithPos<Expr> filling) {
       return filling == filling() ? this : new Hole(explicit, filling);
     }
 
     @Override public @NotNull Hole descent(@NotNull UnaryOperator<@NotNull Expr> f) {
-      return update(filling == null ? null : f.apply(filling));
+      return update(filling == null ? null : filling.descent(f));
     }
   }
 
@@ -100,7 +101,7 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record Unresolved(
-    @NotNull String name    // TODO: QualifiedID
+    @NotNull QualifiedID name
   ) implements Expr {
     @Override public @NotNull Unresolved descent(@NotNull UnaryOperator<@NotNull Expr> f) {
       return this;
@@ -136,6 +137,32 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
+  /**
+   * @param resolvedVar will be set to the field's DefVar during resolving
+   * @author re-xyr
+   */
+  record Proj(
+    @NotNull Expr tup,
+    @NotNull Either<Integer, QualifiedID> ix,
+    @Nullable AnyVar resolvedVar
+    // , @NotNull MutableValue<Result> theCore    TODO
+  ) implements Expr {
+    public Proj(
+      @NotNull Expr tup,
+      @NotNull Either<Integer, QualifiedID> ix
+    ) {
+      this(tup, ix, null/*, MutableValue.create()*/);
+    }
+
+    public @NotNull Expr.Proj update(@NotNull Expr tup) {
+      return tup == tup() ? this : new Proj(tup, ix, resolvedVar/*, theCore*/);
+    }
+
+    @Override public @NotNull Expr.Proj descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+      return update(f.apply(tup));
+    }
+  }
+
   record App(@NotNull WithPos<Expr> function, @NotNull ImmutableSeq<NamedArg> argument) implements Expr {
     public @NotNull App update(@NotNull WithPos<Expr> function, @NotNull ImmutableSeq<NamedArg> argument) {
       return function == function() && argument.sameElements(argument(), true)
@@ -148,18 +175,25 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record NamedArg(
-    @Override @NotNull SourcePos sourcePos,
     @Override boolean explicit,
     @Nullable String name,
     @NotNull WithPos<Expr> arg
   ) implements SourceNode, BinOpElem<Expr>, AyaDocile {
+    public NamedArg(boolean explicit, @NotNull WithPos<Expr> arg) {
+      this(explicit, null, arg);
+    }
+
+    @Override public @NotNull SourcePos sourcePos() {
+      return arg.sourcePos();
+    }
+
     @Override
     public @NotNull Expr term() {
       return arg.data();
     }
 
     public @NotNull NamedArg update(@NotNull WithPos<Expr> expr) {
-      return expr == arg ? this : new NamedArg(sourcePos, explicit, name, expr);
+      return expr == arg ? this : new NamedArg(explicit, name, expr);
     }
 
     @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
@@ -198,7 +232,7 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
-  record RawSort(@NotNull SourcePos sourcePos, @NotNull SortKind kind) implements Expr, Sugar {
+  record RawSort(@NotNull SortKind kind) implements Expr, Sugar {
     @Override public @NotNull RawSort descent(@NotNull UnaryOperator<@NotNull Expr> f) {
       return this;
     }
@@ -235,6 +269,16 @@ public sealed interface Expr extends AyaDocile {
 
     @Override public SortKind kind() {
       return SortKind.ISet;
+    }
+  }
+
+  record Lift(@NotNull WithPos<Expr> expr, int lift) implements Expr {
+    public @NotNull Lift update(@NotNull WithPos<Expr> expr) {
+      return expr == expr() ? this : new Lift(expr, lift);
+    }
+
+    @Override public @NotNull Lift descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+      return update(expr.descent(f));
     }
   }
 

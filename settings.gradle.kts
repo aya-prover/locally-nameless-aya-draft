@@ -19,6 +19,7 @@ include(
   "base",
   "pretty",
   "parser",
+  "producer",
   "ide",
   "ide-lsp",
 )

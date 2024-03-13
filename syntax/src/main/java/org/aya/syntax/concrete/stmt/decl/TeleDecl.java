@@ -137,9 +137,9 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     FnBody map(@NotNull UnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g);
   }
 
-  public record ExprBody(Expr expr) implements FnBody {
+  public record ExprBody(@NotNull WithPos<Expr> expr) implements FnBody {
     @Override public ExprBody map(@NotNull UnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
-      return new ExprBody(f.apply(expr));
+      return new ExprBody(expr.descent(f));
     }
   }
 
