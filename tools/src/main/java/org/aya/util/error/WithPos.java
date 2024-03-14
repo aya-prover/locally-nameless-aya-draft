@@ -1,7 +1,8 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.util.error;
 
+import org.aya.util.PosedUnaryOperator;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +18,7 @@ public record WithPos<T>(@NotNull SourcePos sourcePos, T data) implements Source
     return data == this.data ? this : new WithPos<>(sourcePos, data);
   }
 
-  public @NotNull WithPos<T> descent(@NotNull UnaryOperator<T> f) {
-    return update(f.apply(data));
+  public @NotNull WithPos<T> descent(@NotNull PosedUnaryOperator<T> f) {
+    return update(f.apply(this));
   }
 }
