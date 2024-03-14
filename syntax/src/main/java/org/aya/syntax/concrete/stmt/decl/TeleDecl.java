@@ -16,6 +16,7 @@ import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
+import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -46,8 +47,8 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     this.telescope = telescope;
   }
 
-  public void modifyResult(@NotNull UnaryOperator<WithPos<Expr>> f) {
-    if (result != null) result = f.apply(result);
+  public void modifyResult(@NotNull PosedUnaryOperator<Expr> f) {
+    if (result != null) result = result.descent(f);
   }
 
   public void modifyTelescope(@NotNull UnaryOperator<ImmutableSeq<Expr.Param>> f) {
@@ -134,17 +135,17 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   }
 
   public sealed interface FnBody {
-    FnBody map(@NotNull UnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g);
+    FnBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g);
   }
 
   public record ExprBody(@NotNull WithPos<Expr> expr) implements FnBody {
-    @Override public ExprBody map(@NotNull UnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
+    @Override public ExprBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
       return new ExprBody(expr.descent(f));
     }
   }
 
   public record BlockBody(ImmutableSeq<Pattern.Clause> clauses) implements FnBody {
-    @Override public BlockBody map(@NotNull UnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
+    @Override public BlockBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
       return new BlockBody(clauses.map(g));
     }
   }

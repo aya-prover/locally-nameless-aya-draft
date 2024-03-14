@@ -13,6 +13,7 @@ import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
+import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -22,10 +23,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 public sealed interface Expr extends AyaDocile {
-  @NotNull Expr descent(@NotNull UnaryOperator<@NotNull Expr> f);
+  @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f);
 
   /** Yes, please */
   interface Sugar {
@@ -51,7 +51,7 @@ public sealed interface Expr extends AyaDocile {
       return type == type() ? this : new Param(sourcePos, ref, type, explicit);
     }
 
-    public @NotNull Param descent(@NotNull UnaryOperator<Expr> f) {
+    public @NotNull Param descent(@NotNull PosedUnaryOperator<Expr> f) {
       return update(type.descent(f));
     }
   }
@@ -74,7 +74,7 @@ public sealed interface Expr extends AyaDocile {
       return filling == filling() ? this : new Hole(explicit, filling);
     }
 
-    @Override public @NotNull Hole descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Hole descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(filling == null ? null : filling.descent(f));
     }
   }
@@ -85,7 +85,7 @@ public sealed interface Expr extends AyaDocile {
       throw new UnsupportedOperationException("TODO");
     }
 
-    @Override public @NotNull Expr.Error descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Expr.Error descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
   }
@@ -95,7 +95,7 @@ public sealed interface Expr extends AyaDocile {
       return seq.sameElements(seq(), true) ? this : new BinOpSeq(seq);
     }
 
-    @Override public @NotNull BinOpSeq descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull BinOpSeq descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(seq.map(arg -> arg.descent(f)));
     }
   }
@@ -103,14 +103,14 @@ public sealed interface Expr extends AyaDocile {
   record Unresolved(
     @NotNull QualifiedID name
   ) implements Expr {
-    @Override public @NotNull Unresolved descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Unresolved descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
   }
 
   record Ref(@NotNull AnyVar var) implements Expr {
     @Override
-    public @NotNull Expr descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
   }
@@ -120,7 +120,7 @@ public sealed interface Expr extends AyaDocile {
       return param == param() && body == body() ? this : new Lambda(param, body);
     }
 
-    @Override public @NotNull Lambda descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Lambda descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(param.descent(f), body.descent(f));
     }
   }
@@ -132,7 +132,7 @@ public sealed interface Expr extends AyaDocile {
       return items.sameElements(items(), true) ? this : new Tuple(items);
     }
 
-    @Override public @NotNull Expr.Tuple descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Expr.Tuple descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(items.map(x -> x.descent(f)));
     }
   }
@@ -142,24 +142,24 @@ public sealed interface Expr extends AyaDocile {
    * @author re-xyr
    */
   record Proj(
-    @NotNull Expr tup,
+    @NotNull WithPos<Expr> tup,
     @NotNull Either<Integer, QualifiedID> ix,
     @Nullable AnyVar resolvedVar
-    // , @NotNull MutableValue<Result> theCore    TODO
+    // , @NotNull MutableValue<Result> theCore    TODO: unable to access Result
   ) implements Expr {
     public Proj(
-      @NotNull Expr tup,
+      @NotNull WithPos<Expr> tup,
       @NotNull Either<Integer, QualifiedID> ix
     ) {
       this(tup, ix, null/*, MutableValue.create()*/);
     }
 
-    public @NotNull Expr.Proj update(@NotNull Expr tup) {
+    public @NotNull Expr.Proj update(@NotNull WithPos<Expr> tup) {
       return tup == tup() ? this : new Proj(tup, ix, resolvedVar/*, theCore*/);
     }
 
-    @Override public @NotNull Expr.Proj descent(@NotNull UnaryOperator<@NotNull Expr> f) {
-      return update(f.apply(tup));
+    @Override public @NotNull Expr.Proj descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
+      return update(tup.descent(f));
     }
   }
 
@@ -169,7 +169,7 @@ public sealed interface Expr extends AyaDocile {
         ? this : new App(function, argument);
     }
 
-    @Override public @NotNull App descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull App descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(function.descent(f), argument.map(arg -> arg.descent(f)));
     }
   }
@@ -202,7 +202,7 @@ public sealed interface Expr extends AyaDocile {
       return Doc.bracedUnless(doc, explicit);
     }
 
-    public @NotNull NamedArg descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    public @NotNull NamedArg descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(arg.descent(f));
     }
   }
@@ -215,7 +215,7 @@ public sealed interface Expr extends AyaDocile {
       return param == param() && last == last() ? this : new Pi(param, last);
     }
 
-    @Override public @NotNull Pi descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Pi descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(param.descent(f), last.descent(f));
     }
   }
@@ -227,13 +227,13 @@ public sealed interface Expr extends AyaDocile {
       return params.sameElements(params(), true) ? this : new Sigma(params);
     }
 
-    @Override public @NotNull Sigma descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Sigma descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(params.map(param -> param.descent(f)));
     }
   }
 
   record RawSort(@NotNull SortKind kind) implements Expr, Sugar {
-    @Override public @NotNull RawSort descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull RawSort descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
   }
@@ -243,7 +243,7 @@ public sealed interface Expr extends AyaDocile {
 
     SortKind kind();
 
-    @Override default @NotNull Sort descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override default @NotNull Sort descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
   }
@@ -277,19 +277,19 @@ public sealed interface Expr extends AyaDocile {
       return expr == expr() ? this : new Lift(expr, lift);
     }
 
-    @Override public @NotNull Lift descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Lift descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(expr.descent(f));
     }
   }
 
   record LitInt(int integer) implements Expr {
-    @Override public @NotNull LitInt descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull LitInt descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
   }
 
   record LitString(@NotNull String string) implements Expr {
-    @Override public @NotNull LitString descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull LitString descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
   }
@@ -303,8 +303,8 @@ public sealed interface Expr extends AyaDocile {
         : new Idiom(names, barredApps);
     }
 
-    @Override public @NotNull Idiom descent(@NotNull UnaryOperator<@NotNull Expr> f) {
-      return update(names.fmap(f), barredApps.map(x -> x.descent(f)));
+    @Override public @NotNull Idiom descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
+      return update(names.fmap(x -> f.apply(SourcePos.NONE, x)), barredApps.map(x -> x.descent(f)));
     }
   }
 
@@ -340,8 +340,8 @@ public sealed interface Expr extends AyaDocile {
         : new Do(bindName, binds);
     }
 
-    @Override public @NotNull Do descent(@NotNull UnaryOperator<@NotNull Expr> f) {
-      return update(f.apply(bindName), binds.map(bind -> bind.descent(f)));
+    @Override public @NotNull Do descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
+      return update(f.apply(SourcePos.NONE, bindName), binds.map(bind -> bind.descent(f)));
     }
   }
 
@@ -354,7 +354,7 @@ public sealed interface Expr extends AyaDocile {
       return expr == expr() ? this : new DoBind(sourcePos, var, expr);
     }
 
-    public @NotNull DoBind descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    public @NotNull DoBind descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(expr.descent(f));
     }
   }
@@ -376,7 +376,7 @@ public sealed interface Expr extends AyaDocile {
       return equal ? this : new Array(arrayBlock);
     }
 
-    @Override public @NotNull Array descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    @Override public @NotNull Array descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(arrayBlock.map(comp -> comp.descent(f), list -> list.descent(f)));
     }
 
@@ -385,7 +385,7 @@ public sealed interface Expr extends AyaDocile {
         return exprList.sameElements(exprList(), true) ? this : new ElementList(exprList);
       }
 
-      public @NotNull ElementList descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+      public @NotNull ElementList descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
         return update(exprList.map(x -> x.descent(f)));
       }
     }
@@ -427,8 +427,8 @@ public sealed interface Expr extends AyaDocile {
           : new CompBlock(generator, binds, names);
       }
 
-      public @NotNull CompBlock descent(@NotNull UnaryOperator<@NotNull Expr> f) {
-        return update(generator.descent(f), binds.map(bind -> bind.descent(f)), names.fmap(f));
+      public @NotNull CompBlock descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
+        return update(generator.descent(f), binds.map(bind -> bind.descent(f)), names.fmap(x -> f.apply(SourcePos.NONE, x)));
       }
     }
 
@@ -483,7 +483,7 @@ public sealed interface Expr extends AyaDocile {
     }
 
     @Override
-    public @NotNull Expr descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(bind().descent(f), body.descent(f));
     }
   }
@@ -501,7 +501,7 @@ public sealed interface Expr extends AyaDocile {
         : new LetBind(sourcePos, bindName, telescope, result, definedAs);
     }
 
-    public @NotNull LetBind descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    public @NotNull LetBind descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(telescope().map(x -> x.descent(f)), result.descent(f), definedAs.descent(f));
     }
   }
