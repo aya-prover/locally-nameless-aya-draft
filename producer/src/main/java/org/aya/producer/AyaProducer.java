@@ -537,7 +537,7 @@ public record AyaProducer(
       tail.push(head);
       return new WithPos<>(pos, new Expr.BinOpSeq(tail.toImmutableSeq()));
     }
-    if (node.is(PROJ_EXPR)) return new WithPos<>(pos, buildProj(expr(node.child(EXPR)).data(), node.child(PROJ_FIX)));
+    if (node.is(PROJ_EXPR)) return new WithPos<>(pos, buildProj(expr(node.child(EXPR)), node.child(PROJ_FIX)));
     // if (node.is(MATCH_EXPR)) {
     //   var clauses = node.child(CLAUSES);
     //   var bare = clauses.childrenOfType(BARE_CLAUSE).map(this::bareOrBarredClause);
@@ -658,8 +658,9 @@ public record AyaProducer(
     if (node.is(ATOM_EX_ARGUMENT)) {
       var fixes = node.childrenOfType(PROJ_FIX);
       var expr = expr(node.child(EXPR));
-      var projected = fixes.foldLeft(expr.data(), this::buildProj);
-      return new Expr.NamedArg(true, null, new WithPos<>(sourcePosOf(node), projected));
+      var projected = fixes.foldLeft(expr, (acc, proj) ->
+        new WithPos<>(acc.sourcePos(), buildProj(acc, proj)));
+      return new Expr.NamedArg(true, null, projected);
     }
     if (node.is(TUPLE_IM_ARGUMENT)) {
       var items = node.child(COMMA_SEP).childrenOfType(EXPR).map(this::expr).toImmutableSeq();
@@ -693,7 +694,7 @@ public record AyaProducer(
   // }
 
   private @NotNull Expr buildProj(
-    @NotNull Expr projectee,
+    @NotNull WithPos<Expr> projectee,
     @NotNull GenericNode<?> fix
   ) {
     var number = fix.peekChild(NUMBER);
