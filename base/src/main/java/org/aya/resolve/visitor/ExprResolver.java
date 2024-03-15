@@ -8,6 +8,7 @@ import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import kala.collection.mutable.MutableStack;
 import kala.value.MutableValue;
+import org.aya.generic.TyckOrder;
 import org.aya.generic.TyckUnit;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.Expr;
@@ -41,13 +42,13 @@ public record ExprResolver(
   @NotNull Context ctx,
   @NotNull Options options,
   // @NotNull MutableMap<GeneralizedVar, Expr.Param> allowedGeneralizes,
-  // @NotNull MutableList<TyckOrder> reference,
+  @NotNull MutableList<TyckOrder> reference,
   @NotNull MutableStack<Where> where,
   @Nullable Consumer<TyckUnit> parentAdd
 ) implements PosedUnaryOperator<Expr> {
 
   public ExprResolver(@NotNull Context ctx, @NotNull Options options) {
-    this(ctx, options, /*MutableLinkedHashMap.of(), MutableList.create(),*/ MutableStack.create(), null);
+    this(ctx, options, /*MutableLinkedHashMap.of(), */ MutableList.create(), MutableStack.create(), null);
   }
 
   public static final @NotNull Options RESTRICTIVE = new Options(false);
@@ -59,22 +60,22 @@ public record ExprResolver(
 
   public void enterHead() {
     where.push(Where.Head);
-    // reference.clear();
+    reference.clear();
   }
 
   public void enterBody() {
     where.push(Where.Body);
-    // reference.clear();
+    reference.clear();
   }
 
   public @NotNull ExprResolver enter(Context ctx) {
-    return ctx == ctx() ? this : new ExprResolver(ctx, options, /*allowedGeneralizes, reference,*/ where, parentAdd);
+    return ctx == ctx() ? this : new ExprResolver(ctx, options, /*allowedGeneralizes, */ reference, where, parentAdd);
   }
 
   public @NotNull ExprResolver member(@NotNull TyckUnit decl, Where initial) {
     var resolver = new ExprResolver(ctx, RESTRICTIVE,
 //          allowedGeneralizes,
-//          MutableList.of(new TyckOrder.Head(decl)),
+      MutableList.of(new TyckOrder.Head(decl)),
       MutableStack.create(),
       this::addReference
     );
@@ -92,7 +93,7 @@ public record ExprResolver(
     var resolver = new ExprResolver(ctx, RESTRICTIVE,
       // TODO[hoshino]: we needn't copy {allowedGeneralizes} cause this resolver is RESTRICTIVE
 //            MutableMap.from(allowedGeneralizes),
-//            MutableList.create(),
+      MutableList.create(),
       MutableStack.create(),
       this::addReference);
     resolver.where.push(Where.Body);
@@ -224,13 +225,13 @@ public record ExprResolver(
   private void addReference(@NotNull TyckUnit unit) {
     if (parentAdd != null) parentAdd.accept(unit);
     if (where.isEmpty()) throw new InternalException("where am I?");
-    // switch (where.peek()) {
-    //   case Head -> {
-    //     reference.append(new TyckOrder.Head(unit));
-    //     reference.append(new TyckOrder.Body(unit));
-    //   }
-    //   case Body -> reference.append(new TyckOrder.Body(unit));
-    // }
+    switch (where.peek()) {
+      case Head -> {
+        reference.append(new TyckOrder.Head(unit));
+        reference.append(new TyckOrder.Body(unit));
+      }
+      case Body -> reference.append(new TyckOrder.Body(unit));
+    }
   }
 
   private void addReference(@NotNull DefVar<?, ?> defVar) {
