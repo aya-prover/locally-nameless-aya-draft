@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.concrete.stmt;
 
+import org.aya.generic.TyckUnit;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author kiva
  */
-public sealed interface Stmt permits Decl {
+public sealed interface Stmt extends TyckUnit permits Decl {
   /** @apiNote the \import stmts do not have a meaningful accessibility, do not refer to this in those cases */
   @Contract(pure = true) @NotNull Accessibility accessibility();
 

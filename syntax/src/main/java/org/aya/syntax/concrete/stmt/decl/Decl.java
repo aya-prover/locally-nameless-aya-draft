@@ -2,8 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.concrete.stmt.decl;
 
+import org.aya.generic.TyckUnit;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.Contract;
@@ -31,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * @see TeleDecl
  * @see ClassDecl
  */
-public sealed interface Decl extends SourceNode, Stmt permits TeleDecl {
+public sealed interface Decl extends SourceNode, Stmt, TyckUnit permits TeleDecl {
   @Contract(pure = true) @NotNull DefVar<?, ?> ref();
 
   @Contract(pure = true) @NotNull DeclInfo info();

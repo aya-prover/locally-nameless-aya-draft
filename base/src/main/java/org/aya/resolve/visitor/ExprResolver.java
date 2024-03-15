@@ -8,6 +8,7 @@ import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import kala.collection.mutable.MutableStack;
 import kala.value.MutableValue;
+import org.aya.generic.TyckUnit;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
@@ -42,7 +43,7 @@ public record ExprResolver(
   // @NotNull MutableMap<GeneralizedVar, Expr.Param> allowedGeneralizes,
   // @NotNull MutableList<TyckOrder> reference,
   @NotNull MutableStack<Where> where,
-  @Nullable Consumer<Decl> parentAdd
+  @Nullable Consumer<TyckUnit> parentAdd
 ) implements PosedUnaryOperator<Expr> {
 
   public ExprResolver(@NotNull Context ctx, @NotNull Options options) {
@@ -70,7 +71,7 @@ public record ExprResolver(
     return ctx == ctx() ? this : new ExprResolver(ctx, options, /*allowedGeneralizes, reference,*/ where, parentAdd);
   }
 
-  public @NotNull ExprResolver member(@NotNull Decl /*TyckUnit*/ decl, Where initial) {
+  public @NotNull ExprResolver member(@NotNull TyckUnit decl, Where initial) {
     var resolver = new ExprResolver(ctx, RESTRICTIVE,
 //          allowedGeneralizes,
 //          MutableList.of(new TyckOrder.Head(decl)),
@@ -220,7 +221,7 @@ public record ExprResolver(
     };
   }
 
-  private void addReference(@NotNull Decl /*TyckUnit*/ unit) {
+  private void addReference(@NotNull TyckUnit unit) {
     if (parentAdd != null) parentAdd.accept(unit);
     if (where.isEmpty()) throw new InternalException("where am I?");
     // switch (where.peek()) {
@@ -233,7 +234,7 @@ public record ExprResolver(
   }
 
   private void addReference(@NotNull DefVar<?, ?> defVar) {
-    if (defVar.concrete instanceof Decl /*TyckUnit*/ unit)
+    if (defVar.concrete instanceof TyckUnit unit)
       addReference(unit);
   }
 
