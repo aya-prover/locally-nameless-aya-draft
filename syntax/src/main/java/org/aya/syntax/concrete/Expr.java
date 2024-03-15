@@ -57,13 +57,14 @@ public sealed interface Expr extends AyaDocile {
   }
 
   /**
+   * @param filling the inner expr of goal
    * @param explicit whether the hole is a type-directed programming goal or
    *                 a to-be-solved by tycking hole.
    * @author ice1000
    */
   record Hole(
     boolean explicit,
-    @Nullable WithPos<Expr> filling, // TODO
+    @Nullable WithPos<Expr> filling,
     MutableValue<ImmutableSeq<LocalVar>> accessibleLocal
   ) implements Expr {
     public Hole(boolean explicit, @Nullable WithPos<Expr> filling) {
