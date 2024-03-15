@@ -7,9 +7,17 @@ import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record LocalVar(@NotNull String name, @NotNull SourcePos definition) implements AnyVar {
+public record LocalVar(
+  @NotNull String name,
+  @NotNull SourcePos definition,
+  @NotNull GenerateKind generateKind
+) implements AnyVar {
   public LocalVar(@NotNull String name) {
-    this(name, SourcePos.NONE);
+    this(name, SourcePos.NONE, GenerateKind.None.INSTANCE);
+  }
+
+  public LocalVar(@NotNull String name, @NotNull SourcePos definition) {
+    this(name, definition, GenerateKind.None.INSTANCE);
   }
 
   public static @NotNull LocalVar from(@NotNull WithPos<String> id) {

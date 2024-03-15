@@ -11,13 +11,12 @@ import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.ForLSP;
+import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.function.UnaryOperator;
 
 /**
  * Patterns in the concrete syntax.
@@ -25,7 +24,7 @@ import java.util.function.UnaryOperator;
  * @author kiva, ice1000, HoshinoTented
  */
 public sealed interface Pattern {
-  @NotNull Pattern descent(@NotNull UnaryOperator<@NotNull Pattern> f);
+  @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f);
 
   record Tuple(
     @NotNull ImmutableSeq<WithPos<Pattern>> patterns
@@ -34,13 +33,13 @@ public sealed interface Pattern {
       return patterns.sameElements(patterns(), true) ? this : new Tuple(patterns);
     }
 
-    @Override public @NotNull Tuple descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull Tuple descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(patterns.map(a -> a.descent(f)));
     }
   }
 
   record Number(int number) implements Pattern {
-    @Override public @NotNull Number descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull Number descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return this;
     }
   }
@@ -49,7 +48,7 @@ public sealed interface Pattern {
     INSTANCE;
 
     @Override
-    public @NotNull Pattern descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return this;
     }
   }
@@ -58,7 +57,7 @@ public sealed interface Pattern {
     INSTANCE;
 
     @Override
-    public @NotNull Pattern descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return this;
     }
   }
@@ -70,7 +69,7 @@ public sealed interface Pattern {
     @NotNull LocalVar bind
     // @ForLSP @NotNull MutableValue<@Nullable Term> type
   ) implements Pattern {
-    @Override public @NotNull Bind descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return this;
     }
   }
@@ -81,19 +80,15 @@ public sealed interface Pattern {
     @NotNull WithPos<@NotNull AnyVar> resolved,
     @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params
   ) implements Pattern {
-    public Ctor(@NotNull WithPos<Pattern.Bind> bind, @NotNull AnyVar maybe) {
-      this(new WithPos<>(bind.sourcePos(), maybe), ImmutableSeq.empty());
+    public Ctor(@NotNull SourcePos pos, @NotNull AnyVar maybe) {
+      this(new WithPos<>(pos, maybe), ImmutableSeq.empty());
     }
-
-    // public Ctor(@NotNull Pattern.QualifiedRef qref, @NotNull AnyVar maybe) {
-    //   this(qref.sourcePos(), new WithPos<>(qref.sourcePos(), maybe), ImmutableSeq.empty());
-    // }
 
     public @NotNull Ctor update(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params) {
       return params.sameElements(params(), true) ? this : new Ctor(resolved, params);
     }
 
-    @Override public @NotNull Ctor descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull Ctor descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(params.map(a -> a.descent(x -> x.descent(f))));
     }
   }
@@ -105,7 +100,7 @@ public sealed interface Pattern {
       return seq.sameElements(seq(), true) ? this : new BinOpSeq(seq);
     }
 
-    @Override public @NotNull BinOpSeq descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull BinOpSeq descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(seq.map(a -> a.descent(x -> x.descent(f))));
     }
   }
@@ -126,7 +121,7 @@ public sealed interface Pattern {
       return pattern == pattern() ? this : new As(pattern, as);
     }
 
-    @Override public @NotNull As descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull As descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(pattern.descent(f));
     }
   }
@@ -143,7 +138,7 @@ public sealed interface Pattern {
       this(qualifiedID, null, MutableValue.create());
     }
 
-    @Override public @NotNull QualifiedRef descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull QualifiedRef descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return this;
     }
   }
@@ -156,8 +151,8 @@ public sealed interface Pattern {
       return elements.sameElements(elements(), true) ? this : new List(elements);
     }
 
-    @Override public @NotNull List descent(@NotNull UnaryOperator<@NotNull Pattern> f) {
-      return update(elements.map(x -> x.descent(f));
+    @Override public @NotNull List descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
+      return update(elements.map(x -> x.descent(f)));
     }
   }
 
@@ -181,11 +176,11 @@ public sealed interface Pattern {
         : new Clause(sourcePos, pats, body);
     }
 
-    public @NotNull Clause descent(@NotNull UnaryOperator<@NotNull Expr> f) {
+    public @NotNull Clause descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(patterns, expr.map(x -> x.descent(f)));
     }
 
-    public @NotNull Clause descent(@NotNull UnaryOperator<@NotNull Expr> f, @NotNull UnaryOperator<@NotNull Pattern> g) {
+    public @NotNull Clause descent(@NotNull PosedUnaryOperator<@NotNull Expr> f, @NotNull PosedUnaryOperator<@NotNull Pattern> g) {
       return update(patterns.map(p -> p.descent(x -> x.descent(g))), expr.map(x -> x.descent(f)));
     }
 
