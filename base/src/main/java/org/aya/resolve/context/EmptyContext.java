@@ -38,16 +38,16 @@ public record EmptyContext(@NotNull Reporter reporter, @NotNull Path underlyingF
     return null;
   }
 
-  @Override public @NotNull PhysicalModuleContext derive(@NotNull ImmutableSeq<@NotNull String> extraName) {
-    return new PhysicalModuleContext(this, new ModulePath(extraName));
-  }
-
-  @Override public @NotNull ModulePath modulePath() {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName) {
-    return null;
-  }
+  // @Override public @NotNull PhysicalModuleContext derive(@NotNull ImmutableSeq<@NotNull String> extraName) {
+  //   return new PhysicalModuleContext(this, new ModulePath(extraName));
+  // }
+  //
+  // @Override public @NotNull ModulePath modulePath() {
+  //   throw new UnsupportedOperationException();
+  // }
+  //
+  // @Override
+  // public @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName) {
+  //   return null;
+  // }
 }

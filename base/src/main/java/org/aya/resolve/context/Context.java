@@ -12,6 +12,7 @@ import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.SourcePos;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
@@ -169,7 +170,7 @@ public interface Context {
    * @param modName qualified module name
    * @return a ModuleExport of that module; null if no such module.
    */
-  @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName);
+  // @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName);
 
   /**
    * Trying to get a {@link ModuleExport} by a module {@param modName} in the whole context.
@@ -177,9 +178,9 @@ public interface Context {
    * @param modName qualified module name
    * @return a ModuleExport of that module; null if no such module.
    */
-  default @Nullable ModuleExport getModuleMaybe(@NotNull ModuleName.Qualified modName) {
-    return iterate(c -> c.getModuleLocalMaybe(modName));
-  }
+  // default @Nullable ModuleExport getModuleMaybe(@NotNull ModuleName.Qualified modName) {
+  //   return iterate(c -> c.getModuleLocalMaybe(modName));
+  // }
 
   default @NotNull Context bind(
     @NotNull LocalVar ref,
@@ -207,13 +208,13 @@ public interface Context {
     return new BindContext(this, name, ref);
   }
 
-  default @NotNull PhysicalModuleContext derive(@NotNull String extraName) {
-    return derive(ImmutableSeq.of(extraName));
-  }
-
-  default @NotNull PhysicalModuleContext derive(@NotNull ImmutableSeq<@NotNull String> extraName) {
-    return new PhysicalModuleContext(this, this.modulePath().derive(extraName));
-  }
+  // default @NotNull PhysicalModuleContext derive(@NotNull String extraName) {
+  //   return derive(ImmutableSeq.of(extraName));
+  // }
+  //
+  // default @NotNull PhysicalModuleContext derive(@NotNull ImmutableSeq<@NotNull String> extraName) {
+  //   return new PhysicalModuleContext(this, this.modulePath().derive(extraName));
+  // }
 
   class ResolvingInterruptedException extends InterruptException {
     @Override public InterruptStage stage() {
