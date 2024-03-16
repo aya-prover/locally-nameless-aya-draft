@@ -26,7 +26,7 @@ public interface TeleTycker {
   @Contract(pure = true)
   static @NotNull Signature<Term> checkTele(
     ImmutableSeq<Expr.Param> cTele,
-    WithPos<Expr> cResult, ExprTycker tycker
+    WithPos<Expr> result, ExprTycker tycker
   ) {
     var tele = checkTeleFree(cTele, tycker);
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
@@ -34,8 +34,7 @@ public interface TeleTycker {
     var finalParam = tele.zipView(cTele)
       .map(p -> new WithPos<>(p.component2().sourcePos(), p.component1()))
       .toImmutableSeq();
-    var result = bindResult(tycker.ty(cResult), locals);
-    return new Signature<>(finalParam, result);
+    return new Signature<>(finalParam, bindResult(tycker.ty(result), locals));
   }
 
   /**

@@ -15,19 +15,16 @@ import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.Result;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public final class AppTycker {
+public interface AppTycker {
   @FunctionalInterface
-  public interface Factory<Ex extends Throwable> extends
+  interface Factory<Ex extends Exception> extends
     CheckedBiFunction<ImmutableSeq<Param>, Function<ImmutableSeq<Term>, Result>, Result, Ex> {
   }
 
-  private AppTycker() {}
-
   @SuppressWarnings("unchecked")
-  public static <Ex extends Throwable> @NotNull Result checkDefApplication(
+  static <Ex extends Exception> @NotNull Result checkDefApplication(
     @NotNull DefVar<? extends Def, ? extends Decl> defVar,
     Factory<Ex> makeArgs
   ) throws Ex {
@@ -36,13 +33,13 @@ public final class AppTycker {
 
     if (core instanceof FnDef || concrete instanceof TeleDecl.FnDecl) {
       var fnVar = (DefVar<FnDef, TeleDecl.FnDecl>) defVar;
-      return makeArgs.apply(TeleDef.defTele(fnVar), args -> new Result.Default(
+      return makeArgs.applyChecked(TeleDef.defTele(fnVar), args -> new Result.Default(
         new FnCall(fnVar, 0, args),
         TeleDef.defType(fnVar)
       ));
     } else if (core instanceof DataDef || concrete instanceof TeleDecl.DataDecl) {
       var dataVar = (DefVar<DataDef, TeleDecl.DataDecl>) defVar;
-      return makeArgs.apply(TeleDef.defTele(dataVar), args -> new Result.Default(
+      return makeArgs.applyChecked(TeleDef.defTele(dataVar), args -> new Result.Default(
         new DataCall(dataVar, 0, args),
         TeleDef.defType(dataVar)
       ));
