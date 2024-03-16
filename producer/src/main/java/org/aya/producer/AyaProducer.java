@@ -271,12 +271,12 @@ public record AyaProducer(
     var wholePos = sourcePosOf(node);
     var info = new DeclInfo(
       modifier.accessibility().data(),
-      nameOrInfix.map(x -> x.component1().sourcePos()).getOrDefault(SourcePos.NONE),
+      nameOrInfix.map(x -> x.name.sourcePos()).getOrDefault(SourcePos.NONE),
       wholePos,
-      nameOrInfix.map(Tuple2::component2).getOrNull()
+      nameOrInfix.map(DeclNameOrInfix::infix).getOrNull()
       // , bind == null ? BindBlock.EMPTY : bindBlock(bind)
     );
-    return new DeclParseData(node, info, nameOrInfix.map(x -> x.component1().data()).getOrNull(), modifier);
+    return new DeclParseData(node, info, nameOrInfix.map(x -> x.name.data()).getOrNull(), modifier);
   }
 
   public @Nullable TeleDecl.FnDecl fnDecl(@NotNull GenericNode<?> node) {
@@ -476,14 +476,16 @@ public record AyaProducer(
       LocalVar.from(teleParamName(node)), typeOrHole(null, pos), explicit));
   }
 
-  public @Nullable Tuple2<@NotNull WithPos<String>, OpDecl.@Nullable OpInfo>
-  declNameOrInfix(@Nullable GenericNode<?> node) {
+  private record DeclNameOrInfix(@NotNull WithPos<String> name, @Nullable OpDecl.OpInfo infix) {
+  }
+
+  private @Nullable DeclNameOrInfix declNameOrInfix(@Nullable GenericNode<?> node) {
     if (node == null) return null;
     var assoc = node.peekChild(ASSOC);
     var id = weakId(node.child(WEAK_ID));
-    if (assoc == null) return Tuple.of(id, null);
+    if (assoc == null) return new DeclNameOrInfix(id, null);
     var infix = new OpDecl.OpInfo(id.data(), assoc(assoc));
-    return Tuple.of(new WithPos<>(id.sourcePos(), infix.name()), infix);
+    return new DeclNameOrInfix(new WithPos<>(id.sourcePos(), infix.name()), infix);
   }
 
   public @NotNull WithPos<Expr> expr(@NotNull GenericNode<?> node) {
