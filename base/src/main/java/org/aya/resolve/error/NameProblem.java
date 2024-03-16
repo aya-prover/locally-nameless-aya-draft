@@ -99,7 +99,7 @@ public interface NameProblem extends Problem {
         Doc.english("The inner module"),
         Doc.code(QualifiedID.join(modulePath)),
         Doc.english("clashes with a file level module"),
-        Doc.code(modulePath.joinToString("/") + ".aya")
+        Doc.code(STR."\{modulePath.joinToString("/")}.aya")
       );
     }
   }

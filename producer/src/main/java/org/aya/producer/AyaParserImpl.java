@@ -28,7 +28,7 @@ public record AyaParserImpl(@NotNull Reporter reporter) implements GenericAyaPar
   }
 
   @Override public @NotNull WithPos<Expr> expr(@NotNull String code, @NotNull SourcePos sourcePos) {
-    var node = parseNode("prim a : " + code);
+    var node = parseNode(STR."prim a : \{code}");
     var type = node.child(AyaPsiElementTypes.PRIM_DECL).child(AyaPsiElementTypes.TYPE);
     return new AyaProducer(Either.right(sourcePos), reporter).type(type);
   }

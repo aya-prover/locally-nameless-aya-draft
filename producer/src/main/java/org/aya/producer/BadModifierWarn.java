@@ -10,10 +10,7 @@ import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 
-public record BadModifierWarn(
-  @Override @NotNull SourcePos sourcePos,
-  @NotNull Modifier modifier
-) implements Problem {
+public record BadModifierWarn(@Override @NotNull SourcePos sourcePos, @NotNull Modifier modifier) implements Problem {
   @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
     return Doc.sep(Doc.plain("Ignoring"), Doc.styled(BasePrettier.KEYWORD, modifier.keyword));
   }

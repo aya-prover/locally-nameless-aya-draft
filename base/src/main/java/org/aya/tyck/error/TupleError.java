@@ -18,21 +18,18 @@ public sealed interface TupleError extends TyckError {
     }
   }
 
-/*
   record ProjIxError(
     @Override @NotNull Expr.Proj expr,
     @Override @NotNull SourcePos sourcePos,
     int actual, int expectedBound
-  )
-    implements TupleError {
+  ) implements TupleError {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.sep(
         Doc.english("Cannot project the"),
         Doc.ordinal(actual),
         Doc.english("element because the type has index range"),
-        Doc.plain("[1, " + expectedBound + "]")
+        Doc.plain(STR."[1, \{expectedBound}]")
       );
     }
   }
-*/
 }
