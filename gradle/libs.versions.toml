@@ -13,11 +13,11 @@ kala = "0.69.0"
 picocli = "4.7.5"
 build-util = "0.0.21"
 # https://github.com/graalvm/native-build-tools
-graal-tools = "0.9.28"
+graal-tools = "0.10.1"
 # https://github.com/jline/jline3
-jline = "3.25.0"
+jline = "3.25.1"
 # https://github.com/commonmark/commonmark-java
-commonmark = "0.21.1"
+commonmark = "0.22.0"
 jimgui = "v0.21.0"
 junit = "5.10.0"
 hamcrest = "2.2"
@@ -38,7 +38,6 @@ annotations = { group = "org.jetbrains", name = "annotations", version.ref = "an
 aya-ij-core = { group = "org.aya-prover.upstream", name = "ij-parsing-core", version.ref = "build-util" }
 aya-ij-text = { group = "org.aya-prover.upstream", name = "ij-util-text", version.ref = "build-util" }
 aya-ij-wrapper = { group = "org.aya-prover.upstream", name = "ij-parsing-wrapper", version.ref = "build-util" }
-aya-commonmark = { group = "org.aya-prover", name = "commonmark", version.ref = "commonmark" }
 aya-lsp-protocol = { group = "org.aya-prover.upstream", name = "javacs-protocol", version.ref = "build-util" }
 aya-build-util = { group = "org.aya-prover.upstream", name = "build-util", version.ref = "build-util" }
 aya-build-jflex = { group = "org.aya-prover.upstream", name = "build-util-jflex", version.ref = "build-util" }
@@ -64,3 +63,4 @@ hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest"
 
 jimgui-core = { group = "org.ice1000.jimgui", name = "core", version.ref = "jimgui" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+commonmark = { group = "org.commonmark", name = "commonmark", version.ref = "commonmark" }

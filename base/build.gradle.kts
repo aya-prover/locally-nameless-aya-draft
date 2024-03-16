@@ -5,7 +5,7 @@ import org.aya.gradle.GenerateVersionTask
 dependencies {
   api(project(":syntax"))
   api(project(":tools-md"))
-  implementation(libs.aya.commonmark)
+  implementation(libs.commonmark)
   testImplementation(libs.junit.params)
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)
