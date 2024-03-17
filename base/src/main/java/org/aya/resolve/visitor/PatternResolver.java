@@ -2,6 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve.visitor;
 
+import kala.collection.mutable.MutableList;
+import org.aya.generic.TyckOrder;
+import org.aya.generic.TyckUnit;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.ModuleName;
@@ -15,12 +18,16 @@ import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Consumer;
+
 public class PatternResolver implements PosedUnaryOperator<Pattern> {
   // DIRTY!!
   private @NotNull Context context;
+  private final @NotNull Consumer<TyckUnit> parentAdd;
 
-  public PatternResolver(@NotNull Context context) {
+  public PatternResolver(@NotNull Context context, @NotNull Consumer<TyckUnit> parentAdd) {
     this.context = context;
+    this.parentAdd = parentAdd;
   }
 
   public @NotNull Context context() {
@@ -38,7 +45,7 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
         var conMaybe = context.iterate(ctx -> isCon(ctx.getUnqualifiedLocalMaybe(bind.bind().name(), pos)));
         if (conMaybe != null) {
           // It intents to be a ctor!
-          // TODO: addReference
+          addReference(conMaybe);
           yield new Pattern.Ctor(pos, conMaybe);
         }
 
@@ -52,6 +59,7 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
           throw new InternalException("QualifiedRef#qualifiedID should be qualified");
         var conMaybe = context.iterate(ctx -> isCon(ctx.getQualifiedLocalMaybe(mod, qid.name(), pos)));
         if (conMaybe != null) {
+          addReference(conMaybe);
           yield new Pattern.Ctor(pos, conMaybe);
         }
 
@@ -65,6 +73,12 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
       }
       default -> pat;
     };
+  }
+
+  private void addReference(@NotNull DefVar<?, ?> defVar) {
+    if (defVar.concrete instanceof TyckUnit unit) {
+      parentAdd.accept(unit);
+    }
   }
 
   private static @Nullable DefVar<?, ?> isCon(@Nullable AnyVar myMaybe) {

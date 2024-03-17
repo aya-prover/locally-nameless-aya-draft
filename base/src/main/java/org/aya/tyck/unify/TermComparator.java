@@ -35,7 +35,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   protected final @NotNull Ordering cmp;
   // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
   protected boolean solveMeta = true;
-  private FailureData failure;
+  private @Nullable FailureData failure = null;
 
   public TermComparator(
     @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull DeBruijnCtx dCtx, @NotNull Reporter reporter,
@@ -187,7 +187,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   }
 
   /**
-   * Compare whnf {@param preLhs} and whnf {@param preRhs} without type information.
+   * Compare whnfed {@param preLhs} and whnfed {@param preRhs} without type information.
    *
    * @return the whnfed type of {@param preLhs} and {@param preRhs} if they are 'the same', null otherwise.
    */

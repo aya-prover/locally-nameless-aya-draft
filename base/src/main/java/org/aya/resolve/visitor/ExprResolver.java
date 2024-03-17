@@ -246,7 +246,7 @@ public record ExprResolver(
   }
 
   private @NotNull WithPos<Pattern> resolvePattern(@NotNull WithPos<Pattern> pattern, MutableValue<Context> ctx) {
-    var resolver = new PatternResolver(this.ctx);
+    var resolver = new PatternResolver(this.ctx, this::addReference);
     var result = resolver.apply(pattern);
     ctx.set(resolver.context());
     return pattern.map(x -> result);
