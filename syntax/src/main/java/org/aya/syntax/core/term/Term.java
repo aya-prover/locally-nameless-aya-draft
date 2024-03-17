@@ -80,9 +80,32 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   /**
+   * @param f a "mapper" which all sub nodes of {@link Term} apply to.
+   *          the index indicates how many new bindings are introduced.
+   *          For example, a {@link LamTerm}:
+   *          <pre>
+   *              Γ, a : A ⊢ b : B<br/>
+   *          --------------------------<br/>
+   *          Γ ⊢ fn (a : A) => (b : B)
+   *          </pre>
+   *          {@code b} will apply to {@code f}, but the context of {@code b}: `Γ, a : A` has a new binding,
+   *          therefore the implementation should be {@code f.apply(1, b)}.
+   *          In the other hand, a {@link AppTerm}:
+   *          <pre>
+   *          Γ ⊢ g : A → B   Γ ⊢ a : A<br/>
+   *          --------------------------<br/>
+   *                 Γ ⊢ g a : B
+   *          </pre>
+   *          both {@code g} and {@code a} will apply to {@code f}, but the context of them have no extra binding,
+   *          so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.
    */
   @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f);
+
+  @ApiStatus.NonExtendable
+  default @NotNull Term descent(@NotNull UnaryOperator<Term> f) {
+    return this.descent((_, t) -> f.apply(t));
+  }
 
   default @NotNull Term elevate(int level) {
     return descent((_, t) -> t.elevate(level));

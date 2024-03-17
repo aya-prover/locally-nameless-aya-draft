@@ -11,22 +11,32 @@ import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.UnaryOperator;
+
 /**
  * Unlike in pre-v0.30 Aya, we use only one normalizer, only doing head reduction,
  * and we merge conservative normalizer and the whnf normalizer.
  */
-public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar> opaque) {
+public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar> opaque)
+  implements UnaryOperator<Term> {
   public Normalizer(@NotNull TyckState state) {
     this(state, ImmutableSet.empty());
   }
 
+  @Override
+  public Term apply(Term term) {
+    return whnf(term);
+  }
+
   public @NotNull Term whnf(@NotNull Term term) {
-    return switch (term) {
+    var postTerm = term.descent(this);
+
+    return switch (postTerm) {
       case StableWHNF whnf -> whnf;
       case AppTerm app -> AppTerm.make(app);
       case ProjTerm proj -> ProjTerm.make(proj);
       // TODO: handle other cases
-      case Term _ -> term;
+      default -> term;
     };
   }
 }
