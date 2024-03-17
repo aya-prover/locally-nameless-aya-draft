@@ -6,6 +6,7 @@ dependencies {
   api(project(":syntax"))
   api(project(":tools-md"))
   implementation(libs.commonmark)
+  testImplementation(project(":producer"))
   testImplementation(libs.junit.params)
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)

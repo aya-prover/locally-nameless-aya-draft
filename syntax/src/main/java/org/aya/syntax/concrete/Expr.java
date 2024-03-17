@@ -104,6 +104,10 @@ public sealed interface Expr extends AyaDocile {
   record Unresolved(
     @NotNull QualifiedID name
   ) implements Expr {
+    public Unresolved(@NotNull SourcePos pos, @NotNull String name) {
+      this(new QualifiedID(pos, name));
+    }
+
     @Override public @NotNull Unresolved descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return this;
     }
