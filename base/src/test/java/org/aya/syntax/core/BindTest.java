@@ -41,7 +41,7 @@ public class BindTest {
     var refX = new Expr.Ref(x);
     var refY = new Expr.Ref(y);
     var XY = new Expr.App(of(refX), ImmutableSeq.of(
-      new Expr.NamedArg(SourcePos.NONE, true, null, of(refY))));
+      new Expr.NamedArg(true, null, of(refY))));
     var YXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, y, of(ty), true), of(XY));
     var XYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, x, of(pi), true), of(YXY));
 
