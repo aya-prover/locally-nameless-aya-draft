@@ -17,6 +17,14 @@ public record ModulePath(@NotNull ImmutableSeq<String> module) {
     return module.sameElements(other.module);
   }
 
+  public @NotNull ModulePath derive(@NotNull String modName) {
+    return new ModulePath(module.appended(modName));
+  }
+
+  public @NotNull ModulePath derive(@NotNull ImmutableSeq<String> modName) {
+    return new ModulePath(module.concat(modName));
+  }
+
   @Override
   public String toString() {
     return QualifiedID.join(module);

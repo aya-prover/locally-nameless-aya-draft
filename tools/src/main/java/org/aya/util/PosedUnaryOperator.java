@@ -10,11 +10,11 @@ import java.util.function.BiFunction;
 
 @FunctionalInterface
 public interface PosedUnaryOperator<T> extends BiFunction<SourcePos, T, T> {
-  default @NotNull T apply(@NotNull WithPos<T> a) {
+  default T apply(@NotNull WithPos<T> a) {
     return apply(a.sourcePos(), a.data());
   }
 
-  default @NotNull T forceApply(@NotNull T a) {
+  default T forceApply(T a) {
     return apply(SourcePos.NONE, a);
   }
 }
