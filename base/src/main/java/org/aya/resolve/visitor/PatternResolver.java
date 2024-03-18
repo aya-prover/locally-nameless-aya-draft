@@ -2,10 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve.visitor;
 
-import kala.collection.mutable.MutableList;
-import org.aya.generic.TyckOrder;
 import org.aya.generic.TyckUnit;
 import org.aya.resolve.context.Context;
+import org.aya.resolve.error.NameProblem;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -64,8 +63,7 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
         }
 
         // !! No Such Thing !!
-        // TODO report no such symbol
-        throw new UnsupportedOperationException("TODO");
+        yield context.reportAndThrow(new NameProblem.QualifiedNameNotFoundError(qid.component(), qid.name(), pos));
       }
       case Pattern.As as -> {
         context = context.bind(as.as());
