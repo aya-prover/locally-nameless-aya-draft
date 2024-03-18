@@ -80,15 +80,15 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   /**
-   * @param f a "mapper" which all sub nodes of {@link Term} apply to.
-   *          the index indicates how many new bindings are introduced.
+   * @param f a "mapper" which will apply to all sub nodes of {@link Term}.
+   *          The index indicates how many new bindings are introduced.
    *          For example, a {@link LamTerm}:
    *          <pre>
    *              Γ, a : A ⊢ b : B<br/>
    *          --------------------------<br/>
    *          Γ ⊢ fn (a : A) => (b : B)
    *          </pre>
-   *          {@code b} will apply to {@code f}, but the context of {@code b}: `Γ, a : A` has a new binding,
+   *          {@code f} will apply to {@code b}, but the context of {@code b}: `Γ, a : A` has a new binding,
    *          therefore the implementation should be {@code f.apply(1, b)}.
    *          In the other hand, a {@link AppTerm}:
    *          <pre>
@@ -96,7 +96,7 @@ public sealed interface Term extends Serializable, AyaDocile
    *          --------------------------<br/>
    *                 Γ ⊢ g a : B
    *          </pre>
-   *          both {@code g} and {@code a} will apply to {@code f}, but the context of them have no extra binding,
+   *          {@code} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
    *          so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.
    */
