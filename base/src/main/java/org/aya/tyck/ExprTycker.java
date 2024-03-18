@@ -168,7 +168,7 @@ public final class ExprTycker extends AbstractTycker {
           paramIx++;
         }
         if (argIx < args.size()) {
-          generateApplication(args.drop(argIx), k.apply(result.toImmutableSeq()));
+          return generateApplication(args.drop(argIx), k.apply(result.toImmutableSeq()));
         } else if (paramIx < params.size()) {
           // TODO: eta-expand
           throw new UnsupportedOperationException("TODO");
