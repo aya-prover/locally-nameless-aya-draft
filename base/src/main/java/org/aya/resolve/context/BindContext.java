@@ -58,8 +58,8 @@ public record BindContext(
     return parent.getQualifiedLocalMaybe(modName, name, sourcePos);
   }
 
-  // @Override
-  // public @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName) {
-  //   return null;
-  // }
+  @Override
+  public @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName) {
+    return null;
+  }
 }

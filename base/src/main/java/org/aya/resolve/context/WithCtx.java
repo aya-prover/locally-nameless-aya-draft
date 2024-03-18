@@ -4,8 +4,14 @@ package org.aya.resolve.context;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Function;
+
 public record WithCtx<T>(@NotNull Context ctx, @NotNull T data) {
   public static <T> @NotNull WithCtx<T> of(@NotNull Context ctx, @NotNull T data) {
     return new WithCtx<>(ctx, data);
+  }
+
+  public <R> @NotNull WithCtx<R> map(@NotNull Function<T, R> mapper) {
+    return new WithCtx<>(ctx, mapper.apply(data));
   }
 }

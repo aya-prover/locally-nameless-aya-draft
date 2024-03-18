@@ -5,6 +5,7 @@ package org.aya.resolve.context;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.ref.AnyVar;
+import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.SourcePos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -38,16 +39,16 @@ public record EmptyContext(@NotNull Reporter reporter, @NotNull Path underlyingF
     return null;
   }
 
-  // @Override public @NotNull PhysicalModuleContext derive(@NotNull ImmutableSeq<@NotNull String> extraName) {
-  //   return new PhysicalModuleContext(this, new ModulePath(extraName));
-  // }
-  //
-  // @Override public @NotNull ModulePath modulePath() {
-  //   throw new UnsupportedOperationException();
-  // }
-  //
-  // @Override
-  // public @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName) {
-  //   return null;
-  // }
+  @Override public @NotNull PhysicalModuleContext derive(@NotNull ImmutableSeq<@NotNull String> extraName) {
+    return new PhysicalModuleContext(this, new ModulePath(extraName));
+  }
+
+  @Override public @NotNull ModulePath modulePath() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public @Nullable ModuleExport getModuleLocalMaybe(@NotNull ModuleName.Qualified modName) {
+    return null;
+  }
 }
