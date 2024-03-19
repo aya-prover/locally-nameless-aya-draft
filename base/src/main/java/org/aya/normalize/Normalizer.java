@@ -7,6 +7,7 @@ import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.ProjTerm;
 import org.aya.syntax.core.term.StableWHNF;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +36,9 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       case StableWHNF whnf -> whnf;
       case AppTerm app -> AppTerm.make(app);
       case ProjTerm proj -> ProjTerm.make(proj);
+      case FnCall(var ref, int ulift, var args) when ref.core != null -> {
+        throw new UnsupportedOperationException("TODO: implement");
+      }
       // TODO: handle other cases
       default -> term;
     };
