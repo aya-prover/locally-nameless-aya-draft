@@ -10,7 +10,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.xtt.DimTerm;
-import org.aya.syntax.core.term.xtt.Partial;
+import org.aya.syntax.core.term.xtt.PartialTerm;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;
@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
-  permits AppTerm, Formation, FreeTerm, LocalTerm, ProjTerm, StableWHNF, Callable, DimTerm, Partial {
+  permits AppTerm, Formation, FreeTerm, LocalTerm, ProjTerm, StableWHNF, Callable, DimTerm, PartialTerm {
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     throw new UnsupportedOperationException("TODO");

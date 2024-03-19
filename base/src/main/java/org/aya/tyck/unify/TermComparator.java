@@ -12,6 +12,8 @@ import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.core.term.xtt.DimTerm;
+import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DeBruijnCtx;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
@@ -232,14 +234,9 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
         // however, for {lof.ldx}, the nearest(0) element is {lof.(idx - 1)}, so we need to reverse the spine.
         yield params.get(ldx).instantiateAll(spine.view().reversed());
       }
-      case FreeTerm(var lvar) -> {
-        if (rhs instanceof FreeTerm(var rvar) && lvar == rvar) yield localCtx().get(lvar);
-        yield null;
-      }
-      case LocalTerm(var ldx) -> {
-        if (rhs instanceof LocalTerm(var rdx) && ldx == rdx) yield deBruijnCtx().get(ldx);
-        yield null;
-      }
+      case FreeTerm(var lvar) -> rhs instanceof FreeTerm(var rvar) && lvar == rvar ? localCtx().get(lvar) : null;
+      case LocalTerm(var ldx) -> rhs instanceof LocalTerm(var rdx) && ldx == rdx ? deBruijnCtx().get(ldx) : null;
+      case DimTerm l -> rhs instanceof DimTerm r && l == r ? l : null;
       // We already compare arguments in compareApprox, if we arrive here,
       // it means their arguments don't match (even the ref don't match),
       // so we are unable to do more if we can't normalize them.
@@ -355,6 +352,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
         yield compareMany(lhs.args(), rhs.args(), TeleDef.defTele(lhs.ref())
           .map(x -> x.type().elevate(lhs.ulift())));
       }
+      case Pair(DimTyTerm _, DimTyTerm _) -> true;
       case Pair(PiTerm lhs, PiTerm rhs) -> compareTypeWith(lhs.param(), rhs.param(), () -> false, () ->
         compare(lhs.body(), rhs.body(), null));
       case Pair(SigmaTerm lhs, SigmaTerm rhs) -> compareTypesWith(lhs.params(), rhs.params(), () -> false, () -> true);

@@ -7,7 +7,7 @@ import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public record Partial(
+public record PartialTerm(
   @NotNull Term term,
   @NotNull ImmutableSeq<ParClause> clauses
 ) implements Term {
@@ -17,7 +17,7 @@ public record Partial(
     }
   }
 
-  @Override public @NotNull Partial descent(@NotNull IndexedFunction<Term, Term> f) {
-    return new Partial(term.descent(f), clauses.map(c -> c.descent(f)));
+  @Override public @NotNull PartialTerm descent(@NotNull IndexedFunction<Term, Term> f) {
+    return new PartialTerm(term.descent(f), clauses.map(c -> c.descent(f)));
   }
 }
