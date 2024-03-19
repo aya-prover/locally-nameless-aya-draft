@@ -18,7 +18,7 @@ import java.util.function.UnaryOperator;
  * <ul>
  *   <li>{@link IntegerTerm} behaves like a {@link ConCall}, in a efficient way</li>
  *   <li>{@link RuleReducer.Con} behaves like a {@link ConCall}, but it produce a special term</li>
- *   <li>Of course, {@link ConCall} haves like a {@link ConCall}</li>
+ *   <li>Of course, {@link ConCall} behaves like a {@link ConCall}</li>
  * </ul>
  */
 public sealed interface ConCallLike extends Callable.Tele permits ConCall {

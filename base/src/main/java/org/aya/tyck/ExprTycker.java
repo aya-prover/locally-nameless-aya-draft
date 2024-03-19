@@ -70,6 +70,7 @@ public final class ExprTycker extends AbstractTycker {
 
   private @NotNull Result doSynthesize(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
+      case Expr.Sugar _ -> throw new IllegalArgumentException("these exprs are desugared, should be unreachable");
       case Expr.App(var f, var a) -> {
         if (!(f.data() instanceof Expr.Ref(var ref))) throw new IllegalStateException("function must be Expr.Ref");
         yield checkApplication(ref, expr.sourcePos(), a);
@@ -112,7 +113,6 @@ public final class ExprTycker extends AbstractTycker {
       case Expr.Let let -> throw new UnsupportedOperationException("TODO");
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
-      case Expr.Sugar _ -> throw new IllegalArgumentException("these exprs are desugared, should be unreachable");
       default -> fail(expr.data(), new NoRuleError(expr.data(), expr.sourcePos(), null));
     };
   }

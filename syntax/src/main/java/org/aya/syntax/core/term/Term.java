@@ -98,7 +98,7 @@ public sealed interface Term extends Serializable, AyaDocile
    *          --------------------------<br/>
    *                 Γ ⊢ g a : B
    *          </pre>
-   *          {@code} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
+   *          {@code f} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
    *          so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.
    */
