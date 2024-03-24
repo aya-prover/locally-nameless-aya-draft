@@ -13,6 +13,7 @@ import org.aya.tyck.error.LicitError;
 import org.aya.tyck.error.NoRuleError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
+import org.aya.util.error.InternalException;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
@@ -43,7 +44,7 @@ public final class ExprTycker extends AbstractTycker {
       //   yield SortTerm.Type0;
       // }
       default -> {
-        reporter.report(BadTypeError.univ(state, errorMsg, term));
+        fail(BadTypeError.univ(state, errorMsg, term));
         yield SortTerm.Type0;
       }
     };
@@ -109,10 +110,10 @@ public final class ExprTycker extends AbstractTycker {
 
         yield new Result.Default(wellTyped, ty);
       }
-      case Expr.Error error -> throw new UnsupportedOperationException("TODO");
       case Expr.Let let -> throw new UnsupportedOperationException("TODO");
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
+      case Expr.Error error -> throw new InternalException("Expr.Error");
       default -> fail(expr.data(), new NoRuleError(expr.data(), expr.sourcePos(), null));
     };
   }
