@@ -12,7 +12,7 @@ public class SyntaxTest {
   public void test0() {
     @Language("Aya")
     var code = """
-      def foo (a : Type) : Type => a
+      def foo (f : Type -> Type) (a : Type) : Type => f a
       """;
 
     var decl = (Decl) SyntaxTestUtil.parse(code).getFirst();

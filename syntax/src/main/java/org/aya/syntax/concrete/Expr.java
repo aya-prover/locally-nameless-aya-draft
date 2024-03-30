@@ -28,7 +28,7 @@ public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f);
 
   /** Yes, please */
-  interface Sugar {
+  sealed interface Sugar {
   }
 
   @Override

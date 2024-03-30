@@ -3,7 +3,9 @@
 package org.aya.syntax.concrete.stmt;
 
 import org.aya.generic.TyckUnit;
+import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.util.PosedUnaryOperator;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,4 +28,7 @@ public sealed interface Stmt extends TyckUnit permits Decl {
       this.keyword = keyword;
     }
   }
+
+  @Contract(mutates = "this")
+  void descentInPlace(@NotNull PosedUnaryOperator<Expr> f);
 }

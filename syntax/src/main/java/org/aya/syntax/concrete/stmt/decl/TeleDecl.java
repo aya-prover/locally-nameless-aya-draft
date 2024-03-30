@@ -55,6 +55,12 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     telescope = f.apply(telescope);
   }
 
+  @Override
+  public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f) {
+    modifyTelescope(xs -> xs.map(p -> p.descent(f)));
+    modifyResult(f);
+  }
+
   @Contract(pure = true) public abstract @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<RetTy>> ref();
 
   @Override
@@ -188,6 +194,13 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
 
     @Override public @NotNull DefVar<FnDef, FnDecl> ref() {
       return ref;
+    }
+
+    @Override
+    public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f) {
+      super.descentInPlace(f);
+
+      body = body.map(f, cls -> cls.descent(f));    // TODO: need pattern mapper
     }
   }
 }

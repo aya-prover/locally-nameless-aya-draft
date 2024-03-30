@@ -5,11 +5,14 @@ package org.aya.syntax;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.TestUtil;
 import org.aya.producer.AyaParserImpl;
+import org.aya.resolve.StmtResolvers;
 import org.aya.resolve.context.EmptyContext;
+import org.aya.resolve.context.PhysicalModuleContext;
 import org.aya.resolve.context.WithCtx;
 import org.aya.resolve.visitor.StmtResolver;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.SourceFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Contract;
@@ -23,7 +26,7 @@ public final class SyntaxTestUtil {
   @Contract(mutates = "param1")
   public static void resolve(@NotNull Decl decl) {
     var ctx = new EmptyContext(TestUtil.THROWING, FILE);
-    StmtResolver.resolveStmt(new WithCtx<>(ctx, decl));
+    StmtResolvers.resolve(ImmutableSeq.of(decl), new PhysicalModuleContext(ctx, new ModulePath(ImmutableSeq.of("114514"))));
   }
 
   @Contract(pure = true)

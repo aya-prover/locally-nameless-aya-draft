@@ -7,7 +7,9 @@ import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.WithCtx;
 import org.aya.resolve.visitor.StmtResolver;
 import org.aya.resolve.visitor.StmtShallowResolver;
+import org.aya.syntax.concrete.Salt;
 import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.jetbrains.annotations.NotNull;
 
 public class StmtResolvers {
@@ -25,12 +27,18 @@ public class StmtResolvers {
     StmtResolver.resolveStmt(stmts);
   }
 
+  private static void desugar(@NotNull ImmutableSeq<Stmt> stmts) {
+    var salt = new Salt();
+    stmts.forEach(stmt -> {
+      if (stmt instanceof Decl decl) decl.descentInPlace(salt);
+    });
+  }
+
   /**
    * Resolve {@link Stmt}s under {@param context}
    */
   public static void resolve(@NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context) {
     resolve(fillContext(stmts, context));
-
-    // TODO: desugar
+    desugar(stmts);   // resolve mutates stmts
   }
 }
