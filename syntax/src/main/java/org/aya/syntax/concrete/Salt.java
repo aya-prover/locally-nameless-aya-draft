@@ -2,14 +2,40 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.concrete;
 
+import org.aya.generic.SortKind;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
 public class Salt implements PosedUnaryOperator<Expr> {
+  public static class DesugarInterruption extends Exception {}
+
+  private int levelVar(@NotNull Expr expr) throws DesugarInterruption {
+    if (expr instanceof Expr.LitInt i) return i.integer();
+    throw new DesugarInterruption();
+  }
+
   @Override
   public @NotNull Expr apply(@NotNull SourcePos sourcePos, @NotNull Expr expr) {
-    return expr instanceof Expr.Sugar satou ? desugar(sourcePos, satou) : expr;
+    return switch (expr) {
+      case Expr.App(var f, var arg)
+        when f.data() instanceof Expr.RawSort typeF && arg.sizeEquals(1) -> {
+        try {
+          int level = levelVar(arg.getFirst().term());
+          var result = switch (typeF.kind()) {
+            case Type -> new Expr.Type(level);
+            case Set -> new Expr.Set(level);
+            case ISet -> new Expr.Error(expr);
+          };
+
+          yield apply(sourcePos, result);
+        } catch (DesugarInterruption e) {
+          yield new Expr.Error(expr);
+        }
+      }
+      case Expr.Sugar satou -> desugar(sourcePos, satou);
+      default -> expr;
+    };
   }
 
   public @NotNull Expr desugar(@NotNull SourcePos sourcePos, @NotNull Expr.Sugar satou) {
@@ -17,7 +43,7 @@ public class Salt implements PosedUnaryOperator<Expr> {
       case Expr.BinOpSeq(var seq) -> {
         // TODO: BinOpParser
         assert seq.isNotEmpty();
-        yield new Expr.App(seq.getFirst().arg(), seq.drop(1));
+        yield apply(sourcePos, new Expr.App(seq.getFirst().arg(), seq.drop(1)));
       }
       case Expr.Do aDo -> throw new UnsupportedOperationException("TODO");
       case Expr.Idiom idiom -> throw new UnsupportedOperationException("TODO");
