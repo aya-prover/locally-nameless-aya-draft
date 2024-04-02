@@ -4,6 +4,7 @@ package org.aya.syntax.concrete;
 
 import org.aya.generic.SortKind;
 import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.InternalException;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,18 +18,21 @@ public class Salt implements PosedUnaryOperator<Expr> {
 
   @Override
   public @NotNull Expr apply(@NotNull SourcePos sourcePos, @NotNull Expr expr) {
+    // we may desugar
+
     return switch (expr) {
       case Expr.App(var f, var arg)
-        when f.data() instanceof Expr.RawSort typeF && arg.sizeEquals(1) -> {
+        when f.data() instanceof Expr.RawSort typeF
+        && typeF.kind() != SortKind.ISet    // Do not report at desugar stage, it should be reported at tyck stage
+        && arg.sizeEquals(1) -> {
         try {
           int level = levelVar(arg.getFirst().term());
-          var result = switch (typeF.kind()) {
+
+          yield switch (typeF.kind()) {
             case Type -> new Expr.Type(level);
             case Set -> new Expr.Set(level);
-            case ISet -> new Expr.Error(expr);
+            case ISet -> throw new InternalException("unreachable");
           };
-
-          yield apply(sourcePos, result);
         } catch (DesugarInterruption e) {
           yield new Expr.Error(expr);
         }
@@ -42,6 +46,7 @@ public class Salt implements PosedUnaryOperator<Expr> {
     return switch (satou) {
       case Expr.BinOpSeq(var seq) -> {
         // TODO: BinOpParser
+        // TODO: This silly desugarer is unable to desugar (f a b) c correctly
         assert seq.isNotEmpty();
         yield apply(sourcePos, new Expr.App(seq.getFirst().arg(), seq.drop(1)));
       }
