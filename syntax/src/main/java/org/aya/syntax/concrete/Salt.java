@@ -6,36 +6,37 @@ import org.aya.generic.SortKind;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.InternalException;
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class Salt implements PosedUnaryOperator<Expr> {
   public static class DesugarInterruption extends Exception {}
 
-  private int levelVar(@NotNull Expr expr) throws DesugarInterruption {
-    if (expr instanceof Expr.LitInt i) return i.integer();
-    throw new DesugarInterruption();
+  private @Nullable Integer levelVar(@NotNull WithPos<Expr> expr) {
+    return switch (expr.data()) {
+      case Expr.BinOpSeq _ -> levelVar(expr.descent(this));
+      case Expr.LitInt i -> i.integer();
+      default -> null;
+    };
   }
 
   @Override
   public @NotNull Expr apply(@NotNull SourcePos sourcePos, @NotNull Expr expr) {
-    // we may desugar
-
+    // we may desugar type app (type with universe level) first
     return switch (expr) {
       case Expr.App(var f, var arg)
         when f.data() instanceof Expr.RawSort typeF
         && typeF.kind() != SortKind.ISet    // Do not report at desugar stage, it should be reported at tyck stage
         && arg.sizeEquals(1) -> {
-        try {
-          int level = levelVar(arg.getFirst().term());
+        var level = levelVar(new WithPos<>(sourcePos, expr));
+        if (level == null) yield new Expr.Error(expr);
 
-          yield switch (typeF.kind()) {
-            case Type -> new Expr.Type(level);
-            case Set -> new Expr.Set(level);
-            case ISet -> throw new InternalException("unreachable");
-          };
-        } catch (DesugarInterruption e) {
-          yield new Expr.Error(expr);
-        }
+        yield switch (typeF.kind()) {
+          case Type -> new Expr.Type(level);
+          case Set -> new Expr.Set(level);
+          case ISet -> throw new InternalException("unreachable");
+        };
       }
       case Expr.Sugar satou -> desugar(sourcePos, satou);
       default -> expr;

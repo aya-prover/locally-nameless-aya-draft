@@ -91,6 +91,12 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
+  /**
+   * It is possible that {@code seq.size() == 1}, cause BinOpSeq also represents a scope of operator sequence,
+   * for example: the {@code (+)} in {@code f (+)} will be recognized as argument instead of a function call.
+   *
+   * @param seq
+   */
   record BinOpSeq(@NotNull ImmutableSeq<NamedArg> seq) implements Expr, Sugar {
     public @NotNull BinOpSeq update(@NotNull ImmutableSeq<NamedArg> seq) {
       return seq.sameElements(seq(), true) ? this : new BinOpSeq(seq);
