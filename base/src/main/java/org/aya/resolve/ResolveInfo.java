@@ -2,14 +2,46 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve;
 
+import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableMap;
+import org.aya.generic.TyckOrder;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
+import org.aya.syntax.concrete.stmt.ModuleName;
+import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.syntax.concrete.stmt.UseHide;
+import org.aya.syntax.ref.DefVar;
+import org.aya.util.binop.OpDecl;
+import org.aya.util.terck.MutableGraph;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 
 @Debug.Renderer(text = "thisModule.moduleName().joinToString(\"::\")")
 public record ResolveInfo(
   @NotNull ModuleContext thisModule,
-  @NotNull AyaBinOpSet opSet
+  @NotNull ImmutableSeq<Stmt> program,
+  // @NotNull PrimDef.Factory primFactory,
+  // @NotNull AyaShape.Factory shapeFactory,
+  @NotNull AyaBinOpSet opSet,
+  // @NotNull MutableMap<DefVar<?, ?>, Tuple3<RenamedOpDecl, BindBlock, Boolean>> opRename,
+  @NotNull MutableMap<ModuleName.Qualified, ImportInfo> imports,
+  @NotNull MutableMap<ModuleName.Qualified, UseHide> reExports,
+  @NotNull MutableGraph<TyckOrder> depGraph
 ) {
+  public record ImportInfo(
+    @NotNull ResolveInfo resolveInfo,
+    boolean isHiding
+  ) {
+  }
+
+  /*
+   * @param definedHere Is this operator renamed in this module, or publicly renamed by upstream?
+   * @see #open(ResolveInfo, org.aya.util.error.SourcePos, Stmt.Accessibility)
+   */
+  /*
+  public void renameOp(@NotNull DefVar<?, ?> defVar, @NotNull OpDecl renamed, @NotNull BindBlock bind, boolean definedHere) {
+    defVar.addOpDeclRename(thisModule.modulePath(), renamed);
+    opRename.put(defVar, Tuple.of(renamed, bind, definedHere));
+  }
+  */
 }
