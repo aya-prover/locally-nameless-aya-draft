@@ -7,7 +7,7 @@ import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.WithCtx;
 import org.aya.resolve.visitor.StmtResolver;
 import org.aya.resolve.visitor.StmtShallowResolver;
-import org.aya.syntax.concrete.Salt;
+import org.aya.resolve.salt.Desalt;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ public class StmtResolvers {
   }
 
   private static void desugar(@NotNull ImmutableSeq<Stmt> stmts) {
-    var salt = new Salt();
+    var salt = new Desalt();
     stmts.forEach(stmt -> {
       if (stmt instanceof Decl decl) decl.descentInPlace(salt);
     });

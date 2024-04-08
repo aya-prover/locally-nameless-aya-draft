@@ -2,7 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.ref;
 
+import kala.collection.Map;
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableMap;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.Def;
 import org.aya.util.binop.Assoc;
@@ -23,6 +25,12 @@ public final class DefVar<Core extends Def, Concrete extends Decl> implements An
   public @Nullable ModulePath fileModule; // TODO: unify `module` and `fileModule`
   /** Initialized in the resolver or core deserialization */
   public @Nullable OpDecl opDecl;
+
+  /**
+   * Binary operators can be renamed in other modules.
+   * Initialized in the resolver or core deserialization.
+   */
+  public @NotNull Map<ModulePath, OpDecl> opDeclRename = Map.empty();
 
   @Contract(pure = true) public @Nullable Assoc assoc() {
     if (opDecl == null) return null;
@@ -62,5 +70,17 @@ public final class DefVar<Core extends Def, Concrete extends Decl> implements An
 
   public @NotNull ImmutableSeq<String> qualifiedName() {
     return module == null ? ImmutableSeq.of(name) : module.module().appended(name);
+  }
+
+  public @Nullable OpDecl resolveOpDecl(@NotNull ModulePath modulePath) {
+    return opDeclRename.getOrDefault(modulePath, opDecl);
+  }
+
+  public void addOpDeclRename(@NotNull ModulePath modulePath, @NotNull OpDecl opDecl) {
+    if (opDeclRename instanceof MutableMap<ModulePath, OpDecl> mutable) {
+      mutable.put(modulePath, opDecl);
+    } else {
+      opDeclRename = MutableMap.of(modulePath, opDecl);
+    }
   }
 }

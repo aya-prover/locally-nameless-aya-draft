@@ -1,8 +1,9 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.syntax.concrete;
+package org.aya.resolve.salt;
 
 import org.aya.generic.SortKind;
+import org.aya.syntax.concrete.Expr;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.InternalException;
 import org.aya.util.error.SourcePos;
@@ -10,7 +11,8 @@ import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class Salt implements PosedUnaryOperator<Expr> {
+/** Desugar, but the sugars are not sweet enough, therefore called salt. */
+public class Desalt implements PosedUnaryOperator<Expr> {
   public static class DesugarInterruption extends Exception {}
 
   private @Nullable Integer levelVar(@NotNull WithPos<Expr> expr) {
