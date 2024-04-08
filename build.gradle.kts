@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.aya.gradle.BuildUtil
@@ -113,7 +113,7 @@ subprojects {
       tree.forEach {
         BuildUtil.stripPreview(
           root.toPath(), it.toPath(),
-          true, false,
+          false, false,
           "java/lang/RuntimeException",
         )
       }

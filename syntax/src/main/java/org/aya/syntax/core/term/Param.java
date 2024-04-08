@@ -2,24 +2,25 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import org.aya.generic.AyaDocile;
+import org.aya.pretty.doc.Doc;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
+import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record Param(@Nullable String name, @NotNull Term type, boolean explicit) {
+import java.util.function.UnaryOperator;
+
+public record Param(@NotNull String name, @NotNull Term type, boolean explicit) implements AyaDocile {
   @Contract("_, _ -> new")
-  public static @NotNull Param ofExplicit(@Nullable String name, @NotNull Term type) {
+  public static @NotNull Param ofExplicit(@NotNull String name, @NotNull Term type) {
     return new Param(name, type, true);
   }
 
-  public Param(@NotNull Term type, boolean explicit) {
-    this(null, type, explicit);
-  }
-
   public boolean nameEq(@Nullable String otherName) {
-    return name != null && name.equals(otherName);
+    return name.equals(otherName);
   }
 
   public @NotNull Arg<Term> toArg() {
@@ -31,6 +32,16 @@ public record Param(@Nullable String name, @NotNull Term type, boolean explicit)
   }
 
   public @NotNull Param bindAt(LocalVar ref, int i) {
-    return new Param(name, type.bindAt(ref, i), explicit);
+    return this.map(t -> t.bindAt(ref, i));
+  }
+
+  public @NotNull Param map(@NotNull UnaryOperator<Term> mapper) {
+    return new Param(name, mapper.apply(type), explicit);
+  }
+
+  @Override
+  public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+    // TODO
+    throw new UnsupportedOperationException("TODO");
   }
 }

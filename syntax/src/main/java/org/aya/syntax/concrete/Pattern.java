@@ -5,6 +5,8 @@ package org.aya.syntax.concrete;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
 import kala.value.MutableValue;
+import org.aya.generic.AyaDocile;
+import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
@@ -15,6 +17,7 @@ import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
+import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,8 +26,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author kiva, ice1000, HoshinoTented
  */
-public sealed interface Pattern {
+public sealed interface Pattern extends AyaDocile {
   @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f);
+
+  @Override
+  default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+    throw new UnsupportedOperationException("TODO");
+  }
 
   record Tuple(
     @NotNull ImmutableSeq<WithPos<Pattern>> patterns
@@ -66,8 +74,9 @@ public sealed interface Pattern {
    * @param type used in the LSP server
    */
   record Bind(
-    @NotNull LocalVar bind
-    // @ForLSP @NotNull MutableValue<@Nullable Term> type
+    @NotNull LocalVar bind,
+    @Nullable WithPos<Expr> userType,
+    @ForLSP @NotNull MutableValue<@Nullable Term> type
   ) implements Pattern {
     @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return this;
@@ -110,15 +119,15 @@ public sealed interface Pattern {
    */
   record As(
     @NotNull WithPos<Pattern> pattern,
-    @NotNull LocalVar as
-    // @ForLSP @NotNull MutableValue<@Nullable Term> type
+    @NotNull LocalVar as,
+    @ForLSP @NotNull MutableValue<@Nullable Term> type
   ) implements Pattern {
     public static Arg<Pattern> wrap(@NotNull Arg<WithPos<Pattern>> pattern, @NotNull LocalVar var) {
-      return new Arg<>(new As(pattern.term(), var), pattern.explicit());
+      return new Arg<>(new As(pattern.term(), var, MutableValue.create()), pattern.explicit());
     }
 
     public @NotNull As update(@NotNull WithPos<Pattern> pattern) {
-      return pattern == pattern() ? this : new As(pattern, as);
+      return pattern == pattern() ? this : new As(pattern, as, type);
     }
 
     @Override public @NotNull As descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {

@@ -5,12 +5,12 @@ package org.aya.syntax.core.term.call;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.term.Formation;
 import org.aya.syntax.core.term.StableWHNF;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 public record DataCall(
@@ -31,7 +31,7 @@ public record DataCall(
     return new DataCall(ref, ulift + level, args);
   }
 
-  // public @NotNull ConCall.Head conHead(@NotNull DefVar<CtorDef, TeleDecl.DataCtor> ctorRef) {
-  //   return new ConCall.Head(ref, ctorRef, ulift, args);
-  // }
+  public @NotNull ConCallLike.Head conHead(@NotNull DefVar<CtorDef, TeleDecl.DataCtor> ctorRef) {
+    return new ConCallLike.Head(ref, ctorRef, ulift, args);
+  }
 }

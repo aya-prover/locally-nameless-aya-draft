@@ -3,6 +3,7 @@
 package org.aya.syntax.core.pat;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -11,6 +12,7 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.error.InternalException;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
@@ -24,13 +26,26 @@ import java.util.function.UnaryOperator;
  * @author kiva, ice1000, HoshinoTented
  */
 @Debug.Renderer(text = "toTerm().toDoc(AyaPrettierOptions.debug()).debugRender()")
-public interface Pat extends AyaDocile {
+public sealed interface Pat extends AyaDocile {
   @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp);
 
   /**
    * Puts bindings of this {@link Pat} to {@param ctx}
    */
   void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper);
+
+  enum Absurd implements Pat {
+    INSTANCE;
+
+    @Override
+    public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
+      return this;
+    }
+
+    @Override
+    public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
+    }
+  }
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
@@ -75,15 +90,49 @@ public interface Pat extends AyaDocile {
     @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
     @NotNull ImmutableSeq<Pat> args
   ) implements Pat {
+    public @NotNull Ctor update(@NotNull ImmutableSeq<Pat> args) {
+      return this.args.sameElements(args, true) ? this : new Ctor(ref, args);
+    }
+
 
     @Override
     public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
-      return null;
+      return update(args.map(patOp));
     }
 
     @Override
     public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
+      args.forEach(arg -> arg.storeBindings(ctx, typeMapper));
+    }
+  }
 
+  /**
+   * Meta for Hole
+   *
+   * @param fakeBind is used when inline if there is no solution.
+   *                 So don't add this to {@link LocalCtx} too early
+   *                 and remember to inline Meta in {@link ClauseTycker#checkLhs(ExprTycker, Pattern.Clause, Def.Signature, boolean, boolean)}
+   */
+  record Meta(
+    @NotNull MutableValue<Pat> solution,
+    @NotNull LocalVar fakeBind,
+    @NotNull Term type
+  ) implements Pat {
+    public @NotNull Meta update(@Nullable Pat solution, @NotNull Term type) {
+      return solution == solution().get() && type == type()
+        ? this : new Meta(MutableValue.create(solution), fakeBind, type);
+    }
+
+    @Override public @NotNull Meta descent(@NotNull UnaryOperator<Pat> f, @NotNull UnaryOperator<Term> g) {
+      var solution = solution().get();
+      return solution == null ? update(null, g.apply(type)) : update(f.apply(solution), g.apply(type));
+    }
+
+    @Override
+    public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
+      // Do nothing
+      // This is safe because storeBindings is called only in extractTele which is
+      // only used for constructor ownerTele extraction for simpler indexed types
     }
   }
 }

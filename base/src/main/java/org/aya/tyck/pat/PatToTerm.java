@@ -1,0 +1,22 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
+package org.aya.tyck.pat;
+
+import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.FreeTerm;
+import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.TupTerm;
+import org.aya.util.error.InternalException;
+import org.jetbrains.annotations.NotNull;
+
+public final class PatToTerm {
+  public static @NotNull Term visit(@NotNull Pat pat) {
+    return switch (pat) {
+      case Pat.Absurd absurd -> throw new InternalException("unreachable");
+      case Pat.Bind bind -> new FreeTerm(bind.bind());
+      case Pat.Ctor ctor -> throw new UnsupportedOperationException("TODO");
+      case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(PatToTerm::visit));
+      case Pat.Meta meta -> throw new UnsupportedOperationException("TODO");
+    };
+  }
+}

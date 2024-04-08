@@ -21,4 +21,8 @@ public record WithPos<T>(@NotNull SourcePos sourcePos, T data) implements Source
   public @NotNull WithPos<T> descent(@NotNull PosedUnaryOperator<T> f) {
     return update(f.apply(this));
   }
+
+  public <R> @NotNull WithPos<R> replace(@NotNull R value) {
+    return new WithPos<>(sourcePos, value);
+  }
 }
