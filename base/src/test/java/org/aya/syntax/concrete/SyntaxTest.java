@@ -8,8 +8,7 @@ import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 public class SyntaxTest {
-  @Test
-  public void test0() {
+  @Test public void test0() {
     @Language("Aya")
     var code = """
       def foo (f : Type -> Type 0) (a : Type 0) : Type 0 => f a
@@ -17,6 +16,5 @@ public class SyntaxTest {
 
     var decl = (Decl) SyntaxTestUtil.parse(code).getFirst();
     SyntaxTestUtil.resolve(decl);
-    return;
   }
 }

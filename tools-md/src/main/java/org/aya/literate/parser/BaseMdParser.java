@@ -7,8 +7,6 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
 import kala.collection.mutable.MutableList;
-import kala.tuple.Tuple;
-import kala.tuple.Tuple2;
 import kala.tuple.primitive.IntObjTuple2;
 import kala.value.LazyValue;
 import kala.value.MutableValue;
@@ -73,14 +71,15 @@ public class BaseMdParser {
     return children.toImmutableSeq();
   }
 
-  protected @NotNull Tuple2<LazyValue<SourcePos>, String> stripTrailingNewline(@NotNull String literal, @NotNull Block owner) {
+  protected record StripTrailing(LazyValue<SourcePos> pos, String literal) {}
+  protected @NotNull StripTrailing stripTrailingNewline(@NotNull String literal, @NotNull Block owner) {
     var spans = owner.getSourceSpans();
     if (spans != null && spans.size() >= 2) {   // always contains '```' and '```'
       var inner = ImmutableSeq.from(spans).view().drop(1).dropLast(1).toImmutableSeq();
       // remove the last line break if not empty
       if (!literal.isEmpty())
         literal = literal.substring(0, literal.length() - 1);
-      return Tuple.of(LazyValue.of(() -> fromSourceSpans(inner)), literal);
+      return new StripTrailing(LazyValue.of(() -> fromSourceSpans(inner)), literal);
     }
     throw new Panic("SourceSpans");
   }
@@ -110,13 +109,13 @@ public class BaseMdParser {
         var language = codeBlock.getInfo();
         var code = stripTrailingNewline(codeBlock.getLiteral(), codeBlock);
         yield languages.find(p -> p.test(language))
-          .map(factory -> (Literate) factory.create(language, code.component2(), code.component1().get()))
+          .map(factory -> (Literate) factory.create(language, code.literal, code.pos.get()))
           .getOrElse(() -> {
-            var fence = String.valueOf(codeBlock.getFenceChar()).repeat(codeBlock.getFenceLength());
+            var fence = codeBlock.getFenceCharacter();
             var raw = Doc.nest(codeBlock.getFenceIndent(), Doc.vcat(
-              Doc.escaped(fence + language),
-              Doc.escaped(code.component2()),
-              Doc.escaped(fence),
+              Doc.escaped(fence.repeat(codeBlock.getOpeningFenceLength()) + language),
+              Doc.escaped(code.literal),
+              Doc.escaped(fence.repeat(codeBlock.getClosingFenceLength())),
               Doc.empty()
             ));
             return new Literate.Raw(raw);

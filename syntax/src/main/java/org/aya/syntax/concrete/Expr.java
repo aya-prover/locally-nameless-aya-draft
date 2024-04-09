@@ -82,8 +82,7 @@ public sealed interface Expr extends AyaDocile {
 
   record Error(@NotNull AyaDocile description) implements Expr {
     public Error(@NotNull Doc description) {
-      this((AyaDocile) null);
-      throw new UnsupportedOperationException("TODO");
+      this(_ -> description);
     }
 
     @Override public @NotNull Expr.Error descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
