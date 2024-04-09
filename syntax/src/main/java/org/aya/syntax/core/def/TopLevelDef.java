@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author ice1000
  */
-public sealed abstract class TopLevelDef<Ret extends Term> implements TeleDef permits UserDef {
+public sealed abstract class TopLevelDef<Ret extends Term> implements TeleDef permits DataDef, FnDef {
   public final @NotNull ImmutableSeq<Param> telescope;
   public final @NotNull Ret result;
 

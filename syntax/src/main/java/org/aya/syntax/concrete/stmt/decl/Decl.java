@@ -3,13 +3,16 @@
 package org.aya.syntax.concrete.stmt.decl;
 
 import org.aya.generic.TyckUnit;
+import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.ModulePath;
+import org.aya.util.binop.OpDecl;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * TODO: update document
@@ -33,10 +36,14 @@ import org.jetbrains.annotations.NotNull;
  * @see TeleDecl
  * @see ClassDecl
  */
-public sealed interface Decl extends SourceNode, Stmt, TyckUnit permits TeleDecl {
+public sealed interface Decl extends SourceNode, Stmt, TyckUnit, OpDecl permits TeleDecl {
   @Contract(pure = true) @NotNull DefVar<?, ?> ref();
 
   @Contract(pure = true) @NotNull DeclInfo info();
+
+  default @NotNull BindBlock bindBlock() {
+    return info().bindBlock();
+  }
 
   default @NotNull SourcePos entireSourcePos() {
     return info().entireSourcePos();
@@ -48,6 +55,10 @@ public sealed interface Decl extends SourceNode, Stmt, TyckUnit permits TeleDecl
 
   @Override default @NotNull Stmt.Accessibility accessibility() {
     return info().accessibility();
+  }
+
+  @Override default @Nullable OpDecl.OpInfo opInfo() {
+    return info().opInfo();
   }
 
   /**

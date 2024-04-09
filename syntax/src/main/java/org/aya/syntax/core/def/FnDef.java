@@ -17,7 +17,7 @@ import java.util.function.BiFunction;
 /**
  * @author ice1000
  */
-public final class FnDef extends UserDef<Term> {
+public final class FnDef extends TopLevelDef<Term> {
   public final @NotNull EnumSet<Modifier> modifiers;
   public final @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref;
   public final @NotNull Either<Term, ImmutableSeq<Term.Matching>> body;
