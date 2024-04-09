@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve.visitor;
 
-import kala.collection.SeqLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.value.MutableValue;
@@ -11,27 +10,20 @@ import org.aya.generic.TyckUnit;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.WithCtx;
-import org.aya.resolve.error.NameProblem;
-import org.aya.resolve.error.OperatorError;
-import org.aya.resolve.salt.AyaBinOpSet;
-import org.aya.syntax.concrete.stmt.BindBlock;
-import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.ref.DefVar;
-import org.aya.util.binop.OpDecl;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Resolves expressions inside stmts, after {@link StmtShallowResolver}
+ * Resolves expressions inside stmts, after {@link StmtPreResolver}
  *
  * @author re-xyr, ice1000, kiva
- * @see StmtShallowResolver
+ * @see StmtPreResolver
  * @see ExprResolver
  */
 public interface StmtResolver {

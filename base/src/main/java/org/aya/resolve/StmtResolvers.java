@@ -7,7 +7,7 @@ import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.WithCtx;
 import org.aya.resolve.salt.Desalt;
 import org.aya.resolve.visitor.StmtResolver;
-import org.aya.resolve.visitor.StmtShallowResolver;
+import org.aya.resolve.visitor.StmtPreResolver;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +16,7 @@ public record StmtResolvers(@NotNull ResolveInfo info) {
     @NotNull ImmutableSeq<Stmt> stmts,
     @NotNull ModuleContext context
   ) {
-    return new StmtShallowResolver(info).resolveStmt(stmts, context).zip(stmts, WithCtx::new);
+    return new StmtPreResolver(info).resolveStmt(stmts, context).zip(stmts, WithCtx::new);
   }
 
   private void resolve(@NotNull ImmutableSeq<WithCtx<Stmt>> stmts) {

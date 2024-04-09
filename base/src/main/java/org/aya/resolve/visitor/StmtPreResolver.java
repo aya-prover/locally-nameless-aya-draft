@@ -5,7 +5,7 @@ package org.aya.resolve.visitor;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.ResolveInfo;
-import org.aya.resolve.context.Context;
+import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.PhysicalModuleContext;
 import org.aya.syntax.concrete.stmt.ModuleName;
@@ -24,18 +24,18 @@ import java.util.function.Function;
  *
  * @author re-xyr
  */
-public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull ResolveInfo resolveInfo) {
+public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull ResolveInfo resolveInfo) {
   /**
    * Resolve {@link Stmt}s under {@param context}.
    *
    * @return the context of the body of each {@link Stmt}.
    * @proof return.size() == stmts.size()
    */
-  public ImmutableSeq<Context> resolveStmt(@NotNull ImmutableSeq<Stmt> stmts, ModuleContext context) {
+  public ImmutableSeq<ResolvingStmt> resolveStmt(@NotNull ImmutableSeq<Stmt> stmts, ModuleContext context) {
     return stmts.map(stmt -> resolveStmt(stmt, context));
   }
 
-  public @NotNull Context resolveStmt(@NotNull Stmt stmt, @NotNull ModuleContext context) {
+  public @NotNull ResolvingStmt resolveStmt(@NotNull Stmt stmt, @NotNull ModuleContext context) {
     return switch (stmt) {
       case Decl decl -> resolveDecl(decl, context);
       // case Command.Module mod -> {
@@ -91,7 +91,7 @@ public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull Re
     };
   }
 
-  private @NotNull Context resolveDecl(@NotNull Decl predecl, @NotNull ModuleContext context) {
+  private @NotNull ResolvingStmt resolveDecl(@NotNull Decl predecl, @NotNull ModuleContext context) {
     return switch (predecl) {
       case TeleDecl.DataDecl decl -> {
         var ctx = resolveTopLevelDecl(decl, context);
@@ -102,7 +102,7 @@ public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull Re
           resolveOpInfo(ctor);
         });
         resolveOpInfo(decl);
-        yield innerCtx;
+        yield new ResolvingStmt.DataDecl(decl, innerCtx);
       }
       // case ClassDecl decl -> {
       //   var ctx = resolveTopLevelDecl(decl, context);
@@ -115,9 +115,9 @@ public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull Re
       //   resolveOpInfo(decl, innerCtx);
       // }
       case TeleDecl.FnDecl decl -> {
-        var ctx = resolveTopLevelDecl(decl, context);
+        resolveTopLevelDecl(decl, context);
         resolveOpInfo(decl);
-        yield ctx;
+        yield new ResolvingStmt.Default(decl);
       }
       // case TeleDecl.PrimDecl decl -> {
       //   var factory = resolveInfo.primFactory();
