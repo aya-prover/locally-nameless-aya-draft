@@ -5,6 +5,7 @@ package org.aya.resolve.salt;
 import org.aya.generic.SortKind;
 import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.concrete.Pattern;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.InternalException;
 import org.aya.util.error.SourcePos;
@@ -60,5 +61,14 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
         case ISet -> Expr.ISet.INSTANCE;
       };
     };
+  }
+
+  class Pat implements PosedUnaryOperator<Pattern> {
+    @Override public Pattern apply(SourcePos sourcePos, Pattern pattern) {
+      return switch (pattern) {
+        case Pattern.BinOpSeq binOpSeq -> apply(new PatternBinParser(info, binOpSeq.seq().view()).build(sourcePos));
+        default -> pattern.descent(this);
+      };
+    }
   }
 }

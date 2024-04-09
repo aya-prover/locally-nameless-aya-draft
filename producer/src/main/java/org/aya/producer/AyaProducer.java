@@ -15,6 +15,7 @@ import kala.collection.mutable.MutableSinglyLinkedList;
 import kala.control.Either;
 import kala.control.Option;
 import kala.function.BooleanObjBiFunction;
+import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.generic.Modifier;
 import org.aya.generic.SortKind;
@@ -24,8 +25,10 @@ import org.aya.parser.AyaPsiParser;
 import org.aya.parser.AyaPsiTokenType;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
+import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.syntax.concrete.stmt.UseHide;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.DeclInfo;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -144,37 +147,37 @@ public record AyaProducer(
   //     : ImmutableSeq.of(open);
   // }
 
-  // public UseHide hideList(SeqView<? extends GenericNode<?>> hideLists, UseHide.Strategy strategy) {
-  //   return new UseHide(hideLists
-  //     .mapNotNull(h -> h.peekChild(COMMA_SEP))
-  //     .flatMap(node -> node.childrenOfType(QUALIFIED_ID).map(this::qualifiedId))
-  //     .map(UseHide.Name::new)
-  //     .toImmutableSeq(),
-  //     strategy);
-  // }
+  public UseHide hideList(SeqView<? extends GenericNode<?>> hideLists, UseHide.Strategy strategy) {
+    return new UseHide(hideLists
+      .mapNotNull(h -> h.peekChild(COMMA_SEP))
+      .flatMap(node -> node.childrenOfType(QUALIFIED_ID).map(this::qualifiedId))
+      .map(UseHide.Name::new)
+      .toImmutableSeq(),
+      strategy);
+  }
 
-  // public UseHide useList(SeqView<? extends GenericNode<?>> useLists, UseHide.Strategy strategy) {
-  //   return new UseHide(useLists
-  //     .mapNotNull(u -> u.peekChild(COMMA_SEP))
-  //     .flatMap(this::useIdsComma)
-  //     .toImmutableSeq(),
-  //     strategy);
-  // }
+  public UseHide useList(SeqView<? extends GenericNode<?>> useLists, UseHide.Strategy strategy) {
+    return new UseHide(useLists
+      .mapNotNull(u -> u.peekChild(COMMA_SEP))
+      .flatMap(this::useIdsComma)
+      .toImmutableSeq(),
+      strategy);
+  }
 
-  // public SeqView<UseHide.Name> useIdsComma(@NotNull GenericNode<?> node) {
-  //   return node.childrenOfType(USE_ID).map(id -> {
-  //     var wholePos = sourcePosOf(id);
-  //     var name = qualifiedId(id.child(QUALIFIED_ID));
-  //     var useAs = id.peekChild(USE_AS);
-  //     if (useAs == null) return new UseHide.Name(name);
-  //     var asId = weakId(useAs.child(WEAK_ID)).data();
-  //     var asAssoc = useAs.peekChild(ASSOC);
-  //     var asBind = useAs.peekChild(BIND_BLOCK);
-  //     return new UseHide.Name(wholePos, name, Option.some(asId),
-  //       asAssoc != null ? assoc(asAssoc) : Assoc.Invalid,
-  //       asBind != null ? bindBlock(asBind) : BindBlock.EMPTY);
-  //   });
-  // }
+  public SeqView<UseHide.Name> useIdsComma(@NotNull GenericNode<?> node) {
+    return node.childrenOfType(USE_ID).map(id -> {
+      var wholePos = sourcePosOf(id);
+      var name = qualifiedId(id.child(QUALIFIED_ID));
+      var useAs = id.peekChild(USE_AS);
+      if (useAs == null) return new UseHide.Name(name);
+      var asId = weakId(useAs.child(WEAK_ID)).data();
+      var asAssoc = useAs.peekChild(ASSOC);
+      var asBind = useAs.peekChild(BIND_BLOCK);
+      return new UseHide.Name(wholePos, name, Option.some(asId),
+        asAssoc != null ? assoc(asAssoc) : Assoc.Invalid,
+        asBind != null ? bindBlock(asBind) : BindBlock.EMPTY);
+    });
+  }
 
   public @NotNull Assoc assoc(@NotNull GenericNode<?> node) {
     if (node.peekChild(KW_INFIX) != null) return Assoc.Infix;
@@ -185,16 +188,16 @@ public record AyaProducer(
     return unreachable(node);
   }
 
-  // public @NotNull BindBlock bindBlock(@NotNull GenericNode<?> node) {
-  //   return new BindBlock(sourcePosOf(node), MutableValue.create(),
-  //     node.childrenOfType(LOOSERS)
-  //       .flatMap(this::qualifiedIDs)
-  //       .toImmutableSeq(),
-  //     node.childrenOfType(TIGHTERS)
-  //       .flatMap(this::qualifiedIDs)
-  //       .toImmutableSeq(),
-  //     MutableValue.create(), MutableValue.create());
-  // }
+  public @NotNull BindBlock bindBlock(@NotNull GenericNode<?> node) {
+    return new BindBlock(sourcePosOf(node), MutableValue.create(),
+      node.childrenOfType(LOOSERS)
+        .flatMap(this::qualifiedIDs)
+        .toImmutableSeq(),
+      node.childrenOfType(TIGHTERS)
+        .flatMap(this::qualifiedIDs)
+        .toImmutableSeq(),
+      MutableValue.create(), MutableValue.create());
+  }
 
   private @NotNull SeqView<QualifiedID> qualifiedIDs(GenericNode<?> c) {
     return c.childrenOfType(QUALIFIED_ID).map(this::qualifiedId);

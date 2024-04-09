@@ -38,11 +38,11 @@ public record UseHide(@NotNull ImmutableSeq<@NotNull Name> list, @NotNull Strate
     @NotNull SourcePos sourcePos,
     @NotNull QualifiedID id,
     @NotNull Option<String> asName,
-    @NotNull Assoc asAssoc
-    // , @NotNull BindBlock asBind    TODO, below too
+    @NotNull Assoc asAssoc,
+    @NotNull BindBlock asBind
   ) implements SourceNode {
     public Name(@NotNull QualifiedID qname) {
-      this(qname.sourcePos(), qname, Option.none(), Assoc.Invalid/*, BindBlock.EMPTY*/);
+      this(qname.sourcePos(), qname, Option.none(), Assoc.Invalid, BindBlock.EMPTY);
     }
 
     public Option<Rename> rename() {
