@@ -4,6 +4,7 @@ package org.aya.resolve.visitor;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.NoExportContext;
@@ -24,7 +25,7 @@ import java.util.function.Function;
  *
  * @author re-xyr
  */
-public record StmtShallowResolver(/*@NotNull ModuleLoader loader, @NotNull ResolveInfo resolveInfo*/) {
+public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull ResolveInfo resolveInfo) {
   /**
    * Resolve {@link Stmt}s under {@param context}.
    *

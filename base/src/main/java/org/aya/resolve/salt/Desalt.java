@@ -3,6 +3,7 @@
 package org.aya.resolve.salt;
 
 import org.aya.generic.SortKind;
+import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.Expr;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.InternalException;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** Desugar, but the sugars are not sweet enough, therefore called salt. */
-public class Desalt implements PosedUnaryOperator<Expr> {
+public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Expr> {
   public static class DesugarInterruption extends Exception {}
 
   private @Nullable Integer levelVar(@NotNull WithPos<Expr> expr) {
@@ -48,10 +49,8 @@ public class Desalt implements PosedUnaryOperator<Expr> {
   public @NotNull Expr desugar(@NotNull SourcePos sourcePos, @NotNull Expr.Sugar satou) {
     return switch (satou) {
       case Expr.BinOpSeq(var seq) -> {
-        // TODO: BinOpParser
-        // TODO: This silly desugarer is unable to desugar (f a b) c correctly
         assert seq.isNotEmpty();
-        yield apply(sourcePos, new Expr.App(seq.getFirst().arg(), seq.drop(1)));
+        yield apply(new ExprBinParser(info, seq.view()).build(sourcePos));
       }
       case Expr.Do aDo -> throw new UnsupportedOperationException("TODO");
       case Expr.Idiom idiom -> throw new UnsupportedOperationException("TODO");

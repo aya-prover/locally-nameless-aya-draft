@@ -17,18 +17,19 @@ public class StmtResolvers {
   }
 
   private static @NotNull ImmutableSeq<WithCtx<Stmt>> fillContext(
+    @NotNull ResolveInfo info,
     @NotNull ImmutableSeq<Stmt> stmts,
     @NotNull ModuleContext context
   ) {
-    return new StmtShallowResolver().resolveStmt(stmts, context).zip(stmts, WithCtx::new);
+    return new StmtShallowResolver(info).resolveStmt(stmts, context).zip(stmts, WithCtx::new);
   }
 
   private static void resolve(@NotNull ImmutableSeq<WithCtx<Stmt>> stmts) {
     StmtResolver.resolveStmt(stmts);
   }
 
-  private static void desugar(@NotNull ImmutableSeq<Stmt> stmts) {
-    var salt = new Desalt();
+  private static void desugar(@NotNull ResolveInfo info, @NotNull ImmutableSeq<Stmt> stmts) {
+    var salt = new Desalt(info);
     stmts.forEach(stmt -> {
       if (stmt instanceof Decl decl) decl.descentInPlace(salt);
     });
@@ -37,8 +38,8 @@ public class StmtResolvers {
   /**
    * Resolve {@link Stmt}s under {@param context}
    */
-  public static void resolve(@NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context) {
-    resolve(fillContext(stmts, context));
-    desugar(stmts);   // resolve mutates stmts
+  public static void resolve(@NotNull ResolveInfo info, @NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context) {
+    resolve(fillContext(info, stmts, context));
+    desugar(info, stmts); // resolve mutates stmts
   }
 }

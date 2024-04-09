@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve;
 
-import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.TyckOrder;
 import org.aya.resolve.context.ModuleContext;
@@ -20,7 +19,6 @@ import org.jetbrains.annotations.NotNull;
 @Debug.Renderer(text = "thisModule.moduleName().joinToString(\"::\")")
 public record ResolveInfo(
   @NotNull ModuleContext thisModule,
-  @NotNull ImmutableSeq<Stmt> program,
   // @NotNull PrimDef.Factory primFactory,
   // @NotNull AyaShape.Factory shapeFactory,
   @NotNull AyaBinOpSet opSet,
@@ -29,6 +27,10 @@ public record ResolveInfo(
   @NotNull MutableMap<ModuleName.Qualified, UseHide> reExports,
   @NotNull MutableGraph<TyckOrder> depGraph
 ) {
+  public ResolveInfo(@NotNull ModuleContext thisModule) {
+    this(thisModule, new AyaBinOpSet(thisModule.reporter()), MutableMap.create(), MutableMap.create(), MutableMap.create(), MutableGraph.create());
+  }
+
   public record ImportInfo(@NotNull ResolveInfo resolveInfo, boolean reExport) {
   }
 
