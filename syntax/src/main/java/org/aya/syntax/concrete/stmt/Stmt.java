@@ -4,6 +4,7 @@ package org.aya.syntax.concrete.stmt;
 
 import org.aya.generic.TyckUnit;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.util.PosedUnaryOperator;
 import org.jetbrains.annotations.Contract;

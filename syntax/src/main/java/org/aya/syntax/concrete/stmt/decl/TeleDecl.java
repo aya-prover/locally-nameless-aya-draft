@@ -197,10 +197,9 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     }
 
     @Override
-    public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f) {
-      super.descentInPlace(f);
-
-      body = body.map(f, cls -> cls.descent(f));    // TODO: need pattern mapper
+    public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
+      super.descentInPlace(f, p);
+      body = body.map(f, cls -> cls.descent(f, p));
     }
   }
 }
