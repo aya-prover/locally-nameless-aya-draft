@@ -189,7 +189,7 @@ public record AyaProducer(
   }
 
   public @NotNull BindBlock bindBlock(@NotNull GenericNode<?> node) {
-    return new BindBlock(sourcePosOf(node), MutableValue.create(),
+    return new BindBlock(sourcePosOf(node),
       node.childrenOfType(LOOSERS)
         .flatMap(this::qualifiedIDs)
         .toImmutableSeq(),
@@ -255,16 +255,14 @@ public record AyaProducer(
     @Nullable String name
     , @NotNull ModifierParser.Modifiers modifier
   ) {
-    public @Nullable String checkName(@NotNull AyaProducer self, boolean require) {
+    public @Nullable String checkName(@NotNull AyaProducer self) {
       if (name != null) return name;
-      if (require) return self.error(node.childrenView().getFirst(), "Expect a name");
-      return Constants.randomName(info.sourcePos());
+      return self.error(node.childrenView().getFirst(), "Expect a name");
     }
   }
 
   private @NotNull DeclParseData declInfo(
-    @NotNull GenericNode<?> node
-    , @NotNull ModifierParser.Filter filter
+    @NotNull GenericNode<?> node, @NotNull ModifierParser.Filter filter
   ) {
     var modifier = declModifiersOf(node, filter);
     var bind = node.peekChild(BIND_BLOCK);
@@ -274,16 +272,15 @@ public record AyaProducer(
       modifier.accessibility().data(),
       nameOrInfix.map(x -> x.name.sourcePos()).getOrDefault(SourcePos.NONE),
       wholePos,
-      nameOrInfix.map(DeclNameOrInfix::infix).getOrNull()
-      // , bind == null ? BindBlock.EMPTY : bindBlock(bind)
+      nameOrInfix.map(DeclNameOrInfix::infix).getOrNull(),
+      bind == null ? BindBlock.EMPTY : bindBlock(bind)
     );
     return new DeclParseData(node, info, nameOrInfix.map(x -> x.name.data()).getOrNull(), modifier);
   }
 
   public @Nullable TeleDecl.FnDecl fnDecl(@NotNull GenericNode<?> node) {
     var info = declInfo(node, ModifierParser.FN_FILTER);
-    var sample = info.modifier.personality().data();
-    var name = info.checkName(this, sample == DeclInfo.Personality.NORMAL);
+    var name = info.checkName(this);
     if (name == null) return null;
 
     var fnBodyNode = node.peekChild(FN_BODY);
@@ -302,7 +299,7 @@ public record AyaProducer(
     var fnMods = info.modifier().toFnModifiers();
     var tele = telescope(node.childrenOfType(TELE));
     var ty = typeOrNull(node.peekChild(TYPE));
-    return new TeleDecl.FnDecl(info.info, fnMods, name, tele, ty, dynamite, sample, info.name == null);
+    return new TeleDecl.FnDecl(info.info, fnMods, name, tele, ty, dynamite);
   }
 
   public @Nullable TeleDecl.FnBody fnBody(@NotNull GenericNode<?> node) {
@@ -322,7 +319,6 @@ public record AyaProducer(
     //   modiSet.accessibility().data(),
     //   new ModuleName.Qualified(decl.ref().name()),
     //   UseHide.EMPTY,
-    //   modiSet.personality().data() == DeclInfo.Personality.EXAMPLE,
     //   true
     // ));
   }
@@ -330,13 +326,11 @@ public record AyaProducer(
   public @Nullable TeleDecl.DataDecl dataDecl(GenericNode<?> node, @NotNull MutableList<Stmt> additional) {
     var body = node.childrenOfType(DATA_BODY).mapNotNull(this::dataBody).toImmutableSeq();
     var tele = telescope(node.childrenOfType(TELE));
-    var filter = ModifierParser.DECL_FILTER.and(x -> x != ModifierParser.Modifier.Counterexample);
-    var info = declInfo(node, filter);
-    var name = info.checkName(this, true);
+    var info = declInfo(node, ModifierParser.DECL_FILTER);
+    var name = info.checkName(this);
     if (name == null) return null;
-    var sample = info.modifier.personality().data();
     var ty = typeOrNull(node.peekChild(TYPE));
-    var decl = new TeleDecl.DataDecl(info.info, name, tele, ty, body, sample);
+    var decl = new TeleDecl.DataDecl(info.info, name, tele, ty, body);
     giveMeOpen(info.modifier, decl, additional);
     return decl;
   }
@@ -356,8 +350,7 @@ public record AyaProducer(
   //   var name = info.checkName(this, true);
   //   if (name == null) return null;
   //   var members = node.childrenOfType(CLASS_MEMBER).map(this::classMember).toImmutableSeq();
-  //   var personality = info.modifier.personality().data();
-  //   var decl = new ClassDecl(info.info, name, personality, members);
+  //   var decl = new ClassDecl(info.info, name, members);
   //   giveMeOpen(info.modifier, decl, additional);
   //   return decl;
   // }
@@ -395,7 +388,7 @@ public record AyaProducer(
 
   public @Nullable TeleDecl.DataCtor dataCtor(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns, @NotNull GenericNode<?> node) {
     var info = declInfo(node, ModifierParser.SUBDECL_FILTER);
-    var name = info.checkName(this, true);
+    var name = info.checkName(this);
     if (name == null) return null;
     var tele = telescope(node.childrenOfType(TELE));
     var partial = node.peekChild(PARTIAL_BLOCK);
@@ -591,7 +584,7 @@ public record AyaProducer(
       if (bodyExpr == null) {
         var impliesToken = node.peekChild(IMPLIES);
         var bodyHolePos = impliesToken == null ? pos : sourcePosOf(impliesToken);
-        result = new WithPos<>(pos, new Expr.Hole(false, null));
+        result = new WithPos<>(bodyHolePos, new Expr.Hole(false, null));
       } else result = expr(bodyExpr);
       return Expr.buildLam(pos, lambdaTelescope(node.childrenOfType(LAMBDA_TELE).map(x -> x)).view(), result);
     }

@@ -122,9 +122,7 @@ public sealed interface ModuleContext extends Context permits NoExportContext, P
     if (exists != null) {
       if (exists != moduleExport) {
         reportAndThrow(new NameProblem.DuplicateModNameError(modName, sourcePos));
-      } else {
-        return;
-      }
+      } else return;
     } else if (getModuleMaybe(modName) != null) {
       reporter().report(new NameProblem.ModShadowingWarn(modName, sourcePos));
     }

@@ -7,11 +7,7 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.core.def.Signature;
-import org.aya.syntax.core.def.CtorDef;
-import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
@@ -56,8 +52,8 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   }
 
   @Override
-  public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f) {
-    modifyTelescope(xs -> xs.map(p -> p.descent(f)));
+  public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
+    modifyTelescope(xs -> xs.map(param -> param.descent(f)));
     modifyResult(f);
   }
 
@@ -66,22 +62,6 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   @Override
   public @NotNull DeclInfo info() {
     return info;
-  }
-
-  public sealed abstract static class TopLevel<RetTy extends Term> extends TeleDecl<RetTy> implements Decl.TopLevel {
-    private final @NotNull DeclInfo.Personality personality;
-
-    protected TopLevel(
-      @NotNull DeclInfo info, @NotNull ImmutableSeq<Expr.Param> telescope,
-      @Nullable WithPos<Expr> result, @NotNull DeclInfo.Personality personality
-    ) {
-      super(info, telescope, result);
-      this.personality = personality;
-    }
-
-    @Override public @NotNull DeclInfo.Personality personality() {
-      return personality;
-    }
   }
 
   /**
@@ -115,7 +95,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
    * @author kiva
    * @see DataDef
    */
-  public static final class DataDecl extends TopLevel<SortTerm> {
+  public static final class DataDecl extends TeleDecl<SortTerm> {
     public final @NotNull DefVar<DataDef, DataDecl> ref;
     public final @NotNull ImmutableSeq<DataCtor> body;
     /** Yet type-checked constructors */
@@ -126,10 +106,9 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       @NotNull String name,
       @NotNull ImmutableSeq<Expr.Param> telescope,
       @Nullable WithPos<Expr> result,
-      @NotNull ImmutableSeq<DataCtor> body,
-      @NotNull DeclInfo.Personality personality
+      @NotNull ImmutableSeq<DataCtor> body
     ) {
-      super(info, telescope, result, personality);
+      super(info, telescope, result);
       this.body = body;
       this.ref = DefVar.concrete(this, name);
       body.forEach(ctors -> ctors.dataRef = ref);
@@ -162,14 +141,9 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
    * @author re-xyr
    * @see FnDef
    */
-  public static final class FnDecl extends TopLevel<Term> {
+  public static final class FnDecl extends TeleDecl<Term> {
     public final @NotNull EnumSet<Modifier> modifiers;
     public final @NotNull DefVar<FnDef, FnDecl> ref;
-
-    /**
-     * If a function is anonymous. It only occurs when the personality is example/counterexample, and the {@code ref.name} is generated.
-     */
-    public final boolean isAnonymous;
     public @NotNull FnBody body;
 
     public FnDecl(
@@ -178,17 +152,12 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       @NotNull String name,
       @NotNull ImmutableSeq<Expr.Param> telescope,
       @Nullable WithPos<Expr> result,
-      @NotNull FnBody body,
-      @NotNull DeclInfo.Personality personality,
-      boolean isAnonymous
+      @NotNull FnBody body
     ) {
-      super(info, telescope, result, personality);
-
-      assert (!isAnonymous) || personality != DeclInfo.Personality.NORMAL;
+      super(info, telescope, result);
 
       this.modifiers = modifiers;
       this.ref = DefVar.concrete(this, name);
-      this.isAnonymous = isAnonymous;
       this.body = body;
     }
 

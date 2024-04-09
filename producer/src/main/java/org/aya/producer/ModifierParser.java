@@ -7,7 +7,6 @@ import kala.collection.Seq;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.concrete.stmt.decl.DeclInfo;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
@@ -33,15 +32,12 @@ public record ModifierParser(@NotNull Reporter reporter) {
   public enum ModifierGroup {
     None,
     Accessibility,
-    Personality,
     Alpha
   }
 
   public enum Modifier {
     // Common Modifiers
     Private(KW_PRIVATE, Accessibility, "private"),
-    Example(KW_EXAMPLE, Personality, "example", Private),
-    Counterexample(KW_COUNTEREXAMPLE, Personality, "counterexample", Private),
 
     // ModuleLike Modifiers
     Open(OPEN_KW, None, "open"),
@@ -85,17 +81,15 @@ public record ModifierParser(@NotNull Reporter reporter) {
     }
 
     /**
-     * @param defaultAcc Default {@link org.aya.concrete.stmt.Stmt.Accessibility}
-     * @param defaultPer Default {@link org.aya.concrete.stmt.decl.DeclInfo.Personality}
+     * @param defaultAcc Default {@link org.aya.syntax.concrete.stmt.Stmt.Accessibility}
      * @param miscAvail  Available miscellaneous modifiers, see {@link DefaultModifiers#miscAvail}
      */
     public static @NotNull Filter create(
       @NotNull WithPos<Stmt.Accessibility> defaultAcc,
-      @NotNull WithPos<DeclInfo.Personality> defaultPer,
       @NotNull EnumSet<Modifier> miscAvail
     ) {
-      return new Filter(new DefaultModifiers(defaultAcc, defaultPer, miscAvail), mod -> switch (mod) {
-        case Private, Example, Counterexample -> true;
+      return new Filter(new DefaultModifiers(defaultAcc, miscAvail), mod -> switch (mod) {
+        case Private -> true;
         case Open, Opaque, Inline, Overlap -> miscAvail.contains(mod);
       });
     }
@@ -107,7 +101,6 @@ public record ModifierParser(@NotNull Reporter reporter) {
    */
   record DefaultModifiers(
     @NotNull WithPos<Stmt.Accessibility> accessibility,
-    @NotNull WithPos<DeclInfo.Personality> personality,
     @NotNull EnumSet<Modifier> miscAvail
   ) implements Modifiers {
     @Override public @Nullable SourcePos misc(@NotNull Modifier key) {
@@ -119,27 +112,23 @@ public record ModifierParser(@NotNull Reporter reporter) {
   /** Only "open" is available to (data/struct) decls */
   public static final Filter DECL_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    new WithPos<>(SourcePos.NONE, DeclInfo.Personality.NORMAL),
     EnumSet.of(Modifier.Open)
   );
 
   /** "opaque", "inline" and "overlap" is available to functions. */
   public static final Filter FN_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    new WithPos<>(SourcePos.NONE, DeclInfo.Personality.NORMAL),
     EnumSet.of(Modifier.Opaque, Modifier.Inline, Modifier.Overlap));
 
   /** nothing is available to sub-level decls (ctor/field). */
   public static final Filter SUBDECL_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    new WithPos<>(SourcePos.NONE, DeclInfo.Personality.NORMAL),
     EnumSet.noneOf(Modifier.class)
-  ).and(x -> false);
+  ).and(_ -> false);
 
   /** All parsed modifiers */
   public interface Modifiers {
     @Contract(pure = true) @NotNull WithPos<Stmt.Accessibility> accessibility();
-    @Contract(pure = true) @NotNull WithPos<DeclInfo.Personality> personality();
     /**
      * Miscellaneous modifiers are function modifiers ({@link org.aya.generic.Modifier}) plus "open".
      *
@@ -163,14 +152,6 @@ public record ModifierParser(@NotNull Reporter reporter) {
       return mods.getOption(Modifier.Private)
         .map(pos -> new WithPos<>(pos, Stmt.Accessibility.Private))
         .getOrElse(parent::accessibility);
-    }
-
-    @Override @Contract(pure = true) public @NotNull WithPos<DeclInfo.Personality> personality() {
-      if (mods.containsKey(Modifier.Example))
-        return new WithPos<>(mods.get(Modifier.Example), DeclInfo.Personality.EXAMPLE);
-      if (mods.containsKey(Modifier.Counterexample))
-        return new WithPos<>(mods.get(Modifier.Counterexample), DeclInfo.Personality.COUNTEREXAMPLE);
-      return parent.personality();
     }
 
     @Override public @Nullable SourcePos misc(@NotNull Modifier key) {
@@ -206,7 +187,7 @@ public record ModifierParser(@NotNull Reporter reporter) {
         continue;
       }
 
-      map.computeIfAbsent(modifier.group, k -> new EnumMap<>(Modifier.class));
+      map.computeIfAbsent(modifier.group, _ -> new EnumMap<>(Modifier.class));
       var exists = map.get(modifier.group);
 
       if (exists.containsKey(modifier)) {

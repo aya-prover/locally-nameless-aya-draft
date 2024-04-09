@@ -7,7 +7,6 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;
-import org.aya.resolve.context.NoExportContext;
 import org.aya.resolve.context.PhysicalModuleContext;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
@@ -99,10 +98,10 @@ public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull Re
         var innerCtx = resolveChildren(decl, ctx, d -> d.body.view(), (ctor, mCtx) -> {
           ctor.ref().module = mCtx.modulePath();
           // ctor.ref().fileModule = resolveInfo.thisModule().modulePath().path();
-          mCtx.defineSymbol(ctor.ref, Stmt.Accessibility.Public, ctor.sourcePos());
-          resolveOpInfo(ctor, mCtx);
+          mCtx.defineSymbol(ctor.ref(), Stmt.Accessibility.Public, ctor.sourcePos());
+          resolveOpInfo(ctor);
         });
-        resolveOpInfo(decl, innerCtx);
+        resolveOpInfo(decl);
         yield innerCtx;
       }
       // case ClassDecl decl -> {
@@ -117,7 +116,7 @@ public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull Re
       // }
       case TeleDecl.FnDecl decl -> {
         var ctx = resolveTopLevelDecl(decl, context);
-        resolveOpInfo(decl, ctx);
+        resolveOpInfo(decl);
         yield ctx;
       }
       // case TeleDecl.PrimDecl decl -> {
@@ -138,7 +137,7 @@ public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull Re
     };
   }
 
-  private <D extends Decl & Decl.TopLevel, Child extends Decl> PhysicalModuleContext resolveChildren(
+  private <D extends Decl, Child extends Decl> PhysicalModuleContext resolveChildren(
     @NotNull D decl,
     @NotNull ModuleContext context,
     @NotNull Function<D, SeqView<Child>> childrenGet,
@@ -156,35 +155,18 @@ public record StmtShallowResolver(/*@NotNull ModuleLoader loader, */ @NotNull Re
     return innerCtx;
   }
 
-  private void resolveOpInfo(@NotNull Decl decl, @NotNull Context context) {
-    // var bind = decl.bindBlock();
-    // if (bind != BindBlock.EMPTY) bind.context().set(context);
-    // if (decl.opInfo() != null) {
-    //   var ref = decl.ref();
-    //   ref.opDecl = decl;
-    // }
-  }
-
-  private <D extends Decl & Decl.TopLevel> @NotNull ModuleContext
-  resolveTopLevelDecl(@NotNull D decl, @NotNull ModuleContext context) {
-    var ctx = switch (decl.personality()) {
-      case NORMAL -> context;
-      case EXAMPLE -> exampleContext(context);
-      case COUNTEREXAMPLE -> exampleContext(context).derive(decl.ref().name());
-    };
-
-    decl.ref().module = ctx.modulePath();
-    // decl.ref().fileModule = resolveInfo.thisModule().modulePath().path();
-    // Do not add anonymous functions to the context, as no one can refer to them
-    if (!(decl instanceof TeleDecl.FnDecl fnDecl) || (!fnDecl.isAnonymous)) {
-      ctx.defineSymbol(decl.ref(), decl.accessibility(), decl.sourcePos());
+  private void resolveOpInfo(@NotNull Decl decl) {
+    if (decl.opInfo() != null) {
+      var ref = decl.ref();
+      ref.opDecl = decl;
     }
-    return ctx;
   }
 
-  private @NotNull NoExportContext exampleContext(@NotNull ModuleContext context) {
-    if (context instanceof PhysicalModuleContext physical)
-      return physical.exampleContext();
-    else throw new InternalException("Invalid context: " + context);
+  private <D extends Decl> @NotNull ModuleContext
+  resolveTopLevelDecl(@NotNull D decl, @NotNull ModuleContext context) {
+    decl.ref().module = context.modulePath();
+    // decl.ref().fileModule = resolveInfo.thisModule().modulePath().path();
+    context.defineSymbol(decl.ref(), decl.accessibility(), decl.sourcePos());
+    return context;
   }
 }

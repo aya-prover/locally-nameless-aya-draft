@@ -16,13 +16,4 @@ public record DeclInfo(
   @Nullable OpDecl.OpInfo opInfo,
   @NotNull BindBlock bindBlock
 ) {
-  /** @see org.aya.generic.Modifier */
-  public enum Personality {
-    /** Denotes that the definition is a normal definition (default behavior) */
-    NORMAL,
-    /** Denotes that the definition is an example (same as normal, but in separated context) */
-    EXAMPLE,
-    /** Denotes that the definition is a counterexample (errors expected, in separated context) */
-    COUNTEREXAMPLE,
-  }
 }

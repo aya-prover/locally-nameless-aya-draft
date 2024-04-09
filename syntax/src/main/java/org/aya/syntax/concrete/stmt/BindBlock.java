@@ -8,18 +8,14 @@ import org.aya.syntax.ref.DefVar;
 import org.aya.util.ForLSP;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.naming.Context;
 
 public record BindBlock(
   @Override @NotNull SourcePos sourcePos,
-  @NotNull MutableValue<@Nullable Context> context,
   @NotNull ImmutableSeq<QualifiedID> loosers,
   @NotNull ImmutableSeq<QualifiedID> tighters,
   @ForLSP @NotNull MutableValue<ImmutableSeq<DefVar<?, ?>>> resolvedLoosers,
   @ForLSP @NotNull MutableValue<ImmutableSeq<DefVar<?, ?>>> resolvedTighters
 ) {
   public static final @NotNull BindBlock EMPTY = new BindBlock(SourcePos.NONE,
-    MutableValue.create(), ImmutableSeq.empty(), ImmutableSeq.empty(), MutableValue.create(), MutableValue.create());
+    ImmutableSeq.empty(), ImmutableSeq.empty(), MutableValue.create(), MutableValue.create());
 }

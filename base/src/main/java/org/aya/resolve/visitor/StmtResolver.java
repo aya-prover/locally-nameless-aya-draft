@@ -2,15 +2,26 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve.visitor;
 
+import kala.collection.SeqLike;
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.value.MutableValue;
+import org.aya.generic.TyckOrder;
 import org.aya.generic.TyckUnit;
+import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.WithCtx;
+import org.aya.resolve.error.NameProblem;
+import org.aya.resolve.error.OperatorError;
+import org.aya.resolve.salt.AyaBinOpSet;
+import org.aya.syntax.concrete.stmt.BindBlock;
+import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.ref.DefVar;
+import org.aya.util.binop.OpDecl;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
@@ -24,14 +35,14 @@ import org.jetbrains.annotations.NotNull;
  * @see ExprResolver
  */
 public interface StmtResolver {
-  static void resolveStmt(@NotNull ImmutableSeq<WithCtx<Stmt>> stmt/*, @NotNull ResolveInfo info*/) {
-    stmt.forEach(s -> resolveStmt(s/*, info*/));
+  static void resolveStmt(@NotNull ImmutableSeq<WithCtx<Stmt>> stmt, @NotNull ResolveInfo info) {
+    stmt.forEach(s -> resolveStmt(s, info));
   }
 
   /** @apiNote Note that this function MUTATES the stmt if it's a Decl. */
-  static void resolveStmt(@NotNull WithCtx<Stmt> stmt/*, @NotNull ResolveInfo info*/) {
+  static void resolveStmt(@NotNull WithCtx<Stmt> stmt, @NotNull ResolveInfo info) {
     switch (stmt.data()) {
-      case Decl decl -> resolveDecl(stmt.map(_ -> decl)/*, info*/);
+      case Decl decl -> resolveDecl(stmt.replace(decl), info);
       // case Command.Module mod -> resolveStmt(mod.contents(), info);
       // case Command cmd -> {}
       // case Generalize variables -> {
@@ -49,11 +60,11 @@ public interface StmtResolver {
    *
    * @apiNote Note that this function MUTATES the decl
    */
-  private static void resolveDecl(@NotNull WithCtx<Decl> predecl/*, @NotNull ResolveInfo info*/) {
+  private static void resolveDecl(@NotNull WithCtx<Decl> predecl, @NotNull ResolveInfo info) {
     switch (predecl.data()) {
       case TeleDecl.FnDecl decl -> {
         // Generalized works for simple bodies and signatures
-        var resolver = resolveDeclSignature(predecl.map(_ -> decl), ExprResolver.LAX/*, info*/);
+        var resolver = resolveDeclSignature(predecl.replace(decl), ExprResolver.LAX, info);
         decl.body = switch (decl.body) {
           case TeleDecl.BlockBody(var cls) -> {
             // introducing generalized variable is not allowed in clauses, hence we insert them before body resolving
@@ -71,10 +82,10 @@ public interface StmtResolver {
             yield new TeleDecl.ExprBody(body);
           }
         };
-        // addReferences(info, new TyckOrder.Body(decl), resolver);
+        addReferences(info, new TyckOrder.Body(decl), resolver);
       }
       case TeleDecl.DataDecl decl -> {
-        var resolver = resolveDeclSignature(predecl.map(_ -> decl), ExprResolver.LAX/*, info*/);
+        var resolver = resolveDeclSignature(predecl.replace(decl), ExprResolver.LAX, info);
         insertGeneralizedVars(decl, resolver);
         resolver.enterBody();
         decl.body.forEach(ctor -> {
@@ -83,13 +94,13 @@ public interface StmtResolver {
           // ctor.patterns = ctor.patterns.map(pat -> pat.descent(pattern -> bodyResolver.bind(pattern, mCtx)));
           resolveMemberSignature(ctor, bodyResolver, mCtx);
           // ctor.clauses = bodyResolver.partial(mCtx.get(), ctor.clauses);
-          // var head = new TyckOrder.Head(ctor);
-          // addReferences(info, head, bodyResolver);
-          // addReferences(info, new TyckOrder.Body(ctor), SeqView.of(head));
+          var head = new TyckOrder.Head(ctor);
+          addReferences(info, head, bodyResolver);
+          addReferences(info, new TyckOrder.Body(ctor), SeqView.of(head));
           // No body no body but you!
         });
-        // addReferences(info, new TyckOrder.Body(decl), resolver.reference().view()
-        //   .concat(decl.body.map(TyckOrder.Body::new)));
+        addReferences(info, new TyckOrder.Body(decl), resolver.reference().view()
+          .concat(decl.body.map(TyckOrder.Body::new)));
       }
       // case ClassDecl decl -> {
       //   assert decl.ctx != null;
@@ -125,22 +136,23 @@ public interface StmtResolver {
     ctor.modifyResult((pos, t) -> bodyResolver.enter(mCtx.get()).apply(pos, t));
   }
 
-  // private static void addReferences(@NotNull ResolveInfo info, TyckOrder decl, SeqView<TyckOrder> refs) {
-  //   info.depGraph().sucMut(decl).appendAll(refs
-  //     .filter(unit -> unit.unit().needTyck(info.thisModule().modulePath().path())));
-  //   if (decl instanceof TyckOrder.Body) info.depGraph().sucMut(decl)
-  //     .append(new TyckOrder.Head(decl.unit()));
-  // }
-  //
-  // /** @param decl is unmodified */
-  // private static void addReferences(@NotNull ResolveInfo info, TyckOrder decl, ExprResolver resolver) {
-  //   addReferences(info, decl, resolver.reference().view());
-  // }
+  private static void addReferences(@NotNull ResolveInfo info, TyckOrder decl, SeqView<TyckOrder> refs) {
+    // TODO: garbage
+    // info.depGraph().sucMut(decl).appendAll(refs
+    //   .filter(unit -> unit.unit().needTyck(info.thisModule().modulePath().path())));
+    // if (decl instanceof TyckOrder.Body) info.depGraph().sucMut(decl)
+    //   .append(new TyckOrder.Head(decl.unit()));
+  }
+
+  /** @param decl is unmodified */
+  private static void addReferences(@NotNull ResolveInfo info, TyckOrder decl, ExprResolver resolver) {
+    addReferences(info, decl, resolver.reference().view());
+  }
 
   private static @NotNull ExprResolver resolveDeclSignature(
-    @NotNull WithCtx<TeleDecl.TopLevel<?>> decl,
-    ExprResolver.@NotNull Options options
-    // , @NotNull ResolveInfo info
+    @NotNull WithCtx<TeleDecl<?>> decl,
+    ExprResolver.@NotNull Options options,
+    @NotNull ResolveInfo info
   ) {
     var resolver = new ExprResolver(decl.ctx(), options);
     resolver.enterHead();
@@ -149,7 +161,7 @@ public interface StmtResolver {
     var newResolver = resolver.enter(mCtx.get());
     decl.data().modifyResult(newResolver);
     decl.data().telescope = telescope;
-    // addReferences(info, new TyckOrder.Head(decl), resolver);
+    addReferences(info, new TyckOrder.Head(decl.data()), resolver);
     return newResolver;
   }
 
@@ -159,70 +171,8 @@ public interface StmtResolver {
   ) {
     // decl.telescope = decl.telescope.prependedAll(resolver.allowedGeneralizes().valuesView());
   }
-/*
 
-  static void visitBind(@NotNull DefVar<?, ?> selfDef, @NotNull BindBlock bind, @NotNull ResolveInfo info) {
-    var opSet = info.opSet();
-    var self = selfDef.opDecl;
-    if (self == null && bind != BindBlock.EMPTY) {
-      opSet.reporter.report(new OperatorError.BadBindBlock(selfDef.concrete.sourcePos(), selfDef.name()));
-      throw new Context.ResolvingInterruptedException();
-    }
-    bind(bind, opSet, self);
-  }
 
-  private static void bind(@NotNull BindBlock bindBlock, AyaBinOpSet opSet, OpDecl self) {
-    if (bindBlock == BindBlock.EMPTY) return;
-    var ctx = bindBlock.context().get();
-    assert ctx != null : "no shallow resolver?";
-    bindBlock.resolvedLoosers().set(bindBlock.loosers().map(looser -> bind(self, opSet, ctx, OpDecl.BindPred.Looser, looser)));
-    bindBlock.resolvedTighters().set(bindBlock.tighters().map(tighter -> bind(self, opSet, ctx, OpDecl.BindPred.Tighter, tighter)));
-  }
-
-  private static @NotNull DefVar<?, ?> bind(
-    @NotNull OpDecl self, @NotNull AyaBinOpSet opSet, @NotNull Context ctx,
-    @NotNull OpDecl.BindPred pred, @NotNull QualifiedID id
-  ) throws Context.ResolvingInterruptedException {
-    if (ctx.get(id) instanceof DefVar<?, ?> defVar) {
-      var opDecl = defVar.resolveOpDecl(ctx.modulePath());
-      if (opDecl != null) {
-        opSet.bind(self, pred, opDecl, id.sourcePos());
-        return defVar;
-      }
-    }
-
-    // make compiler happy 😥
-    throw resolvingInterrupt(opSet.reporter, new NameProblem.OperatorNameNotFound(id.sourcePos(), id.join()));
-  }
-
-  static void resolveBind(@NotNull SeqLike<@NotNull Stmt> contents, @NotNull ResolveInfo info) {
-    contents.forEach(s -> resolveBind(s, info));
-    info.opRename().forEach((k, v) -> {
-      if (v.component2() == BindBlock.EMPTY) return;
-      bind(v.component2(), info.opSet(), v.component1());
-    });
-  }
-
-  static void resolveBind(@NotNull Stmt stmt, @NotNull ResolveInfo info) {
-    switch (stmt) {
-      case Command.Module mod -> resolveBind(mod.contents(), info);
-      case ClassDecl decl -> {
-        decl.members.forEach(field -> resolveBind(field, info));
-        visitBind(decl.ref, decl.bindBlock(), info);
-      }
-      case TeleDecl.DataDecl decl -> {
-        decl.body.forEach(ctor -> resolveBind(ctor, info));
-        visitBind(decl.ref, decl.bindBlock(), info);
-      }
-      case TeleDecl.DataCtor ctor -> visitBind(ctor.ref, ctor.bindBlock(), info);
-      case TeleDecl.ClassMember field -> visitBind(field.ref, field.bindBlock(), info);
-      case TeleDecl.FnDecl decl -> visitBind(decl.ref, decl.bindBlock(), info);
-      case TeleDecl.PrimDecl decl -> {}
-      case Command cmd -> {}
-      case Generalize generalize -> {}
-    }
-  }
-*/
 
   @Contract("_, _ -> fail")
   static Context.ResolvingInterruptedException resolvingInterrupt(Reporter reporter, Problem problem) {

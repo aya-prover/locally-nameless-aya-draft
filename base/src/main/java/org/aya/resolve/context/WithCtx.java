@@ -12,6 +12,10 @@ public record WithCtx<T>(@NotNull Context ctx, @NotNull T data) {
   }
 
   public <R> @NotNull WithCtx<R> map(@NotNull Function<T, R> mapper) {
-    return new WithCtx<>(ctx, mapper.apply(data));
+    return replace(mapper.apply(data));
+  }
+
+  public <R> @NotNull WithCtx<R> replace(@NotNull R value) {
+    return new WithCtx<>(ctx, value);
   }
 }

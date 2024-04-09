@@ -31,5 +31,5 @@ public sealed interface Stmt extends TyckUnit permits Decl {
   }
 
   @Contract(mutates = "this")
-  void descentInPlace(@NotNull PosedUnaryOperator<Expr> f);
+  void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p);
 }

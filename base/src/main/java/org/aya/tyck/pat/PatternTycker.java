@@ -96,7 +96,7 @@ public class PatternTycker implements Problematic {
       case Pattern.Absurd absurd -> {
         var selection = selectCtor(type, null, pattern);
         if (selection != null) {
-          foundError(new PatternProblem.PossiblePat(pattern, selection.component3()));
+          foundError(new PatternProblem.PossiblePat(pattern, selection.conHead));
         }
         yield Pat.Absurd.INSTANCE;
       }
@@ -116,14 +116,13 @@ public class PatternTycker implements Problematic {
         var var = ctor.resolved().data();
         var realCtor = selectCtor(type, var, pattern);
         if (realCtor == null) yield randomPat(type);    //
-        var ctorRef = realCtor.component3().ref();
+        var ctorRef = realCtor.conHead.ref();
         var ctorCore = ctorRef.core;
 
-        final var dataCall = realCtor.component1();
         // It is possible that `ctor.params()` is empty.
         var patterns = tyckInner(
           ctorCore.selfTele.view(),
-          dataCall,
+          realCtor.data,
           ctor.params().view(),
           pattern
         ).wellTyped;
@@ -131,7 +130,7 @@ public class PatternTycker implements Problematic {
         // check if this Ctor is a ShapedCtor
         // var typeRecog = exprTycker.shapeFactory.find(ctorRef.core.dataRef.core).getOrNull();
 
-        yield new Pat.Ctor(realCtor.component3().ref(), patterns/*, typeRecog, dataCall*/);
+        yield new Pat.Ctor(realCtor.conHead.ref(), patterns/*, typeRecog, dataCall*/);
       }
       case Pattern.Bind(var bind, var tyExpr, var tyRef) -> {
         exprTycker.localCtx().put(bind, type);
@@ -332,12 +331,14 @@ public class PatternTycker implements Problematic {
     );
   }
 
+  private record Selection(DataCall data, ImmutableSeq<Term> args, ConCallLike.Head conHead) {
+  }
+
   /**
    * @param name if null, the selection will be performed on all constructors
    * @return null means selection failed
    */
-  private @Nullable Tuple3<DataCall, ImmutableSeq<Term>, ConCallLike.Head>
-  selectCtor(Term type, @Nullable AnyVar name, @NotNull WithPos<Pattern> pattern) {
+  private @Nullable Selection selectCtor(Term type, @Nullable AnyVar name, @NotNull WithPos<Pattern> pattern) {
     if (!(new Normalizer(exprTycker.state()).whnf(type) instanceof DataCall dataCall)) {
       foundError(new PatternProblem.SplittingOnNonData(pattern, type));
       return null;
@@ -357,7 +358,7 @@ public class PatternTycker implements Problematic {
       if (name != null && ctor.ref() != name) continue;
       var matchy = isCtorAvailable(dataCall, ctor, exprTycker.state);
       if (matchy.isOk()) {
-        return Tuple.of(dataCall, matchy.get(), dataCall.conHead(ctor.ref()));
+        return new Selection(dataCall, matchy.get(), dataCall.conHead(ctor.ref()));
       }
       // For absurd pattern, we look at the next constructor
       if (name == null) {

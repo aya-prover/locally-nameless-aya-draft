@@ -13,7 +13,7 @@ import java.nio.file.Path;
 
 /**
  * @author ice1000
- * Used for examples and counterexamples, also `let open`
+ * Used for `let open`
  */
 public record NoExportContext(
   @NotNull Context parent,

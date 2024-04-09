@@ -6,7 +6,6 @@ import org.aya.generic.TyckUnit;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.ModulePath;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
@@ -59,14 +58,5 @@ public sealed interface Decl extends SourceNode, Stmt, TyckUnit, OpDecl permits 
 
   @Override default @Nullable OpDecl.OpInfo opInfo() {
     return info().opInfo();
-  }
-
-  /**
-   * Denotes that the definition can be defined at top-level
-   *
-   * @author kiva
-   */
-  sealed interface TopLevel permits TeleDecl.TopLevel {
-    @NotNull DeclInfo.Personality personality();
   }
 }
