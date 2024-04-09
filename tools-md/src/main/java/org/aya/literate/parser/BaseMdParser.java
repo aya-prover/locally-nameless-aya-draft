@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.literate.parser;
 
@@ -17,7 +17,7 @@ import org.aya.literate.UnsupportedMarkdown;
 import org.aya.pretty.backend.md.MdStyle;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Style;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourceFile;
 import org.aya.util.error.SourcePos;
 import org.aya.util.more.StringUtil;
@@ -82,7 +82,7 @@ public class BaseMdParser {
         literal = literal.substring(0, literal.length() - 1);
       return Tuple.of(LazyValue.of(() -> fromSourceSpans(inner)), literal);
     }
-    throw new InternalException("SourceSpans");
+    throw new Panic("SourceSpans");
   }
 
   protected @NotNull Literate mapNode(@NotNull Node node) {
@@ -133,11 +133,11 @@ public class BaseMdParser {
           // FIXME[hoshino]: The sourcePos here contains the beginning and trailing '`'
           yield new Literate.InlineCode(inlineCode.getLiteral(), sourcePos);
         }
-        throw new InternalException("SourceSpans");
+        throw new Panic("SourceSpans");
       }
       default -> {
         var spans = node.getSourceSpans();
-        if (spans == null) throw new InternalException("SourceSpans");
+        if (spans == null) throw new Panic("SourceSpans");
         var pos = fromSourceSpans(Seq.from(spans));
         if (pos == null) throw new UnsupportedOperationException("TODO: Which do the nodes have not source spans?");
         reporter.report(new UnsupportedMarkdown(pos, node.getClass().getSimpleName()));

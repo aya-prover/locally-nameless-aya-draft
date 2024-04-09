@@ -6,8 +6,6 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
-import kala.tuple.Tuple;
-import kala.tuple.Tuple3;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.generic.SortKind;
@@ -18,7 +16,6 @@ import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.AnyVar;
@@ -29,7 +26,7 @@ import org.aya.tyck.TyckState;
 import org.aya.tyck.error.PatternProblem;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.Arg;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
@@ -184,8 +181,8 @@ public class PatternTycker implements Problematic {
 
         yield innerPat;
       }
-      case Pattern.QualifiedRef ignored -> throw new InternalException("QualifiedRef patterns should be desugared");
-      case Pattern.BinOpSeq ignored -> throw new InternalException("BinOpSeq patterns should be desugared");
+      case Pattern.QualifiedRef ignored -> throw new Panic("QualifiedRef patterns should be desugared");
+      case Pattern.BinOpSeq ignored -> throw new Panic("BinOpSeq patterns should be desugared");
     };
   }
 

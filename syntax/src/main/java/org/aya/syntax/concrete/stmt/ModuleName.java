@@ -3,7 +3,7 @@
 package org.aya.syntax.concrete.stmt;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -86,7 +86,7 @@ public sealed interface ModuleName extends Serializable {
    * @param ids a not empty sequence
    */
   static @NotNull ModuleName.Qualified qualified(@NotNull ImmutableSeq<String> ids) {
-    if (ids.isEmpty()) throw new InternalException("A valid module path cannot be empty");
+    if (ids.isEmpty()) throw new Panic("A valid module path cannot be empty");
     return new Qualified(ids);
   }
 

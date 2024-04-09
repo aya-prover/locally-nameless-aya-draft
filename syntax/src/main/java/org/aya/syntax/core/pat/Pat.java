@@ -12,7 +12,6 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
-import org.aya.util.error.InternalException;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;

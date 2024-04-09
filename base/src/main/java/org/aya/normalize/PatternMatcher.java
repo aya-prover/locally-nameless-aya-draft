@@ -10,7 +10,7 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.ref.LocalCtx;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -27,7 +27,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
    */
   public @NotNull Result<ImmutableSeq<Term>, Boolean> match(@NotNull Pat pat, @NotNull Term term) {
     return switch (pat) {
-      case Pat.Absurd _ -> throw new InternalException("unreachable");
+      case Pat.Absurd _ -> throw new Panic("unreachable");
       case Pat.Bind _ -> Result.ok(ImmutableSeq.of(term));
       case Pat.Ctor ctor -> {
         term = pre.apply(term);
@@ -46,7 +46,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
           default -> Result.err(true);
         };
       }
-      case Pat.Meta meta -> throw new InternalException("Illegal pattern: Pat.Meta");
+      case Pat.Meta meta -> throw new Panic("Illegal pattern: Pat.Meta");
     };
   }
 

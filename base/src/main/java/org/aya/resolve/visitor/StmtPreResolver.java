@@ -12,7 +12,7 @@ import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
@@ -102,7 +102,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
           resolveOpInfo(ctor);
         });
         resolveOpInfo(decl);
-        yield new ResolvingStmt.DataDecl(decl, innerCtx);
+        yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
       // case ClassDecl decl -> {
       //   var ctx = resolveTopLevelDecl(decl, context);
@@ -115,9 +115,9 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
       //   resolveOpInfo(decl, innerCtx);
       // }
       case TeleDecl.FnDecl decl -> {
-        resolveTopLevelDecl(decl, context);
+        var innerCtx = resolveTopLevelDecl(decl, context);
         resolveOpInfo(decl);
-        yield new ResolvingStmt.Default(decl);
+        yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
       // case TeleDecl.PrimDecl decl -> {
       //   var factory = resolveInfo.primFactory();
@@ -133,7 +133,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
       //   factory.factory(primID, decl.ref);
       //   resolveTopLevelDecl(decl, context);
       // }
-      default -> throw new InternalException("🪲");
+      default -> throw new Panic("🪲");
     };
   }
 

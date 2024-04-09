@@ -37,7 +37,7 @@ import org.aya.syntax.ref.ModulePath;
 import org.aya.util.Arg;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourceFile;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -898,7 +898,7 @@ public record AyaProducer(
   }
 
   private <T> T unreachable(GenericNode<?> node) {
-    throw new InternalException(node.elementType() + ": " + node.tokenText());
+    throw new Panic(node.elementType() + ": " + node.tokenText());
   }
 
   /**

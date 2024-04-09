@@ -1,20 +1,26 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.util.error;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * 😱😱🦀🦀🦀
+ *
  * @author ice1000
  */
-public class InternalException extends RuntimeException {
-  public InternalException() {}
+public class Panic extends RuntimeException {
+  public Panic() {}
 
-  public InternalException(@NotNull String message) {
+  public Panic(@NotNull String message) {
     super(message);
   }
 
-  public InternalException(@NotNull String message, Throwable cause) {
+  public static <T> T unreachable() {
+    throw new Panic("unreachable");
+  }
+
+  public Panic(@NotNull String message, Throwable cause) {
     super(message, cause);
   }
 

@@ -7,7 +7,7 @@ import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.util.PosedUnaryOperator;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
         yield switch (typeF.kind()) {
           case Type -> new Expr.Type(level);
           case Set -> new Expr.Set(level);
-          case ISet -> throw new InternalException("unreachable");
+          case ISet -> throw new Panic("unreachable");
         };
       }
       case Expr.Sugar satou -> desugar(sourcePos, satou);

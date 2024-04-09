@@ -14,7 +14,7 @@ import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.binop.OpDecl;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 public interface StmtBinder {
@@ -66,13 +66,14 @@ public interface StmtBinder {
    */
   static void resolveBind(@NotNull Context ctx, @NotNull ResolvingStmt stmt, @NotNull ResolveInfo info) {
     switch (stmt) {
-      case ResolvingStmt.DataDecl(var decl, var innerCtx) -> {
-        decl.body.forEach(ctor -> resolveBind(innerCtx, new ResolvingStmt.Default(ctor), info));
+      case ResolvingStmt.TopDecl(TeleDecl.DataDecl decl, var innerCtx) -> {
+        decl.body.forEach(ctor -> resolveBind(innerCtx, new ResolvingStmt.MiscDecl(ctor), info));
         visitBind(ctx, decl.ref, decl.bindBlock(), info);
       }
-      case ResolvingStmt.Default(TeleDecl.DataDecl decl) -> throw new InternalException("unreachable");
-      case ResolvingStmt.Default(TeleDecl.DataCtor ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
-      case ResolvingStmt.Default(TeleDecl.FnDecl decl) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
+      case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, var _) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
+      case ResolvingStmt.TopDecl _ -> Panic.unreachable();
+      case ResolvingStmt.MiscDecl(TeleDecl.DataCtor ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
+      case ResolvingStmt.MiscDecl _ -> Panic.unreachable();
       // case TeleDecl.ClassMember field -> visitBind(field.ref, field.bindBlock(), info);
       // case Command.Module mod -> resolveBind(mod.contents(), info);
       // case ClassDecl decl -> {

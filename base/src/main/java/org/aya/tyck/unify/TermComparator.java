@@ -22,7 +22,7 @@ import org.aya.tyck.error.LevelError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.util.Ordering;
 import org.aya.util.Pair;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -61,8 +61,8 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
     }
   }
 
-  private @NotNull InternalException noRules(@NotNull Term term) {
-    return new InternalException(STR."\{term.getClass()}: \{term.toDoc(AyaPrettierOptions.debug()).debugRender()}");
+  private @NotNull Panic noRules(@NotNull Term term) {
+    return new Panic(STR."\{term.getClass()}: \{term.toDoc(AyaPrettierOptions.debug()).debugRender()}");
   }
 
   /**
@@ -166,9 +166,9 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   private boolean doCompareTyped(@NotNull Term lhs, @NotNull Term rhs, @NotNull Term type) {
     return switch (type) {
       // TODO: ClassCall
-      case LamTerm _ -> throw new InternalException("LamTerm is never type");
-      case ConCallLike _ -> throw new InternalException("ConCall is never type");
-      case TupTerm _ -> throw new InternalException("TupTerm is never type");
+      case LamTerm _ -> throw new Panic("LamTerm is never type");
+      case ConCallLike _ -> throw new Panic("ConCall is never type");
+      case TupTerm _ -> throw new Panic("TupTerm is never type");
       case ErrorTerm _ -> true;
       case PiTerm pi -> switch (new Pair<>(lhs, rhs)) {
         case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> deBruijnCtx().with(pi.param(),

@@ -12,7 +12,7 @@ import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.PosedUnaryOperator;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +55,7 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
       case Pattern.QualifiedRef qref -> {
         var qid = qref.qualifiedID();
         if (!(qid.component() instanceof ModuleName.Qualified mod))
-          throw new InternalException("QualifiedRef#qualifiedID should be qualified");
+          throw new Panic("QualifiedRef#qualifiedID should be qualified");
         var conMaybe = context.iterate(ctx -> isCon(ctx.getQualifiedLocalMaybe(mod, qid.name(), pos)));
         if (conMaybe != null) {
           addReference(conMaybe);

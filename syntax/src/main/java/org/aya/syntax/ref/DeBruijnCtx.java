@@ -5,7 +5,7 @@ package org.aya.syntax.ref;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.syntax.core.term.Term;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
@@ -28,8 +28,8 @@ public record DeBruijnCtx(@NotNull MutableList<Term> ctx) {
   }
 
   public @NotNull Term get(int index) {
-    if (index < 0) throw new InternalException("index < 0");
-    if (index >= ctx.size()) throw new InternalException("index >= ctx.size()");
+    if (index < 0) throw new Panic("index < 0");
+    if (index >= ctx.size()) throw new Panic("index >= ctx.size()");
     var realIndex = ctx.size() - 1 - index;
     return ctx.get(realIndex);
   }
@@ -42,12 +42,12 @@ public record DeBruijnCtx(@NotNull MutableList<Term> ctx) {
   }
 
   public @NotNull Term pop() {
-    if (ctx.isEmpty()) throw new InternalException("empty ctx");
+    if (ctx.isEmpty()) throw new Panic("empty ctx");
     return ctx.removeLast();
   }
 
   public @NotNull ImmutableSeq<Term> popMany(int how) {
-    if (how < 0) throw new InternalException(STR."Unable to pop \{how} elements without elements");
+    if (how < 0) throw new Panic(STR."Unable to pop \{how} elements without elements");
 
     var acc = MutableList.<Term>create();
 

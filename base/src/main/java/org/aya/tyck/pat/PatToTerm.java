@@ -6,13 +6,13 @@ import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 public final class PatToTerm {
   public static @NotNull Term visit(@NotNull Pat pat) {
     return switch (pat) {
-      case Pat.Absurd absurd -> throw new InternalException("unreachable");
+      case Pat.Absurd absurd -> throw new Panic("unreachable");
       case Pat.Bind bind -> new FreeTerm(bind.bind());
       case Pat.Ctor ctor -> throw new UnsupportedOperationException("TODO");
       case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(PatToTerm::visit));

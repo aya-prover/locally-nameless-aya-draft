@@ -13,7 +13,7 @@ import org.aya.tyck.error.LicitError;
 import org.aya.tyck.error.NoRuleError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
@@ -113,7 +113,7 @@ public final class ExprTycker extends AbstractTycker {
       case Expr.Let let -> throw new UnsupportedOperationException("TODO");
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
-      case Expr.Error error -> throw new InternalException("Expr.Error");
+      case Expr.Error error -> throw new Panic("Expr.Error");
       default -> fail(expr.data(), new NoRuleError(expr.data(), expr.sourcePos(), null));
     };
   }

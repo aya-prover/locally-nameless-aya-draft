@@ -3,9 +3,7 @@
 package org.aya.resolve.visitor;
 
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableList;
-import kala.collection.mutable.MutableMap;
 import kala.collection.mutable.MutableStack;
 import kala.value.MutableValue;
 import org.aya.generic.TyckOrder;
@@ -13,14 +11,11 @@ import org.aya.generic.TyckUnit;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.PosedUnaryOperator;
-import org.aya.util.error.InternalException;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
@@ -224,7 +219,7 @@ public record ExprResolver(
 
   private void addReference(@NotNull TyckUnit unit) {
     if (parentAdd != null) parentAdd.accept(unit);
-    if (where.isEmpty()) throw new InternalException("where am I?");
+    if (where.isEmpty()) throw new Panic("where am I?");
     switch (where.peek()) {
       case Head -> {
         reference.append(new TyckOrder.Head(unit));

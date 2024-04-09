@@ -8,12 +8,11 @@ import kala.value.MutableValue;
 import org.aya.generic.TyckOrder;
 import org.aya.generic.TyckUnit;
 import org.aya.resolve.ResolveInfo;
+import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
-import org.aya.resolve.context.WithCtx;
-import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.Term;
+import org.aya.util.error.Panic;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
@@ -27,14 +26,14 @@ import org.jetbrains.annotations.NotNull;
  * @see ExprResolver
  */
 public interface StmtResolver {
-  static void resolveStmt(@NotNull ImmutableSeq<WithCtx<Stmt>> stmt, @NotNull ResolveInfo info) {
+  static void resolveStmt(@NotNull ImmutableSeq<ResolvingStmt> stmt, @NotNull ResolveInfo info) {
     stmt.forEach(s -> resolveStmt(s, info));
   }
 
   /** @apiNote Note that this function MUTATES the stmt if it's a Decl. */
-  static void resolveStmt(@NotNull WithCtx<Stmt> stmt, @NotNull ResolveInfo info) {
-    switch (stmt.data()) {
-      case Decl decl -> resolveDecl(stmt.replace(decl), info);
+  static void resolveStmt(@NotNull ResolvingStmt stmt, @NotNull ResolveInfo info) {
+    switch (stmt) {
+      case ResolvingStmt.ResolvingDecl decl -> resolveDecl(decl, info);
       // case Command.Module mod -> resolveStmt(mod.contents(), info);
       // case Command cmd -> {}
       // case Generalize variables -> {
@@ -52,11 +51,11 @@ public interface StmtResolver {
    *
    * @apiNote Note that this function MUTATES the decl
    */
-  private static void resolveDecl(@NotNull WithCtx<Decl> predecl, @NotNull ResolveInfo info) {
-    switch (predecl.data()) {
-      case TeleDecl.FnDecl decl -> {
+  private static void resolveDecl(@NotNull ResolvingStmt.ResolvingDecl predecl, @NotNull ResolveInfo info) {
+    switch (predecl) {
+      case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, var ctx) -> {
         // Generalized works for simple bodies and signatures
-        var resolver = resolveDeclSignature(predecl.replace(decl), ExprResolver.LAX, info);
+        var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl);
         decl.body = switch (decl.body) {
           case TeleDecl.BlockBody(var cls) -> {
             // introducing generalized variable is not allowed in clauses, hence we insert them before body resolving
@@ -76,8 +75,8 @@ public interface StmtResolver {
         };
         addReferences(info, new TyckOrder.Body(decl), resolver);
       }
-      case TeleDecl.DataDecl decl -> {
-        var resolver = resolveDeclSignature(predecl.replace(decl), ExprResolver.LAX, info);
+      case ResolvingStmt.TopDecl(TeleDecl.DataDecl decl, var ctx) -> {
+        var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl);
         insertGeneralizedVars(decl, resolver);
         resolver.enterBody();
         decl.body.forEach(ctor -> {
@@ -94,6 +93,7 @@ public interface StmtResolver {
         addReferences(info, new TyckOrder.Body(decl), resolver.reference().view()
           .concat(decl.body.map(TyckOrder.Body::new)));
       }
+      case ResolvingStmt.TopDecl(var _, var _) -> Panic.unreachable();
       // case ClassDecl decl -> {
       //   assert decl.ctx != null;
       //   var resolver = new ExprResolver(decl.ctx, ExprResolver.RESTRICTIVE);
@@ -116,7 +116,8 @@ public interface StmtResolver {
       //   addReferences(info, new TyckOrder.Body(decl), SeqView.empty());
       // }
       // handled in DataDecl and StructDecl
-      case TeleDecl.DataCtor ctor -> {}
+      case ResolvingStmt.MiscDecl(TeleDecl.DataCtor ctor) -> Panic.unreachable();
+      case ResolvingStmt.MiscDecl(var _) -> Panic.unreachable();
       // case TeleDecl.ClassMember field -> {}
     }
   }
@@ -141,19 +142,18 @@ public interface StmtResolver {
     addReferences(info, decl, resolver.reference().view());
   }
 
-  private static @NotNull ExprResolver resolveDeclSignature(
-    @NotNull WithCtx<TeleDecl<?>> decl,
-    ExprResolver.@NotNull Options options,
-    @NotNull ResolveInfo info
+  private static @NotNull ExprResolver
+  resolveDeclSignature(
+    @NotNull ExprResolver.Options options, @NotNull ResolveInfo info, @NotNull Context ctx, TeleDecl<?> stmt
   ) {
-    var resolver = new ExprResolver(decl.ctx(), options);
+    var resolver = new ExprResolver(ctx, options);
     resolver.enterHead();
-    var mCtx = MutableValue.create(decl.ctx());
-    var telescope = decl.data().telescope.map(param -> resolver.bind(param, mCtx));
+    var mCtx = MutableValue.create(ctx);
+    var telescope = stmt.telescope.map(param -> resolver.bind(param, mCtx));
     var newResolver = resolver.enter(mCtx.get());
-    decl.data().modifyResult(newResolver);
-    decl.data().telescope = telescope;
-    addReferences(info, new TyckOrder.Head(decl.data()), resolver);
+    stmt.modifyResult(newResolver);
+    stmt.telescope = telescope;
+    addReferences(info, new TyckOrder.Head(stmt), resolver);
     return newResolver;
   }
 

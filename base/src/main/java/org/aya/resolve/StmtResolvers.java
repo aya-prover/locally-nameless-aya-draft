@@ -4,23 +4,27 @@ package org.aya.resolve;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.context.ModuleContext;
-import org.aya.resolve.context.WithCtx;
 import org.aya.resolve.salt.Desalt;
+import org.aya.resolve.visitor.StmtBinder;
 import org.aya.resolve.visitor.StmtResolver;
 import org.aya.resolve.visitor.StmtPreResolver;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.jetbrains.annotations.NotNull;
 
 public record StmtResolvers(@NotNull ResolveInfo info) {
-  private @NotNull ImmutableSeq<WithCtx<Stmt>> fillContext(
+  private @NotNull ImmutableSeq<ResolvingStmt> fillContext(
     @NotNull ImmutableSeq<Stmt> stmts,
     @NotNull ModuleContext context
   ) {
-    return new StmtPreResolver(info).resolveStmt(stmts, context).zip(stmts, WithCtx::new);
+    return new StmtPreResolver(info).resolveStmt(stmts, context);
   }
 
-  private void resolve(@NotNull ImmutableSeq<WithCtx<Stmt>> stmts) {
+  private void resolve(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
     StmtResolver.resolveStmt(stmts, info);
+  }
+
+  private void resolveBind(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
+    StmtBinder.resolveBind(stmts, info);
   }
 
   private void desugar(@NotNull ImmutableSeq<Stmt> stmts) {
@@ -32,7 +36,9 @@ public record StmtResolvers(@NotNull ResolveInfo info) {
    * Resolve {@link Stmt}s under {@param context}
    */
   public void resolve(@NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context) {
-    resolve(fillContext(stmts, context));
+    var resolving = fillContext(stmts, context);
+    resolve(resolving);
+    resolveBind(resolving);
     desugar(stmts); // resolve mutates stmts
   }
 }
