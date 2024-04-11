@@ -97,7 +97,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
         var ctx = resolveTopLevelDecl(decl, context);
         var innerCtx = resolveChildren(decl, ctx, d -> d.body.view(), (ctor, mCtx) -> {
           ctor.ref().module = mCtx.modulePath();
-          // ctor.ref().fileModule = resolveInfo.thisModule().modulePath().path();
+          ctor.ref().fileModule = resolveInfo.thisModule().modulePath();
           mCtx.defineSymbol(ctor.ref(), Stmt.Accessibility.Public, ctor.sourcePos());
           resolveOpInfo(ctor);
         });
@@ -165,7 +165,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
   private <D extends Decl> @NotNull ModuleContext
   resolveTopLevelDecl(@NotNull D decl, @NotNull ModuleContext context) {
     decl.ref().module = context.modulePath();
-    // decl.ref().fileModule = resolveInfo.thisModule().modulePath().path();
+    decl.ref().fileModule = resolveInfo.thisModule().modulePath();
     context.defineSymbol(decl.ref(), decl.accessibility(), decl.sourcePos());
     return context;
   }
