@@ -102,7 +102,7 @@ public class PatternTycker implements Problematic {
           yield withError(new PatternProblem.TupleNonSig(pattern.replace(tuple), type), type);
         yield new Pat.Tuple(
           tyckInner(
-            generatNames(sigma.params()),
+            generateNames(sigma.params()),
             // TODO: use Synthesizer
             new SortTerm(SortKind.Type, 0),
             tuple.patterns().view().map(Arg::ofExplicitly),
@@ -206,7 +206,7 @@ public class PatternTycker implements Problematic {
           var lamParam, var lamBody
         ) && lamParam.explicit() == currentParam.explicit()) {
           body = lamBody;
-          var pattern = new Pattern.Bind(lamParam.ref(), lamParam.type(), MutableValue.create());
+          var pattern = new Pattern.Bind(lamParam.ref(), lamParam.typeExpr(), MutableValue.create());
           pat = new Arg<>(body.replace(pattern), currentParam.explicit());
         } else if (currentParam.explicit()) {
           // the body does not have pattern, too sad
@@ -400,7 +400,10 @@ public class PatternTycker implements Problematic {
     return new Pat.Bind(new LocalVar("?"), param);
   }
 
-  private static @NotNull SeqView<Param> generatNames(@NotNull ImmutableSeq<Term> telescope) {
+  /**
+   * Generate names for core telescope
+   */
+  private static @NotNull SeqView<Param> generateNames(@NotNull ImmutableSeq<Term> telescope) {
     return telescope.view().mapIndexed((i, t) -> {
       // TODO: add type to generated name
       return new Param(STR."\{Constants.ANONYMOUS_PREFIX}\{i}", t, true);

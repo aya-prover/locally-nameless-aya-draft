@@ -5,7 +5,9 @@ package org.aya.prettier;
 import kala.collection.Seq;
 import kala.collection.SeqLike;
 import kala.collection.SeqView;
+import kala.collection.mutable.MutableList;
 import org.aya.generic.AyaDocile;
+import org.aya.generic.ParamLike;
 import org.aya.pretty.doc.Doc;
 import org.aya.pretty.doc.Link;
 import org.aya.pretty.doc.Style;
@@ -19,10 +21,12 @@ import org.aya.syntax.ref.ModulePath;
 import org.aya.util.Arg;
 import org.aya.util.BinOpElem;
 import org.aya.util.binop.Assoc;
+import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.ToIntBiFunction;
 
@@ -164,39 +168,40 @@ public abstract class BasePrettier<Term extends AyaDocile> {
         : withEx;
   }
 
-/*
-  */
-/**
+  /*
+   */
+
+  /**
    * Pretty-print a telescope in a dumb (but conservative) way.
    *
-   * @see #visitTele(Seq, AyaDocile, ToIntBiFunction)
-   *//*
-
+   * @see #visitTele(Seq, AyaDocile, Usage)
+   */
   public @NotNull Doc visitTele(@NotNull Seq<? extends ParamLike<Term>> telescope) {
     return visitTele(telescope, null, (t, v) -> 1);
   }
 
-*/
-/**
- * Pretty-print a telescope in a smart way.
- * The bindings that are not used in the telescope/body are omitted.
- * Bindings of the same type (by 'same' I mean <code>Objects.equals</code> returns true)
- * are merged together.
- *
- * @param body  the body of the telescope (like the return type in a pi type),
- *              only used for finding usages (of the variables in the telescope).
- * @param altF7 a function for finding usages.
- * @see #visitTele(Seq)
- *//*
 
+  /**
+   * Pretty-print a telescope in a smart way.
+   * The bindings that are not used in the telescope/body are omitted.
+   * Bindings of the same type (by 'same' I mean <code>Objects.equals</code> returns true)
+   * are merged together.
+   *
+   * @param body  the body of the telescope (like the return type in a pi type),
+   *              only used for finding usages (of the variables in the telescope).
+   * @param altF7 a function for finding usages.
+   * @see #visitTele(Seq)
+   */
   public @NotNull Doc visitTele(
     @NotNull Seq<? extends ParamLike<Term>> telescope,
-    @Nullable Term body, @NotNull ToIntBiFunction<Term, AnyVar> altF7
+    @Nullable Term body, @NotNull Usage<Term, LocalVar> altF7
   ) {
     if (telescope.isEmpty()) return Doc.empty();
     var last = telescope.getFirst();
     var buf = MutableList.<Doc>create();
-    var names = MutableList.of(last.ref());
+
+    // consecutive parameters of same type.
+    var names = MutableList.of(last);
     for (int i = 1; i < telescope.size(); i++) {
       var param = telescope.get(i);
       if (!Objects.equals(param.type(), last.type())) {
@@ -204,17 +209,18 @@ public abstract class BasePrettier<Term extends AyaDocile> {
           var ref = names.getFirst();
           var used = telescope.sliceView(i, telescope.size())
             .map(ParamLike::type).appended(body)
-            .anyMatch(p -> altF7.applyAsInt(p, ref) > 0);
+            .anyMatch(p -> altF7.applyAsInt(p, ref.ref()) > 0);
+          // We omit the name if there is no usage.
           if (!used) buf.append(justType(last, Outer.ProjHead));
           else buf.append(mutableListNames(names, last));
         } else buf.append(mutableListNames(names, last));
         names.clear();
         last = param;
       }
-      names.append(param.ref());
+      names.append(param);
     }
     if (body != null && names.sizeEquals(1)
-      && altF7.applyAsInt(body, names.getFirst()) == 0) {
+      && altF7.applyAsInt(body, names.getFirst().ref()) == 0) {
       buf.append(justType(last, Outer.ProjHead));
     } else buf.append(mutableListNames(names, last));
     return Doc.sep(buf);
@@ -225,19 +231,21 @@ public abstract class BasePrettier<Term extends AyaDocile> {
       : Doc.braced(term(Outer.Free, monika.type()));
   }
 
-  */
-
-  /** @implNote do NOT remove the <code>toImmSeq</code> call!!! *//*
-
-  private Doc mutableListNames(MutableList<LocalVar> names, ParamLike<?> param) {
-    return param.toDoc(Doc.sep(names.view().map(BasePrettier::linkDef).toImmutableSeq()), options);
+  private Doc mutableListNames(
+    MutableList<? extends ParamLike<?>> names,
+    ParamLike<?> param
+  ) {
+    // We HAVE TO collect the results, since {names} is mutable, therefore {names.view()} becomes mutable.
+    var namesDocs = names.view().map(ParamLike::nameDoc)
+      .toImmutableSeq();
+    return param.toDoc(Doc.sep(namesDocs), options);
   }
 
   @NotNull Doc lambdaParam(@NotNull ParamLike<?> param) {
     return options.map.get(AyaPrettierOptions.Key.ShowLambdaTypes) ? param.toDoc(options)
       : Doc.bracedUnless(param.nameDoc(), param.explicit());
   }
-*/
+
   public static @NotNull Doc varDoc(@NotNull AnyVar ref) {
     if (ref == LocalVar.IGNORED) return Doc.plain("_");
     else return Doc.linkRef(Doc.plain(ref.name()), linkIdOf(ref));
@@ -340,5 +348,9 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     AppSpine,
     ProjHead,
     Lifted
+  }
+
+  @FunctionalInterface
+  public interface Usage<Term, Ref> extends ToIntBiFunction<Term, Ref> {
   }
 }

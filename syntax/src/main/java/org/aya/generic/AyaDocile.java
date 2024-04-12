@@ -2,10 +2,13 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.generic;
 
+import org.aya.prettier.AyaPrettierOptions;
 import org.aya.pretty.doc.Doc;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
+
+import static org.aya.prettier.Tokens.BAR;
 
 /**
  * @author ice1000
@@ -21,11 +24,8 @@ public interface AyaDocile /*extends Docile*/ {
    * @deprecated use {@link #toDoc(PrettierOptions)} instead
    */
   @Deprecated default @NotNull Doc debuggerOnlyToDoc() {
-    throw new UnsupportedOperationException("TODO");
+    return toDoc(AyaPrettierOptions.debug());
   }
 
   @NotNull Doc toDoc(@NotNull PrettierOptions options);
-  // @Override default @NotNull Doc toDoc() {
-  //   return toDoc(PrettierOptions.DEBUG);
-  // }
 }

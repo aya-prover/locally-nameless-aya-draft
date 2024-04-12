@@ -54,7 +54,7 @@ public final class ExprTycker extends AbstractTycker {
     return switch (expr.data()) {
       case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());
       case Expr.Pi(var param, var last) -> {
-        var wellParam = ty(param.type());
+        var wellParam = ty(param.typeExpr());
         yield subscoped(() -> {
           localCtx().put(param.ref(), wellParam);
           var wellLast = ty(last);
@@ -78,7 +78,7 @@ public final class ExprTycker extends AbstractTycker {
       }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
       case Expr.Lambda(var param, var body) -> {
-        var paramResult = ty(param.type());
+        var paramResult = ty(param.typeExpr());
         yield subscoped(() -> {
           localCtx().put(param.ref(), paramResult);
           var bodyResult = synthesize(body).bind(param.ref());

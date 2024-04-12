@@ -7,7 +7,11 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
+import org.aya.generic.Nested;
+import org.aya.generic.ParamLike;
 import org.aya.generic.SortKind;
+import org.aya.prettier.BasePrettier;
+import org.aya.prettier.ConcretePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.ref.AnyVar;
@@ -33,26 +37,31 @@ public sealed interface Expr extends AyaDocile {
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-    throw new UnsupportedOperationException("TODO");    // TODO
+    return new ConcretePrettier(options).term(BasePrettier.Outer.Free, this);
   }
 
   record Param(
     @Override @NotNull SourcePos sourcePos,
     @NotNull LocalVar ref,
-    @NotNull WithPos<Expr> type,
+    @NotNull WithPos<Expr> typeExpr,
     boolean explicit
     // @ForLSP MutableValue<Result> theCore
-  ) implements SourceNode {
+  ) implements SourceNode, AyaDocile, ParamLike<Expr> {
+    @Override
+    public @NotNull Expr type() {
+      return typeExpr.data();
+    }
+
     public Param(@NotNull SourcePos sourcePos, @NotNull LocalVar var, boolean explicit) {
       this(sourcePos, var, new WithPos<>(sourcePos, new Hole(false, null)), explicit);
     }
 
     public @NotNull Param update(@NotNull WithPos<Expr> type) {
-      return type == type() ? this : new Param(sourcePos, ref, type, explicit);
+      return type == typeExpr() ? this : new Param(sourcePos, ref, type, explicit);
     }
 
     public @NotNull Param descent(@NotNull PosedUnaryOperator<Expr> f) {
-      return update(type.descent(f));
+      return update(typeExpr.descent(f));
     }
   }
 
@@ -125,7 +134,10 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
-  record Lambda(@NotNull Param param, @NotNull WithPos<Expr> body) implements Expr {
+  record Lambda(
+    @NotNull Param param,
+    @Override @NotNull WithPos<Expr> body
+  ) implements Expr, Nested<Param, Expr, Lambda> {
     public @NotNull Lambda update(@NotNull Param param, @NotNull WithPos<Expr> body) {
       return param == param() && body == body() ? this : new Lambda(param, body);
     }
@@ -173,7 +185,10 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
-  record App(@NotNull WithPos<Expr> function, @NotNull ImmutableSeq<NamedArg> argument) implements Expr {
+  record App(
+    @NotNull WithPos<Expr> function,
+    @NotNull ImmutableSeq<NamedArg> argument
+  ) implements Expr {
     public @NotNull App update(@NotNull WithPos<Expr> function, @NotNull ImmutableSeq<NamedArg> argument) {
       return function == function() && argument.sameElements(argument(), true)
         ? this : new App(function, argument);
@@ -484,7 +499,7 @@ public sealed interface Expr extends AyaDocile {
   record Let(
     @NotNull LetBind bind,
     @NotNull WithPos<Expr> body
-  ) implements Expr {
+  ) implements Expr, Nested<LetBind, Expr, Let> {
     public @NotNull Let update(@NotNull LetBind bind, @NotNull WithPos<Expr> body) {
       return bind() == bind && body() == body
         ? this
@@ -494,6 +509,11 @@ public sealed interface Expr extends AyaDocile {
     @Override
     public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(bind().descent(f), body.descent(f));
+    }
+
+    @Override
+    public @NotNull LetBind param() {
+      return bind;
     }
   }
 

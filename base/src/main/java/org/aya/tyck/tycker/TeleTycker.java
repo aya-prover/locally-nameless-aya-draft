@@ -43,7 +43,7 @@ public interface TeleTycker {
   @Contract(pure = true)
   static @NotNull MutableSeq<Param> checkTeleFree(ImmutableSeq<Expr.Param> cTele, ExprTycker tycker) {
     return MutableSeq.from(cTele.view().map(p -> {
-      var pTy = tycker.ty(p.type());
+      var pTy = tycker.ty(p.typeExpr());
       tycker.localCtx().put(p.ref(), pTy);
       return new Param(p.ref().name(), pTy, p.explicit());
     }));
