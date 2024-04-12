@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
  * <ul>
  *   <li>{@link Expr.Lambda} is a nested structure, it has a {@link Expr.Param} as a head and a {@link Expr} as a body</li>
  *   <li>{@link Expr.Let} is a nested structure, it has a {@link Expr.LetBind} as a head and a {@link Expr} as a body</li>
- *   <li>{@link Expr.App} is also a nested structure in some way if you like</li>
  * </ul>
  * <p>
  * A Nested class is supposed to also be a {@link Term}
@@ -42,8 +41,8 @@ public interface Nested<Param, Term, This extends Nested<Param, Term, This>> {
   @SuppressWarnings("unchecked")
   default @Nullable WithPos<This> tryNested() {
     var body = body();
-    var clazz = getClass();
-    var nested = clazz.isInstance(body.data()) ? (This) clazz.cast(body) : null;
+    var clazz = (Class<This>) getClass();
+    var nested = clazz.isInstance(body.data()) ? clazz.cast(body) : null;
 
     return nested == null ? null : body.replace(nested);
   }
