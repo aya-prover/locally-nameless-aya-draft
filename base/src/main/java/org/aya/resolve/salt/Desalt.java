@@ -15,8 +15,6 @@ import org.jetbrains.annotations.Nullable;
 
 /** Desugar, but the sugars are not sweet enough, therefore called salt. */
 public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Expr> {
-  public static class DesugarInterruption extends Exception {}
-
   private @Nullable Integer levelVar(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
       case Expr.BinOpSeq _ -> levelVar(expr.descent(this));
@@ -33,7 +31,9 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
         when f.data() instanceof Expr.RawSort typeF
         && typeF.kind() != SortKind.ISet    // Do not report at desugar stage, it should be reported at tyck stage
         && arg.sizeEquals(1) -> {
-        var level = levelVar(new WithPos<>(sourcePos, expr));
+        // TODO: Should we prevent (Type {foo = 0}) ?
+        var levelArg = arg.getFirst();
+        var level = levelVar(new WithPos<>(sourcePos, levelArg.arg().data()));
         if (level == null) yield new Expr.Error(expr);
 
         yield switch (typeF.kind()) {
