@@ -127,7 +127,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         if (filling == null) yield Tokens.HOLE;
         yield Doc.sep(Tokens.HOLE_LEFT, term(Outer.Free, filling.data()), Tokens.HOLE_RIGHT);
       }
-      case Expr.Proj expr -> Doc.cat(term(Outer.ProjHead, expr.tup().data()), DOT,
+      case Expr.Proj expr -> Doc.cat(term(Outer.ProjHead, expr.tup().data()), PROJ,
         Doc.plain(expr.ix().fold(Objects::toString, QualifiedID::join)));
       // case Expr.Match match ->
       //   Doc.cblock(Doc.cat(Doc.styled(KEYWORD, "match"), Doc.commaList(match.discriminant().map(t -> term(Outer.Free, t)))), 2,
@@ -199,16 +199,16 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       }
       case Expr.Array arr -> arr.arrayBlock().fold(
         left -> Doc.sep(
-          Doc.symbol("["),
+          LIST_LEFT,
           term(Outer.Free, left.generator()),
           BAR,
           Doc.commaList(left.binds().map(this::visitDoBinding)),
-          Doc.symbol("]")
+          LIST_RIGHT
         ),
         right -> Doc.sep(
-          Doc.symbol("["),
+          LIST_LEFT,
           Doc.commaList(right.exprList().view().map(e -> term(Outer.Free, e))),   // Copied from Expr.Tup case
-          Doc.symbol("]")
+          LIST_RIGHT
         )
       );
       case Expr.Let let -> {
@@ -221,13 +221,9 @@ public class ConcretePrettier extends BasePrettier<Expr> {
           : Doc.vcat(lets.view()
             .map(this::visitLetBind)
             // | f := g
-            .map(x -> Doc.sep(Doc.symbol("|"), x)));
+            .map(x -> Doc.sep(BAR, x)));
 
-        var docs = ImmutableSeq.of(
-          Doc.styled(KEYWORD, "let"),
-          letSeq,
-          Doc.styled(KEYWORD, "in")
-        );
+        var docs = ImmutableSeq.of(KW_LET, letSeq, KW_IN);
 
         // ```
         // let a := b in
@@ -273,7 +269,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
   public @NotNull Doc pattern(@NotNull Pattern pattern, boolean licit, Outer outer) {
     return switch (pattern) {
       case Pattern.Tuple tuple -> Doc.licit(licit, patterns(tuple.patterns().map(WithPos::data)));
-      case Pattern.Absurd _ -> Doc.bracedUnless(Doc.styled(KEYWORD, "()"), licit);
+      case Pattern.Absurd _ -> Doc.bracedUnless(PAT_ABSURD, licit);
       case Pattern.Bind bind -> Doc.bracedUnless(linkDef(bind.bind()), licit);
       case Pattern.CalmFace _ -> Doc.bracedUnless(Doc.plain(Constants.ANONYMOUS_PREFIX), licit);
       case Pattern.Number number -> Doc.bracedUnless(Doc.plain(String.valueOf(number.number())), licit);
@@ -293,9 +289,9 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         yield ctorDoc(outer, licit, ctorDoc, param.sizeLessThanOrEquals(1));
       }
       case Pattern.List list -> Doc.sep(
-        Doc.symbol("["),
+        LIST_LEFT,
         Doc.commaList(list.elements().map(x -> pattern(x.data(), true, Outer.Free))),
-        Doc.symbol("]")
+        LIST_RIGHT
       );
       case Pattern.As as -> {
         var asBind = Seq.of(
@@ -382,13 +378,13 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       case TeleDecl.FnDecl decl -> {
         var prelude = declPrelude(decl);
         prelude.appendAll(Seq.from(decl.modifiers).view().map(this::visitModifier));
-        prelude.append(Doc.styled(KEYWORD, "def"));
+        prelude.append(KW_DEF);
         prelude.append(linkDef(decl.ref, FN));
         prelude.append(visitTele(decl.telescope));
         appendResult(prelude, decl.result);
         yield Doc.cat(Doc.sepNonEmpty(prelude),
           switch (decl.body) {
-            case TeleDecl.ExprBody(var expr) -> Doc.cat(Doc.spaced(Doc.symbol("=>")), term(Outer.Free, expr));
+            case TeleDecl.ExprBody(var expr) -> Doc.cat(Doc.spaced(FN_DEFINED_AS), term(Outer.Free, expr));
             case TeleDecl.BlockBody(var clauses) -> Doc.cat(Doc.line(), Doc.nest(2, visitClauses(clauses)));
           },
           visitBindBlock(decl.bindBlock())
@@ -396,7 +392,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       }
       case TeleDecl.DataDecl decl -> {
         var prelude = declPrelude(decl);
-        prelude.append(Doc.styled(KEYWORD, "data"));
+        prelude.append(KW_DATA);
         prelude.append(linkDef(decl.ref, CLAZZ));
         prelude.append(visitTele(decl.telescope));
         appendResult(prelude, decl.result);
@@ -420,7 +416,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         yield Doc.sepNonEmpty(doc);
       }*/
       case TeleDecl.DataCtor ctor -> {
-        var ret = ctor.result == null ? Doc.empty() : Doc.sep(Doc.symbol(":"), term(Outer.Free, ctor.result));
+        var ret = ctor.result == null ? Doc.empty() : Doc.sep(HAS_TYPE, term(Outer.Free, ctor.result));
         var doc = Doc.cblock(Doc.sepNonEmpty(
           coe(ctor.coerce),
           linkDef(ctor.ref, CON),
@@ -462,7 +458,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
 
   private void appendResult(MutableList<Doc> prelude, @Nullable WithPos<Expr> result) {
     if (result == null || result.data() instanceof Expr.Hole) return;
-    prelude.append(COLON);
+    prelude.append(HAS_TYPE);
     prelude.append(term(Outer.Free, result));
   }
 
@@ -473,14 +469,14 @@ public class ConcretePrettier extends BasePrettier<Expr> {
     if (loosers.isEmpty() && tighters.isEmpty()) return Doc.empty();
 
     if (loosers.isEmpty()) return Doc.cat(Doc.line(), Doc.hang(2, Doc.sep(
-      Doc.styled(KEYWORD, "tighter"),
+      KW_TIGHTER,
       Doc.commaList(tighters.view().map(BasePrettier::defVar)))));
     else if (tighters.isEmpty()) return Doc.cat(Doc.line(), Doc.hang(2, Doc.sep(
-      Doc.styled(KEYWORD, "looser"),
+      KW_LOOSER,
       Doc.commaList(loosers.view().map(BasePrettier::defVar)))));
-    return Doc.cat(Doc.line(), Doc.hang(2, Doc.cat(Doc.styled(KEYWORD, "bind"), Doc.braced(Doc.sep(
+    return Doc.cat(Doc.line(), Doc.hang(2, Doc.cat(KW_BIND, Doc.braced(Doc.sep(
       KW_TIGHTER, Doc.commaList(tighters.view().map(BasePrettier::defVar)),
-      Doc.styled(KEYWORD, "looser"), Doc.commaList(loosers.view().map(BasePrettier::defVar))
+      KW_LOOSER, Doc.commaList(loosers.view().map(BasePrettier::defVar))
     )))));
   }
 
