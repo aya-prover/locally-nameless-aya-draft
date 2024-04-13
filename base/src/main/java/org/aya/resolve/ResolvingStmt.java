@@ -9,7 +9,29 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Stmt's that are resolving.
+ * {@link Stmt} that is resolving, stores some extra information (i.e. the context 'inside' of it).
+ * This is a functional construction, it is similar to the following agda code:
+ *
+ * <pre>
+ *   postulate
+ *     Context : Set
+ *
+ *   data Stmt : Set where
+ *     FnDecl : Stmt
+ *     DataDecl : Stmt
+ *     DataCtor : Stmt
+ *
+ *   data ExtInfo : Stmt -> Set where
+ *     ExtData : Context -> ExtInfo DataDecl
+ *     ExtFn : Context -> ExtInfo FnDecl
+ *     -- trivial extra info
+ *     ExtCtor : ExtInfo DataCtor
+ *
+ *   ResolvingStmt : Set _
+ *   ResolvingStmt = Σ[ s ∈ Stmt ] ExtInfo s
+ * </pre>
+ *
+ * FIXME: I agree, we can use {@code Option<Context>} for now.
  */
 public sealed interface ResolvingStmt {
   @NotNull Stmt stmt();
