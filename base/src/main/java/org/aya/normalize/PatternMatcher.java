@@ -6,10 +6,13 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.tyck.pat.BindEater;
+import org.aya.tyck.pat.PatToTerm;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,5 +71,24 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
     }
 
     return Result.ok(subst.toImmutableSeq());
+  }
+
+  private @NotNull Result<ImmutableSeq<Term>, Boolean> solve(@NotNull Pat pat, @NotNull MetaPatTerm term) {
+    var meta = term.meta();
+    var solution = meta.solution().get();
+
+    if (solution == null) {
+      // No solution, set the current pattern as solution,
+      // also replace the bindings in pat as sub-meta,
+      // so that we can solve this meta more.
+
+      var eater = new BindEater(MutableList.create());
+      var boroboroPat = eater.apply(pat);   // It looks boroboro, there are holes on it.
+      meta.solution().set(boroboroPat);
+
+      return Result.ok(eater.mouth().toImmutableSeq());
+    } else {
+      return match(pat, PatToTerm.visit(solution));
+    }
   }
 }

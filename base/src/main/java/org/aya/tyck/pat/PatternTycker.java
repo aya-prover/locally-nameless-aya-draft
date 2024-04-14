@@ -143,8 +143,7 @@ public class PatternTycker implements Problematic {
         tyRef.set(type);
         yield new Pat.Bind(bind, type);
       }
-      case Pattern.CalmFace.INSTANCE -> new Pat.Meta(MutableValue.create(),
-        new LocalVar(Constants.ANONYMOUS_PREFIX, pattern.sourcePos(), GenerateKind.Anonymous.INSTANCE), type);
+      case Pattern.CalmFace.INSTANCE -> new Pat.Meta(MutableValue.create(), Constants.ANONYMOUS_PREFIX, type);
       case Pattern.Number(var number) -> {
         throw new UnsupportedOperationException("TODO");
         // var ty = term.normalize(exprTycker.state, NormalizeMode.WHNF);
@@ -280,11 +279,12 @@ public class PatternTycker implements Problematic {
     return onTyck(() -> {
       var type = currentParam.type();
       Pat pat;
-      var freshVar = new LocalVar(currentParam.name());
+      var freshName = currentParam.name();
       if (new Normalizer(exprTycker.state()).whnf(type) instanceof DataCall dataCall) {
         // this pattern would be a Ctor, it can be inferred
-        pat = new Pat.Meta(MutableValue.create(), freshVar, dataCall);
+        pat = new Pat.Meta(MutableValue.create(), freshName, dataCall);
       } else {
+        var freshVar = new LocalVar(currentParam.name());
         // If the type is not a DataCall, then the only available pattern is Pat.Bind
         pat = new Pat.Bind(freshVar, type);
         // TODO: should we do this elsewhere, cause the user is unable to refer this bind

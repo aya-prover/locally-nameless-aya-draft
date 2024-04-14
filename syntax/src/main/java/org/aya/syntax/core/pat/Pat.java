@@ -114,7 +114,8 @@ public sealed interface Pat extends AyaDocile {
    */
   record Meta(
     @NotNull MutableValue<Pat> solution,
-    @NotNull LocalVar fakeBind,
+    // TODO: do we really need this?
+    @NotNull String fakeBind,
     @NotNull Term type
   ) implements Pat {
     public @NotNull Meta update(@Nullable Pat solution, @NotNull Term type) {

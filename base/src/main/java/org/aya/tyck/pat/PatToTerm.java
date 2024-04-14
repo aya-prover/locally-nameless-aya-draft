@@ -4,6 +4,7 @@ package org.aya.tyck.pat;
 
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.FreeTerm;
+import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
 import org.aya.util.error.Panic;
@@ -16,7 +17,7 @@ public final class PatToTerm {
       case Pat.Bind bind -> new FreeTerm(bind.bind());
       case Pat.Ctor ctor -> throw new UnsupportedOperationException("TODO");
       case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(PatToTerm::visit));
-      case Pat.Meta meta -> throw new UnsupportedOperationException("TODO");
+      case Pat.Meta meta -> new MetaPatTerm(meta);
     };
   }
 }
