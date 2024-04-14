@@ -93,7 +93,7 @@ public interface StmtResolver {
         addReferences(info, new TyckOrder.Body(decl), resolver.reference().view()
           .concat(decl.body.map(TyckOrder.Body::new)));
       }
-      case ResolvingStmt.TopDecl(var _, var _) -> Panic.unreachable();
+      case ResolvingStmt.TopDecl _ -> Panic.unreachable();
       // case ClassDecl decl -> {
       //   assert decl.ctx != null;
       //   var resolver = new ExprResolver(decl.ctx, ExprResolver.RESTRICTIVE);
@@ -116,8 +116,7 @@ public interface StmtResolver {
       //   addReferences(info, new TyckOrder.Body(decl), SeqView.empty());
       // }
       // handled in DataDecl and StructDecl
-      case ResolvingStmt.MiscDecl(TeleDecl.DataCtor ctor) -> Panic.unreachable();
-      case ResolvingStmt.MiscDecl(var _) -> Panic.unreachable();
+      case ResolvingStmt.MiscDecl _ -> Panic.unreachable();
       // case TeleDecl.ClassMember field -> {}
     }
   }

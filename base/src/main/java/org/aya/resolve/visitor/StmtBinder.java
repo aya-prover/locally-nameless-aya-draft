@@ -70,7 +70,7 @@ public interface StmtBinder {
         decl.body.forEach(ctor -> resolveBind(innerCtx, new ResolvingStmt.MiscDecl(ctor), info));
         visitBind(ctx, decl.ref, decl.bindBlock(), info);
       }
-      case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, var _) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
+      case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, _) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
       case ResolvingStmt.TopDecl _ -> Panic.unreachable();
       case ResolvingStmt.MiscDecl(TeleDecl.DataCtor ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
       case ResolvingStmt.MiscDecl _ -> Panic.unreachable();
