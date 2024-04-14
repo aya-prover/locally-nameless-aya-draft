@@ -25,26 +25,30 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
 
   @Override
   public @NotNull Expr apply(@NotNull SourcePos sourcePos, @NotNull Expr expr) {
-    // we may desugar type app (type with universe level) first
-    return switch (expr) {
-      case Expr.App(var f, var arg)
-        when f.data() instanceof Expr.RawSort typeF
-        && typeF.kind() != SortKind.ISet    // Do not report at desugar stage, it should be reported at tyck stage
-        && arg.sizeEquals(1) -> {
-        // TODO: Should we prevent (Type {foo = 0}) ?
-        var levelArg = arg.getFirst();
-        var level = levelVar(new WithPos<>(sourcePos, levelArg.arg().data()));
-        if (level == null) yield new Expr.Error(expr);
-
-        yield switch (typeF.kind()) {
-          case Type -> new Expr.Type(level);
-          case Set -> new Expr.Set(level);
-          case ISet -> throw new Panic("unreachable");
-        };
+    if (expr instanceof Expr.App(var f, var args)) {
+      if (f.data() instanceof Expr.RawSort typeF && typeF.kind() != SortKind.ISet) {
+        if (args.sizeEquals(1)) {
+          var arg = args.getFirst();
+          if (arg.explicit() && arg.name() == null) {
+            // in case of [Type {foo = 0}], report at tyck stage
+            var level = levelVar(new WithPos<>(sourcePos, arg.arg().data()));
+            if (level != null) {
+              return switch (typeF.kind()) {
+                case Type -> new Expr.Type(level);
+                case Set -> new Expr.Set(level);
+                case ISet -> Panic.unreachable();
+              };
+            }
+          }
+        }
       }
-      case Expr.Sugar satou -> desugar(sourcePos, satou);
-      default -> expr;
-    };
+    }
+
+    if (expr instanceof Expr.Sugar satou) {
+      return desugar(sourcePos, satou);
+    }
+
+    return expr;
   }
 
   public @NotNull Expr desugar(@NotNull SourcePos sourcePos, @NotNull Expr.Sugar satou) {
