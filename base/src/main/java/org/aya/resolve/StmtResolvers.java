@@ -37,8 +37,8 @@ public record StmtResolvers(@NotNull ResolveInfo info) {
    */
   public void resolve(@NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context) {
     var resolving = fillContext(stmts, context);
-    resolve(resolving);
-    resolveBind(resolving);
-    desugar(stmts); // resolve mutates stmts
+    resolve(resolving); // resolve mutates stmts
+    resolveBind(resolving); // mutates bind blocks
+    desugar(stmts);
   }
 }

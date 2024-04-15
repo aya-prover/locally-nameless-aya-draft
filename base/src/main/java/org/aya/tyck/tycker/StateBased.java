@@ -8,13 +8,12 @@ import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * TODO: update document
- * This is the second base-base class of a tycker.
- * It has the zonking stuffs and basic def-call related functions.
- * Apart from that, it also deals with core term references in concrete terms.
+ * Indicating something is {@link TyckState}ful,
+ * therefore we can perform weak-head normalizing.
  *
  * @author ice1000
  * @see #whnf(Term)
+ * @see ContextBased
  */
 public interface StateBased {
   @NotNull TyckState state();

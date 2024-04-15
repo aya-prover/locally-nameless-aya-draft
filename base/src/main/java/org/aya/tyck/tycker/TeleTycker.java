@@ -57,12 +57,19 @@ public interface TeleTycker {
     return result;
   }
 
+  /**
+   * Replace {@link org.aya.syntax.core.term.FreeTerm} in {@param tele} with appropriate index
+   */
   static void bindTele(ImmutableSeq<LocalVar> locals, MutableSeq<Param> tele) {
     final var lastIndex = tele.size() - 1;
-    for (int i = lastIndex; i >= 0; i--) {
+    // fix some param, say [p]
+    for (int i = lastIndex - 1; i >= 0; i--) {
+      var p = locals.get(i);
+      // for any other param that is able to refer to [p]
       for (int j = i + 1; j < tele.size(); j++) {
         var og = tele.get(j);
-        tele.set(j, og.bindAt(locals.get(i), j - i - 1));
+        // j - i is the human distance between [p] and [og]. However, we count from 0
+        tele.set(j, og.bindAt(p, j - i - 1));
       }
     }
   }

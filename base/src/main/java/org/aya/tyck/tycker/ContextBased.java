@@ -13,6 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
+/**
+ * Indicating something is {@link LocalCtx}ful and {@link DeBruijnCtx}ful
+ */
 public interface ContextBased {
   @NotNull LocalCtx localCtx();
   @NotNull DeBruijnCtx deBruijnCtx();
