@@ -10,13 +10,17 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 /**
@@ -33,6 +37,11 @@ public sealed interface Pat extends AyaDocile {
    */
   void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper);
 
+  /**
+   * Replace {@link Pat.Meta} with {@link Pat.Meta#solution} (if there is) or {@link Pat.Bind}
+   */
+  @NotNull Pat inline(@NotNull LocalCtx ctx);
+
   enum Absurd implements Pat {
     INSTANCE;
 
@@ -43,6 +52,11 @@ public sealed interface Pat extends AyaDocile {
 
     @Override
     public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
+    }
+
+    @Override
+    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+      return this;
     }
   }
 
@@ -67,6 +81,11 @@ public sealed interface Pat extends AyaDocile {
     public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
       ctx.put(bind, typeMapper.apply(type));
     }
+
+    @Override
+    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+      return this;
+    }
   }
 
   record Tuple(@NotNull ImmutableSeq<Pat> elements) implements Pat {
@@ -82,6 +101,11 @@ public sealed interface Pat extends AyaDocile {
     @Override
     public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
       elements.forEach(e -> e.storeBindings(ctx, typeMapper));
+    }
+
+    @Override
+    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+      return update(elements.map(x -> x.inline(ctx)));
     }
   }
 
@@ -103,24 +127,32 @@ public sealed interface Pat extends AyaDocile {
     public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
       args.forEach(arg -> arg.storeBindings(ctx, typeMapper));
     }
+
+    @Override
+    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+      return update(args.map(x -> x.inline(ctx)));
+    }
   }
 
   /**
    * Meta for Hole
    *
+   * @param solution the solution of this Meta.
+   *                 Note that the solution (and its sub pattern) never contains a {@link Pat.Bind}.
    * @param fakeBind is used when inline if there is no solution.
    *                 So don't add this to {@link LocalCtx} too early
-   *                 and remember to inline Meta in {@link ClauseTycker#checkLhs(ExprTycker, Pattern.Clause, Def.Signature, boolean, boolean)}
+   *                 and remember to inline Meta in {@link ClauseTycker#checkLhs}
    */
   record Meta(
     @NotNull MutableValue<Pat> solution,
     // TODO: do we really need this?
     @NotNull String fakeBind,
-    @NotNull Term type
+    @NotNull Term type,
+    @NotNull SourcePos errorReport
   ) implements Pat {
     public @NotNull Meta update(@Nullable Pat solution, @NotNull Term type) {
       return solution == solution().get() && type == type()
-        ? this : new Meta(MutableValue.create(solution), fakeBind, type);
+        ? this : new Meta(MutableValue.create(solution), fakeBind, type, errorReport);
     }
 
     @Override public @NotNull Meta descent(@NotNull UnaryOperator<Pat> f, @NotNull UnaryOperator<Term> g) {
@@ -130,9 +162,31 @@ public sealed interface Pat extends AyaDocile {
 
     @Override
     public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
+      // TODO: reconsider this, I don't fully understand the comment
       // Do nothing
       // This is safe because storeBindings is called only in extractTele which is
       // only used for constructor ownerTele extraction for simpler indexed types
+    }
+
+    @Override
+    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+      return getOrElse(() -> {
+        var name = new LocalVar(fakeBind, errorReport, GenerateKind.Anonymous.INSTANCE);
+        ctx.put(name, type);
+        return new Bind(name, type);
+      });
+    }
+
+    public <R> @NotNull R map(@NotNull Function<Pat, R> mapper, @NotNull Supplier<R> aDefaults) {
+      var solution = solution().get();
+      if (solution == null) return aDefaults.get();
+      return mapper.apply(solution);
+    }
+
+    public @NotNull Pat getOrElse(@NotNull Supplier<Pat> orElse) {
+      var solution = solution().get();
+      if (solution == null) return orElse.get();
+      return solution;
     }
   }
 }

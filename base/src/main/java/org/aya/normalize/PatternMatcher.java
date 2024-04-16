@@ -75,9 +75,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
 
   private @NotNull Result<ImmutableSeq<Term>, Boolean> solve(@NotNull Pat pat, @NotNull MetaPatTerm term) {
     var meta = term.meta();
-    var solution = meta.solution().get();
-
-    if (solution == null) {
+    return meta.map(p -> match(pat, PatToTerm.visit(p)), () -> {
       // No solution, set the current pattern as solution,
       // also replace the bindings in pat as sub-meta,
       // so that we can solve this meta more.
@@ -87,8 +85,6 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
       meta.solution().set(boroboroPat);
 
       return Result.ok(eater.mouth().toImmutableSeq());
-    } else {
-      return match(pat, PatToTerm.visit(solution));
-    }
+    });
   }
 }

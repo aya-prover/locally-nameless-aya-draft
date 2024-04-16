@@ -19,14 +19,15 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.AnyVar;
-import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.PatternProblem;
+import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.Arg;
 import org.aya.util.error.Panic;
+import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
@@ -83,14 +84,23 @@ public class PatternTycker implements Problematic {
   public record TyckResult(
     @NotNull ImmutableSeq<Pat> wellTyped,
     @NotNull ImmutableSeq<Term> paramSubst,
+    @NotNull Term result,
     @NotNull ImmutableSeq<Term> asSubst,
-    @Nullable WithPos<Expr> newBody
+    @Nullable WithPos<Expr> newBody,
+    boolean hasError
   ) {
   }
 
+  /**
+   * Tyck a {@param type} against {@param type}
+   *
+   * @param pattern a concrete {@link Pattern}
+   * @param type    the type of {@param pattern}, it probably contains {@link MetaPatTerm}
+   * @return a well-typed {@link Pat}, but still need to be inline!
+   */
   private @NotNull Pat doTyck(@NotNull WithPos<Pattern> pattern, @NotNull Term type) {
     return switch (pattern.data()) {
-      case Pattern.Absurd absurd -> {
+      case Pattern.Absurd _ -> {
         var selection = selectCtor(type, null, pattern);
         if (selection != null) {
           foundError(new PatternProblem.PossiblePat(pattern, selection.conHead));
@@ -143,7 +153,8 @@ public class PatternTycker implements Problematic {
         tyRef.set(type);
         yield new Pat.Bind(bind, type);
       }
-      case Pattern.CalmFace.INSTANCE -> new Pat.Meta(MutableValue.create(), Constants.ANONYMOUS_PREFIX, type);
+      case Pattern.CalmFace.INSTANCE ->
+        new Pat.Meta(MutableValue.create(), Constants.ANONYMOUS_PREFIX, type, pattern.sourcePos());
       case Pattern.Number(var number) -> {
         throw new UnsupportedOperationException("TODO");
         // var ty = term.normalize(exprTycker.state, NormalizeMode.WHNF);
@@ -180,12 +191,11 @@ public class PatternTycker implements Problematic {
 
         yield innerPat;
       }
-      case Pattern.QualifiedRef ignored -> throw new Panic("QualifiedRef patterns should be desugared");
-      case Pattern.BinOpSeq ignored -> throw new Panic("BinOpSeq patterns should be desugared");
+      case Pattern.Salt _ -> throw new Panic("Salt");
     };
   }
 
-  private @NotNull TyckResult tyck(
+  public @NotNull TyckResult tyck(
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @Nullable WithPos<Pattern> outerPattern,
     @Nullable WithPos<Expr> body
@@ -273,7 +283,7 @@ public class PatternTycker implements Problematic {
   /**
    * For every implicit parameter which is not explicitly (not user given pattern) matched,
    * we generate a MetaPat for each,
-   * so that they can be inferred during {@link ClauseTycker#checkLhs(ExprTycker, Pattern.Clause, Def.Signature, boolean)}
+   * so that they can be inferred during {@link org.aya.tyck.pat.ClauseTycker}
    */
   private @NotNull Pat generatePattern() {
     return onTyck(() -> {
@@ -282,12 +292,12 @@ public class PatternTycker implements Problematic {
       var freshName = currentParam.name();
       if (new Normalizer(exprTycker.state()).whnf(type) instanceof DataCall dataCall) {
         // this pattern would be a Ctor, it can be inferred
-        pat = new Pat.Meta(MutableValue.create(), freshName, dataCall);
+        // TODO: I NEED A SOURCE POS!!
+        pat = new Pat.Meta(MutableValue.create(), freshName, dataCall, SourcePos.NONE);
       } else {
         var freshVar = new LocalVar(currentParam.name());
         // If the type is not a DataCall, then the only available pattern is Pat.Bind
         pat = new Pat.Bind(freshVar, type);
-        // TODO: should we do this elsewhere, cause the user is unable to refer this bind
         exprTycker.localCtx().put(freshVar, type);
       }
 
@@ -320,11 +330,15 @@ public class PatternTycker implements Problematic {
   }
 
   private @NotNull TyckResult done(@NotNull MutableList<Pat> wellTyped, @Nullable WithPos<Expr> newBody) {
+    var paramSubst = this.paramSubst.toImmutableSeq();
+
     return new TyckResult(
       wellTyped.toImmutableSeq(),
-      this.paramSubst.toImmutableSeq(),
+      paramSubst,
+      result.instantiateTele(paramSubst.view()),
       this.asSubst.toImmutableSeq(),
-      newBody
+      newBody,
+      hasError
     );
   }
 
@@ -345,9 +359,7 @@ public class PatternTycker implements Problematic {
     var core = dataRef.core;
     if (core == null && name == null) {
       // We are checking an absurd pattern, but the data is not yet fully checked
-      throw new UnsupportedOperationException("TODO");
-      // foundError(new TyckOrderError.NotYetTyckedError(pos.sourcePos(), dataRef));
-      // return null;
+      throw TyckOrderError.notYetTycked(dataRef);
     }
 
     var body = TeleDef.dataBody(dataRef);

@@ -21,7 +21,7 @@ public record BindEater(@NotNull MutableList<Term> mouth) {
       // which should not contain meta pattern
       case Pat.Meta _ -> throw new Panic("I don't like holes :(");
       case Pat.Bind bind -> {
-        var meta = new Pat.Meta(MutableValue.create(), bind.bind().name(), bind.type());
+        var meta = new Pat.Meta(MutableValue.create(), bind.bind().name(), bind.type(), bind.bind().definition());
         // yummy yummy
         mouth.append(PatToTerm.visit(meta));
         yield meta;

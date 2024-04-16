@@ -24,9 +24,12 @@ public final class SyntaxTestUtil {
 
   @Contract(mutates = "param1")
   public static void resolve(@NotNull Decl decl) {
-    var ctx = new EmptyContext(TestUtil.THROWING, FILE);
-    new StmtResolvers(nakedResolveInfo()).resolve(ImmutableSeq.of(decl),
-      new PhysicalModuleContext(ctx, new ModulePath(ImmutableSeq.of("114514"))));
+    resolve(ImmutableSeq.of(decl));
+  }
+
+  public static void resolve(@NotNull ImmutableSeq<Stmt> decls) {
+    var resolveInfo = nakedResolveInfo();
+    new StmtResolvers(resolveInfo).resolve(decls, resolveInfo.thisModule());
   }
 
   public static @NotNull ResolveInfo nakedResolveInfo() {

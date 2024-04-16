@@ -27,6 +27,9 @@ import org.jetbrains.annotations.Nullable;
  * @author kiva, ice1000, HoshinoTented
  */
 public sealed interface Pattern extends AyaDocile {
+  interface Salt {
+  }
+
   @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f);
 
   @Override
@@ -107,7 +110,7 @@ public sealed interface Pattern extends AyaDocile {
 
   record BinOpSeq(
     @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> seq
-  ) implements Pattern {
+  ) implements Pattern, Salt {
     public @NotNull BinOpSeq update(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> seq) {
       return seq.sameElements(seq(), true) ? this : new BinOpSeq(seq);
     }
@@ -145,7 +148,7 @@ public sealed interface Pattern extends AyaDocile {
     @NotNull QualifiedID qualifiedID,
     @Nullable WithPos<Expr> userType,
     @ForLSP @NotNull MutableValue<@Nullable Term> type
-  ) implements Pattern {
+  ) implements Pattern, Salt {
     public QualifiedRef(@NotNull QualifiedID qualifiedID) {
       this(qualifiedID, null, MutableValue.create());
     }

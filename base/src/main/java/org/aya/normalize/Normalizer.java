@@ -3,13 +3,12 @@
 package org.aya.normalize;
 
 import kala.collection.immutable.ImmutableSet;
-import org.aya.syntax.core.term.AppTerm;
-import org.aya.syntax.core.term.ProjTerm;
-import org.aya.syntax.core.term.StableWHNF;
-import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.pat.PatToTerm;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -40,6 +39,11 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         throw new UnsupportedOperationException("TODO: implement");
       }
       // TODO: handle other cases
+      case MetaPatTerm(Pat.Meta meta) -> {
+        var solution = meta.solution().get();
+        if (solution == null) yield term;
+        yield whnf(PatToTerm.visit(solution));
+      }
       default -> term;
     };
   }

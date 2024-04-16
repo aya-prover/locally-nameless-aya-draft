@@ -2,8 +2,15 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.error;
 
-/*public interface TyckOrderError extends TyckError {
-  default @NotNull String nameOf(@NotNull TyckUnit stmt) {
+import org.aya.prettier.BasePrettier;
+import org.aya.pretty.doc.Doc;
+import org.aya.syntax.ref.AnyVar;
+import org.aya.util.error.Panic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+public interface TyckOrderError extends TyckError {
+/*  default @NotNull String nameOf(@NotNull TyckUnit stmt) {
     return switch (stmt) {
       case Decl decl -> decl.ref().name();
       default -> throw new InternalException("Unexpected stmt seen in SCCTycker: " + stmt);
@@ -34,13 +41,13 @@ package org.aya.tyck.error;
       return Doc.sep(Doc.english("Self-reference found in the signature of"),
         Doc.plain(nameOf(unit)));
     }
-  }
+  }*/
 
-  record NotYetTyckedError(@Override @NotNull SourcePos sourcePos, @NotNull AnyVar var) implements TyckOrderError {
-    @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
-      return Doc.sep(Doc.english("Attempting to use a definition"),
-        Doc.code(BasePrettier.varDoc(var)),
-        Doc.english("which is not yet typechecked"));
-    }
+  @Contract(pure = true)
+  static @NotNull Panic notYetTycked(@NotNull AnyVar var) {
+    var msg = Doc.sep(Doc.english("Attempting to use a definition"),
+      Doc.code(BasePrettier.varDoc(var)),
+      Doc.english("which is not yet typechecked"));
+    return new Panic(msg.debugRender());
   }
-}*/
+}
