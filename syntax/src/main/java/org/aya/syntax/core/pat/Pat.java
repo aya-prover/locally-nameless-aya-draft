@@ -189,4 +189,33 @@ public sealed interface Pat extends AyaDocile {
       return solution;
     }
   }
+
+
+  /**
+   * It's 'pre' because there are also impossible clauses, which are removed after tycking.
+   *
+   * @author ice1000
+   */
+  record Preclause<T extends AyaDocile>(
+    @NotNull SourcePos sourcePos,
+    @NotNull ImmutableSeq<Pat> patterns,
+    @Nullable T expr
+  ) implements AyaDocile {
+    @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+      throw new UnsupportedOperationException("TODO");
+      // var prettier = new CorePrettier(options);
+      // var pats = options.map.get(AyaPrettierOptions.Key.ShowImplicitPats) ? patterns : patterns.view().filter(Arg::explicit);
+      // var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
+      //   pats.view().map(p -> prettier.pat(p, BasePrettier.Outer.Free)))));
+      // return expr.getOrDefault(it -> Doc.sep(doc, Doc.symbol("=>"), it.toDoc(options)), doc);
+    }
+
+    // public static @NotNull Preclause<Term> weaken(@NotNull Term.Matching clause) {
+    //   return new Preclause<>(clause.sourcePos(), clause.patterns(), Option.some(clause.body()));
+    // }
+
+    // public static @Nullable Term.Matching lift(@NotNull Preclause<Term> clause) {
+    //   return clause.expr.map(term -> new Term.Matching(clause.sourcePos, clause.patterns, term));
+    // }
+  }
 }
