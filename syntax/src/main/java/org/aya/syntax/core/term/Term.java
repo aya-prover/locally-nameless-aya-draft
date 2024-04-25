@@ -24,9 +24,11 @@ import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
   permits AppTerm, Formation, FreeTerm, LocalTerm, MetaPatTerm, ProjTerm, StableWHNF, Callable, DimTerm, PartialTerm {
+
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-    throw new UnsupportedOperationException("TODO");
+    // TODO
+    return Doc.plain(toString());
   }
 
   default @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
@@ -90,6 +92,28 @@ public sealed interface Term extends Serializable, AyaDocile
   }
   default @NotNull Term instantiateAllVars(@NotNull SeqView<LocalVar> args) {
     return instantiateAll(args.map(FreeTerm::new));
+  }
+
+  default @NotNull Term decrease(int from) {
+    return shift(from, -1);
+  }
+
+  default @NotNull Term increase() {
+    return shift(0, 1);
+  }
+
+  /**
+   * Shift De Bruijn Index that are higher than or equal to {@param from} by {@param step}
+   */
+  default @NotNull Term shift(int from, int step) {
+    return descent((i, t) -> {
+      if (t instanceof LocalTerm(var idx)) {
+        if (idx < from) return t;
+        return new LocalTerm(idx + step);
+      }
+
+      return t.decrease(from + i);
+    });
   }
 
   /**

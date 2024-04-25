@@ -21,7 +21,7 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
 
   public static @NotNull Term make(@NotNull AppTerm material) {
     return switch (material.fun) {
-      case LamTerm(var body) -> body.instantiate(material.arg);
+      case LamTerm(var body) -> body.instantiate(material.arg).decrease(1);
       default -> material;
     };
   }

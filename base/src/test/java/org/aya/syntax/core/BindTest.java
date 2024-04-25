@@ -6,10 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.TestUtil;
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.core.term.AppTerm;
-import org.aya.syntax.core.term.FreeTerm;
-import org.aya.syntax.core.term.LamTerm;
-import org.aya.syntax.core.term.LocalTerm;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.TyckState;
@@ -21,6 +18,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BindTest {
+  public static final @NotNull LocalTerm ZERO = new LocalTerm(0);
+  public static final @NotNull LocalTerm ONE = new LocalTerm(1);
+  public static final @NotNull LocalTerm TWO = new LocalTerm(2);
+
   @Test public void simpleBind() {
     // λx. λy. x y
     var x = new LocalVar("x", SourcePos.NONE);
@@ -30,7 +31,7 @@ public class BindTest {
     var lamYXY = new LamTerm(body.bind(y));
     // λx. λ. x 0 => λ. λ. 1 0
     var lamXYXY = new LamTerm(lamYXY.bind(x));
-    var expect = new LamTerm(new LamTerm(new AppTerm(new LocalTerm(1), new LocalTerm(0))));
+    var expect = new LamTerm(new LamTerm(new AppTerm(ONE, ZERO)));
     assertEquals(expect, lamXYXY);
   }
 
@@ -53,8 +54,8 @@ public class BindTest {
   @Test
   public void testIce1000() {
     // (\ 0 1) (\ \ 1)
-    var f = new LamTerm(new AppTerm(new LocalTerm(0), new LocalTerm(1)));
-    var a = new LamTerm(new LamTerm(new LocalTerm(1)));
+    Term f = new LamTerm(new AppTerm(ZERO, ONE));
+    Term a = new LamTerm(new LamTerm(ONE));
     var app = new AppTerm(f, a);
     //     \a. (\b. b a) (\c d. c)
     // --> \a. (\c d. c) a
@@ -62,7 +63,43 @@ public class BindTest {
     //     (\ 0 1) (\ \ 1)
     // --> (\ \ 1) 0
     // --> (\ 1)    (replace 1 with 0, but the context where 1 lives has an binding, so increase 0)
-    var result = new Normalizer(new TyckState()).whnf(app);
+    Term result = new Normalizer(new TyckState()).whnf(app);
+    Term expected = new LamTerm(new LocalTerm(1));
+    assertEquals(expected, result);
+
+    // (\ 0 1) 0
+    // --> 0 0
+    a = ZERO;
+    app = new AppTerm(f, a);
+    result = new Normalizer(new TyckState()).whnf(app);
+    expected = new AppTerm(ZERO, ZERO);
+    assertEquals(expected, result);
+  }
+
+  @Test
+  public void decreaseTest() {
+    // [? : Type] |- (\ 0 1 (\ 0 1 2))
+    //                    ^        ^
+    // these are reference to '?'
+    var f = new LamTerm(new AppTerm(new AppTerm(ZERO, ONE),
+      new LamTerm(new AppTerm(new AppTerm(ZERO, ONE), TWO))
+    ));
+
+    var t = new FreeTerm(new LocalVar("?0"));
+
+    var result = f.body().instantiate(t);
+    result = result.decrease(1);
+
+    // [? : Type] |- ?0 0 (\ 0 ?0 1))
+    //                  ^         ^
+    var expected = new AppTerm(
+      // ?0 0
+      new AppTerm(t, ZERO),
+      // ... (\ 0 ?0 1)
+      new LamTerm(new AppTerm(new AppTerm(ZERO, t), ONE))
+    );
+
+    assertEquals(expected, result);
   }
 
   public static <T> @NotNull WithPos<T> of(T data) {
