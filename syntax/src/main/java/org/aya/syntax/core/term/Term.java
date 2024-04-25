@@ -106,14 +106,7 @@ public sealed interface Term extends Serializable, AyaDocile
    * Shift De Bruijn Index that are higher than or equal to {@param from} by {@param step}
    */
   default @NotNull Term shift(int from, int step) {
-    return descent((i, t) -> {
-      if (t instanceof LocalTerm(var idx)) {
-        if (idx < from) return t;
-        return new LocalTerm(idx + step);
-      }
-
-      return t.decrease(from + i);
-    });
+    return descent((i, t) -> t.decrease(from + i));
   }
 
   /**

@@ -27,4 +27,10 @@ public record LocalTerm(int index) implements Term {
     if (0 <= i && i < list.size()) return list.get(i);
     return this;
   }
+
+  @Override
+  public @NotNull Term shift(int from, int step) {
+    if (index < from) return this;
+    return new LocalTerm(index + step);
+  }
 }
