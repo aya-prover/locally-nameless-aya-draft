@@ -8,6 +8,10 @@ import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
 public record LocalTerm(int index) implements Term {
+  public LocalTerm {
+    assert index >= 0 : "Sanity check";
+  }
+
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return this;
