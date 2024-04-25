@@ -94,21 +94,6 @@ public sealed interface Term extends Serializable, AyaDocile
     return instantiateAll(args.map(FreeTerm::new));
   }
 
-  default @NotNull Term decrease(int from) {
-    return shift(from, -1);
-  }
-
-  default @NotNull Term increase() {
-    return shift(0, 1);
-  }
-
-  /**
-   * Shift De Bruijn Index that are higher than or equal to {@param from} by {@param step}
-   */
-  default @NotNull Term shift(int from, int step) {
-    return descent((i, t) -> t.decrease(from + i));
-  }
-
   /**
    * @param f a "mapper" which will apply to all sub nodes of {@link Term}.
    *          The index indicates how many new bindings are introduced.

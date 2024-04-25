@@ -76,32 +76,6 @@ public class BindTest {
     assertEquals(expected, result);
   }
 
-  @Test
-  public void decreaseTest() {
-    // [? : Type] |- (\ 0 1 (\ 0 1 2))
-    //                    ^        ^
-    // these are reference to '?'
-    var f = new LamTerm(new AppTerm(new AppTerm(ZERO, ONE),
-      new LamTerm(new AppTerm(new AppTerm(ZERO, ONE), TWO))
-    ));
-
-    var t = new FreeTerm(new LocalVar("?0"));
-
-    var result = f.body().instantiate(t);
-    result = result.decrease(1);
-
-    // [? : Type] |- ?0 0 (\ 0 ?0 1))
-    //                  ^         ^
-    var expected = new AppTerm(
-      // ?0 0
-      new AppTerm(t, ZERO),
-      // ... (\ 0 ?0 1)
-      new LamTerm(new AppTerm(new AppTerm(ZERO, t), ONE))
-    );
-
-    assertEquals(expected, result);
-  }
-
   public static <T> @NotNull WithPos<T> of(T data) {
     return new WithPos<>(SourcePos.NONE, data);
   }
