@@ -23,7 +23,7 @@ public record LocalTerm(int index) implements Term {
 
   @Override public @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
     var i = index - from;
-    // it is possible that i is negative, which means this is a free variable
+    // it is possible that i is negative when this is a free variable
     if (0 <= i && i < list.size()) return list.get(i);
     return this;
   }
