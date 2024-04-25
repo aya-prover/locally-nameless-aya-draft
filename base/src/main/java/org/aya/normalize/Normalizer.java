@@ -33,17 +33,23 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
 
     return switch (postTerm) {
       case StableWHNF whnf -> whnf;
-      case AppTerm app -> AppTerm.make(app);
-      case ProjTerm proj -> ProjTerm.make(proj);
+      case AppTerm app -> {
+        var result = AppTerm.make(app);
+        yield result == app ? result : whnf(result);
+      }
+      case ProjTerm proj -> {
+        var result = ProjTerm.make(proj);
+        yield result == proj ? result : whnf(result);
+      }
       case FnCall(var ref, int ulift, var args) when ref.core != null -> {
         throw new UnsupportedOperationException("TODO: implement");
       }
-      // TODO: handle other cases
       case MetaPatTerm(Pat.Meta meta) -> {
         var solution = meta.solution().get();
         if (solution == null) yield term;
         yield whnf(PatToTerm.visit(solution));
       }
+      // TODO: handle other cases
       default -> term;
     };
   }

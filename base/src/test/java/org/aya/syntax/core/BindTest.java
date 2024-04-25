@@ -4,6 +4,7 @@ package org.aya.syntax.core;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.TestUtil;
+import org.aya.normalize.Normalizer;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.FreeTerm;
@@ -47,6 +48,21 @@ public class BindTest {
 
     var tycker = new ExprTycker(new TyckState(), TestUtil.makeLocalCtx(), TestUtil.makeDBLocalCtx(), TestUtil.THROWING);
     var result = tycker.synthesize(of(XYXY));
+  }
+
+  @Test
+  public void testIce1000() {
+    // (\ 0 1) (\ \ 1)
+    var f = new LamTerm(new AppTerm(new LocalTerm(0), new LocalTerm(1)));
+    var a = new LamTerm(new LamTerm(new LocalTerm(1)));
+    var app = new AppTerm(f, a);
+    //     \a. (\b. b a) (\c d. c)
+    // --> \a. (\c d. c) a
+    // --> \a. (\d. a)
+    //     (\ 0 1) (\ \ 1)
+    // --> (\ \ 1) 0
+    // --> (\ 1)    (replace 1 with 0, but the context where 1 lives has an binding, so increase 0)
+    var result = new Normalizer(new TyckState()).whnf(app);
   }
 
   public static <T> @NotNull WithPos<T> of(T data) {

@@ -25,8 +25,8 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
   /**
    * Match {@param term} against to {@param pat}
    *
-   * @return a substitution of corresponding bindings of {@param pat}.
-   * The binding order is the same as {@link Pat#storeBindings(LocalCtx, UnaryOperator)}
+   * @return a substitution of corresponding bindings of {@param pat} if success
+   * @apiNote The binding order is the same as {@link Pat#storeBindings(LocalCtx, UnaryOperator)}
    */
   public @NotNull Result<ImmutableSeq<Term>, Boolean> match(@NotNull Pat pat, @NotNull Term term) {
     return switch (pat) {
