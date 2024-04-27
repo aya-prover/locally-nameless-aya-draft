@@ -126,19 +126,28 @@ public sealed interface Term extends Serializable, AyaDocile
     return descent((_, t) -> t.elevate(level));
   }
 
-  record Matching(@NotNull SourcePos sourcePos, @NotNull ImmutableSeq<Arg<Pat>> patterns, @NotNull Term body) {
-    public @NotNull Matching update(@NotNull ImmutableSeq<Arg<Pat>> patterns, @NotNull Term body) {
+  record Matching(
+    @NotNull SourcePos sourcePos,
+    @NotNull ImmutableSeq<Pat> patterns,
+    @NotNull Term body
+  ) implements AyaDocile {
+    @Override
+    public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+      return Pat.Preclause.weaken(this).toDoc(options);
+    }
+
+    public @NotNull Matching update(@NotNull ImmutableSeq<Pat> patterns, @NotNull Term body) {
       return body == body() && patterns.sameElements(patterns(), true) ? this
         : new Matching(sourcePos, patterns, body);
     }
 
     public @NotNull Matching descent(@NotNull UnaryOperator<Term> f, @NotNull UnaryOperator<Pat> g) {
-      return update(patterns.map(p -> p.descent(g)), f.apply(body));
+      return update(patterns.map(g), f.apply(body));
     }
 
-    public void descentConsume(@NotNull Consumer<Term> f, @NotNull Consumer<Pat> g) {
-      patterns.forEach(a -> a.descentConsume(g));
-      f.accept(body);
-    }
+    // public void descentConsume(@NotNull Consumer<Term> f, @NotNull Consumer<Pat> g) {
+    //   patterns.forEach(a -> a.descent(g));
+    //   f.accept(body);
+    // }
   }
 }

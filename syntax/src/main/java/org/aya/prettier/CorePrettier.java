@@ -7,6 +7,7 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.generic.ParamLike;
+import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
@@ -246,11 +247,8 @@ public class CorePrettier extends BasePrettier<Term> {
       // case OutTerm(var phi, var par, var u) -> insideOut(outer, phi, u, "outS");
       // TODO
       case DimTerm _ -> throw new UnsupportedOperationException("TODO");
-      ;
       case DimTyTerm _ -> throw new UnsupportedOperationException("TODO");
-      ;
       case PartialTerm _ -> throw new UnsupportedOperationException("TODO");
-      ;
     };
   }
 
@@ -298,7 +296,7 @@ public class CorePrettier extends BasePrettier<Term> {
           optionImplicit());
         yield ctorDoc(outer, licit, ctorDoc, ctor.args().isEmpty());
       }
-      case Pat.Absurd absurd -> Doc.bracedUnless(Doc.styled(KEYWORD, "()"), licit);
+      case Pat.Absurd _ -> Doc.bracedUnless(Doc.styled(KEYWORD, "()"), licit);
       case Pat.Tuple tuple -> Doc.licit(licit,
         Doc.commaList(tuple.elements().view().map(sub -> pat(sub, true, Outer.Free))));
       // case Pat.ShapedInt lit -> Doc.bracedUnless(lit.repr() == 0
@@ -350,19 +348,46 @@ public class CorePrettier extends BasePrettier<Term> {
       //   linkDef(def.ref(), CLAZZ),
       //   Doc.nest(2, Doc.vcat(def.members.view().map(this::def)))));
       case DataDef def -> {
+        var richDataTele = enrich(def.telescope());
+        var reversedRichDataTele = richDataTele.view()
+          .<Term>map(t -> new FreeTerm(t.ref()))
+          .reversed()
+          .toImmutableSeq();
+
         var line1 = MutableList.of(Doc.styled(KEYWORD, "data"),
           linkDef(def.ref(), DATA),
-          visitTele(def.telescope()),
+          visitTele(richDataTele),
           Doc.symbol(":"),
           term(Outer.Free, def.result));
         yield Doc.vcat(Doc.sepNonEmpty(line1),
-          Doc.nest(2, Doc.vcat(def.body.view().map(this::def))));
+          Doc.nest(2, Doc.vcat(def.body.view().map(ctor ->
+            // we need to instantiate the tele of ctor, but we can't modify the CtorDef
+            visitCtor(ctor.ref, enrich(ctor.selfTele.mapIndexed((i, p) -> {
+              // i: nth param
+              // p: the param
+              // instantiate reference to data tele
+              return p.map(t -> t.replaceAllFrom(i, reversedRichDataTele));
+            })), ctor.coerce)))));
       }
     };
   }
 
-  private @NotNull Doc visitCtor() {
-
+  private @NotNull Doc visitCtor(
+    @NotNull DefVar<? extends CtorDef, ? extends TeleDecl.DataCtor> ref,
+    @NotNull ImmutableSeq<ParamLike<Term>> richSelfTele,
+    boolean coerce
+  ) {
+    var doc = Doc.sepNonEmpty(coe(coerce),
+      linkDef(ref, CON),
+      visitTele(richSelfTele));
+    Doc line1;
+    // if (ctor.pats.isNotEmpty()) {
+    //   var pats = Doc.commaList(ctor.pats.view().map(pat -> pat(pat, Outer.Free)));
+    //   line1 = Doc.sep(Doc.symbol("|"), pats, Doc.symbol("=>"), doc);
+    // } else {
+    line1 = Doc.sep(Tokens.BAR, doc);
+    // }
+    return Doc.cblock(line1, 2, Doc.empty() /*partial(options, ctor.clauses, false, Doc.empty(), Doc.empty())*/);
   }
 
   private @NotNull Doc visitClauses(
@@ -387,9 +412,15 @@ public class CorePrettier extends BasePrettier<Term> {
   }
 
   private @NotNull ImmutableSeq<ParamLike<Term>> enrich(@NotNull SeqLike<Param> tele) {
-    return tele
-      .<ParamLike<Term>>map(p -> new CoreParam(new LocalVar(p.name(), SourcePos.SER), p.type()))
-      .toImmutableSeq();
+    var richTele = MutableList.<ParamLike<Term>>create();
+
+    for (var param : tele) {
+      var freeTy = param.type().instantiateTele(richTele.view()
+        .map(x -> new FreeTerm(x.ref())));
+      richTele.append(new CoreParam(new LocalVar(param.name(), SourcePos.SER), freeTy));
+    }
+
+    return richTele.toImmutableSeq();
   }
 
   /**
