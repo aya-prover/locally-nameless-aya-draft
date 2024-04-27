@@ -18,6 +18,8 @@ import java.util.function.Supplier;
  */
 public interface ContextBased {
   @NotNull LocalCtx localCtx();
+
+  @Deprecated
   @NotNull DeBruijnCtx deBruijnCtx();
 
   /**
