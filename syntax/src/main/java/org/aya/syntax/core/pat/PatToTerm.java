@@ -1,8 +1,7 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.tyck.pat;
+package org.aya.syntax.core.pat;
 
-import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;

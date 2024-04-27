@@ -15,6 +15,7 @@ import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;

@@ -12,7 +12,7 @@ import org.aya.syntax.core.term.TupTerm;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.pat.BindEater;
-import org.aya.tyck.pat.PatToTerm;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 

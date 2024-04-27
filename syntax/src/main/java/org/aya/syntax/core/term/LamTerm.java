@@ -5,6 +5,7 @@ package org.aya.syntax.core.term;
 import kala.collection.SeqLike;
 import kala.function.BooleanConsumer;
 import kala.function.IndexedFunction;
+import kala.tuple.primitive.IntObjTuple2;
 import org.jetbrains.annotations.NotNull;
 
 public record LamTerm(Term body) implements StableWHNF {
@@ -27,5 +28,23 @@ public record LamTerm(Term body) implements StableWHNF {
     }
 
     return result;
+  }
+
+  /**
+   * Unwrap a {@link LamTerm} as much as possible
+   *
+   * @return a integer indicates how many bindings are introduced
+   * and a most inner term that is not a {@link LamTerm}.
+   */
+  public static @NotNull IntObjTuple2<Term> unwrap(@NotNull LamTerm term) {
+    int params = 0;
+    Term it = term;
+
+    while (it instanceof LamTerm lamTerm) {
+      params = params + 1;
+      it = lamTerm.body;
+    }
+
+    return IntObjTuple2.of(params, it);
   }
 }

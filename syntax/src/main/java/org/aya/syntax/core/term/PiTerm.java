@@ -3,8 +3,11 @@
 package org.aya.syntax.core.term;
 
 import kala.collection.SeqLike;
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
+import kala.tuple.Tuple;
+import kala.tuple.Tuple2;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -22,11 +25,14 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
     return update(f.apply(0, param), f.apply(1, body));
   }
 
-  public static @NotNull Term unpi(@NotNull Term term, @NotNull UnaryOperator<Term> fmap, @NotNull MutableList<Term> params) {
-    if (fmap.apply(term) instanceof PiTerm(var param, var body)) {
+  public static @NotNull Tuple2<ImmutableSeq<Term>, Term> unpi(@NotNull Term term, @NotNull UnaryOperator<Term> pre) {
+    var params = MutableList.<Term>create();
+    while (pre.apply(term) instanceof PiTerm(var param, var body)) {
       params.append(param);
-      return unpi(body, fmap, params);
-    } else return term;
+      term = body;
+    }
+
+    return Tuple.of(params.toImmutableSeq(), term);
   }
 
   // /**

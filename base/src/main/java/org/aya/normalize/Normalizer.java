@@ -8,7 +8,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.pat.PatToTerm;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;

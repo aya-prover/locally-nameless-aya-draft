@@ -5,6 +5,7 @@ package org.aya.prettier;
 import kala.collection.Seq;
 import kala.collection.SeqLike;
 import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.generic.AyaDocile;
 import org.aya.generic.ParamLike;
@@ -14,6 +15,8 @@ import org.aya.pretty.doc.Style;
 import org.aya.pretty.style.AyaStyleKey;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
@@ -21,7 +24,6 @@ import org.aya.syntax.ref.ModulePath;
 import org.aya.util.Arg;
 import org.aya.util.BinOpElem;
 import org.aya.util.binop.Assoc;
-import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,6 +94,33 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     @NotNull SeqLike<@NotNull Arg<Term>> args, @NotNull Outer outer
   ) {
     return visitCalls(var, style, args, outer, options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs));
+  }
+
+  public @NotNull Doc visitCoreCalls(
+    @NotNull DefVar<?, ?> var, @NotNull Doc head,
+    @NotNull SeqLike<Term> args, @NotNull Outer outer, boolean showImplicits
+  ) {
+    var preargs = args.toImmutableSeq();
+
+    ImmutableSeq<Param> licit = (var.concrete instanceof TeleDecl<?> || var.core instanceof TeleDef)
+      ? TeleDef.defTele((DefVar<? extends TeleDef, ? extends TeleDecl<?>>) var)
+      : ImmutableSeq.empty();
+
+    // licited args, note that this may not includes all [var] args since [preargs.size()] may less than [licit.size()]
+    // this is safe since the core call is always fully applied, that is, no missing implicit arguments.
+    var licitArgs = preargs.zip(licit, (t, p) -> new Arg<>(t, p.explicit()));
+    // explicit arguments, these are not [var] arguments, for example, a function [f {Nat} Nat : Nat -> Nat]
+    // [explicitArgs.isEmpty] if licitArgs doesn't include all [var] args.
+    var explicitArgs = preargs.view().drop(licitArgs.size()).map(Arg::ofExplicitly);
+
+    return visitCalls(var.assoc(), head, licitArgs.view().appendedAll(explicitArgs), outer, showImplicits);
+  }
+
+  public @NotNull Doc visitCoreCalls(
+    @NotNull DefVar<?, ?> var, @NotNull Style style,
+    @NotNull SeqLike<Term> args, @NotNull Outer outer, boolean showImplicits
+  ) {
+    return visitCoreCalls(var, linkRef(var, style), args, outer, showImplicits);
   }
 
   /**
@@ -226,9 +255,13 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return Doc.sep(buf);
   }
 
-  @NotNull Doc justType(@NotNull ParamLike<Term> monika, Outer outer) {
-    return monika.explicit() ? term(outer, monika.type())
-      : Doc.braced(term(Outer.Free, monika.type()));
+  @NotNull Doc justType(@NotNull Arg<Term> monika, Outer outer) {
+    return monika.explicit() ? term(outer, monika.term())
+      : Doc.braced(term(Outer.Free, monika.term()));
+  }
+
+  @NotNull Doc justType(@NotNull ParamLike<Term> sayori, @NotNull Outer outer) {
+    return justType(new Arg<>(sayori.type(), sayori.explicit()), outer);
   }
 
   private Doc mutableListNames(
@@ -244,6 +277,10 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   @NotNull Doc lambdaParam(@NotNull ParamLike<?> param) {
     return options.map.get(AyaPrettierOptions.Key.ShowLambdaTypes) ? param.toDoc(options)
       : Doc.bracedUnless(param.nameDoc(), param.explicit());
+  }
+
+  protected boolean optionImplicit() {
+    return options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs);
   }
 
   public static @NotNull Doc varDoc(@NotNull AnyVar ref) {
@@ -352,5 +389,10 @@ public abstract class BasePrettier<Term extends AyaDocile> {
 
   @FunctionalInterface
   public interface Usage<Term, Ref> extends ToIntBiFunction<Term, Ref> {
+    sealed interface Ref {
+      record Free(@NotNull LocalVar var) implements Ref {}
+
+      record Bound(int idx) implements Ref {}
+    }
   }
 }

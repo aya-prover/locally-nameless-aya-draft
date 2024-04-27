@@ -5,6 +5,7 @@ package org.aya.tyck.pat;
 import kala.collection.mutable.MutableList;
 import kala.value.MutableValue;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
