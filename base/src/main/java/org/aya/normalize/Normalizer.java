@@ -2,7 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.normalize;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.ImmutableSet;
+import kala.control.Option;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.FnCall;
@@ -52,5 +54,20 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       // TODO: handle other cases
       default -> term;
     };
+  }
+
+  public @NotNull Option<Term> tryUnfoldClauses(
+    @NotNull ImmutableSeq<Term.Matching> clauses, @NotNull ImmutableSeq<Term> args,
+    int ulift, boolean orderIndependent
+  ) {
+    for (var matchy : clauses) {
+      var matcher = new PatternMatcher(false, this);
+      var subst = matcher.matchMany(matchy.patterns(), args);
+      if (subst.isOk()) {
+        throw new UnsupportedOperationException("TODO");
+        // return Option.some(matchy.body().rename().lift(ulift).subst(subst.get()));
+      } else if (!orderIndependent && subst.getErr()) return Option.none();
+    }
+    return Option.none();
   }
 }
