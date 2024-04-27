@@ -15,6 +15,7 @@ import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
@@ -208,7 +209,7 @@ public sealed interface Pat extends AyaDocile {
       var prettier = new CorePrettier(options);
       ;
       var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
-        pats.view().map(p -> prettier.pat(p, BasePrettier.Outer.Free)))));
+        pats.view().map(p -> prettier.pat(Arg.ofExplicitly(p), BasePrettier.Outer.Free)))));
       return expr == null ? doc : Doc.sep(doc, Doc.symbol("=>"), expr.toDoc(options));
     }
 
