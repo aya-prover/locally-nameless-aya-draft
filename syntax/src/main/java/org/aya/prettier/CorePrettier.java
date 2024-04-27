@@ -359,15 +359,17 @@ public class CorePrettier extends BasePrettier<Term> {
           visitTele(richDataTele),
           Doc.symbol(":"),
           term(Outer.Free, def.result));
+        var ctors = def.body.view().map(ctor ->
+          // we need to instantiate the tele of ctor, but we can't modify the CtorDef
+          visitCtor(ctor.ref, enrich(ctor.selfTele.mapIndexed((i, p) -> {
+            // i: nth param
+            // p: the param
+            // instantiate reference to data tele
+            return p.map(t -> t.replaceAllFrom(i, reversedRichDataTele));
+          })), ctor.coerce));
+
         yield Doc.vcat(Doc.sepNonEmpty(line1),
-          Doc.nest(2, Doc.vcat(def.body.view().map(ctor ->
-            // we need to instantiate the tele of ctor, but we can't modify the CtorDef
-            visitCtor(ctor.ref, enrich(ctor.selfTele.mapIndexed((i, p) -> {
-              // i: nth param
-              // p: the param
-              // instantiate reference to data tele
-              return p.map(t -> t.replaceAllFrom(i, reversedRichDataTele));
-            })), ctor.coerce)))));
+          Doc.nest(2, Doc.vcat(ctors)));
       }
     };
   }
