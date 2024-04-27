@@ -302,7 +302,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
     if (!compare(lTy, rTy, null)) return onFailed.get();
     return subscoped(() -> {
       // TODO: supply type
-      var name = putParam(new Param(nameGen.nextName(null), lTy, true));
+      var name = putParam(new Param(nameGen.next(whnf(lTy)), lTy, true));
       return continuation.apply(name);
     });
   }
@@ -404,7 +404,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
 
   private @NotNull LocalVar putIndex(@NotNull Term term) {
     // TODO: supply name
-    var var = new LocalVar(nameGen.nextName(null));
+    var var = new LocalVar(nameGen.next(whnf(term)));
     localCtx().put(var, term);
     return var;
   }
