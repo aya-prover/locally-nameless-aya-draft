@@ -388,7 +388,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   }
 
   @FunctionalInterface
-  public interface Usage<Term, Ref> extends ToIntBiFunction<Term, Ref> {
+  public interface Usage<T, R> extends ToIntBiFunction<T, R> {
     sealed interface Ref {
       record Free(@NotNull LocalVar var) implements Ref {}
 

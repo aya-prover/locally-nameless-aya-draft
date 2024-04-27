@@ -6,6 +6,8 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.generic.AyaDocile;
+import org.aya.prettier.BasePrettier;
+import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
@@ -27,8 +29,7 @@ public sealed interface Term extends Serializable, AyaDocile
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-    // TODO
-    return Doc.plain(toString());
+    return new CorePrettier(options).term(BasePrettier.Outer.Free, this);
   }
 
   default @NotNull Term bindAt(@NotNull LocalVar var, int depth) {

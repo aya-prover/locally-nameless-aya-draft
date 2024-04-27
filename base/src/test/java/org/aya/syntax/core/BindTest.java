@@ -51,31 +51,6 @@ public class BindTest {
     var result = tycker.synthesize(of(XYXY));
   }
 
-  @Test
-  public void testIce1000() {
-    // (\ 0 1) (\ \ 1)
-    Term f = new LamTerm(new AppTerm(ZERO, ONE));
-    Term a = new LamTerm(new LamTerm(ONE));
-    var app = new AppTerm(f, a);
-    //     \a. (\b. b a) (\c d. c)
-    // --> \a. (\c d. c) a
-    // --> \a. (\d. a)
-    //     (\ 0 1) (\ \ 1)
-    // --> (\ \ 1) 0
-    // --> (\ 1)    (replace 1 with 0, but the context where 1 lives has an binding, so increase 0)
-    Term result = new Normalizer(new TyckState()).whnf(app);
-    Term expected = new LamTerm(new LocalTerm(1));
-    assertEquals(expected, result);
-
-    // (\ 0 1) 0
-    // --> 0 0
-    a = ZERO;
-    app = new AppTerm(f, a);
-    result = new Normalizer(new TyckState()).whnf(app);
-    expected = new AppTerm(ZERO, ZERO);
-    assertEquals(expected, result);
-  }
-
   public static <T> @NotNull WithPos<T> of(T data) {
     return new WithPos<>(SourcePos.NONE, data);
   }

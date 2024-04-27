@@ -62,7 +62,7 @@ public class CorePrettier extends BasePrettier<Term> {
   @Override public @NotNull Doc term(@NotNull Outer outer, @NotNull Term preterm) {
     return switch (preterm) {
       case FreeTerm(var var) -> varDoc(var);
-      case LocalTerm(_) -> throw new UnsupportedOperationException("TODO");
+      case LocalTerm(var idx) -> Doc.plain(STR."^\{idx}");
       // case MetaTerm term -> {
       //   var name = term.ref();
       //   var inner = varDoc(name);
@@ -95,12 +95,12 @@ public class CorePrettier extends BasePrettier<Term> {
       case LamTerm lam -> {
         var pair = LamTerm.unwrap(lam);
         var params = generateNames(pair.component1()).view();
-        var body = pair.component2();
+        var paramRef = params.<Term>map(FreeTerm::new);
+        var body = pair.component2().instantiateTele(paramRef);
         Doc bodyDoc;
         // Syntactic eta-contraction
         if (body instanceof Callable call && call.ref() instanceof DefVar<?, ?> defVar) {
-          var paramRef = params.<Term>map(FreeTerm::new);
-          var args = visibleArgsOf(call).view().map(x -> x.instantiateTele(paramRef));
+          var args = visibleArgsOf(call).view();
           while (params.isNotEmpty() && args.isNotEmpty()) {
             if (checkUneta(args, params.getLast())) {
               args = args.dropLast(1);
