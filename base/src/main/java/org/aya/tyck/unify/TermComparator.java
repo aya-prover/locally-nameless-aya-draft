@@ -40,7 +40,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   protected final @NotNull SourcePos pos;
   protected final @NotNull Ordering cmp;
   // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
-  protected boolean solveMeta = true;
+  private boolean solveMeta = true;
   private @Nullable FailureData failure = null;
   private final @NotNull NameGenerator nameGen = new NameGenerator();
 
@@ -56,7 +56,12 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   /**
    * Trying to solve {@param meta} with {@param rhs}
    */
-  protected abstract @Nullable Term solveMeta(@NotNull /*MetaTerm*/ Term meta, @NotNull Term rhs, @Nullable Term type);
+  protected abstract @Nullable Term doSolveMeta(@NotNull /*MetaTerm*/ Term meta, @NotNull Term rhs, @Nullable Term type);
+
+  protected @Nullable Term solveMeta(@NotNull /*MetaTerm*/ Term meta, @NotNull Term rhs, @Nullable Term type) {
+    if (!solveMeta) return null;
+    return doSolveMeta(meta, rhs, type);
+  }
 
   /// region Utilities
 
@@ -246,7 +251,6 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
         yield params.get(ldx).instantiateAll(spine.view().reversed());
       }
       case FreeTerm(var lvar) -> rhs instanceof FreeTerm(var rvar) && lvar == rvar ? localCtx().get(lvar) : null;
-      case LocalTerm(_) -> throw new Panic("free LocalTerm is disallowed");
       case DimTerm l -> rhs instanceof DimTerm r && l == r ? l : null;
       // We already compare arguments in compareApprox, if we arrive here,
       // it means their arguments don't match (even the ref don't match),

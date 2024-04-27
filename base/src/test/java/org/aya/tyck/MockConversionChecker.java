@@ -21,7 +21,7 @@ public class MockConversionChecker extends TermComparator {
       Ordering.Eq);
   }
 
-  @Override protected @Nullable Term solveMeta(@NotNull Term meta, @NotNull Term rhs, @Nullable Term type) {
+  @Override protected @Nullable Term doSolveMeta(@NotNull Term meta, @NotNull Term rhs, @Nullable Term type) {
     return null;
   }
 }
