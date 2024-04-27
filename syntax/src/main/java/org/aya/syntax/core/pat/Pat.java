@@ -5,6 +5,8 @@ package org.aya.syntax.core.pat;
 import kala.collection.immutable.ImmutableSeq;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
+import org.aya.prettier.BasePrettier;
+import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.CtorDef;
@@ -198,16 +200,16 @@ public sealed interface Pat extends AyaDocile {
    */
   record Preclause<T extends AyaDocile>(
     @NotNull SourcePos sourcePos,
-    @NotNull ImmutableSeq<Pat> patterns,
+    @NotNull ImmutableSeq<Pat> pats,
     @Nullable T expr
   ) implements AyaDocile {
     @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-      throw new UnsupportedOperationException("TODO");
-      // var prettier = new CorePrettier(options);
-      // var pats = options.map.get(AyaPrettierOptions.Key.ShowImplicitPats) ? patterns : patterns.view().filter(Arg::explicit);
-      // var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
-      //   pats.view().map(p -> prettier.pat(p, BasePrettier.Outer.Free)))));
-      // return expr.getOrDefault(it -> Doc.sep(doc, Doc.symbol("=>"), it.toDoc(options)), doc);
+      // throw new UnsupportedOperationException("TODO");
+      var prettier = new CorePrettier(options);
+      ;
+      var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
+        pats.view().map(p -> prettier.pat(p, BasePrettier.Outer.Free)))));
+      return expr == null ? doc : Doc.sep(doc, Doc.symbol("=>"), expr.toDoc(options));
     }
 
     public static @NotNull Preclause<Term> weaken(@NotNull Term.Matching clause) {
