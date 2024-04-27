@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 public record LocalCtx(@NotNull MutableMap<LocalVar, Term> binds, @Nullable LocalCtx parent) {
   public LocalCtx() {
     this(MutableMap.create(), null);
@@ -38,4 +41,9 @@ public record LocalCtx(@NotNull MutableMap<LocalVar, Term> binds, @Nullable Loca
   public void put(@NotNull LocalVar name, @NotNull Term type) {
     binds.put(name, type);
   }
+
+  // @Contract(mutates = "this")
+  // public <R> R with(@NotNull LocalVar ref, Supplier<R> block) {
+  //
+  // }
 }

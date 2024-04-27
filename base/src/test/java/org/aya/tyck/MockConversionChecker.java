@@ -16,7 +16,6 @@ public class MockConversionChecker extends TermComparator {
     super(
       new TyckState(),
       TestUtil.makeLocalCtx(),
-      TestUtil.makeDBLocalCtx(),
       IgnoringReporter.INSTANCE,
       SourcePos.NONE,
       Ordering.Eq);

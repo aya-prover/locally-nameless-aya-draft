@@ -2,7 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.unify;
 
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.generic.NameGenerator;
 import org.aya.generic.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -14,12 +16,13 @@ import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
-import org.aya.syntax.ref.DeBruijnCtx;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.LevelError;
 import org.aya.tyck.tycker.AbstractTycker;
+import org.aya.tyck.tycker.ContextBased;
 import org.aya.util.Ordering;
 import org.aya.util.Pair;
 import org.aya.util.error.Panic;
@@ -28,6 +31,7 @@ import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -38,12 +42,13 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
   protected boolean solveMeta = true;
   private @Nullable FailureData failure = null;
+  private final @NotNull NameGenerator nameGen = new NameGenerator();
 
   public TermComparator(
-    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull DeBruijnCtx dCtx, @NotNull Reporter reporter,
+    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter,
     @NotNull SourcePos pos, @NotNull Ordering cmp
   ) {
-    super(state, ctx, dCtx, reporter);
+    super(state, ctx, reporter);
     this.pos = pos;
     this.cmp = cmp;
   }
@@ -171,8 +176,14 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
       case TupTerm _ -> throw new Panic("TupTerm is never type");
       case ErrorTerm _ -> true;
       case PiTerm pi -> switch (new Pair<>(lhs, rhs)) {
-        case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> deBruijnCtx().with(pi.param(),
-          () -> compare(lbody, rbody, pi.body()));
+        case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> subscoped(() -> {
+          var var = putIndex(pi.param());
+          return compare(
+            lbody.instantiate(var),
+            rbody.instantiate(var),
+            pi.body().instantiate(var)
+          );
+        });
         case Pair(LamTerm lambda, _) -> compareLambda(lambda, rhs, pi);
         case Pair(_, LamTerm rambda) -> compareLambda(rambda, lhs, pi);
         default -> false;
@@ -235,7 +246,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
         yield params.get(ldx).instantiateAll(spine.view().reversed());
       }
       case FreeTerm(var lvar) -> rhs instanceof FreeTerm(var rvar) && lvar == rvar ? localCtx().get(lvar) : null;
-      case LocalTerm(var ldx) -> rhs instanceof LocalTerm(var rdx) && ldx == rdx ? deBruijnCtx().get(ldx) : null;
+      case LocalTerm(_) -> throw new Panic("free LocalTerm is disallowed");
       case DimTerm l -> rhs instanceof DimTerm r && l == r ? l : null;
       // We already compare arguments in compareApprox, if we arrive here,
       // it means their arguments don't match (even the ref don't match),
@@ -249,11 +260,11 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
    * Compare {@param lambda} and {@param rhs} with {@param type}
    */
   private boolean compareLambda(@NotNull LamTerm lambda, @NotNull Term rhs, @NotNull PiTerm type) {
-    return deBruijnCtx().with(type.param(), () -> {
-      // 0 : type.param()
-      var lhsBody = lambda.body();
-      var rhsBody = AppTerm.make(rhs, new LocalTerm(0));
-      return compare(lhsBody, rhsBody, type.body());
+    return subscoped(() -> {
+      var var = putIndex(type.param());
+      var lhsBody = lambda.body().instantiate(var);
+      var rhsBody = AppTerm.make(rhs, new FreeTerm(var));
+      return compare(lhsBody, rhsBody, type.body().instantiate(var));
     });
   }
 
@@ -277,31 +288,53 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
     return true;
   }
 
+  /**
+   * Compare {@param lTy} and {@param rTy}
+   *
+   * @param continuation invoked with {@code ? : lTy} in {@link ContextBased#localCtx()} if {@param lTy} is the 'same' as {@param rTy}
+   */
   private <R> R compareTypeWith(
     @NotNull Term lTy,
     @NotNull Term rTy,
     @NotNull Supplier<R> onFailed,
-    @NotNull Supplier<R> continuation
+    @NotNull Function<LocalVar, R> continuation
   ) {
     if (!compare(lTy, rTy, null)) return onFailed.get();
-    return deBruijnCtx().with(lTy, continuation);
+    return subscoped(() -> {
+      // TODO: supply type
+      var name = putParam(new Param(nameGen.nextName(null), lTy, true));
+      return continuation.apply(name);
+    });
+  }
+
+  private <R> R compareTypesWithAux(
+    @NotNull SeqView<LocalVar> vars,
+    @NotNull ImmutableSeq<Term> list,
+    @NotNull ImmutableSeq<Term> rist,
+    @NotNull Supplier<R> onFailed,
+    @NotNull Function<ImmutableSeq<LocalVar>, R> continuation
+  ) {
+    if (!list.sizeEquals(rist)) return onFailed.get();
+    if (list.isEmpty()) return continuation.apply(vars.toImmutableSeq());
+    return compareTypeWith(
+      list.getFirst().instantiateAllVars(vars.reversed()),
+      rist.getFirst().instantiateAllVars(vars.reversed()), onFailed, var ->
+        compareTypesWithAux(vars.appended(var), list.drop(1), rist.drop(1), onFailed, continuation));
   }
 
   /**
    * Compare types and run the {@param continuation} with those types in context (reverse order).
    *
-   * @param onFailed run while failed (size doesn't match or compare failed)
+   * @param onFailed     run while failed (size doesn't match or compare failed)
+   * @param continuation a function that accept the {@link LocalVar} of all {@param list}
    */
   private <R> R compareTypesWith(
     @NotNull ImmutableSeq<Term> list,
     @NotNull ImmutableSeq<Term> rist,
     @NotNull Supplier<R> onFailed,
-    @NotNull Supplier<R> continuation
+    @NotNull Function<ImmutableSeq<LocalVar>, R> continuation
   ) {
-    if (!list.sizeEquals(rist)) return onFailed.get();
-    if (list.isEmpty()) return continuation.get();
-    return compareTypeWith(list.getFirst(), rist.getFirst(), onFailed, () ->
-      compareTypesWith(list.drop(1), rist.drop(1), onFailed, continuation));
+    return subscoped(() -> compareTypesWithAux(SeqView.empty(), list, rist, onFailed, continuation));
   }
 
   private boolean sortLt(@NotNull SortTerm l, @NotNull SortTerm r) {
@@ -353,12 +386,27 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
           .map(x -> x.type().elevate(lhs.ulift())));
       }
       case Pair(DimTyTerm _, DimTyTerm _) -> true;
-      case Pair(PiTerm lhs, PiTerm rhs) -> compareTypeWith(lhs.param(), rhs.param(), () -> false, () ->
-        compare(lhs.body(), rhs.body(), null));
-      case Pair(SigmaTerm lhs, SigmaTerm rhs) -> compareTypesWith(lhs.params(), rhs.params(), () -> false, () -> true);
+      case Pair(PiTerm lhs, PiTerm rhs) -> compareTypeWith(lhs.param(), rhs.param(), () -> false, var ->
+        compare(lhs.body().instantiate(var),
+          rhs.body().instantiate(var),
+          null));
+      case Pair(SigmaTerm lhs, SigmaTerm rhs) -> compareTypesWith(lhs.params(), rhs.params(), () -> false, _ -> true);
       case Pair(SortTerm lhs, SortTerm rhs) -> compareSort(lhs, rhs);
       default -> throw noRules(preLhs);
     };
+  }
+
+  private @NotNull LocalVar putParam(@NotNull Param param) {
+    var var = new LocalVar(param.name());
+    localCtx().put(var, param.type());
+    return var;
+  }
+
+  private @NotNull LocalVar putIndex(@NotNull Term term) {
+    // TODO: supply name
+    var var = new LocalVar(nameGen.nextName(null));
+    localCtx().put(var, term);
+    return var;
   }
 
   public record FailureData(@NotNull Term lhs, @NotNull Term rhs) {

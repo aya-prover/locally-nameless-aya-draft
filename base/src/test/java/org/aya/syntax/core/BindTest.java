@@ -47,7 +47,7 @@ public class BindTest {
     var YXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, y, of(ty), true), of(XY));
     var XYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, x, of(pi), true), of(YXY));
 
-    var tycker = new ExprTycker(new TyckState(), TestUtil.makeLocalCtx(), TestUtil.makeDBLocalCtx(), TestUtil.THROWING);
+    var tycker = new ExprTycker(new TyckState(), TestUtil.makeLocalCtx(), TestUtil.THROWING);
     var result = tycker.synthesize(of(XYXY));
   }
 

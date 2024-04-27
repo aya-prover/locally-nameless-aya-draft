@@ -20,8 +20,8 @@ import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
 public final class ExprTycker extends AbstractTycker {
-  public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull DeBruijnCtx dCtx, @NotNull Reporter reporter) {
-    super(state, ctx, dCtx, reporter);
+  public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
+    super(state, ctx, reporter);
   }
 
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {

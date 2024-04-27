@@ -74,6 +74,10 @@ public sealed interface Term extends Serializable, AyaDocile
     return replaceAllFrom(0, ImmutableSeq.of(arg));
   }
 
+  default @NotNull Term instantiate(@NotNull LocalVar var) {
+    return instantiate(new FreeTerm(var));
+  }
+
   /**
    * Instantiate in telescope-order. For example:<br/>
    * Consider a signature {@code (?2 : Nat) (?1 : Bool) (?0 : True) -> P ?2 ?0 ?1},
