@@ -3,13 +3,15 @@
 package org.aya.syntax.core.term.xtt;
 
 import kala.function.IndexedFunction;
+import org.aya.syntax.core.term.Formation;
+import org.aya.syntax.core.term.StableWHNF;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * <code>PathP (x. A) a b</code>
  */
-public record EqTerm(Term A, Term a, Term b) implements Term {
+public record EqTerm(Term A, Term a, Term b) implements Term, Formation, StableWHNF {
   public @NotNull EqTerm update(Term A, Term a, Term b) {
     if (this.A == A && this.a == a && this.b == b) return this;
     return new EqTerm(A, a, b);

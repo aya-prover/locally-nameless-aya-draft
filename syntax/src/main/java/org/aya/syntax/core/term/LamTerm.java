@@ -2,21 +2,17 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
-import kala.collection.SeqLike;
-import kala.function.BooleanConsumer;
 import kala.function.IndexedFunction;
 import kala.tuple.primitive.IntObjTuple2;
 import org.jetbrains.annotations.NotNull;
 
 public record LamTerm(Term body) implements StableWHNF {
   public @NotNull LamTerm update(@NotNull Term body) {
-    return body == this.body
-      ? this
-      : new LamTerm(body);
+    return body == this.body ? this : new LamTerm(body);
   }
 
   @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+  public @NotNull LamTerm descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(f.apply(1, body));
   }
 

@@ -4,11 +4,12 @@ package org.aya.syntax.core.term;
 
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 
 /**
  * Term formers, definitely.
  * Note that {@link PrimCall} may also be term formers, but not necessarily.
  */
 public sealed interface Formation extends Term
-  permits PiTerm, SigmaTerm, SortTerm, DataCall, DimTyTerm {
+  permits PiTerm, SigmaTerm, SortTerm, DataCall, DimTyTerm, EqTerm {
 }
