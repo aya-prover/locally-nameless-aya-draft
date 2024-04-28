@@ -25,7 +25,22 @@ public final class ExprTycker extends AbstractTycker {
   }
 
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
-    return synthesize(expr);
+    return switch (expr.data()) {
+      case Expr.Lambda(var param, var body) -> {
+        if (!(type instanceof PiTerm pi)) yield fail(expr.data(), type, BadTypeError.pi(state, expr, type));
+        if (!param.explicit()) yield fail(expr.data(), pi, new LicitError.ImplicitLam(expr));
+        // unifyTyReported(pi.param(), pi.param().type(), expr);
+        yield subscoped(() -> {
+          localCtx().put(param.ref(), pi.param());
+          return synthesize(body).bind(param.ref());
+        });
+      }
+      default -> {
+        var syn = synthesize(expr);
+        // unifyTyReported(syn.type(), type, expr);
+        yield syn;
+      }
+    };
   }
 
   public @NotNull Term ty(@NotNull WithPos<Expr> expr) {

@@ -4,8 +4,11 @@ package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.core.term.PiTerm;
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
+import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface LicitError extends TyckError {
@@ -30,6 +33,16 @@ public sealed interface LicitError extends TyckError {
         Doc.sep(Doc.english("Named argument unwanted here:"),
           Doc.code(expr.toDoc(options))),
         Doc.english("Named applications are only allowed in direct application to definitions."));
+    }
+  }
+
+  record ImplicitLam(WithPos<Expr> data) implements LicitError {
+    @Override public @NotNull SourcePos sourcePos() {
+      return data.sourcePos();
+    }
+
+    @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
+      return Doc.sep(Doc.english("Implicit lambda is not allowed in Aya"));
     }
   }
 }

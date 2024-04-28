@@ -145,10 +145,6 @@ public record ExprResolver(
         var params = sigma.params().map(param -> bind(param, mCtx));
         yield sigma.update(params);
       }
-      // case Expr.Path path -> {
-      //   var newCtx = path.params().foldLeft(ctx, Context::bind);
-      //   yield path.descent(enter(newCtx));
-      // }
       case Expr.Array array -> array.update(array.arrayBlock().map(
         left -> {
           var mCtx = MutableValue.create(ctx);
