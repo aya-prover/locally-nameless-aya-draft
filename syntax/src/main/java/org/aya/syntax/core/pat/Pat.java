@@ -22,9 +22,7 @@ import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 /**
  * Patterns in the core syntax.
@@ -38,7 +36,7 @@ public sealed interface Pat extends AyaDocile {
   /**
    * Puts bindings of this {@link Pat} to {@param ctx}
    */
-  void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper);
+  void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer);
 
   /**
    * Replace {@link Pat.Meta} with {@link Pat.Meta#solution} (if there is) or {@link Pat.Bind}
@@ -54,7 +52,7 @@ public sealed interface Pat extends AyaDocile {
     }
 
     @Override
-    public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
+    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
     }
 
     @Override
@@ -81,8 +79,8 @@ public sealed interface Pat extends AyaDocile {
     }
 
     @Override
-    public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
-      ctx.put(bind, typeMapper.apply(type));
+    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+      consumer.accept(bind, type);
     }
 
     @Override
@@ -102,8 +100,8 @@ public sealed interface Pat extends AyaDocile {
     }
 
     @Override
-    public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
-      elements.forEach(e -> e.storeBindings(ctx, typeMapper));
+    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+      elements.forEach(e -> e.consumeBindings(consumer));
     }
 
     @Override
@@ -127,8 +125,8 @@ public sealed interface Pat extends AyaDocile {
     }
 
     @Override
-    public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
-      args.forEach(arg -> arg.storeBindings(ctx, typeMapper));
+    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+      args.forEach(arg -> arg.consumeBindings(consumer));
     }
 
     @Override
@@ -164,7 +162,7 @@ public sealed interface Pat extends AyaDocile {
     }
 
     @Override
-    public void storeBindings(@NotNull LocalCtx ctx, @NotNull UnaryOperator<Term> typeMapper) {
+    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
       // TODO: reconsider this, I don't fully understand the comment
       // Do nothing
       // This is safe because storeBindings is called only in extractTele which is

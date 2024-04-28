@@ -3,8 +3,9 @@
 package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableList;
+import kala.collection.mutable.MutableMap;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
@@ -15,6 +16,7 @@ import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.error.Panic;
@@ -27,7 +29,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull LocalCtx localCtx,
     @NotNull Term type,
     @NotNull ImmutableSeq<Term> paramSubst,
-    @NotNull ImmutableSeq<Term> asSubst,
+    @NotNull ImmutableMap<LocalVar, Term> asSubst,
     @NotNull Pat.Preclause<Expr> clause,
     boolean hasError
   ) {
@@ -40,7 +42,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   }
 
   private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope, @NotNull Term result) {
-    return new PatternTycker(exprTycker, reporter(), telescope, result, MutableList.create(), MutableList.create());
+    return new PatternTycker(exprTycker, reporter(), telescope, result, MutableMap.create());
   }
 
   private @NotNull LhsResult checkLhs(
@@ -60,6 +62,20 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
       // TODO: inline types in localCtx
 
       clause.patterns.view().map(it -> it.term().data()).forEach(TermInPatInline::apply);
+      // var patTele = patResult.wellTyped()
+      // var mPatResult = patResult;
+      //
+      // UnaryOperator<Term> bodyPre = t -> {
+      //   // [t] here has [LocalTerm]s that refer to the telescope
+      //   // instantiate params: now we eliminate them
+      //   t = t.instantiateTele(mPatResult.paramSubst().view());
+      //   // instantiate as
+      //   t = mPatResult.ass().view().zip(mPatResult.asSubst()).foldLeft(t, (acc, pair) ->
+      //     acc.bind(pair.component1()).instantiate(pair.component2()));
+      //
+      //   // bind reference to [Pat.Bind] as [LocalTerm]
+      //
+      // };
 
       return new LhsResult(
         ctx,
@@ -72,6 +88,19 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
           patResult.newBody() == null ? null : patResult.newBody().data()),
         patResult.hasError()
       );
+    });
+  }
+
+  /**
+   * <pre>
+   *   def foo (a : Nat) (b : Nat) : Nat =>
+   *   | 0, c => let a => 0, b => c in b
+   *   | ...
+   * </pre>
+   */
+  private @NotNull Pat.Preclause<Term> checkRhs(@NotNull LhsResult result) {
+    return exprTycker.subscoped(() -> {
+      throw new UnsupportedOperationException("TODO");
     });
   }
 
@@ -121,7 +150,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     var wellTyped = result.wellTyped().map(x -> x.inline(ctx));
     // so that {MetaPatTerm}s can be inlined safely
     var paramSubst = result.paramSubst().map(ClauseTycker::inlineTerm);
-    var asSubst = result.asSubst().map(ClauseTycker::inlineTerm);
+    var asSubst = ImmutableMap.from(result.asSubst().view().mapValues((_, t) -> inlineTerm(t)));
     var resultTerm = inlineTerm(result.result());
 
     return new PatternTycker.TyckResult(wellTyped, paramSubst, resultTerm, asSubst, result.newBody(), result.hasError());

@@ -3,8 +3,10 @@
 package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import kala.collection.mutable.MutableMap;
 import kala.control.Result;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
@@ -56,11 +58,9 @@ public class PatternTycker implements Problematic {
   private final @NotNull MutableList<Term> paramSubst;
 
   /**
-   * Substitution for `as` pattern, in postorder
-   * (i.e. {@code (cons (p_0 as a) (p_1 as b)) as c} will be {@code [a , b , c]})
+   * Substitution for `as` pattern
    */
-  private final @NotNull MutableList<LocalVar> ass;
-  private final @NotNull MutableList<Term> asSubst;
+  private final @NotNull MutableMap<LocalVar, Term> asSubst;
 
   private @UnknownNullability Param currentParam = null;
   private boolean hasError = false;
@@ -70,15 +70,13 @@ public class PatternTycker implements Problematic {
     @NotNull Reporter reporter,
     @NotNull SeqView<Param> telescope,
     @NotNull Term result,
-    @NotNull MutableList<LocalVar> ass,
-    @NotNull MutableList<Term> asSubst
+    @NotNull MutableMap<LocalVar, Term> asSubst
   ) {
     this.exprTycker = exprTycker;
     this.reporter = reporter;
     this.telescope = telescope;
     this.result = result;
     this.paramSubst = MutableList.create();
-    this.ass = ass;
     this.asSubst = asSubst;
   }
 
@@ -86,7 +84,7 @@ public class PatternTycker implements Problematic {
     @NotNull ImmutableSeq<Pat> wellTyped,
     @NotNull ImmutableSeq<Term> paramSubst,
     @NotNull Term result,
-    @NotNull ImmutableSeq<Term> asSubst,
+    @NotNull ImmutableMap<LocalVar, Term> asSubst,
     @Nullable WithPos<Expr> newBody,
     boolean hasError
   ) {
@@ -313,7 +311,7 @@ public class PatternTycker implements Problematic {
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @NotNull WithPos<Pattern> outerPattern
   ) {
-    var sub = new PatternTycker(exprTycker, reporter, telescope, result, ass, asSubst);
+    var sub = new PatternTycker(exprTycker, reporter, telescope, result, asSubst);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 
     hasError = hasError || sub.hasError;
@@ -326,8 +324,7 @@ public class PatternTycker implements Problematic {
   }
 
   private void addAsSubst(@NotNull LocalVar as, @NotNull Pat pattern) {
-    ass.append(as);
-    asSubst.append(PatToTerm.visit(pattern));
+    asSubst.put(as, PatToTerm.visit(pattern));
   }
 
   private @NotNull TyckResult done(@NotNull MutableList<Pat> wellTyped, @Nullable WithPos<Expr> newBody) {
@@ -337,7 +334,7 @@ public class PatternTycker implements Problematic {
       wellTyped.toImmutableSeq(),
       paramSubst,
       result.instantiateTele(paramSubst.view()),
-      this.asSubst.toImmutableSeq(),
+      ImmutableMap.from(this.asSubst),
       newBody,
       hasError
     );

@@ -10,7 +10,6 @@ import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
 import org.aya.syntax.core.term.call.ConCallLike;
-import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.pat.BindEater;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.util.error.Panic;
@@ -26,7 +25,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
    * Match {@param term} against to {@param pat}
    *
    * @return a substitution of corresponding bindings of {@param pat} if success
-   * @apiNote The binding order is the same as {@link Pat#storeBindings(LocalCtx, UnaryOperator)}
+   * @apiNote The binding order is the same as {@link Pat#consumeBindings(java.util.function.BiConsumer)}
    */
   public @NotNull Result<ImmutableSeq<Term>, Boolean> match(@NotNull Pat pat, @NotNull Term term) {
     return switch (pat) {
