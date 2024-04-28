@@ -252,7 +252,15 @@ public class CorePrettier extends BasePrettier<Term> {
         case I0 -> "0";
         case I1 -> "1";
       });
-      case PartialTerm _ -> throw new UnsupportedOperationException("TODO");
+      case PartialTerm(var i, var clauses) -> {
+        var iDoc = term(Outer.Free, i);
+        var doc = Doc.cblock(Doc.empty(), 2,
+          Doc.join(Doc.symbol("|"), clauses.view().map((k, c) -> Doc.sep(
+            iDoc, Doc.symbol("="), Doc.styled(KEYWORD, term(Outer.Free, k)),
+            Doc.symbol("->"), term(Outer.Free, c))).toImmutableSeq()
+          ));
+        yield checkParen(outer, doc, Outer.AppSpine);
+      }
     };
   }
 
