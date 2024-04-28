@@ -27,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f);
@@ -47,6 +48,10 @@ public sealed interface Expr extends AyaDocile {
     boolean explicit
     // @ForLSP MutableValue<Result> theCore
   ) implements SourceNode, AyaDocile, ParamLike<Expr> {
+    @Override public @NotNull ParamLike<Expr> map(@NotNull UnaryOperator<Expr> mapper) {
+      return new Param(sourcePos, ref, typeExpr.map(mapper), explicit);
+    }
+
     @Override
     public @NotNull Expr type() {
       return typeExpr.data();

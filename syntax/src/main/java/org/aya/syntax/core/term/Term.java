@@ -88,6 +88,10 @@ public sealed interface Term extends Serializable, AyaDocile
     return instantiateAll(tele.reversed());
   }
 
+  default @NotNull Term instantiateTeleVar(@NotNull SeqView<LocalVar> teleVars) {
+    return instantiateTele(teleVars.map(FreeTerm::new));
+  }
+
   /**
    * Instantiate {@code 0..args.size() - 1} with {@param args}
    */

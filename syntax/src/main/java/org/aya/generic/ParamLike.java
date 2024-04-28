@@ -9,6 +9,8 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.UnaryOperator;
+
 /**
  * @param <Expr> the type of the expression contained, either
  *               {@link org.aya.syntax.core.term.Term} or {@link org.aya.syntax.concrete.Expr}.
@@ -20,6 +22,8 @@ public interface ParamLike<Expr extends AyaDocile> extends AyaDocile {
   @NotNull LocalVar ref();
 
   @NotNull Expr type();
+
+  @NotNull ParamLike<Expr> map(@NotNull UnaryOperator<Expr> mapper);
 
   default @NotNull Doc nameDoc() {
     return BasePrettier.linkDef(ref());
