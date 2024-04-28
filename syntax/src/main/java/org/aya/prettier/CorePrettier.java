@@ -20,6 +20,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PartialTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
@@ -260,6 +261,11 @@ public class CorePrettier extends BasePrettier<Term> {
             Doc.symbol("->"), term(Outer.Free, c))).toImmutableSeq()
           ));
         yield checkParen(outer, doc, Outer.AppSpine);
+      }
+      // TODO: in case we want to show implicits, display the type
+      case EqTerm(var _, var a, var b) -> {
+        var doc = Doc.sep(term(Outer.BinOp, a), Doc.symbol("="), term(Outer.BinOp, b));
+        yield checkParen(outer, doc, Outer.BinOp);
       }
     };
   }

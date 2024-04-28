@@ -12,8 +12,10 @@ import org.jetbrains.annotations.NotNull;
  * <pre>
  *   { i = i0 -> xx | i = i1 -> yy }
  * </pre>
- * @param term the <code>i</code>
+ *
+ * @param term    the <code>i</code>
  * @param clauses the map from i0 to xx, i1 to yy
+ * @implNote We haven't implemented smart update for this one.
  */
 public record PartialTerm(
   @NotNull Term term,

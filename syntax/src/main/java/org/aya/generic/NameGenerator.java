@@ -9,6 +9,7 @@ import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PartialTerm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +47,7 @@ public class NameGenerator {
       case DimTyTerm _ -> "Dim";
       case DimTerm _, ErrorTerm _, LamTerm _, SortTerm _, TupTerm _, PartialTerm _, ConCallLike _, FnCall _, ProjTerm _,
            LocalTerm _, AppTerm _ -> null;
+      case EqTerm _ -> "Eq";
     };
   }
 }
