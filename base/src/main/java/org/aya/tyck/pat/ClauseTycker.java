@@ -109,7 +109,9 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
           // there is no intersection
           allSubst.putAll(result.asSubst);
 
-          // TODO: apply allSubst
+          for (var pair : allSubst.toImmutableSeq()) {
+            wellBody = wellBody.replaceWith(pair.component1(), pair.component2());
+          }
 
           // bind all pat bindings
           wellBody = result.clause.pats()
