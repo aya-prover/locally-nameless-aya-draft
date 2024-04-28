@@ -3,6 +3,7 @@
 package org.aya.tyck;
 
 import kala.control.Either;
+import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.Def;
@@ -50,7 +51,12 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
             yield factory.apply(wellTy, Either.left(wellBody));
           }
           case TeleDecl.BlockBody blockBody -> {
-            throw new UnsupportedOperationException("Dame Desu!");
+            var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
+            if (orderIndependent) {
+              throw new UnsupportedOperationException("Dame Desu!");
+            } else {
+              throw new UnsupportedOperationException("Dame Desu!");
+            }
           }
         };
       }
