@@ -398,6 +398,7 @@ public class CorePrettier extends BasePrettier<Term> {
   ) {
     // TODO: subset clause body with [teleSubst]
     return Doc.vcat(clauses.view().map(matching ->
+      // TODO: toDoc use a new CorePrettier => new NameGenerator
       Doc.sep(Tokens.BAR, matching.toDoc(options))));
   }
 
