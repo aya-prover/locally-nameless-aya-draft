@@ -56,7 +56,7 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   default @NotNull Term bindAll(@NotNull SeqView<LocalVar> vars) {
-    return vars.foldLeft(this, Term::bind);
+    return vars.foldLeftIndexed(this, (idx, acc, var) -> acc.bindAt(var, idx));
   }
 
   default @NotNull Term bindTele(@NotNull SeqView<LocalVar> teleVars) {
