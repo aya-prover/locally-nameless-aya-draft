@@ -25,8 +25,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     this(state, ImmutableSet.empty());
   }
 
-  @Override
-  public Term apply(Term term) {
+  @Override public Term apply(Term term) {
     return whnf(term);
   }
 

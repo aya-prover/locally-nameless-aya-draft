@@ -8,12 +8,15 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.ParamLike;
+import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.*;
+import org.aya.syntax.core.def.CtorDef;
+import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
-import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -135,7 +138,7 @@ public class CorePrettier extends BasePrettier<Term> {
           options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs)
         );
       }
-      // case IntervalTerm _ -> Doc.styled(PRIM, "I");
+      case DimTyTerm _ -> Doc.styled(PRIM, "I");
       // case NewTerm(var inner) -> visitCalls(null, Doc.styled(KEYWORD, "new"), (nest, t) -> t.toDoc(options), outer,
       //   SeqView.of(new Arg<>(o -> term(Outer.AppSpine, inner), true)),
       //   options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs)
@@ -146,10 +149,9 @@ public class CorePrettier extends BasePrettier<Term> {
         if (ref.solution().get() == null) yield varDoc(generateName(null));
         yield Doc.wrap("<", ">", pat(ref, true, outer));
       }
-      case ErrorTerm(_) -> {
-        throw new UnsupportedOperationException("TODO");
-        // var doc = desc.toDoc(options);
-        // yield really ? Doc.angled(doc) : doc;
+      case ErrorTerm(var desc) -> {
+        var doc = desc.toDoc(options);
+        yield Doc.angled(doc);
       }
       case AppTerm app -> {
         var pair = AppTerm.unapp(app);
@@ -246,8 +248,10 @@ public class CorePrettier extends BasePrettier<Term> {
       // case InTerm(var phi, var u) -> insideOut(outer, phi, u, "inS");
       // case OutTerm(var phi, var par, var u) -> insideOut(outer, phi, u, "outS");
       // TODO
-      case DimTerm _ -> throw new UnsupportedOperationException("TODO");
-      case DimTyTerm _ -> throw new UnsupportedOperationException("TODO");
+      case DimTerm dim -> Doc.styled(KEYWORD, switch (dim) {
+        case I0 -> "0";
+        case I1 -> "1";
+      });
       case PartialTerm _ -> throw new UnsupportedOperationException("TODO");
     };
   }
