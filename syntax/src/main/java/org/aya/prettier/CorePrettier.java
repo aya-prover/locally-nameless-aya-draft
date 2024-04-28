@@ -6,6 +6,7 @@ import kala.collection.SeqLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import org.aya.generic.NameGenerator;
 import org.aya.generic.ParamLike;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
@@ -18,7 +19,6 @@ import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.PartialTerm;
 import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;
@@ -36,7 +36,7 @@ import java.util.function.UnaryOperator;
  * @see ConcretePrettier
  */
 public class CorePrettier extends BasePrettier<Term> {
-  private static int genId = 0;
+  private final NameGenerator nameGen = new NameGenerator();
 
   public CorePrettier(@NotNull PrettierOptions options) {
     super(options);
@@ -450,13 +450,8 @@ public class CorePrettier extends BasePrettier<Term> {
     return ImmutableSeq.fill(count, () -> generateName(null));
   }
 
-  private int nextId() {
-    return genId++;
-  }
-
-  private @NotNull LocalVar generateName(@Nullable String typeName) {
-    var name = typeName == null ? STR."_\{nextId()}" : STR."_\{typeName}_\{nextId()}";
-    return new LocalVar(name, SourcePos.SER, GenerateKind.Anonymous.INSTANCE);
+  private @NotNull LocalVar generateName(@Nullable Term whty) {
+    return new LocalVar(nameGen.next(whty), SourcePos.SER);
   }
 
   /// endregion Name Generating

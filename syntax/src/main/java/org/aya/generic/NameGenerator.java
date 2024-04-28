@@ -23,8 +23,8 @@ public class NameGenerator {
     return id++;
   }
 
-  public @NotNull String next(@NotNull Term whty) {
-    return nextName(nameOf(whty));
+  public @NotNull String next(@Nullable Term whty) {
+    return whty == null ? nextName(null) : nextName(nameOf(whty));
   }
 
   public @NotNull String nextName(@Nullable String typeName) {
