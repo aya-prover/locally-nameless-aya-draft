@@ -9,7 +9,7 @@ import org.aya.tyck.unify.TermComparator;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits ExprTycker, TermComparator {
+public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits TermComparator, ExprTycker {
   public @NotNull TyckState state;
   private @NotNull LocalCtx localCtx;
   public final @NotNull Reporter reporter;

@@ -4,6 +4,7 @@ package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import kala.collection.mutable.MutableMap;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
@@ -20,7 +21,11 @@ import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
 public final class ExprTycker extends AbstractTycker {
-  public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
+  public ExprTycker(
+    @NotNull TyckState state,
+    @NotNull LocalCtx ctx,
+    @NotNull Reporter reporter
+  ) {
     super(state, ctx, reporter);
   }
 
