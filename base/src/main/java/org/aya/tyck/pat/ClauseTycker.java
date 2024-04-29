@@ -105,13 +105,10 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
           var allSubst = MutableMap.from(signature.param().view()
             .map(x -> x.data().ref())
             .zip(result.paramSubst, Tuple::of));
-
           // there is no intersection
           allSubst.putAll(result.asSubst);
-
-          for (var pair : allSubst.toImmutableSeq()) {
-            wellBody = wellBody.replaceWith(pair.component1(), pair.component2());
-          }
+          // TODO: do the same thing in tyck case of [Pattern.Bind]
+          wellBody = wellBody.subst(allSubst);
 
           // bind all pat bindings
           wellBody = result.clause.pats()
