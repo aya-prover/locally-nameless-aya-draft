@@ -6,23 +6,24 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
+import kala.tuple.Tuple;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
-import org.aya.syntax.core.term.MetaPatTerm;
-import org.aya.syntax.core.term.Param;
-import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.error.Panic;
+import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problematic {
   public record LhsResult(
@@ -32,17 +33,15 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableMap<LocalVar, Term> asSubst,
     @NotNull Pat.Preclause<Expr> clause,
     boolean hasError
-  ) {
-
-  }
+  ) {}
 
   @Override
   public @NotNull Reporter reporter() {
     return exprTycker.reporter;
   }
 
-  private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope, @NotNull Term result) {
-    return new PatternTycker(exprTycker, reporter(), telescope, result, MutableMap.create());
+  private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<FreeParam> telescope, @NotNull Term result) {
+    return new PatternTycker(exprTycker, reporter(), telescope.map(FreeParam::forget), result, MutableMap.create());
   }
 
   private @NotNull LhsResult checkLhs(
@@ -62,20 +61,6 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
       // TODO: inline types in localCtx
 
       clause.patterns.view().map(it -> it.term().data()).forEach(TermInPatInline::apply);
-      // var patTele = patResult.wellTyped()
-      // var mPatResult = patResult;
-      //
-      // UnaryOperator<Term> bodyPre = t -> {
-      //   // [t] here has [LocalTerm]s that refer to the telescope
-      //   // instantiate params: now we eliminate them
-      //   t = t.instantiateTele(mPatResult.paramSubst().view());
-      //   // instantiate as
-      //   t = mPatResult.ass().view().zip(mPatResult.asSubst()).foldLeft(t, (acc, pair) ->
-      //     acc.bind(pair.component1()).instantiate(pair.component2()));
-      //
-      //   // bind reference to [Pat.Bind] as [LocalTerm]
-      //
-      // };
 
       return new LhsResult(
         ctx,
@@ -85,22 +70,56 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         new Pat.Preclause<>(
           clause.sourcePos,
           patResult.wellTyped(),
-          patResult.newBody() == null ? null : patResult.newBody().data()),
+          patResult.newBody() == null ? null : patResult.newBody()),
         patResult.hasError()
       );
     });
   }
 
   /**
-   * <pre>
-   *   def foo (a : Nat) (b : Nat) : Nat =>
-   *   | 0, c => let a => 0, b => c in b
-   *   | ...
-   * </pre>
+   * Tyck the rhs of some clause.
+   *
+   * @param signature the signature of the function
+   * @param result    the tyck result of the corresponding patterns
    */
-  private @NotNull Pat.Preclause<Term> checkRhs(@NotNull LhsResult result) {
+  private @NotNull Pat.Preclause<Term> checkRhs(@NotNull Signature<Term> signature, @NotNull LhsResult result) {
     return exprTycker.subscoped(() -> {
-      throw new UnsupportedOperationException("TODO");
+      var clause = result.clause;
+      var bodyExpr = clause.expr();
+      Term wellBody;
+      if (bodyExpr == null) {
+        wellBody = null;
+      } else {
+        if (result.hasError) {
+          // In case the patterns are malformed, do not check the body
+          // as we bind local variables in the pattern checker,
+          // and in case the patterns are malformed, some bindings may
+          // not be added to the localCtx of tycker, causing assertion errors
+          wellBody = new ErrorTerm(result.clause.expr().data());
+        } else {
+          // the localCtx will be restored after exiting [subscoped]
+          exprTycker.setLocalCtx(result.localCtx);
+          wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
+
+          // subst param and as
+          var allSubst = MutableMap.from(signature.param().view()
+            .map(x -> x.data().ref())
+            .zip(result.paramSubst, Tuple::of));
+
+          // there is no intersection
+          allSubst.putAll(result.asSubst);
+
+          // TODO: apply allSubst
+
+          // bind all pat bindings
+          wellBody = result.clause.pats()
+            .flatMap(Pat::collectBindings)
+            .foldLeft(wellBody, (acc, pair) ->
+              acc.bind(pair.component1()));
+        }
+      }
+
+      return new Pat.Preclause<>(clause.sourcePos(), clause.pats(), wellBody == null ? null : WithPos.dummy(wellBody));
     });
   }
 

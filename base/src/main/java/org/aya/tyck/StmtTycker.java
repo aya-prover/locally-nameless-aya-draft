@@ -2,14 +2,17 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
+import kala.control.Either;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
 import org.aya.tyck.tycker.Problematic;
+import org.aya.tyck.tycker.TeleTycker;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +26,37 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       if (decl.signature != null) loadTele(decl.signature, tycker);
       else checkHeader(decl, tycker);
     }
-    throw new UnsupportedOperationException("TODO");
+
+    return switch (predecl) {
+      case TeleDecl.FnDecl fnDecl -> {
+        var signature = fnDecl.signature;
+        assert signature != null;
+
+        var factory = FnDef.factory((retTy, body) ->
+          new FnDef(fnDecl.ref,
+            signature.param().map(x -> x.data().forget()),
+            retTy, fnDecl.modifiers, body));
+        var teleVars = signature.param().map(x -> x.data().ref());
+
+        yield switch (fnDecl.body) {
+          case TeleDecl.ExprBody exprBody -> {
+            var result = tycker.inherit(exprBody.expr(), signature.result());
+            var wellBody = result.wellTyped();
+            var wellTy = result.type();
+            // TODO: wellTy may contains meta, zonk them!
+            wellBody = TeleTycker.bindResult(wellBody, teleVars);
+            // we still need to bind [wellTy] in case it was a hole
+            wellTy = TeleTycker.bindResult(wellTy, teleVars);
+            yield factory.apply(wellTy, Either.left(wellBody));
+          }
+          case TeleDecl.BlockBody blockBody -> {
+            throw new UnsupportedOperationException("Dame Desu!");
+          }
+        };
+      }
+      case TeleDecl.DataCtor dataCtor -> throw new UnsupportedOperationException("TODO");
+      case TeleDecl.DataDecl dataDecl -> throw new UnsupportedOperationException("TODO");
+    };
   }
 
   private void checkHeader(TeleDecl<?> decl, ExprTycker tycker) {
