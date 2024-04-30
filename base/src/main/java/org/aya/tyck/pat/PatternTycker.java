@@ -207,7 +207,7 @@ public class PatternTycker implements Problematic {
    * @return null if failed, i.e. too many pattern
    * @apiNote after call: {@param currentParam} is an unchecked parameter, and {@code currentParam.explicit == pattern.explicit}
    */
-  public @Nullable ImmutableSeq<Pat> nextParam(@NotNull Arg<WithPos<Pattern>> pattern) {
+  private @Nullable ImmutableSeq<Pat> nextParam(@NotNull Arg<WithPos<Pattern>> pattern) {
     var generatedPats = MutableList.<Pat>create();
 
     while (currentParam != null && pattern.explicit() != currentParam.explicit()) {
@@ -249,7 +249,7 @@ public class PatternTycker implements Problematic {
    * after call: {@code currentParam} is an unchecked parameter if not null
    * @implNote No need to report if too many parameter
    */
-  public @NotNull PushTelescope pushTelescope(@NotNull WithPos<Expr> body) {
+  private @NotNull PushTelescope pushTelescope(@NotNull WithPos<Expr> body) {
     var wellTyped = MutableList.<Pat>create();
 
     while (currentParam != null && body.data() instanceof Expr.Lambda lam) {
