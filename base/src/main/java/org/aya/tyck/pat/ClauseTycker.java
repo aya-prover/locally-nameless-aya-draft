@@ -104,18 +104,20 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         } else {
           // the localCtx will be restored after exiting [subscoped]
           exprTycker.setLocalCtx(result.localCtx);
-
-          // TODO: tyck result.needTyck before tyck wellBody
-          wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
-
           // subst param and as
           var allSubst = MutableMap.from(signature.param().view()
             .map(x -> x.data().ref())
             .zip(result.paramSubst, Tuple::of));
           // there is no intersection
           allSubst.putAll(result.asSubst);
-          // TODO: do the same thing in tyck case of [Pattern.Bind]
-          wellBody = wellBody.subst(allSubst);
+
+          result.needTyck.forEach(pair -> {
+            var userType = exprTycker.synthesize(pair.component1()).wellTyped();
+            // TODO: unify userType and pair.component2
+          });
+
+          wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped()
+            .subst(allSubst);
 
           // bind all pat bindings
           wellBody = result.clause.pats()
