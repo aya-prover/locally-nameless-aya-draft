@@ -56,23 +56,6 @@ public final class PrimDef extends TopLevelDef<Term> {
     return result;
   }
 
-  /*
-  @FunctionalInterface
-  interface Unfolder extends BiFunction<@NotNull PrimCall, @NotNull TyckState, @NotNull Term> {
-  }
-
-  record PrimSeed(
-    @NotNull ID name,
-    @NotNull Unfolder unfold,
-    @NotNull Function<@NotNull DefVar<PrimDef, TeleDecl.PrimDecl>, @NotNull PrimDef> supplier,
-    @NotNull ImmutableSeq<@NotNull ID> dependency
-  ) {
-    public @NotNull PrimDef supply(@NotNull DefVar<PrimDef, TeleDecl.PrimDecl> ref) {
-      return supplier.apply(ref);
-    }
-  }
-  */
-
   /** <code>I -> Type</code> */
   public static @NotNull Term intervalToType() {
     return new PiTerm(DimTyTerm.INSTANCE, Type0);
@@ -125,8 +108,6 @@ public final class PrimDef extends TopLevelDef<Term> {
   */
 
     private final @NotNull EnumMap<@NotNull ID, @NotNull PrimDef> defs = new EnumMap<>(ID.class);
-
-    // private final @NotNull Map<@NotNull ID, @NotNull PrimSeed> seeds;
 
     /*private final class Initializer {
       public final @NotNull PrimDef.PrimSeed coe = new PrimSeed(ID.COE, this::coe, ref -> {
