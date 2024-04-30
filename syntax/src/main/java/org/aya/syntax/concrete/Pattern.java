@@ -78,11 +78,10 @@ public sealed interface Pattern extends AyaDocile {
    */
   record Bind(
     @NotNull LocalVar bind,
-    @Nullable WithPos<Expr> userType,
     @ForLSP @NotNull MutableValue<@Nullable Term> type
   ) implements Pattern {
     public Bind(@NotNull LocalVar bind) {
-      this(bind, null, MutableValue.create());
+      this(bind, MutableValue.create());
     }
     @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return this;
