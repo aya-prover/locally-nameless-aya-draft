@@ -9,20 +9,25 @@ import kala.control.Option;
 import kala.tuple.Tuple;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.PrimDef;
+import org.aya.syntax.core.term.LocalTerm;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.xtt.CoeTerm;
+import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
 import org.aya.util.ForLSP;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static org.aya.syntax.core.def.PrimDef.ID;
+import static org.aya.syntax.core.def.PrimDef.*;
 
 public final class PrimFactory {
   private final @NotNull Map<@NotNull ID, @NotNull PrimSeed> seeds;
@@ -30,7 +35,8 @@ public final class PrimFactory {
 
   public PrimFactory() {
     seeds = ImmutableMap.from(ImmutableSeq.of(
-      intervalType
+      intervalType,
+      coe
     ).map(seed -> Tuple.of(seed.name, seed)));
   }
 
@@ -49,27 +55,28 @@ public final class PrimFactory {
     }
   }
 
-  /*public final @NotNull PrimSeed coe = new PrimSeed(ID.COE, this::coe, ref -> {
+  public final @NotNull PrimSeed coe = new PrimSeed(ID.COE, this::coe, ref -> {
     // coe (r s : I) (A : I -> Type) : A r -> A s
-    var r = IntervalTerm.param("r");
-    var s = IntervalTerm.param("s");
-    var paramA = new Term.Param(new LocalVar("A"), intervalToType(), true);
-    var result = familyI2J(paramA.toTerm(), r.toTerm(), s.toTerm());
+    var r = DimTyTerm.param("r");
+    var s = DimTyTerm.param("s");
+    var paramA = new Param("A", intervalToType(), true);
+    var result = familyI2J(new LocalTerm(0), new LocalTerm(2), new LocalTerm(1));
 
     return new PrimDef(ref, ImmutableSeq.of(r, s, paramA), result, ID.COE);
   }, ImmutableSeq.of(ID.I));
 
+  @Contract("_, _ -> new")
+  private @NotNull Term coe(@NotNull PrimCall prim, @NotNull TyckState state) {
+    var r = prim.args().get(0);
+    var s = prim.args().get(1);
+    var type = prim.args().get(2);
+    return new CoeTerm(type, r, s);
+  }
+
+  /*
   public final @NotNull PrimDef.PrimSeed stringType =
     new PrimSeed(ID.STRING, this::primCall,
       ref -> new PrimDef(ref, Type0, ID.STRING), ImmutableSeq.empty());
-
-  @Contract("_, _ -> new")
-  private @NotNull Term coe(@NotNull PrimCall prim, @NotNull TyckState state) {
-    var r = prim.args().get(0).term();
-    var s = prim.args().get(1).term();
-    var type = prim.args().get(2).term();
-    return new CoeTerm(type, r, s);
-  }
 
   public final @NotNull PrimSeed partialType =
     new PrimSeed(ID.PARTIAL,

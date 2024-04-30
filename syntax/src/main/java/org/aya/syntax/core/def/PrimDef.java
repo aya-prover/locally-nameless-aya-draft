@@ -61,9 +61,9 @@ public final class PrimDef extends TopLevelDef<Term> {
     return new PiTerm(DimTyTerm.INSTANCE, Type0);
   }
 
-  /** Let A be argument, then <code>A i -> A j</code> */
+  /** Let A be argument, then <code>A i -> A j</code>. Handles index shifting. */
   public static @NotNull PiTerm familyI2J(Term term, Term i, Term j) {
-    return new PiTerm(AppTerm.make(term, i), AppTerm.make(term, j));
+    return new PiTerm(AppTerm.make(term, i), AppTerm.make(term, j).elevate(1));
   }
 
   public enum ID {

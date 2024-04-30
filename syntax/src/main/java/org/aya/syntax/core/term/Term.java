@@ -11,6 +11,7 @@ import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
+import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PartialTerm;
@@ -24,7 +25,7 @@ import java.io.Serializable;
 import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
-  permits AppTerm, Formation, FreeTerm, LocalTerm, MetaPatTerm, ProjTerm, StableWHNF, Callable, DimTerm, EqTerm, PartialTerm {
+  permits AppTerm, Formation, FreeTerm, LocalTerm, MetaPatTerm, ProjTerm, StableWHNF, Callable, CoeTerm, DimTerm, EqTerm, PartialTerm {
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
