@@ -226,6 +226,7 @@ public class PatternTycker implements Problematic {
         lastPat = pat;
         patterns = patterns.drop(1);
         if (!pat.explicit()) {
+          // TODO: see above
           foundError(new PatternProblem.TooManyImplicitPattern(pat.term(), currentParam));
           return done(wellTyped, body);
         }
@@ -285,7 +286,7 @@ public class PatternTycker implements Problematic {
         // TODO: I NEED A SOURCE POS!!
         pat = new Pat.Meta(MutableValue.create(), freshName, dataCall, SourcePos.NONE);
       } else {
-        var freshVar = new LocalVar(currentParam.name());
+        var freshVar = new LocalVar(freshName);
         // If the type is not a DataCall, then the only available pattern is Pat.Bind
         pat = new Pat.Bind(freshVar, type);
         exprTycker.localCtx().put(freshVar, type);
