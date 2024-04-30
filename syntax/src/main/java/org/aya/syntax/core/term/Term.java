@@ -31,6 +31,11 @@ public sealed interface Term extends Serializable, AyaDocile
     return new CorePrettier(options).term(BasePrettier.Outer.Free, this);
   }
 
+  // O(2n)!!
+  default @NotNull Term replaceWith(@NotNull LocalVar var, @NotNull Term term) {
+    return bind(var).instantiate(term);
+  }
+
   default @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
     return descent((i, t) -> t.bindAt(var, depth + i));
   }
@@ -47,6 +52,14 @@ public sealed interface Term extends Serializable, AyaDocile
    */
   default @NotNull Term bind(@NotNull LocalVar var) {
     return bindAt(var, 0);
+  }
+
+  default @NotNull Term bindAll(@NotNull SeqView<LocalVar> vars) {
+    return vars.foldLeft(this, Term::bind);
+  }
+
+  default @NotNull Term bindTele(@NotNull SeqView<LocalVar> teleVars) {
+    return bindAll(teleVars.reversed());
   }
 
   /**

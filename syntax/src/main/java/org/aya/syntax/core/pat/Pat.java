@@ -3,6 +3,10 @@
 package org.aya.syntax.core.pat;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableAnyList;
+import kala.collection.mutable.MutableList;
+import kala.tuple.Tuple;
+import kala.tuple.Tuple2;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
@@ -17,6 +21,7 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +42,14 @@ public sealed interface Pat extends AyaDocile {
    * Puts bindings of this {@link Pat} to {@param ctx}
    */
   void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer);
+
+  default ImmutableSeq<Tuple2<LocalVar, Term>> collectBindings() {
+    var buffer = MutableList.<Tuple2<LocalVar, Term>>create();
+
+    consumeBindings((var, type) -> buffer.append(kala.tuple.Tuple.of(var, type)));
+
+    return buffer.toImmutableSeq();
+  }
 
   /**
    * Replace {@link Pat.Meta} with {@link Pat.Meta#solution} (if there is) or {@link Pat.Bind}
@@ -200,7 +213,7 @@ public sealed interface Pat extends AyaDocile {
   record Preclause<T extends AyaDocile>(
     @NotNull SourcePos sourcePos,
     @NotNull ImmutableSeq<Pat> pats,
-    @Nullable T expr
+    @Nullable WithPos<T> expr
   ) implements AyaDocile {
     @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
       // throw new UnsupportedOperationException("TODO");
@@ -208,11 +221,11 @@ public sealed interface Pat extends AyaDocile {
       ;
       var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
         pats.view().map(p -> prettier.pat(Arg.ofExplicitly(p), BasePrettier.Outer.Free)))));
-      return expr == null ? doc : Doc.sep(doc, Doc.symbol("=>"), expr.toDoc(options));
+      return expr == null ? doc : Doc.sep(doc, Doc.symbol("=>"), expr.data().toDoc(options));
     }
 
     public static @NotNull Preclause<Term> weaken(@NotNull Term.Matching clause) {
-      return new Preclause<>(clause.sourcePos(), clause.patterns(), clause.body());
+      return new Preclause<>(clause.sourcePos(), clause.patterns(), WithPos.dummy(clause.body()));
     }
 
     // public static @Nullable Term.Matching lift(@NotNull Preclause<Term> clause) {
