@@ -3,12 +3,14 @@
 package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DefVar;
+import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,7 +25,7 @@ import static org.aya.syntax.core.term.SortTerm.Type0;
  */
 public final class PrimDef extends TopLevelDef<Term> {
   public PrimDef(
-    @NotNull DefVar<@NotNull PrimDef, /*TeleDecl.@NotNull PrimDecl*/ ?> ref,
+    @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref,
     @NotNull ImmutableSeq<Param> telescope,
     @NotNull Term result, @NotNull ID name
   ) {
@@ -33,25 +35,23 @@ public final class PrimDef extends TopLevelDef<Term> {
     ref.core = this;
   }
 
-  public PrimDef(@NotNull DefVar<@NotNull PrimDef, /*TeleDecl.@NotNull PrimDecl*/ ?> ref, @NotNull Term result, @NotNull ID name) {
+  public PrimDef(@NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref, @NotNull Term result, @NotNull ID name) {
     this(ref, ImmutableSeq.empty(), result, name);
   }
 
-  public @NotNull ImmutableSeq<Param> telescope() {
+  @Override public @NotNull ImmutableSeq<Param> telescope() {
     if (telescope.isEmpty()) return telescope;
-    /*
     if (ref.concrete != null) {
       var signature = ref.concrete.signature;
-      if (signature != null) return signature.param();
+      if (signature != null) return signature.param().map(WithPos::data);
     }
-    */
     return telescope;
   }
 
-  public @NotNull Term result() {
+  @Override public @NotNull Term result() {
     if (ref.concrete != null) {
-      // var signature = ref.concrete.signature;
-      // if (signature != null) return signature.result();
+      var signature = ref.concrete.signature;
+      if (signature != null) return signature.result();
     }
     return result;
   }
@@ -333,10 +333,10 @@ public final class PrimDef extends TopLevelDef<Term> {
     }
   }*/
 
-  public final @NotNull DefVar<@NotNull PrimDef, /*TeleDecl.PrimDecl*/ ?> ref;
+  public final @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref;
   public final @NotNull ID id;
 
-  public @NotNull DefVar<@NotNull PrimDef, /*TeleDecl.PrimDecl*/ ?> ref() {
+  public @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref() {
     return ref;
   }
 }

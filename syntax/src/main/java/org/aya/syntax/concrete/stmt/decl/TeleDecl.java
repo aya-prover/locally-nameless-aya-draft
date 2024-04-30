@@ -7,12 +7,14 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
+import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -169,6 +171,30 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
       super.descentInPlace(f, p);
       body = body.map(f, cls -> cls.descent(f, p));
+    }
+  }
+
+  /**
+   * @author ice1000
+   * @implSpec the result field of {@link PrimDecl} might be {@link Expr.Error},
+   * which means it's unspecified in the concrete syntax.
+   * @see PrimDef
+   */
+  public static final class PrimDecl extends TeleDecl<Term> {
+    public final @NotNull DefVar<PrimDef, PrimDecl> ref;
+
+    public PrimDecl(
+      @NotNull SourcePos sourcePos, @NotNull SourcePos entireSourcePos,
+      @NotNull String name,
+      @NotNull ImmutableSeq<Expr.Param> telescope,
+      @Nullable WithPos<Expr> result
+    ) {
+      super(new DeclInfo(Accessibility.Public, sourcePos, entireSourcePos, null, BindBlock.EMPTY), telescope, result);
+      this.ref = DefVar.concrete(this, name);
+    }
+
+    @Override public @NotNull DefVar<PrimDef, PrimDecl> ref() {
+      return ref;
     }
   }
 }

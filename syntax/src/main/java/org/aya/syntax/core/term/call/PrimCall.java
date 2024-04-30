@@ -11,7 +11,7 @@ import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 public record PrimCall(
-  @Override @NotNull DefVar<PrimDef, /*TeleDecl.PrimDecl*/ TeleDecl<?>> ref,
+  @Override @NotNull DefVar<PrimDef, TeleDecl.PrimDecl> ref,
   @NotNull PrimDef.ID id,
   @Override int ulift,
   @Override @NotNull ImmutableSeq<@NotNull Term> args
@@ -24,8 +24,10 @@ public record PrimCall(
     return new PrimCall(ref, ulift, args.map(arg -> arg.descent(f)));
   }
 
-  public PrimCall(@NotNull DefVar<@NotNull PrimDef, /*TeleDecl.PrimDecl*/ TeleDecl<?>> ref,
-                  int ulift, @NotNull ImmutableSeq<@NotNull Term> args) {
+  public PrimCall(
+    @NotNull DefVar<@NotNull PrimDef, TeleDecl.PrimDecl> ref,
+    int ulift, @NotNull ImmutableSeq<@NotNull Term> args
+  ) {
     this(ref, ref.core.id, ulift, args);
   }
 }
