@@ -18,10 +18,10 @@ import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
+import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
-import org.aya.syntax.core.term.xtt.PartialTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
@@ -167,7 +167,7 @@ public class CorePrettier extends BasePrettier<Term> {
         }
         yield visitCalls(null, term(Outer.AppHead, head), args.view().map(Arg::ofExplicitly), outer, implicits);
       }
-      // case PrimCall prim -> visitArgsCalls(prim.ref(), PRIM, prim.args(), outer);
+      case PrimCall prim -> visitCoreCalls(prim.ref(), PRIM, prim.args(), outer, optionImplicit());
       // case RefTerm.Field term -> linkRef(term.ref(), MEMBER);
       case ProjTerm(var of, var ix) ->
         Doc.cat(term(Outer.ProjHead, of), Doc.symbol("."), Doc.plain(String.valueOf(ix)));
@@ -210,29 +210,6 @@ public class CorePrettier extends BasePrettier<Term> {
       //   );
       // }
       // case StringTerm(var str) -> Doc.plain("\"" + StringUtil.escapeStringCharacters(str) + "\"");
-      // case PartialTyTerm(var ty, var restr) -> checkParen(outer, Doc.sep(Doc.styled(KEYWORD, "Partial"),
-      //   term(Outer.AppSpine, ty), Doc.parened(restr(options, restr))), Outer.AppSpine);
-      // case PartialTerm el -> partial(options, el.partial(), true, Doc.symbol("{|"), Doc.symbol("|}"));
-      // case FormulaTerm(var mula) -> formula(outer, mula);
-      // case PathTerm cube -> {
-      //   if (cube.params().sizeEquals(1)
-      //     && cube.partial() instanceof Partial.Split<Term> split
-      //     && split.clauses().sizeEquals(2)
-      //   ) {
-      //     var var = cube.params().get(0);
-      //     var clause1 = split.clauses().get(0);
-      //     var clause2 = split.clauses().get(1);
-      //     var beauty = binCube(clause1, clause2, var, outer);
-      //     if (beauty != null) yield beauty;
-      //   }
-      //   yield Doc.sepNonEmpty(
-      //     Doc.symbol("[|"),
-      //     Doc.commaList(cube.params().map(BasePrettier::linkDef)),
-      //     Doc.symbol("|]"),
-      //     cube.type().toDoc(options),
-      //     partial(options, cube.partial(), false, Doc.symbol("{"), Doc.symbol("}"))
-      //   );
-      // }
       // case PLamTerm(var params, var body) -> checkParen(outer,
       //   Doc.sep(Doc.styled(KEYWORD, "\\"),
       //     Doc.sep(params.map(BasePrettier::varDoc)),
@@ -241,27 +218,16 @@ public class CorePrettier extends BasePrettier<Term> {
       //   Outer.BinOp);
       // case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.of()),
       //   app.args().view(), outer, options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs));
-      // case CoeTerm(var ty, var r, var s) -> visitCalls(null,
-      //   Doc.styled(KEYWORD, "coe"),
-      //   Seq.of(r, s, ty).view().map(t -> new Arg<>(t, true)),
-      //   outer, true);
+      case CoeTerm(var ty, var r, var s) -> visitCalls(null,
+        Doc.styled(KEYWORD, "coe"),
+        ImmutableSeq.of(r, s, ty).view().map(t -> new Arg<>(t, true)),
+        outer, true);
       // case HCompTerm hComp -> throw new InternalException("TODO");
-      // case InTerm(var phi, var u) -> insideOut(outer, phi, u, "inS");
-      // case OutTerm(var phi, var par, var u) -> insideOut(outer, phi, u, "outS");
       // TODO
       case DimTerm dim -> Doc.styled(KEYWORD, switch (dim) {
         case I0 -> "0";
         case I1 -> "1";
       });
-      case PartialTerm(var i, var clauses) -> {
-        var iDoc = term(Outer.Free, i);
-        var doc = Doc.cblock(Doc.empty(), 2,
-          Doc.join(Doc.symbol("|"), clauses.view().map((k, c) -> Doc.sep(
-            iDoc, Doc.symbol("="), Doc.styled(KEYWORD, term(Outer.Free, k)),
-            Doc.symbol("->"), term(Outer.Free, c))).toImmutableSeq()
-          ));
-        yield checkParen(outer, doc, Outer.AppSpine);
-      }
       // TODO: in case we want to show implicits, display the type
       case EqTerm(var _, var a, var b) -> {
         var doc = Doc.sep(term(Outer.BinOp, a), Doc.symbol("="), term(Outer.BinOp, b));
@@ -429,6 +395,10 @@ public class CorePrettier extends BasePrettier<Term> {
     @Override
     public boolean explicit() {
       return true;
+    }
+
+    @Override public @NotNull ParamLike<Term> map(@NotNull UnaryOperator<Term> mapper) {
+      return new CoreParam(ref, mapper.apply(type));
     }
   }
 

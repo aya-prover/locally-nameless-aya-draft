@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * <code>PathP (x. A) a b</code>
  */
-public record EqTerm(Term A, Term a, Term b) implements Term, Formation, StableWHNF {
+public record EqTerm(Term A, Term a, Term b) implements Formation, StableWHNF {
   public @NotNull EqTerm update(Term A, Term a, Term b) {
     if (this.A == A && this.a == a && this.b == b) return this;
     return new EqTerm(A, a, b);
