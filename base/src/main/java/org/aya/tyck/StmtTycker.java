@@ -8,7 +8,9 @@ import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.tyck.error.BadTypeError;
+import org.aya.tyck.error.PrimError;
 import org.aya.tyck.tycker.Problematic;
+import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,6 +41,32 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
         data.signature = new Signature<>(signature.param(), sort);
       }
       case TeleDecl.FnDecl fn -> fn.signature = checkTele(fn.telescope, fn.result, tycker);
+      case TeleDecl.PrimDecl prim -> {
+        // This directly corresponds to the tycker.localCtx = new LocalCtx();
+        //  at the end of this case clause.
+        assert tycker.localCtx().isEmpty();
+        var core = prim.ref.core;
+        if (prim.telescope.isEmpty() && prim.result == null) {
+          var pos = decl.sourcePos();
+          prim.signature = new Signature<>(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
+          return;
+        }
+        if (prim.telescope.isNotEmpty()) {
+          // ErrorExpr on prim.result means the result type is unspecified.
+          if (prim.result == null) {
+            reporter.report(new PrimError.NoResultType(prim));
+            return;
+          }
+        }
+        // var tele = checkTele(prim.telescope, prim.result, tycker);
+        // tycker.unifyTyReported(
+        //   PiTerm.make(tele, result),
+        //   PiTerm.make(core.telescope, core.result),
+        //   prim.result);
+        // prim.signature = new Def.Signature<>(tele, result);
+        // tycker.solveMetas();
+        // tycker.ctx = new SeqLocalCtx();
+      }
     }
   }
 }

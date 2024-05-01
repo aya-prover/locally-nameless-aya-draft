@@ -16,6 +16,10 @@ public record LocalCtx(@NotNull MutableMap<LocalVar, Term> binds, @Nullable Loca
     this(MutableMap.create(), null);
   }
 
+  public boolean isEmpty() {
+    return binds.isEmpty() && (parent == null || parent.isEmpty());
+  }
+
   @Contract("-> new")
   public @NotNull LocalCtx derive() {
     return new LocalCtx(MutableMap.create(), this);

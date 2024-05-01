@@ -222,7 +222,7 @@ public record AyaProducer(
 
   public @Nullable Decl decl(@NotNull GenericNode<?> node, @NotNull MutableList<Stmt> additional) {
     if (node.is(FN_DECL)) return fnDecl(node);
-    // if (node.is(PRIM_DECL)) return primDecl(node);
+    if (node.is(PRIM_DECL)) return primDecl(node);
     if (node.is(DATA_DECL)) return dataDecl(node, additional);
     // if (node.is(CLASS_DECL)) return classDecl(node, additional);
     return unreachable(node);
@@ -373,18 +373,18 @@ public record AyaProducer(
     return null;
   }
 
-  // public @Nullable TeleDecl.PrimDecl primDecl(@NotNull GenericNode<?> node) {
-  //   var nameEl = node.peekChild(PRIM_NAME);
-  //   if (nameEl == null) return error(node.childrenView().getFirst(), "Expect a primitive's name");
-  //   var id = weakId(nameEl.child(WEAK_ID));
-  //   return new TeleDecl.PrimDecl(
-  //     id.sourcePos(),
-  //     sourcePosOf(node),
-  //     id.data(),
-  //     telescope(node.childrenOfType(TELE)),
-  //     typeOrNull(node.peekChild(TYPE))
-  //   );
-  // }
+  public @Nullable TeleDecl.PrimDecl primDecl(@NotNull GenericNode<?> node) {
+    var nameEl = node.peekChild(PRIM_NAME);
+    if (nameEl == null) return error(node.childrenView().getFirst(), "Expect a primitive's name");
+    var id = weakId(nameEl.child(WEAK_ID));
+    return new TeleDecl.PrimDecl(
+      id.sourcePos(),
+      sourcePosOf(node),
+      id.data(),
+      telescope(node.childrenOfType(TELE)),
+      typeOrNull(node.peekChild(TYPE))
+    );
+  }
 
   public @Nullable TeleDecl.DataCtor dataCtor(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns, @NotNull GenericNode<?> node) {
     var info = declInfo(node, ModifierParser.SUBDECL_FILTER);

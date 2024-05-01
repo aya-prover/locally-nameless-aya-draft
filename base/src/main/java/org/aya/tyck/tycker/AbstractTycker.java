@@ -25,7 +25,7 @@ public sealed abstract class AbstractTycker implements StateBased, ContextBased,
   }
 
   @Override public @NotNull LocalCtx localCtx() {
-    return this.localCtx;
+    return localCtx;
   }
 
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
