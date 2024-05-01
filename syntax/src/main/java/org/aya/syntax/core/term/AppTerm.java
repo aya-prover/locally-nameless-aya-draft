@@ -30,13 +30,14 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
     };
   }
 
-  public static @NotNull Tuple2<ImmutableSeq<Term>, Term> unapp(@NotNull Term maybeApp) {
+  public record UnApp(@NotNull ImmutableSeq<Term> args, @NotNull Term fun) {}
+  public static @NotNull UnApp unapp(@NotNull Term maybeApp) {
     var args = MutableList.<Term>create();
     while (maybeApp instanceof AppTerm(var f, var a)) {
       maybeApp = f;
       args.append(a);
     }
 
-    return Tuple.of(args.reversed(), maybeApp);
+    return new UnApp(args.reversed(), maybeApp);
   }
 }

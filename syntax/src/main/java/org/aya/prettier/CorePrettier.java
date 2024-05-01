@@ -150,8 +150,8 @@ public class CorePrettier extends BasePrettier<Term> {
       }
       case AppTerm app -> {
         var pair = AppTerm.unapp(app);
-        var args = pair.component1();
-        var head = pair.component2();
+        var args = pair.args();
+        var head = pair.fun();
         // if (head instanceof RefTerm.Field fieldRef) yield visitArgsCalls(fieldRef.ref(), MEMBER, args, outer);
         var implicits = options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs);
         // Infix def-calls
