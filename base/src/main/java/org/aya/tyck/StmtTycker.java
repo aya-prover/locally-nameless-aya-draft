@@ -4,6 +4,7 @@ package org.aya.tyck;
 
 import kala.control.Either;
 import org.aya.generic.Modifier;
+import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.Def;
@@ -24,7 +25,7 @@ import static org.aya.tyck.tycker.TeleTycker.loadTele;
 public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
   private @NotNull Def check(Decl predecl, ExprTycker tycker) {
     if (predecl instanceof TeleDecl<?> decl) {
-      if (decl.signature != null) loadTele(decl.signature, tycker);
+      if (decl.signature != null) loadTele(decl.telescope.map(Expr.Param::ref), decl.signature, tycker);
       else checkHeader(decl, tycker);
     }
 
@@ -35,9 +36,9 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
 
         var factory = FnDef.factory((retTy, body) ->
           new FnDef(fnDecl.ref,
-            signature.param().map(x -> x.data().forget()),
+            signature.param().map(WithPos::data),
             retTy, fnDecl.modifiers, body));
-        var teleVars = signature.param().map(x -> x.data().ref());
+        var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
         yield switch (fnDecl.body) {
           case TeleDecl.ExprBody exprBody -> {
@@ -62,6 +63,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       }
       case TeleDecl.DataCtor dataCtor -> throw new UnsupportedOperationException("TODO");
       case TeleDecl.DataDecl dataDecl -> throw new UnsupportedOperationException("TODO");
+      case TeleDecl.PrimDecl primDecl -> null;
     };
   }
 

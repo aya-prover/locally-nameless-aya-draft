@@ -16,8 +16,8 @@ import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.ErrorTerm;
-import org.aya.syntax.core.term.FreeParam;
 import org.aya.syntax.core.term.MetaPatTerm;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -44,8 +44,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     return exprTycker.reporter;
   }
 
-  private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<FreeParam> telescope, @NotNull Term result) {
-    return new PatternTycker(exprTycker, reporter(), telescope.map(FreeParam::forget), result, MutableMap.create(), MutableList.create());
+  private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope, @NotNull Term result) {
+    return new PatternTycker(exprTycker, reporter(), telescope, result, MutableMap.create(), MutableList.create());
   }
 
   private @NotNull LhsResult checkLhs(
@@ -87,7 +87,10 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
    * @param signature the signature of the function
    * @param result    the tyck result of the corresponding patterns
    */
-  private @NotNull Pat.Preclause<Term> checkRhs(@NotNull Signature<Term> signature, @NotNull LhsResult result) {
+  private @NotNull Pat.Preclause<Term> checkRhs(
+    @NotNull ImmutableSeq<LocalVar> teleBinds,
+    @NotNull Signature<Term> signature,
+    @NotNull LhsResult result) {
     return exprTycker.subscoped(() -> {
       var clause = result.clause;
       var bodyExpr = clause.expr();
@@ -105,8 +108,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
           // the localCtx will be restored after exiting [subscoped]
           exprTycker.setLocalCtx(result.localCtx);
           // subst param and as
-          var allSubst = MutableMap.from(signature.param().view()
-            .map(x -> x.data().ref())
+          var allSubst = MutableMap.from(teleBinds
             .zip(result.paramSubst, Tuple::of));
           // there is no intersection
           allSubst.putAll(result.asSubst);

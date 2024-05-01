@@ -289,7 +289,6 @@ public class PatternTycker implements Problematic {
       // find the next appropriate parameter
       var generated = nextParam(currentPat);
       if (generated == null) {
-        // TODO: return
         return done(wellTyped, body);
       }
 
@@ -298,7 +297,7 @@ public class PatternTycker implements Problematic {
       moveNext();
     }
 
-    // [currentParam] is the next unchecked parameter if not null
+    // [currentParam] is the next unchecked parameter if not null (by loop invariant)
 
     if (body != null) {
       var result = pushTelescope(body);
@@ -324,7 +323,7 @@ public class PatternTycker implements Problematic {
   }
 
   private <T> T onTyck(@NotNull Supplier<T> block) {
-    currentParam = currentParam.map(t -> t.instantiateAll(paramSubst.view().reversed()));
+    currentParam = currentParam.map(t -> t.instantiateTele(paramSubst.view()));
     var result = block.get();
     telescope = telescope.drop(1);
     return result;
