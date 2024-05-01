@@ -9,13 +9,13 @@ java = "21"
 
 # https://github.com/JetBrains/java-annotations
 annotations = "24.1.0"
-kala = "0.69.0"
+kala = "0.70.0"
 picocli = "4.7.5"
-build-util = "0.0.21"
+build-util = "0.0.22"
 # https://github.com/graalvm/native-build-tools
 graal-tools = "0.10.1"
 # https://github.com/jline/jline3
-jline = "3.25.1"
+jline = "3.26.1"
 # https://github.com/commonmark/commonmark-java
 commonmark = "0.22.0"
 jimgui = "v0.21.0"
@@ -27,7 +27,7 @@ guest0x0 = "0.18.0"
 # https://github.com/beryx/badass-jlink-plugin
 jlink = "3.0.1"
 # https://github.com/jacoco/jacoco
-jacoco = "0.8.11"
+jacoco = "0.8.12"
 
 [plugins]
 jlink = { id = "org.beryx.jlink", version.ref = "jlink" }
