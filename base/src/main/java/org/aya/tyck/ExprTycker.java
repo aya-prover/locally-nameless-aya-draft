@@ -4,17 +4,18 @@ package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
-import kala.collection.mutable.MutableMap;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
-import org.aya.syntax.ref.*;
+import org.aya.syntax.ref.AnyVar;
+import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.LicitError;
 import org.aya.tyck.error.NoRuleError;
-import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
@@ -22,7 +23,7 @@ import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public final class ExprTycker extends AbstractTycker {
+public final class ExprTycker extends AbstractExprTycker {
   public ExprTycker(
     @NotNull TyckState state,
     @NotNull LocalCtx ctx,

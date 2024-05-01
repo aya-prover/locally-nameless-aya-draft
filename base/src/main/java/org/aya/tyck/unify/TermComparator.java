@@ -410,6 +410,13 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
     return var;
   }
 
+  public @NotNull FailureData getFailure() {
+    var failure = this.failure;
+    assert failure != null;
+    // TODO: Ice Spell 「 Perfect Freeze 」
+    return failure;
+  }
+
   public record FailureData(@NotNull Term lhs, @NotNull Term rhs) {
     public @NotNull FailureData map(@NotNull UnaryOperator<Term> f) {
       return new FailureData(f.apply(lhs), f.apply(rhs));

@@ -3,13 +3,13 @@
 package org.aya.tyck.tycker;
 
 import org.aya.syntax.ref.LocalCtx;
-import org.aya.tyck.ExprTycker;
+import org.aya.tyck.AbstractExprTycker;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.unify.TermComparator;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits TermComparator, ExprTycker {
+public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits AbstractExprTycker, TermComparator {
   public @NotNull TyckState state;
   private @NotNull LocalCtx localCtx;
   public final @NotNull Reporter reporter;
