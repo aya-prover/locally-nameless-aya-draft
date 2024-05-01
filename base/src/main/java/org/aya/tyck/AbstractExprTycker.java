@@ -24,7 +24,10 @@ public sealed abstract class AbstractExprTycker extends AbstractTycker permits E
     super(state, ctx, reporter);
   }
 
-  protected abstract @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order);
+  protected @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
+    // TODO
+    throw new UnsupportedOperationException("TODO");
+  }
 
   /**
    * Check whether {@param lower} is a subtype of {@param upper}
