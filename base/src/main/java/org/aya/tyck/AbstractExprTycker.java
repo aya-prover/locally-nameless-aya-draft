@@ -24,7 +24,7 @@ public sealed abstract class AbstractExprTycker extends AbstractTycker permits E
     super(state, ctx, reporter);
   }
 
-  protected @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
+  public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
     // TODO
     throw new UnsupportedOperationException("TODO");
   }
@@ -34,7 +34,7 @@ public sealed abstract class AbstractExprTycker extends AbstractTycker permits E
    *
    * @return failure data, null if success
    */
-  protected final @Nullable TermComparator.FailureData unifyTy(
+  public final @Nullable TermComparator.FailureData unifyTy(
     @NotNull Term upper,
     @NotNull Term lower,
     @NotNull SourcePos pos
@@ -49,7 +49,7 @@ public sealed abstract class AbstractExprTycker extends AbstractTycker permits E
    * @param pc a problem constructor
    * @see AbstractExprTycker#unifyTy(Term, Term, SourcePos)
    */
-  protected final boolean unifyTyReported(
+  public final boolean unifyTyReported(
     @NotNull Term upper,
     @NotNull Term lower,
     @NotNull SourcePos pos,
@@ -64,7 +64,7 @@ public sealed abstract class AbstractExprTycker extends AbstractTycker permits E
     return result == null;
   }
 
-  protected final boolean unifyTyReported(
+  public final boolean unifyTyReported(
     @NotNull Term upper,
     @NotNull Term lower,
     @NotNull WithPos<Expr> expr
