@@ -28,6 +28,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.aya.syntax.core.def.PrimDef.*;
+import static org.aya.syntax.core.term.SortTerm.Type0;
 
 public final class PrimFactory {
   private final @NotNull Map<@NotNull ID, @NotNull PrimSeed> seeds;
@@ -35,6 +36,7 @@ public final class PrimFactory {
 
   public PrimFactory() {
     seeds = ImmutableMap.from(ImmutableSeq.of(
+      stringType,
       intervalType,
       coe
     ).map(seed -> Tuple.of(seed.name, seed)));
@@ -73,11 +75,11 @@ public final class PrimFactory {
     return new CoeTerm(type, r, s);
   }
 
-  /*
-  public final @NotNull PrimDef.PrimSeed stringType =
+  public final @NotNull PrimSeed stringType =
     new PrimSeed(ID.STRING, this::primCall,
       ref -> new PrimDef(ref, Type0, ID.STRING), ImmutableSeq.empty());
 
+  /*
   public final @NotNull PrimSeed partialType =
     new PrimSeed(ID.PARTIAL,
       (prim, state) -> {

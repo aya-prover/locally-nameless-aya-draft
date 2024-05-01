@@ -4,6 +4,7 @@ package org.aya.resolve;
 
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.TyckOrder;
+import org.aya.normalize.PrimFactory;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.BindBlock;
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 @Debug.Renderer(text = "thisModule.moduleName().joinToString(\"::\")")
 public record ResolveInfo(
   @NotNull ModuleContext thisModule,
-  // @NotNull PrimDef.Factory primFactory,
+  @NotNull PrimFactory primFactory,
   // @NotNull AyaShape.Factory shapeFactory,
   @NotNull AyaBinOpSet opSet,
   @NotNull MutableMap<DefVar<?, ?>, OpRenameInfo> opRename,
@@ -28,7 +29,8 @@ public record ResolveInfo(
   @NotNull MutableGraph<TyckOrder> depGraph
 ) {
   public ResolveInfo(@NotNull ModuleContext thisModule) {
-    this(thisModule, new AyaBinOpSet(thisModule.reporter()), MutableMap.create(), MutableMap.create(), MutableMap.create(), MutableGraph.create());
+    this(thisModule, new PrimFactory(), new AyaBinOpSet(thisModule.reporter()),
+      MutableMap.create(), MutableMap.create(), MutableMap.create(), MutableGraph.create());
   }
 
   public record ImportInfo(@NotNull ResolveInfo resolveInfo, boolean reExport) {

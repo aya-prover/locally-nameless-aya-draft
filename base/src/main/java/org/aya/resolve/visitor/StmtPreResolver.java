@@ -8,10 +8,12 @@ import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.PhysicalModuleContext;
+import org.aya.resolve.error.PrimResolveError;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.def.PrimDef;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -119,20 +121,22 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
         resolveOpInfo(decl);
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
-      // case TeleDecl.PrimDecl decl -> {
-      //   var factory = resolveInfo.primFactory();
-      //   var name = decl.ref.name();
-      //   var sourcePos = decl.sourcePos();
-      //   var primID = PrimDef.ID.find(name);
-      //   if (primID == null) context.reportAndThrow(new PrimResolveError.UnknownPrim(sourcePos, name));
-      //   var lack = factory.checkDependency(primID);
-      //   if (lack.isNotEmpty() && lack.get().isNotEmpty())
-      //     context.reportAndThrow(new PrimResolveError.Dependency(name, lack.get(), sourcePos));
-      //   else if (factory.have(primID) && !factory.suppressRedefinition())
-      //     context.reportAndThrow(new PrimResolveError.Redefinition(name, sourcePos));
-      //   factory.factory(primID, decl.ref);
-      //   resolveTopLevelDecl(decl, context);
-      // }
+      case TeleDecl.PrimDecl decl -> {
+        var factory = resolveInfo.primFactory();
+        var name = decl.ref.name();
+        var sourcePos = decl.sourcePos();
+        var primID = PrimDef.ID.find(name);
+        if (primID == null) context.reportAndThrow(new PrimResolveError.UnknownPrim(sourcePos, name));
+        var lack = factory.checkDependency(primID);
+        if (lack.isNotEmpty() && lack.get().isNotEmpty())
+          context.reportAndThrow(new PrimResolveError.Dependency(name, lack.get(), sourcePos));
+        else if (factory.have(primID) && !factory.suppressRedefinition())
+          context.reportAndThrow(new PrimResolveError.Redefinition(name, sourcePos));
+        factory.factory(primID, decl.ref);
+        var innerCtx = resolveTopLevelDecl(decl, context);
+        resolveOpInfo(decl);
+        yield new ResolvingStmt.TopDecl(decl, innerCtx);
+      }
       default -> throw new Panic("🪲");
     };
   }
