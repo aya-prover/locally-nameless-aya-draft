@@ -3,10 +3,11 @@
 package org.aya.syntax.core.term.xtt;
 
 import kala.function.IndexedFunction;
+import org.aya.syntax.core.term.StableWHNF;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public enum DimTerm implements Term {
+public enum DimTerm implements StableWHNF {
   I0, I1;
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {

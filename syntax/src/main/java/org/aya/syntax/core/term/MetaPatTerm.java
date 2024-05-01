@@ -10,8 +10,7 @@ import org.jetbrains.annotations.NotNull;
  * A meta-like term, but it will be solved while pattern tyck
  */
 public record MetaPatTerm(@NotNull Pat.Meta meta) implements Term {
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return this;
   }
 }

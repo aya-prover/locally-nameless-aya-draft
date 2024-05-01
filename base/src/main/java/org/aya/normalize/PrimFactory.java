@@ -123,19 +123,6 @@ public final class PrimFactory {
     );
   }, ImmutableSeq.of(ID.I));
 
-  private Term inS(@NotNull PrimCall prim, @NotNull TyckState tyckState) {
-    var phi = prim.args().get(1);
-    var u = prim.args().getLast();
-    return InTerm.make(phi, u);
-  }
-
-  private Term outS(@NotNull PrimCall prim, @NotNull TyckState tyckState) {
-    var phi = prim.args().get(1);
-    var par = prim.args().get(2);
-    var u = prim.args().getLast();
-    return OutTerm.make(phi, par, u);
-  }
-
   public final @NotNull PrimSeed stringConcat =
     new PrimSeed(ID.STRCONCAT, Initializer::concat, ref -> new PrimDef(
       ref,

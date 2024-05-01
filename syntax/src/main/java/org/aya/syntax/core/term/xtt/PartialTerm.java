@@ -5,6 +5,7 @@ package org.aya.syntax.core.term.xtt;
 import kala.collection.immutable.ImmutableMap;
 import kala.function.IndexedFunction;
 import kala.tuple.Tuple;
+import org.aya.syntax.core.term.StableWHNF;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,9 +21,18 @@ import org.jetbrains.annotations.NotNull;
 public record PartialTerm(
   @NotNull Term term,
   @NotNull ImmutableMap<DimTerm, Term> clauses
-) implements Term {
+) implements StableWHNF {
+  public @NotNull PartialTerm update(@NotNull Term term, @NotNull ImmutableMap<DimTerm, Term> clauses) {
+    if (this.term == term && this.clauses == clauses) return this;
+    if (term instanceof DimTerm dim && clauses.containsKey(dim)) {
+      // Trim the map if we already know which side we are on.
+      return new PartialTerm(term, ImmutableMap.of(dim, clauses.get(dim)));
+    }
+    return new PartialTerm(term, clauses);
+  }
+
   @Override public @NotNull PartialTerm descent(@NotNull IndexedFunction<Term, Term> f) {
-    return new PartialTerm(term.descent(f),
+    return update(term.descent(f),
       ImmutableMap.from(clauses.view().map((k, c) -> Tuple.of(k, c.descent(f)))));
   }
 }
