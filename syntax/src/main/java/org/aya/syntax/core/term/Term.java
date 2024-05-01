@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import kala.collection.MapLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
@@ -33,8 +34,21 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   // O(2n)!!
+  /**
+   * @param term this term should not have any free {@link LocalTerm}
+   */
   default @NotNull Term replaceWith(@NotNull LocalVar var, @NotNull Term term) {
     return bind(var).instantiate(term);
+  }
+
+  default @NotNull Term subst(@NotNull MapLike<LocalVar, Term> map) {
+    var acc = this;
+    for (var key : map.keysView()) {
+      var value = map.get(key);
+      acc = acc.replaceWith(key, value);
+    }
+
+    return acc;
   }
 
   default @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
