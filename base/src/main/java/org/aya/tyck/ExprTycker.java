@@ -7,6 +7,8 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.xtt.DimTyTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.*;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.LicitError;
@@ -26,15 +28,29 @@ public final class ExprTycker extends AbstractTycker {
 
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
     return switch (expr.data()) {
-      case Expr.Lambda(var param, var body) -> {
-        if (!(type instanceof PiTerm pi)) yield fail(expr.data(), type, BadTypeError.pi(state, expr, type));
-        if (!param.explicit()) yield fail(expr.data(), pi, new LicitError.ImplicitLam(expr));
-        // unifyTyReported(pi.param(), pi.param().type(), expr);
-        yield subscoped(() -> {
-          localCtx().put(param.ref(), pi.param());
-          return synthesize(body).bind(param.ref());
-        });
-      }
+      case Expr.Lambda(var param, var body) -> switch (type) {
+        case PiTerm pi -> {
+          if (!param.explicit()) yield fail(expr.data(), pi, new LicitError.ImplicitLam(expr));
+          // unifyTyReported(pi.param(), pi.param().type(), expr);
+          var core = subscoped(() -> {
+            var ref = param.ref();
+            localCtx().put(ref, pi.param());
+            return inherit(body, pi.substBody(new FreeTerm(ref))).bind(ref);
+          });
+          yield new Result.Default(new LamTerm(core.wellTyped()), pi);
+        }
+        case EqTerm eq -> {
+          if (!param.explicit()) yield fail(expr.data(), type, new LicitError.ImplicitLam(expr));
+          var core = subscoped(() -> {
+            localCtx().put(param.ref(), DimTyTerm.INSTANCE);
+            var coreBody = inherit(body, eq.b()).bind(param.ref());
+            // TODO: check boundaries
+            return coreBody.wellTyped();
+          });
+          yield new Result.Default(new LamTerm(core), eq);
+        }
+        default -> fail(expr.data(), type, BadTypeError.pi(state, expr, type));
+      };
       default -> {
         var syn = synthesize(expr);
         // unifyTyReported(syn.type(), type, expr);
