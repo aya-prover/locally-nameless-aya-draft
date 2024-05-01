@@ -3,11 +3,10 @@
 package org.aya.tyck.tycker;
 
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableSeq;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.Signature;
-import org.aya.syntax.core.term.FreeParam;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
@@ -30,7 +29,7 @@ public interface TeleTycker {
   ) {
     var tele = checkTeleFree(cTele, tycker);
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
-    bindTele(tele);
+    bindTele(locals, tele);
     var finalParam = tele.zipView(cTele)
       .map(p -> new WithPos<>(p.component2().sourcePos(), p.component1()))
       .toImmutableSeq();
@@ -41,11 +40,11 @@ public interface TeleTycker {
    * Check the tele with free variables remaining in the localCtx.
    */
   @Contract(pure = true)
-  static @NotNull MutableSeq<FreeParam> checkTeleFree(ImmutableSeq<Expr.Param> cTele, ExprTycker tycker) {
+  static @NotNull MutableSeq<Param> checkTeleFree(ImmutableSeq<Expr.Param> cTele, ExprTycker tycker) {
     return MutableSeq.from(cTele.view().map(p -> {
       var pTy = tycker.ty(p.typeExpr());
       tycker.localCtx().put(p.ref(), pTy);
-      return new FreeParam(p.ref(), pTy, p.explicit());
+      return new Param(p.ref().name(), pTy, p.explicit());
     }));
   }
 
@@ -60,11 +59,11 @@ public interface TeleTycker {
   /**
    * Replace {@link org.aya.syntax.core.term.FreeTerm} in {@param tele} with appropriate index
    */
-  static void bindTele(MutableSeq<FreeParam> tele) {
+  static void bindTele(ImmutableSeq<LocalVar> binds, MutableSeq<Param> tele) {
     final var lastIndex = tele.size() - 1;
     // fix some param, say [p]
     for (int i = lastIndex - 1; i >= 0; i--) {
-      var p = tele.get(i).ref();
+      var p = binds.get(i);
       // for any other param that is able to refer to [p]
       for (int j = i + 1; j < tele.size(); j++) {
         var og = tele.get(j);
@@ -79,12 +78,13 @@ public interface TeleTycker {
    * Load a well-typed {@link Signature} into {@link ExprTycker#localCtx()}
    */
   @Contract(mutates = "param2")
-  static void loadTele(Signature<?> signature, ExprTycker tycker) {
-    var names = MutableList.<LocalVar>create();
-    signature.param().forEach(param -> {
-      var name = param.data().ref();
-      tycker.localCtx().put(name, param.data().type());
-      names.append(name);
+  static void loadTele(@NotNull ImmutableSeq<LocalVar> binds, @NotNull Signature<?> signature, @NotNull ExprTycker tycker) {
+    assert binds.sizeEquals(signature.param());
+
+    binds.view().zip(signature.param()).forEach(pair -> {
+      var ref = pair.component1();
+      var param = pair.component2();
+      tycker.localCtx().put(ref, param.data().type());
     });
   }
 }
