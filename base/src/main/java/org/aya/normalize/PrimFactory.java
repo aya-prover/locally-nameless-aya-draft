@@ -18,7 +18,6 @@ import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
 import org.aya.util.ForLSP;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumMap;
@@ -56,7 +55,7 @@ public final class PrimFactory {
     }
   }
 
-  final @NotNull PrimSeed coe = new PrimSeed(ID.COE, (prim, state) -> {
+  final @NotNull PrimSeed coe = new PrimSeed(ID.COE, (prim, _) -> {
     var args = prim.args();
     return new CoeTerm(args.get(2), args.get(0), args.get(1));
   }, ref -> {
@@ -69,7 +68,7 @@ public final class PrimFactory {
     return new PrimDef(ref, ImmutableSeq.of(r, s, paramA), result, ID.COE);
   }, ImmutableSeq.of(ID.I));
 
-  final @NotNull PrimSeed pathType = new PrimSeed(ID.PATH, (prim, state) -> {
+  final @NotNull PrimSeed pathType = new PrimSeed(ID.PATH, (prim, _) -> {
     var args = prim.args();
     return new EqTerm(args.get(0), args.get(1), args.get(2));
   }, ref -> {
@@ -86,22 +85,6 @@ public final class PrimFactory {
       ref -> new PrimDef(ref, Type0, ID.STRING), ImmutableSeq.empty());
 
   /*
-  public final @NotNull PrimSeed partialType =
-    new PrimSeed(ID.PARTIAL,
-      (prim, state) -> {
-        var iExp = prim.args().get(0);
-        var ty = prim.args().get(1);
-
-        return new PartialTyTerm(ty, AyaRestrSimplifier.INSTANCE.isOne(iExp));
-      },
-      ref -> new PrimDef(
-        ref,
-        ImmutableSeq.of(
-          IntervalTerm.param("phi"),
-          new Term.Param(new LocalVar("A"), Type0, true)
-        ),
-        SortTerm.Set0, ID.PARTIAL),
-      ImmutableSeq.of(ID.I));
   private final @NotNull PrimSeed hcomp = new PrimSeed(ID.HCOMP, this::hcomp, ref -> {
     var varA = new LocalVar("A");
     var paramA = new Term.Param(varA, Type0, false);
@@ -158,7 +141,7 @@ public final class PrimFactory {
   private @NotNull PrimCall primCall(@NotNull PrimCall prim, @NotNull TyckState tyckState) {return prim;}
 
   public final @NotNull PrimSeed intervalType = new PrimSeed(ID.I,
-    ((prim, state) -> DimTyTerm.INSTANCE),
+    ((_, _) -> DimTyTerm.INSTANCE),
     ref -> new PrimDef(ref, SortTerm.ISet, ID.I),
     ImmutableSeq.empty());
 

@@ -10,10 +10,7 @@ import org.aya.generic.NameGenerator;
 import org.aya.generic.ParamLike;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.CtorDef;
-import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.Def;
-import org.aya.syntax.core.def.FnDef;
+import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
@@ -292,6 +289,7 @@ public class CorePrettier extends BasePrettier<Term> {
 
   public @NotNull Doc def(@NotNull Def predef) {
     return switch (predef) {
+      case PrimDef def -> primDoc(def.ref());
       case FnDef def -> {
         var line1 = MutableList.of(Doc.styled(KEYWORD, "def"));
         def.modifiers.forEach(m -> line1.append(Doc.styled(KEYWORD, m.keyword)));
