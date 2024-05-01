@@ -9,6 +9,7 @@ import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.CtorDef;
+import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.PosedUnaryOperator;
@@ -84,8 +85,8 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
     if (myMaybe instanceof DefVar<?, ?> def && (
       def.core instanceof CtorDef
         || def.concrete instanceof TeleDecl.DataCtor
-      // || def.core instanceof PrimDef
-      // || def.concrete instanceof TeleDecl.PrimDecl
+        || def.core instanceof PrimDef
+        || def.concrete instanceof TeleDecl.PrimDecl
     )) return def;
 
     return null;
