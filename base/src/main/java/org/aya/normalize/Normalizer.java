@@ -6,11 +6,13 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.ImmutableSet;
 import kala.control.Option;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
-import org.aya.syntax.core.pat.PatToTerm;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -35,7 +37,11 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     return switch (postTerm) {
       case StableWHNF whnf -> whnf;
       case AppTerm app -> {
-        var result = AppTerm.make(app);
+        var result = app.make();
+        yield result == app ? result : whnf(result);
+      }
+      case PAppTerm app -> {
+        var result = app.make();
         yield result == app ? result : whnf(result);
       }
       case ProjTerm proj -> {
@@ -43,6 +49,9 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         yield result == proj ? result : whnf(result);
       }
       case FnCall(var ref, int ulift, var args) when ref.core != null -> {
+        throw new UnsupportedOperationException("TODO: implement");
+      }
+      case PrimCall(var ref, _, int ulift, ImmutableSeq<Term> args) -> {
         throw new UnsupportedOperationException("TODO: implement");
       }
       case MetaPatTerm(Pat.Meta meta) -> {

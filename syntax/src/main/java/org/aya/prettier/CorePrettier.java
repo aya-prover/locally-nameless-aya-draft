@@ -15,10 +15,7 @@ import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
-import org.aya.syntax.core.term.xtt.CoeTerm;
-import org.aya.syntax.core.term.xtt.DimTerm;
-import org.aya.syntax.core.term.xtt.DimTyTerm;
-import org.aya.syntax.core.term.xtt.EqTerm;
+import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
@@ -207,14 +204,8 @@ public class CorePrettier extends BasePrettier<Term> {
       //   );
       // }
       // case StringTerm(var str) -> Doc.plain("\"" + StringUtil.escapeStringCharacters(str) + "\"");
-      // case PLamTerm(var params, var body) -> checkParen(outer,
-      //   Doc.sep(Doc.styled(KEYWORD, "\\"),
-      //     Doc.sep(params.map(BasePrettier::varDoc)),
-      //     Doc.symbol("=>"),
-      //     body.toDoc(options)),
-      //   Outer.BinOp);
-      // case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.of()),
-      //   app.args().view(), outer, options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs));
+      case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.fun()),
+        SeqView.of(new Arg<>(app.arg(), true)), outer, optionImplicit());
       case CoeTerm(var ty, var r, var s) -> visitCalls(null,
         Doc.styled(KEYWORD, "coe"),
         ImmutableSeq.of(r, s, ty).view().map(t -> new Arg<>(t, true)),

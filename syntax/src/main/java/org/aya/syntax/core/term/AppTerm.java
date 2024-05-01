@@ -20,13 +20,13 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
   }
 
   public static @NotNull Term make(@NotNull Term f, @NotNull Term a) {
-    return make(new AppTerm(f, a));
+    return new AppTerm(f, a).make();
   }
 
-  public static @NotNull Term make(@NotNull AppTerm material) {
-    return switch (material.fun) {
-      case LamTerm(var body) -> body.instantiate(material.arg);
-      default -> material;
+  public @NotNull Term make() {
+    return switch (fun) {
+      case LamTerm(var body) -> body.instantiate(arg);
+      default -> this;
     };
   }
 

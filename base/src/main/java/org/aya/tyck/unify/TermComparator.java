@@ -10,10 +10,7 @@ import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.Callable;
-import org.aya.syntax.core.term.call.ConCallLike;
-import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DefVar;
@@ -79,7 +76,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
    * Check whether {@param term} is a call, so that we can compare its arguments first.
    */
   private static boolean isCall(@NotNull Term term) {
-    return term instanceof FnCall || term instanceof ConCallLike;     // TODO: PrimCall
+    return term instanceof FnCall || term instanceof ConCallLike || term instanceof PrimCall;
   }
 
   /// endregion Utilities

@@ -337,27 +337,16 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return style != null ? linkDef(ref, style) : varDoc(ref);
   }
 
-  /*public static <T extends Restr.TermLike<T> & AyaDocile> @NotNull Doc
-  partial(@NotNull PrettierOptions options, @NotNull Partial<T> partial, boolean showEmpty, @NotNull Doc lb, @NotNull Doc rb) {
-    return switch (partial) {
-      case Partial.Const(var sad) -> Doc.sepNonEmpty(lb, sad.toDoc(options), rb);
-      case Partial.Split<T> hap when !showEmpty && hap.clauses().isEmpty() -> Doc.empty();
-      case Partial.Split<T> hap -> Doc.sepNonEmpty(lb,
-        Doc.join(Doc.spaced(Doc.symbol("|")), hap.clauses().map(s -> side(options, s))),
-        rb);
-    };
-  }*/
-
   protected static @Nullable Style chooseStyle(Object concrete) {
     return switch (concrete) {
       case DefVar<?, ?> d -> chooseStyle(d.concrete);
       case TeleDecl.FnDecl d -> FN;
       case TeleDecl.DataDecl d -> DATA;
       case TeleDecl.DataCtor d -> CON;
+      case TeleDecl.PrimDecl d -> PRIM;
 /*
       case ClassDecl d -> CLAZZ;
       case TeleDecl.ClassMember d -> MEMBER;
-      case TeleDecl.PrimDecl d -> PRIM;
 */
       case null, default -> null;
     };
