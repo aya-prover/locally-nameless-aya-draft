@@ -9,7 +9,7 @@ java = "21"
 
 # https://github.com/JetBrains/java-annotations
 annotations = "24.1.0"
-kala = "0.70.0"
+kala = "0.71.0"
 picocli = "4.7.5"
 build-util = "0.0.22"
 # https://github.com/graalvm/native-build-tools
