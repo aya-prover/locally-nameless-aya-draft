@@ -138,17 +138,8 @@ public class PatternTycker implements Problematic {
 
         yield new Pat.Ctor(realCtor.conHead.ref(), patterns/*, typeRecog, dataCall*/);
       }
-      case Pattern.Bind(var bind, var tyExpr, var tyRef) -> {
+      case Pattern.Bind(var bind, var tyRef) -> {
         exprTycker.localCtx().put(bind, type);
-        // In case of errors, never touch anything related to Term
-        //  because there will be ill-scoped terms and they trigger internal errors (e.g. #1016)
-        if (tyExpr != null && !hasError) exprTycker.subscoped(() -> {
-          // TODO: uncomment
-          // exprTycker.definitionEqualities.addDirectly(bodySubst);
-          // var syn = exprTycker.synthesize(tyExpr);
-          // exprTycker.unifyTyReported(term, syn.wellTyped(), tyExpr);
-          return null;
-        });
         tyRef.set(type);
         yield new Pat.Bind(bind, type);
       }
@@ -214,7 +205,7 @@ public class PatternTycker implements Problematic {
           var lamParam, var lamBody
         ) && lamParam.explicit() == currentParam.explicit()) {
           body = lamBody;
-          var pattern = new Pattern.Bind(lamParam.ref(), lamParam.typeExpr(), MutableValue.create());
+          var pattern = new Pattern.Bind(lamParam.ref(), MutableValue.create());
           pat = new Arg<>(body.replace(pattern), currentParam.explicit());
         } else if (currentParam.explicit()) {
           // the body does not have pattern, too sad
