@@ -71,6 +71,7 @@ public final class PrimDef extends TopLevelDef<Term> {
     STRCONCAT("strcat"),
     I("I"),
     PARTIAL("Partial"),
+    PATH("Path"),
     COE("coe"),
     HCOMP("hcomp");
 
