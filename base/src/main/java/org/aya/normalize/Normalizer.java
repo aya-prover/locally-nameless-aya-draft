@@ -13,6 +13,7 @@ import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -32,10 +33,12 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
   }
 
   public @NotNull Term whnf(@NotNull Term term) {
+    if (term instanceof StableWHNF) return term;
+
     var postTerm = term.descent(this);
 
     return switch (postTerm) {
-      case StableWHNF whnf -> whnf;
+      case StableWHNF whnf -> Panic.unreachable();
       case AppTerm app -> {
         var result = app.make();
         yield result == app ? result : whnf(result);
