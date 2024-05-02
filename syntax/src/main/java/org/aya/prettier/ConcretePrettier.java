@@ -9,15 +9,17 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.range.primitive.IntRange;
-import org.aya.generic.Nested;
-import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.concrete.stmt.*;
-import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.generic.Constants;
 import org.aya.generic.Modifier;
+import org.aya.generic.Nested;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.concrete.Pattern;
+import org.aya.syntax.concrete.stmt.BindBlock;
+import org.aya.syntax.concrete.stmt.QualifiedID;
+import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
@@ -83,9 +85,9 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         Doc doc;
         var last = term(Outer.Codomain, expr.last().data());
         if (!visitor.paramRef && !visitor.unresolved) {
-          doc = Doc.sep(justType(expr.param(), Outer.Domain), Tokens.ARROW, last);
+          doc = Doc.sep(justType(expr.param(), Outer.Domain), ARROW, last);
         } else {
-          doc = Doc.sep(KW_PI, expr.param().toDoc(options), Tokens.ARROW, last);
+          doc = Doc.sep(KW_PI, expr.param().toDoc(options), ARROW, last);
         }
         // When outsider is neither a codomain nor non-expression, we need to add parentheses.
         yield checkParen(outer, doc, Outer.Domain);
@@ -111,12 +113,12 @@ public class ConcretePrettier extends BasePrettier<Expr> {
           telescope = exTele;
         }
 
-        var prelude = MutableList.of(Doc.styled(KEYWORD, Tokens.LAMBDA));
+        var prelude = MutableList.of(Doc.styled(KEYWORD, LAMBDA));
         var docTele = telescope.map(this::lambdaParam);
 
         prelude.appendAll(docTele);
         if (!(body instanceof Expr.Hole)) {
-          prelude.append(Tokens.FN_DEFINED_AS);
+          prelude.append(FN_DEFINED_AS);
           prelude.append(term(Outer.Free, body));
         }
         yield checkParen(outer, Doc.sep(prelude), Outer.BinOp);
@@ -124,8 +126,8 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       case Expr.Hole expr -> {
         if (!expr.explicit()) yield Doc.symbol(Constants.ANONYMOUS_PREFIX);
         var filling = expr.filling();
-        if (filling == null) yield Tokens.HOLE;
-        yield Doc.sep(Tokens.HOLE_LEFT, term(Outer.Free, filling.data()), Tokens.HOLE_RIGHT);
+        if (filling == null) yield HOLE;
+        yield Doc.sep(HOLE_LEFT, term(Outer.Free, filling.data()), HOLE_RIGHT);
       }
       case Expr.Proj expr -> Doc.cat(term(Outer.ProjHead, expr.tup().data()), PROJ,
         Doc.plain(expr.ix().fold(Objects::toString, QualifiedID::join)));
@@ -429,6 +431,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         */
         yield Doc.sep(BAR, doc);
       }
+      case TeleDecl.PrimDecl primDecl -> throw new UnsupportedOperationException("TODO");
     };
   }
 

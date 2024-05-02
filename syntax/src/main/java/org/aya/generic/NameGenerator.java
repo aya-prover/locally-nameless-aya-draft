@@ -8,10 +8,7 @@ import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.PrimCall;
-import org.aya.syntax.core.term.xtt.CoeTerm;
-import org.aya.syntax.core.term.xtt.DimTerm;
-import org.aya.syntax.core.term.xtt.DimTyTerm;
-import org.aya.syntax.core.term.xtt.EqTerm;
+import org.aya.syntax.core.term.xtt.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +48,7 @@ public class NameGenerator {
       case EqTerm _ -> "Eq";
       case CoeTerm _ -> "coe";
       case PrimCall prim -> prim.id().name();
+      case PAppTerm pAppTerm -> null;
     };
   }
 }
