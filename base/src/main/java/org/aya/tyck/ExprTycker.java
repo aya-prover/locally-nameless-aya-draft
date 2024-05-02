@@ -36,7 +36,6 @@ public final class ExprTycker extends AbstractExprTycker {
     return switch (expr.data()) {
       case Expr.Lambda(var param, var body) -> switch (type) {
         case PiTerm pi -> {
-          if (!param.explicit()) yield fail(expr.data(), pi, new LicitError.ImplicitLam(expr));
           // unifyTyReported(pi.param(), pi.param().type(), expr);
           var core = subscoped(() -> {
             var ref = param.ref();
@@ -46,7 +45,6 @@ public final class ExprTycker extends AbstractExprTycker {
           yield new Result.Default(new LamTerm(core.wellTyped()), pi);
         }
         case EqTerm eq -> {
-          if (!param.explicit()) yield fail(expr.data(), type, new LicitError.ImplicitLam(expr));
           var core = subscoped(() -> {
             localCtx().put(param.ref(), DimTyTerm.INSTANCE);
             var coreBody = inherit(body, eq.b()).bind(param.ref());
