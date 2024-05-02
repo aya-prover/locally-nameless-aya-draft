@@ -9,6 +9,7 @@ import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
+import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
@@ -35,14 +36,14 @@ public final class ExprTycker extends AbstractExprTycker {
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
     return switch (expr.data()) {
       case Expr.Lambda(var param, var body) -> switch (type) {
-        case PiTerm pi -> {
-          // unifyTyReported(pi.param(), pi.param().type(), expr);
+        case PiTerm(Term dom, Term cod) -> {
+          // unifyTyReported(param, dom, expr);
           var core = subscoped(() -> {
             var ref = param.ref();
-            localCtx().put(ref, pi.param());
-            return inherit(body, pi.substBody(new FreeTerm(ref))).bind(ref);
+            localCtx().put(ref, dom);
+            return inherit(body, cod.instantiate(new FreeTerm(ref))).bind(ref);
           });
-          yield new Result.Default(new LamTerm(core.wellTyped()), pi);
+          yield new Result.Default(new LamTerm(core.wellTyped()), type);
         }
         case EqTerm eq -> {
           var core = subscoped(() -> {
@@ -57,7 +58,7 @@ public final class ExprTycker extends AbstractExprTycker {
       };
       default -> {
         var syn = synthesize(expr);
-        // unifyTyReported(syn.type(), type, expr);
+        unifyTyReported(syn.type(), type, expr);
         yield syn;
       }
     };
@@ -218,9 +219,17 @@ public final class ExprTycker extends AbstractExprTycker {
   private Result generateApplication(@NotNull ImmutableSeq<Expr.NamedArg> args, Result start) throws NotPi {
     return args.foldLeftChecked(start, (acc, arg) -> {
       if (arg.name() != null || !arg.explicit()) reporter.report(new LicitError.BadNamedArg(arg));
-      var pi = ensurePi(acc.type());
-      var wellTy = inherit(arg.arg(), pi.param()).wellTyped();
-      return new Result.Default(new AppTerm(acc.wellTyped(), wellTy), pi.substBody(wellTy));
+      switch (acc.type()) {
+        case PiTerm (var param, var body) -> {
+          var wellTy = inherit(arg.arg(), param).wellTyped();
+          return new Result.Default(AppTerm.make(acc.wellTyped(), wellTy), body.instantiate(wellTy));
+        }
+        case EqTerm(Term A, Term a, Term b) -> {
+          var wellTy = inherit(arg.arg(), DimTyTerm.INSTANCE).wellTyped();
+          return new Result.Default(new PAppTerm(acc.wellTyped(), wellTy, a, b).make(), A.instantiate(wellTy));
+        }
+        default -> throw new NotPi(acc.type());
+      }
     });
   }
 
@@ -232,8 +241,4 @@ public final class ExprTycker extends AbstractExprTycker {
     }
   }
 
-  private @NotNull PiTerm ensurePi(Term term) throws NotPi {
-    if (term instanceof PiTerm pi) return pi;
-    throw new NotPi(term);
-  }
 }

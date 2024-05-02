@@ -7,12 +7,7 @@ import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public record PAppTerm(
-  @NotNull Term fun,
-  @NotNull Term arg,
-  @NotNull Term a,
-  @NotNull Term b
-) implements Term {
+public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) implements Term {
   public @NotNull PAppTerm update(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) {
     if (this.fun == fun && this.arg == arg && this.a == a && this.b == b) return this;
     return new PAppTerm(fun, arg, a, b);

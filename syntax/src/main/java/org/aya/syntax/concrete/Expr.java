@@ -144,7 +144,7 @@ public sealed interface Expr extends AyaDocile {
     @Override @NotNull WithPos<Expr> body
   ) implements Expr, Nested<Param, Expr, Lambda> {
     public Lambda {
-      assert param.explicit;    // OMG, this is too dirty!!!!!!!!!!!!!!!!!!!!!
+      assert param.explicit;
     }
 
     public @NotNull LocalVar ref() {

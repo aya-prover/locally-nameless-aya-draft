@@ -89,7 +89,7 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
   // public static Term makeIntervals(Seq<LocalVar> list, Term type) {
   //   return make(list.view().map(IntervalTerm::param), type);
   // }
-  //
+
   // public @NotNull LamTerm coe(@NotNull CoeTerm coe, @NotNull LamTerm.Param varI) {
   //   var M = new LamTerm.Param(new LocalVar("f"), true);
   //   var a = new LamTerm.Param(new LocalVar("a"), param.explicit());
@@ -100,6 +100,8 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
   //       new Arg<>(AppTerm.make(M.toTerm(), new Arg<>(arg, param.explicit())), true))));
   // }
 
+  /** Call body.inst(term) directly instead. */
+  @Deprecated(forRemoval = true)
   public @NotNull Term substBody(@NotNull Term term) {
     return body.instantiate(term);
   }
