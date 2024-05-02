@@ -115,7 +115,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
 
           result.needTyck.forEach(pair -> {
             var userType = exprTycker.synthesize(pair.component1()).wellTyped();
-            // TODO: unify userType and pair.component2
+            exprTycker.unifyTyReported(pair.component2(), userType, pair.component1());
           });
 
           wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped()

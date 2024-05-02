@@ -586,7 +586,10 @@ public record AyaProducer(
         var bodyHolePos = impliesToken == null ? pos : sourcePosOf(impliesToken);
         result = new WithPos<>(bodyHolePos, new Expr.Hole(false, null));
       } else result = expr(bodyExpr);
-      return Expr.buildLam(pos, lambdaTelescope(node.childrenOfType(LAMBDA_TELE).map(x -> x)).view(), result);
+      var tele = teleBinderUntyped(node.child(TELE_BINDER_UNTYPED)).view()
+        .map(LocalVar::from)
+        .map(v -> new Expr.Param(v.definition(), v, true));
+      return Expr.buildLam(pos, tele, result);
     }
     // if (node.is(PARTIAL_ATOM)) return partial(node, pos);
     // if (node.is(PATH_EXPR)) {

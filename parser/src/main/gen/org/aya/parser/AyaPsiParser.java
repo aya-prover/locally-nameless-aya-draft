@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 
 // This is a generated file. Not intended for manual editing.
@@ -2486,31 +2486,16 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
     return r;
   }
 
-  // KW_LAMBDA lambdaTele+ (IMPLIES expr)?
+  // KW_LAMBDA teleBinderUntyped (IMPLIES expr)?
   public static boolean lambdaExpr(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "lambdaExpr")) return false;
     if (!nextTokenIsSmart(b, KW_LAMBDA)) return false;
     boolean r;
     Marker m = enter_section_(b);
     r = consumeTokenSmart(b, KW_LAMBDA);
-    r = r && lambdaExpr_1(b, l + 1);
+    r = r && teleBinderUntyped(b, l + 1);
     r = r && lambdaExpr_2(b, l + 1);
     exit_section_(b, m, LAMBDA_EXPR, r);
-    return r;
-  }
-
-  // lambdaTele+
-  private static boolean lambdaExpr_1(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "lambdaExpr_1")) return false;
-    boolean r;
-    Marker m = enter_section_(b);
-    r = lambdaTele(b, l + 1);
-    while (r) {
-      int c = current_position_(b);
-      if (!lambdaTele(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "lambdaExpr_1", c)) break;
-    }
-    exit_section_(b, m, null, r);
     return r;
   }
 

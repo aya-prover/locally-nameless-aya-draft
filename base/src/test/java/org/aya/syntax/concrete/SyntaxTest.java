@@ -3,7 +3,6 @@
 package org.aya.syntax.concrete;
 
 import org.aya.syntax.SyntaxTestUtil;
-import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
@@ -12,9 +11,9 @@ public class SyntaxTest {
     @Language("Aya")
     var code = """
       def foo (f : Type -> Type 0) (a : Type 0) : Type 0 => f a
+      def bar (A : Type 0) : A -> A => fn x => x
       """;
 
-    var decl = (Decl) SyntaxTestUtil.parse(code).getFirst();
-    SyntaxTestUtil.resolve(decl);
+    SyntaxTestUtil.parse(code);
   }
 }
