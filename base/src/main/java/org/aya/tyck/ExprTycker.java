@@ -17,14 +17,18 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.LicitError;
 import org.aya.tyck.error.NoRuleError;
+import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
+import org.aya.tyck.tycker.Unifiable;
+import org.aya.tyck.unify.TermComparator;
+import org.aya.util.Ordering;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public final class ExprTycker extends UnifyTycker {
+public final class ExprTycker extends AbstractTycker implements Unifiable {
   public ExprTycker(
     @NotNull TyckState state,
     @NotNull LocalCtx ctx,
@@ -232,6 +236,11 @@ public final class ExprTycker extends UnifyTycker {
         default -> throw new NotPi(acc.type());
       }
     });
+  }
+
+  @Override
+  public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
+    throw new UnsupportedOperationException("TODO");
   }
 
   protected static final class NotPi extends Exception {

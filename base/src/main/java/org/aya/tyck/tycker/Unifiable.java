@@ -1,43 +1,30 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.tyck;
+package org.aya.tyck.tycker;
 
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.error.UnifyError;
 import org.aya.tyck.error.UnifyInfo;
-import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.unify.TermComparator;
 import org.aya.util.Ordering;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Problem;
-import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-/**
- * Type checker base class with the ability to unify types.
- */
-public sealed abstract class UnifyTycker extends AbstractTycker permits ExprTycker {
-  protected UnifyTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
-    super(state, ctx, reporter);
-  }
-
-  public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
-    // TODO
-    throw new UnsupportedOperationException("TODO");
-  }
+public interface Unifiable extends Problematic, StateBased {
+  @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order);
 
   /**
    * Check whether {@param lower} is a subtype of {@param upper}
    *
    * @return failure data, null if success
    */
-  public final @Nullable TermComparator.FailureData unifyTy(
+  default @Nullable TermComparator.FailureData unifyTy(
     @NotNull Term upper,
     @NotNull Term lower,
     @NotNull SourcePos pos
@@ -50,9 +37,9 @@ public sealed abstract class UnifyTycker extends AbstractTycker permits ExprTyck
 
   /**
    * @param pc a problem constructor
-   * @see UnifyTycker#unifyTy(Term, Term, SourcePos)
+   * @see Unifiable#unifyTy(Term, Term, SourcePos)
    */
-  public final boolean unifyTyReported(
+  default boolean unifyTyReported(
     @NotNull Term upper,
     @NotNull Term lower,
     @NotNull SourcePos pos,
@@ -61,18 +48,18 @@ public sealed abstract class UnifyTycker extends AbstractTycker permits ExprTyck
     var result = unifyTy(upper, lower, pos);
     if (result != null) {
       // TODO: Ice Spell 「 Perfect Freeze 」 on [lower] and [upper]
-      reporter.report(pc.apply(new UnifyInfo.Comparison(lower, upper, result)));
+      reporter().report(pc.apply(new UnifyInfo.Comparison(lower, upper, result)));
     }
 
     return result == null;
   }
 
-  public final boolean unifyTyReported(
+  default boolean unifyTyReported(
     @NotNull Term upper,
     @NotNull Term lower,
     @NotNull WithPos<Expr> expr
   ) {
     return unifyTyReported(upper, lower, expr.sourcePos(),
-      cp -> new UnifyError.Type(expr.data(), expr.sourcePos(), cp, new UnifyInfo(state)));
+      cp -> new UnifyError.Type(expr.data(), expr.sourcePos(), cp, new UnifyInfo(state())));
   }
 }
