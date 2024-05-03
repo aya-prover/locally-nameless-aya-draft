@@ -19,8 +19,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public sealed abstract class AbstractExprTycker extends AbstractTycker permits ExprTycker {
-  protected AbstractExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
+/**
+ * Type checker base class with the ability to unify types.
+ */
+public sealed abstract class UnifyTycker extends AbstractTycker permits ExprTycker {
+  protected UnifyTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
     super(state, ctx, reporter);
   }
 
@@ -47,7 +50,7 @@ public sealed abstract class AbstractExprTycker extends AbstractTycker permits E
 
   /**
    * @param pc a problem constructor
-   * @see AbstractExprTycker#unifyTy(Term, Term, SourcePos)
+   * @see UnifyTycker#unifyTy(Term, Term, SourcePos)
    */
   public final boolean unifyTyReported(
     @NotNull Term upper,

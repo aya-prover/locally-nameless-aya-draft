@@ -24,7 +24,7 @@ import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public final class ExprTycker extends AbstractExprTycker {
+public final class ExprTycker extends UnifyTycker {
   public ExprTycker(
     @NotNull TyckState state,
     @NotNull LocalCtx ctx,
