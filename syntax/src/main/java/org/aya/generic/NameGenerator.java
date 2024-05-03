@@ -4,10 +4,7 @@ package org.aya.generic;
 
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.ConCallLike;
-import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.core.term.call.FnCall;
-import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.xtt.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,16 +36,16 @@ public class NameGenerator {
         if (solution == null) yield nextName(null);
         yield nameOf(PatToTerm.visit(solution));
       }
-      case DataCall data -> data.ref().name();
+      case Callable data -> data.ref().name();
       case PiTerm _ -> "Pi";
       case SigmaTerm _ -> "Sigma";
       case DimTyTerm _ -> "Dim";
-      case DimTerm _, ErrorTerm _, LamTerm _, SortTerm _, TupTerm _, ConCallLike _, FnCall _, ProjTerm _,
-           LocalTerm _, AppTerm _ -> null;
+      case ProjTerm p -> nameOf(p.of());
+      case AppTerm a -> nameOf(a.fun());
+      case PAppTerm a -> nameOf(a.fun());
+      case DimTerm _, ErrorTerm _, LamTerm _, SortTerm _, TupTerm _, LocalTerm _ -> null;
       case EqTerm _ -> "Eq";
       case CoeTerm _ -> "coe";
-      case PrimCall prim -> prim.id().name();
-      case PAppTerm pAppTerm -> null;
     };
   }
 }
