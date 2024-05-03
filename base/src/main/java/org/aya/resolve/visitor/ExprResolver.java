@@ -132,8 +132,8 @@ public record ExprResolver(
 //      }));
       case Expr.Lambda lam -> {
         var mCtx = MutableValue.create(ctx);
-        var param = bind(lam.param(), mCtx);
-        yield lam.update(param, lam.body().descent(enter(mCtx.get())));
+        mCtx.update(ctx -> bindAs(lam.ref(), ctx));
+        yield lam.update(lam.body().descent(enter(mCtx.get())));
       }
       case Expr.Pi pi -> {
         var mCtx = MutableValue.create(ctx);

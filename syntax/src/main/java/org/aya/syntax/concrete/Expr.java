@@ -140,23 +140,27 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record Lambda(
-    @NotNull Param param,
+    @NotNull LocalVar ref,
     @Override @NotNull WithPos<Expr> body
   ) implements Expr, Nested<Param, Expr, Lambda> {
-    public Lambda {
+    // compatibility shit!
+    public Lambda(@NotNull Param param, @NotNull WithPos<Expr> body) {
+      this(param.ref, body);
       assert param.explicit;
+      assert param.type() instanceof Expr.Hole;
     }
 
-    public @NotNull LocalVar ref() {
-      return param.ref();
+    @Override
+    public @NotNull Param param() {
+      return new Param(ref.definition(), ref, true);
     }
 
-    public @NotNull Lambda update(@NotNull Param param, @NotNull WithPos<Expr> body) {
-      return param == param() && body == body() ? this : new Lambda(param, body);
+    public @NotNull Lambda update(@NotNull WithPos<Expr> body) {
+      return body == body() ? this : new Lambda(ref, body);
     }
 
     @Override public @NotNull Lambda descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return update(param.descent(f), body.descent(f));
+      return update(body.descent(f));
     }
   }
 

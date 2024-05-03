@@ -35,11 +35,10 @@ public final class ExprTycker extends UnifyTycker {
 
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
     return switch (expr.data()) {
-      case Expr.Lambda(var param, var body) -> switch (type) {
+      case Expr.Lambda(var ref, var body) -> switch (type) {
         case PiTerm(Term dom, Term cod) -> {
           // unifyTyReported(param, dom, expr);
           var core = subscoped(() -> {
-            var ref = param.ref();
             localCtx().put(ref, dom);
             return inherit(body, cod.instantiate(new FreeTerm(ref))).bind(ref);
           });
@@ -47,8 +46,8 @@ public final class ExprTycker extends UnifyTycker {
         }
         case EqTerm eq -> {
           var core = subscoped(() -> {
-            localCtx().put(param.ref(), DimTyTerm.INSTANCE);
-            var coreBody = inherit(body, eq.b()).bind(param.ref());
+            localCtx().put(ref, DimTyTerm.INSTANCE);
+            var coreBody = inherit(body, eq.b()).bind(ref);
             // TODO: check boundaries
             return coreBody.wellTyped();
           });
@@ -113,15 +112,17 @@ public final class ExprTycker extends UnifyTycker {
         yield checkApplication(ref, expr.sourcePos(), a);
       }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
-      case Expr.Lambda(var param, var body) -> {
-        var paramResult = ty(param.typeExpr());
-        yield subscoped(() -> {
-          localCtx().put(param.ref(), paramResult);
-          var bodyResult = synthesize(body).bind(param.ref());
-          var lamTerm = new LamTerm(bodyResult.wellTyped());
-          var ty = new PiTerm(paramResult, bodyResult.type());
-          return new Result.Default(lamTerm, ty);
-        });
+      case Expr.Lambda(var ref, var body) -> {
+        // TODO: tyck untyped lambda
+        throw new UnsupportedOperationException("TODO");
+        // var paramResult = ty(ref);
+        // yield subscoped(() -> {
+        //   localCtx().put(ref.ref(), paramResult);
+        //   var bodyResult = synthesize(body).bind(ref.ref());
+        //   var lamTerm = new LamTerm(bodyResult.wellTyped());
+        //   var ty = new PiTerm(paramResult, bodyResult.type());
+        //   return new Result.Default(lamTerm, ty);
+        // });
       }
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");

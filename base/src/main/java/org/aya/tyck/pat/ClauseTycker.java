@@ -5,10 +5,8 @@ package org.aya.tyck.pat;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import kala.tuple.Tuple;
-import kala.tuple.Tuple2;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
@@ -35,7 +33,6 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableSeq<Term> paramSubst,
     @NotNull ImmutableMap<LocalVar, Term> asSubst,
     @NotNull Pat.Preclause<Expr> clause,
-    @NotNull ImmutableSeq<Tuple2<WithPos<Expr>, Term>> needTyck,
     boolean hasError
   ) {}
 
@@ -45,7 +42,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   }
 
   private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope, @NotNull Term result) {
-    return new PatternTycker(exprTycker, reporter(), telescope, result, MutableMap.create(), MutableList.create());
+    return new PatternTycker(exprTycker, reporter(), telescope, result, MutableMap.create());
   }
 
   private @NotNull LhsResult checkLhs(
@@ -75,7 +72,6 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
           clause.sourcePos,
           patResult.wellTyped(),
           patResult.newBody() == null ? null : patResult.newBody()),
-        patResult.needTyck(),
         patResult.hasError()
       );
     });
@@ -112,11 +108,6 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
             .zip(result.paramSubst, Tuple::of));
           // there is no intersection
           allSubst.putAll(result.asSubst);
-
-          result.needTyck.forEach(pair -> {
-            var userType = exprTycker.synthesize(pair.component1()).wellTyped();
-            exprTycker.unifyTyReported(pair.component2(), userType, pair.component1());
-          });
 
           wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped()
             .subst(allSubst);
@@ -180,9 +171,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     // so that {MetaPatTerm}s can be inlined safely
     var paramSubst = result.paramSubst().map(ClauseTycker::inlineTerm);
     var asSubst = ImmutableMap.from(result.asSubst().view().mapValues((_, t) -> inlineTerm(t)));
-    var needTyck = result.needTyck().map(x -> Tuple.of(x.component1(), inlineTerm(x.component2())));
     var resultTerm = inlineTerm(result.result());
 
-    return new PatternTycker.TyckResult(wellTyped, paramSubst, resultTerm, asSubst, result.newBody(), needTyck, result.hasError());
+    return new PatternTycker.TyckResult(wellTyped, paramSubst, resultTerm, asSubst, result.newBody(), result.hasError());
   }
 }

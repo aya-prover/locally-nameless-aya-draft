@@ -8,8 +8,6 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import kala.control.Result;
-import kala.tuple.Tuple;
-import kala.tuple.Tuple2;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.generic.SortKind;
@@ -17,7 +15,6 @@ import org.aya.normalize.Normalizer;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.CtorDef;
-import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
@@ -65,12 +62,6 @@ public class PatternTycker implements Problematic {
    */
   private final @NotNull MutableMap<LocalVar, Term> asSubst;
 
-  /**
-   * exprs that need to be tyck while {@link ClauseTycker#checkRhs(Signature, ClauseTycker.LhsResult)}.
-   * {@link PatternTycker#tyck(SeqView, WithPos, WithPos)} may fill this list if the third argument is not null
-   */
-  private final @NotNull MutableList<Tuple2<WithPos<Expr>, Term>> needTyck;
-
   private @UnknownNullability Param currentParam = null;
   private boolean hasError = false;
 
@@ -79,14 +70,12 @@ public class PatternTycker implements Problematic {
     @NotNull Reporter reporter,
     @NotNull SeqView<Param> telescope,
     @NotNull Term result,
-    @NotNull MutableMap<LocalVar, Term> asSubst,
-    @NotNull MutableList<Tuple2<WithPos<Expr>, Term>> needTyck
+    @NotNull MutableMap<LocalVar, Term> asSubst
   ) {
     this.exprTycker = exprTycker;
     this.reporter = reporter;
     this.telescope = telescope;
     this.result = result;
-    this.needTyck = needTyck;
     this.paramSubst = MutableList.create();
     this.asSubst = asSubst;
   }
@@ -97,7 +86,6 @@ public class PatternTycker implements Problematic {
     @NotNull Term result,
     @NotNull ImmutableMap<LocalVar, Term> asSubst,
     @Nullable WithPos<Expr> newBody,
-    @NotNull ImmutableSeq<Tuple2<WithPos<Expr>, Term>> needTyck,
     boolean hasError
   ) {
   }
@@ -255,8 +243,6 @@ public class PatternTycker implements Problematic {
     while (currentParam != null && body.data() instanceof Expr.Lambda lam) {
       // good, we can use the parameter of [lam] as pattern
       var pat = new Pattern.Bind(lam.param().ref());
-      // user may provides some type, we need to check it later!
-      needTyck.append(Tuple.of(lam.param().typeExpr(), currentParam.type()));
       wellTyped.append(tyckPattern(body.replace(pat)));
 
       // update state
@@ -372,7 +358,7 @@ public class PatternTycker implements Problematic {
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @NotNull WithPos<Pattern> outerPattern
   ) {
-    var sub = new PatternTycker(exprTycker, reporter, telescope, result, asSubst, MutableList.create());
+    var sub = new PatternTycker(exprTycker, reporter, telescope, result, asSubst);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 
     hasError = hasError || sub.hasError;
@@ -397,7 +383,6 @@ public class PatternTycker implements Problematic {
       result.instantiateTele(paramSubst.view()),
       ImmutableMap.from(this.asSubst),
       newBody,
-      needTyck.toImmutableSeq(),
       hasError
     );
   }
