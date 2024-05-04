@@ -2,18 +2,23 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.ref;
 
+import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableArrayList;
+import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
-
-public record LocalCtx(@NotNull MutableMap<LocalVar, Term> binds, @Nullable LocalCtx parent) {
+public record LocalCtx(
+  @NotNull MutableMap<LocalVar, Term> binds,
+  @NotNull MutableList<LocalVar> vars,
+  @Nullable LocalCtx parent
+) {
   public LocalCtx() {
-    this(MutableMap.create(), null);
+    this(MutableMap.create(), MutableList.create(), null);
   }
 
   public boolean isEmpty() {
@@ -22,20 +27,21 @@ public record LocalCtx(@NotNull MutableMap<LocalVar, Term> binds, @Nullable Loca
 
   @Contract("-> new")
   public @NotNull LocalCtx derive() {
-    return new LocalCtx(MutableMap.create(), this);
+    return new LocalCtx(MutableMap.create(), MutableList.create(), this);
+  }
+
+  public int size() {
+    return binds.size() + (parent == null ? 0 : parent.size());
   }
 
   public @NotNull Term get(@NotNull LocalVar name) {
     var ctx = this;
-    Term result;
-
     while (ctx != null) {
-      result = ctx.getLocal(name);
+      var result = ctx.getLocal(name);
       if (result != null) return result;
       ctx = ctx.parent;
     }
-
-    throw new UnsupportedOperationException("?");
+    throw new UnsupportedOperationException("¿");
   }
 
   public @Nullable Term getLocal(@NotNull LocalVar name) {
@@ -44,6 +50,12 @@ public record LocalCtx(@NotNull MutableMap<LocalVar, Term> binds, @Nullable Loca
 
   public void put(@NotNull LocalVar name, @NotNull Term type) {
     binds.put(name, type);
+    vars.append(name);
+  }
+
+  public SeqView<LocalVar> extract() {
+    SeqView<LocalVar> parentView = parent == null ? SeqView.empty() : parent.extract();
+    return parentView.concat(vars);
   }
 
   // @Contract(mutates = "this")
