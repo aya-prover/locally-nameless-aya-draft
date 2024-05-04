@@ -60,9 +60,8 @@ public final class DefVar<Core extends Def, Concrete extends Decl> implements An
     return new DefVar<>(null, null, name);
   }
 
-  @Override public boolean equals(Object o) {
-    return this == o;
-  }
+  @Override public boolean equals(@Nullable Object o) {return this == o;}
+  @Override public int hashCode() {return System.identityHashCode(this);}
 
   public boolean isInModule(@NotNull ModulePath moduleName) {
     return module != null && module.isInModule(moduleName);

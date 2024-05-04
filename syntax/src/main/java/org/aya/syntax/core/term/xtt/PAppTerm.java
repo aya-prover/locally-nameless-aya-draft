@@ -14,7 +14,12 @@ public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @N
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(fun.descent(f), arg.descent(f), a.descent(f), b.descent(f));
+    return update(
+      f.apply(0, fun),
+      f.apply(0, arg),
+      f.apply(0, a),
+      f.apply(0, b)
+    );
   }
 
   public @NotNull Term make() {

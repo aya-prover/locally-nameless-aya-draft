@@ -24,7 +24,7 @@ public record DataCall(
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(args.map(arg -> f.apply(0, arg)));
+    return update(Callable.descent(args, f));
   }
 
   @Override public @NotNull Tele elevate(int level) {

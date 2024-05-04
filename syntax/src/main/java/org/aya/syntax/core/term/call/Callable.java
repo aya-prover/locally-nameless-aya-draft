@@ -3,6 +3,7 @@
 package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.function.IndexedFunction;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.TeleDef;
@@ -16,9 +17,14 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  * @see AppTerm#make(AppTerm)
  */
-public sealed interface Callable extends Term permits Callable.Common {
+public sealed interface Callable extends Term permits Callable.Common, MetaCall {
   @NotNull AnyVar ref();
   @NotNull ImmutableSeq<@NotNull Term> args();
+
+  static @NotNull ImmutableSeq<Term> descent(ImmutableSeq<Term> args, IndexedFunction<Term, Term> f) {
+    return args.map(arg -> f.apply(0, arg));
+  }
+
   /**
    * Call to a {@link TeleDecl}.
    */

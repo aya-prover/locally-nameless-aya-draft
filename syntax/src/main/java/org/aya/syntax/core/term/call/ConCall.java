@@ -22,7 +22,7 @@ public record ConCall(
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(head.descent(x -> f.apply(0, x)), conArgs.map(x -> f.apply(0, x)));
+    return update(head.descent(f), Callable.descent(conArgs, f));
   }
 
   public ConCall(

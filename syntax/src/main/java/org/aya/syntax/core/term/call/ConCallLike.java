@@ -3,6 +3,7 @@
 package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.function.IndexedFunction;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.DataDef;
@@ -37,8 +38,8 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall {
       return new DataCall(dataRef, ulift, dataArgs);
     }
 
-    public @NotNull Head descent(@NotNull UnaryOperator<@NotNull Term> f) {
-      var args = dataArgs.map(f);
+    public @NotNull Head descent(@NotNull IndexedFunction<Term, Term> f) {
+      var args = Callable.descent(dataArgs, f);
       if (args.sameElements(dataArgs, true)) return this;
       return new Head(dataRef, ref, ulift, args);
     }
@@ -47,20 +48,17 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall {
   @NotNull ConCallLike.Head head();
   @NotNull ImmutableSeq<Term> conArgs();
 
-  @Override
-  default @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref() {
+  @Override default @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref() {
     return head().ref();
   }
 
-  @Override
-  default @NotNull ImmutableSeq<@NotNull Term> args() {
+  @Override default @NotNull ImmutableSeq<@NotNull Term> args() {
     return head().dataArgs().view()
       .concat(conArgs())
       .toImmutableSeq();
   }
 
-  @Override
-  default int ulift() {
+  @Override default int ulift() {
     return head().ulift();
   }
 }

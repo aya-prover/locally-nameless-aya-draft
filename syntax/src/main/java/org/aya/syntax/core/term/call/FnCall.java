@@ -8,7 +8,6 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 
 public record FnCall(
@@ -22,7 +21,7 @@ public record FnCall(
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(args.map(x -> f.apply(0, x)));
+    return update(Callable.descent(args, f));
   }
 
   @Override public @NotNull Tele elevate(int level) {
