@@ -155,7 +155,7 @@ public sealed interface Pat extends AyaDocile {
    *                 Note that the solution (and its sub pattern) never contains a {@link Pat.Bind}.
    * @param fakeBind is used when inline if there is no solution.
    *                 So don't add this to {@link LocalCtx} too early
-   *                 and remember to inline Meta in {@link ClauseTycker#checkLhs}
+   *                 and remember to inline Meta in <code>ClauseTycker.checkLhs</code>
    */
   record Meta(
     @NotNull MutableValue<Pat> solution,

@@ -37,6 +37,7 @@ public record FindUsage(@NotNull Ref ref, @NotNull Accumulator accumulator) {
     }
 
     // Z \oplus Z -> Z
+    // omg, this is Z_{Integer.MAX_VALUE * 2}
     public int homomorphism() {return metaUsage + termUsage;}
   }
 

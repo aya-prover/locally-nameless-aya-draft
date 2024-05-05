@@ -178,6 +178,7 @@ public class PatternTycker implements Problematic {
 
         typeRef.set(type);
         addAsSubst(as, innerPat);
+        exprTycker.localCtx().put(as, type);
 
         yield innerPat;
       }

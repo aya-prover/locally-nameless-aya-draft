@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.UnaryOperator;
+
 public record LocalCtx(
   @NotNull MutableMap<LocalVar, Term> binds,
   @NotNull MutableList<LocalVar> vars,
@@ -49,6 +51,14 @@ public record LocalCtx(
   public void put(@NotNull LocalVar name, @NotNull Term type) {
     binds.put(name, type);
     vars.append(name);
+  }
+
+  @Contract(value = "_ -> new", pure = true)
+  public @NotNull LocalCtx map(UnaryOperator<Term> mapper) {
+    var newBinds = this.binds.view()
+      .mapValues((_, t) -> mapper.apply(t));
+
+    return new LocalCtx(MutableMap.from(newBinds), vars, parent == null ? null : parent.map(mapper));
   }
 
   public SeqView<LocalVar> extract() {

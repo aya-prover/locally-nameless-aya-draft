@@ -58,10 +58,12 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
 
       clause.hasError |= patResult.hasError();
       patResult = inline(patResult, ctx);
-
-      // TODO: inline types in localCtx
-
       clause.patterns.view().map(it -> it.term().data()).forEach(TermInPatInline::apply);
+
+      // It is safe to replace ctx:
+      // * telescope are well-typed and no Meta
+      // * PatternTycker doesn't introduce any Meta term
+      ctx = ctx.map(ClauseTycker::inlineTerm);
 
       return new LhsResult(
         ctx,
@@ -128,9 +130,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     public static @NotNull Term apply(@NotNull Term term) {
       if (term instanceof MetaPatTerm metaPatTerm) {
         var solution = metaPatTerm.meta().solution().get();
-        // TODO: What should we do if we are unable to inline a MetaPatTerm?
         if (solution == null) throw new Panic(STR."Unable to inline \{metaPatTerm.toDoc(AyaPrettierOptions.debug())}");
-        // the solution may contains other MetaPatTerm
+        // the solution may contain other MetaPatTerm
         return apply(PatToTerm.visit(solution));
       } else {
         return term.descent(TermInline::apply);
