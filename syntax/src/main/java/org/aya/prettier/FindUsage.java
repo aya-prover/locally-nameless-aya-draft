@@ -62,12 +62,15 @@ public record FindUsage(@NotNull Ref ref, @NotNull Accumulator accumulator) {
     return accumulator.homomorphism();
   }
 
-  public static final @NotNull BasePrettier.Usage<Term, LocalVar> Free = (t, l) ->
-    new FindUsage(new Ref.Free(l)).apply(0, t);
-  public static final @NotNull BasePrettier.Usage<Term, MetaVar> Meta = (t, l) ->
-    new FindUsage(new Ref.Meta(l)).apply(0, t);
-  public static final @NotNull BasePrettier.Usage<Term, Integer> Bound = (t, i) ->
-    new FindUsage(new Ref.Bound(i)).apply(0, t);
+  public static int free(Term t, LocalVar l) {
+    return new FindUsage(new Ref.Free(l)).apply(0, t);
+  }
+  public static int meta(Term t, MetaVar l) {
+    return new FindUsage(new Ref.Meta(l)).apply(0, t);
+  }
+  public static int bound(Term t, int i) {
+    return new FindUsage(new Ref.Bound(i)).apply(0, t);
+  }
   public static @NotNull Accumulator anyFree(Term t) {
     var findUsage = new FindUsage(Ref.AnyFree.INSTANCE);
     findUsage.find(0, t);

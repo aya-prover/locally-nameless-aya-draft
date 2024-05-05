@@ -63,7 +63,7 @@ public record TyckState(
       var v = activeMeta.data();
       if (solutions.containsKey(v)) {
         eqns.retainIf(eqn -> {
-          if (FindUsage.Meta.applyAsInt(eqn.lhs, v) + FindUsage.Meta.applyAsInt(eqn.rhs, v) > 0) {
+          if (FindUsage.meta(eqn.lhs, v) + FindUsage.meta(eqn.rhs, v) > 0) {
             solveEqn(reporter, eqn, true);
             return false;
           } else return true;

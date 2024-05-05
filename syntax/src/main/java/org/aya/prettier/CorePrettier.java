@@ -65,7 +65,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var last = params.getLast().instantiateTele(tele.view().map(p -> new FreeTerm(p.ref())));
         var doc = Doc.sep(
           Doc.styled(KEYWORD, Doc.symbol("Sig")),
-          visitTele(tele, last, FindUsage.Free),
+          visitTele(tele, last, FindUsage::free),
           Doc.symbol("**"),
           justType(Arg.ofExplicitly(last), Outer.Codomain)
         );
@@ -152,7 +152,7 @@ public class CorePrettier extends BasePrettier<Term> {
       //     .toImmutableSeq()));
       case PiTerm(var params0, var body0) -> {
         // Try to omit the Pi keyword
-        if (FindUsage.Bound.applyAsInt(body0, 0) == 0) yield checkParen(outer, Doc.sep(
+        if (FindUsage.bound(body0, 0) == 0) yield checkParen(outer, Doc.sep(
           justType(Arg.ofExplicitly(params0), Outer.BinOp),
           Tokens.ARROW,
           term(Outer.Codomain, body0)
@@ -162,7 +162,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var body = pair.component2().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));
         var doc = Doc.sep(
           Doc.styled(KEYWORD, Tokens.KW_PI),
-          visitTele(params, body, FindUsage.Free),
+          visitTele(params, body, FindUsage::free),
           Tokens.ARROW,
           term(Outer.Codomain, body)
         );
