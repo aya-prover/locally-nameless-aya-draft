@@ -105,7 +105,7 @@ public final class Unifier extends TermComparator {
     }
     if (findUsage.metaUsage > 0) {
       if (allowDelay) {
-        state.addEqn(createEqn(meta, candidate));
+        state.addEqn(createEqn(meta, rhs));
         return returnType;
       } else {
         fail(new HoleProblem.BadlyScopedError(meta, rhs, inverted));
