@@ -39,9 +39,6 @@ import java.util.function.UnaryOperator;
 public sealed interface Pat extends AyaDocile {
   @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp);
 
-  /**
-   * Puts bindings of this {@link Pat} to {@param ctx}
-   */
   void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer);
 
   default ImmutableSeq<Tuple2<LocalVar, Term>> collectBindings() {
@@ -70,6 +67,7 @@ public sealed interface Pat extends AyaDocile {
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     throw new UnsupportedOperationException("TODO");
   }
+
   record Bind(
     @NotNull LocalVar bind,
     @NotNull Term type
@@ -183,12 +181,6 @@ public sealed interface Pat extends AyaDocile {
       var solution = solution().get();
       if (solution == null) return aDefaults.get();
       return mapper.apply(solution);
-    }
-
-    public @NotNull Pat getOrElse(@NotNull Supplier<Pat> orElse) {
-      var solution = solution().get();
-      if (solution == null) return orElse.get();
-      return solution;
     }
   }
 
