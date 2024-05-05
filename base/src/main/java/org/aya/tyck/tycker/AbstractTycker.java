@@ -24,21 +24,13 @@ public sealed abstract class AbstractTycker implements StateBased, ContextBased,
     this.reporter = reporter;
   }
 
-  @Override public @NotNull LocalCtx localCtx() {
-    return localCtx;
-  }
-
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
     var old = this.localCtx;
     this.localCtx = ctx;
     return old;
   }
 
-  @Override public @NotNull TyckState state() {
-    return state;
-  }
-
-  @Override public @NotNull Reporter reporter() {
-    return reporter;
-  }
+  @Override public @NotNull LocalCtx localCtx() {return localCtx;}
+  @Override public @NotNull TyckState state() {return state;}
+  @Override public @NotNull Reporter reporter() {return reporter;}
 }
