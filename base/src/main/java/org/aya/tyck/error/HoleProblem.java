@@ -2,49 +2,56 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.error;
 
+import kala.collection.Seq;
+import org.aya.prettier.BasePrettier;
+import org.aya.pretty.doc.Doc;
+import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.ref.LocalVar;
+import org.aya.util.error.SourcePos;
+import org.aya.util.prettier.PrettierOptions;
+import org.aya.util.reporter.Problem;
+import org.jetbrains.annotations.NotNull;
+
 /** @author ice1000 */
-/*
 public sealed interface HoleProblem extends Problem {
-  @NotNull MetaTerm term();
+  @NotNull MetaCall term();
 
   @Override default @NotNull Severity level() {
     return Severity.ERROR;
   }
 
   @Override default @NotNull SourcePos sourcePos() {
-    return term().ref().sourcePos;
+    return term().ref().pos();
   }
 
-  */
-/** @author ice1000 *//*
-
   record BadSpineError(
-    @Override @NotNull MetaTerm term
+    @Override @NotNull MetaCall term
   ) implements HoleProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.english("Can't perform pattern unification on hole with the following spine:"),
-        BasePrettier.argsDoc(options, term.args())
+        BasePrettier.coreArgsDoc(options, term.args())
       );
     }
   }
 
-  record IllTypedError(
-    @Override @NotNull MetaTerm term,
+  /*record IllTypedError(
+    @Override @NotNull MetaCall term,
     @NotNull TyckState state,
     @Override @NotNull Term solution
   ) implements HoleProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       var list = MutableList.of(Doc.english("The meta (denoted ? below) is supposed to satisfy:"),
-        Doc.par(1, term.ref().info.toDoc(options)),
+        Doc.par(1, term.ref().req().toDoc(options)),
         Doc.english("However, the solution below does not seem so:"));
       UnifyInfo.exprInfo(solution, options, state, list);
       return Doc.vcat(list);
     }
-  }
+  }*/
 
   record BadlyScopedError(
-    @Override @NotNull MetaTerm term,
+    @Override @NotNull MetaCall term,
     @NotNull Term solved,
     @NotNull Seq<LocalVar> scopeCheck
   ) implements HoleProblem {
@@ -61,13 +68,8 @@ public sealed interface HoleProblem extends Problem {
     }
   }
 
-  */
-/**
-   * @author ice1000
-   *//*
-
   record RecursionError(
-    @Override @NotNull MetaTerm term,
+    @Override @NotNull MetaCall term,
     @NotNull Term sol
   ) implements HoleProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
@@ -81,7 +83,7 @@ public sealed interface HoleProblem extends Problem {
     }
   }
 
-  record CannotFindGeneralSolution(
+  /*record CannotFindGeneralSolution(
     @NotNull ImmutableSeq<TyckState.Eqn> eqns
   ) implements Problem {
     @Override public @NotNull SourcePos sourcePos() {
@@ -99,6 +101,5 @@ public sealed interface HoleProblem extends Problem {
     @Override public @NotNull Severity level() {
       return Severity.INFO;
     }
-  }
+  }*/
 }
-*/

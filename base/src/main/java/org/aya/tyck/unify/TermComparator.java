@@ -53,12 +53,14 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
 
   /**
    * Trying to solve {@param meta} with {@param rhs}
+   *
+   * @param rhs in whnf
    */
   protected abstract @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type);
 
   protected @Nullable Term solveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
     if (!solveMeta) return null;
-    return doSolveMeta(meta, rhs, type);
+    return doSolveMeta(meta, whnf(rhs), type);
   }
 
   /// region Utilities

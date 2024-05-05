@@ -211,7 +211,6 @@ public class CorePrettier extends BasePrettier<Term> {
         ImmutableSeq.of(r, s, ty).view().map(t -> new Arg<>(t, true)),
         outer, true);
       // case HCompTerm hComp -> throw new InternalException("TODO");
-      // TODO
       case DimTerm dim -> Doc.styled(KEYWORD, switch (dim) {
         case I0 -> "0";
         case I1 -> "1";
@@ -222,11 +221,6 @@ public class CorePrettier extends BasePrettier<Term> {
         yield checkParen(outer, doc, Outer.BinOp);
       }
     };
-  }
-
-  private @NotNull Doc insideOut(@NotNull Outer outer, @NotNull Term phi, @NotNull Term u, String fnName) {
-    return checkParen(outer, Doc.sep(Doc.styled(KEYWORD, fnName),
-      term(Outer.AppSpine, phi), term(Outer.AppSpine, u)), Outer.AppSpine);
   }
 
   /** @return if we can eta-contract the last argument */
@@ -303,7 +297,6 @@ public class CorePrettier extends BasePrettier<Term> {
       //   visitTele(field.telescope),
       //   Doc.symbol(":"),
       //   term(Outer.Free, field.result));
-      // case PrimDef def -> primDoc(def.ref());
       case CtorDef ctor -> {
         var doc = Doc.sepNonEmpty(coe(ctor.coerce),
           linkDef(ctor.ref(), CON),

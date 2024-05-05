@@ -7,7 +7,6 @@ import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.MetaVar;
-import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,11 +15,10 @@ import org.jetbrains.annotations.NotNull;
  */
 public record MetaCall(
   @Override @NotNull MetaVar ref,
-  @NotNull SourcePos pos,
   @Override @NotNull ImmutableSeq<Term> args
 ) implements Callable {
   public @NotNull Term update(@NotNull ImmutableSeq<Term> args) {
-    return new MetaCall(ref, pos, args);
+    return new MetaCall(ref, args);
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {

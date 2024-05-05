@@ -37,11 +37,15 @@ import java.util.function.ToIntBiFunction;
  */
 public abstract class BasePrettier<Term extends AyaDocile> {
   public static @NotNull Doc argDoc(@NotNull PrettierOptions options, @NotNull Arg<? extends AyaDocile> self) {
-    return BasePrettier.arg((outer, d) -> d.toDoc(options), self, Outer.Free);
+    return BasePrettier.arg((_, d) -> d.toDoc(options), self, Outer.Free);
   }
 
-  public static <T extends AyaDocile> @NotNull Doc argsDoc(@NotNull PrettierOptions options, @NotNull SeqLike<Arg<T>> self) {
+  public static @NotNull Doc argsDoc(@NotNull PrettierOptions options, @NotNull SeqLike<Arg<? extends AyaDocile>> self) {
     return Doc.commaList(self.view().map(t -> argDoc(options, t)));
+  }
+
+  public static @NotNull Doc coreArgsDoc(@NotNull PrettierOptions options, @NotNull SeqLike<? extends AyaDocile> self) {
+    return Doc.commaList(self.view().map(t -> t.toDoc(options)));
   }
 
   @FunctionalInterface
@@ -208,7 +212,6 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   public @NotNull Doc visitTele(@NotNull Seq<? extends ParamLike<Term>> telescope) {
     return visitTele(telescope, null, (t, v) -> 1);
   }
-
 
   /**
    * Pretty-print a telescope in a smart way.

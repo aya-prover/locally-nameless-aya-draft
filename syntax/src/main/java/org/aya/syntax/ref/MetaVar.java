@@ -4,6 +4,7 @@ package org.aya.syntax.ref;
 
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +16,11 @@ import org.jetbrains.annotations.Nullable;
  * @param ctxSize size of the original context.
  * @see MetaCall
  */
-public record MetaVar(@Override @NotNull String name, int ctxSize, @NotNull Requirement req) implements AnyVar {
+public record MetaVar(
+  @Override @NotNull String name,
+  @NotNull SourcePos pos,
+  int ctxSize, @NotNull Requirement req
+) implements AnyVar {
   @Override public boolean equals(@Nullable Object o) {return this == o;}
 
   @Override public int hashCode() {return System.identityHashCode(this);}
