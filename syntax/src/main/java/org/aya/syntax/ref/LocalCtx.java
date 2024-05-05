@@ -3,8 +3,6 @@
 package org.aya.syntax.ref;
 
 import kala.collection.SeqView;
-import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableMap;
 import org.aya.syntax.core.term.Term;
@@ -57,9 +55,4 @@ public record LocalCtx(
     SeqView<LocalVar> parentView = parent == null ? SeqView.empty() : parent.extract();
     return parentView.concat(vars);
   }
-
-  // @Contract(mutates = "this")
-  // public <R> R with(@NotNull LocalVar ref, Supplier<R> block) {
-  //
-  // }
 }

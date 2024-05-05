@@ -3,17 +3,24 @@
 package org.aya.syntax.ref;
 
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.call.MetaCall;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record MetaVar(
-  @Override @NotNull String name,
-  @NotNull Requirement type
-) implements AnyVar {
+/**
+ * if the <code>args</code> of the {@link MetaCall} is larger than ctxSize,
+ * then in case there is {@link OfType}, we will need to type check the argument
+ * and check the solution against the iterated <strong>codomain</strong> instead of the type itself.
+ *
+ * @param ctxSize size of the original context.
+ * @see MetaCall
+ */
+public record MetaVar(@Override @NotNull String name, int ctxSize, @NotNull Requirement req) implements AnyVar {
   @Override public boolean equals(@Nullable Object o) {return this == o;}
+
   @Override public int hashCode() {return System.identityHashCode(this);}
 
-  public interface Requirement {}
+  public sealed interface Requirement {}
   public enum Misc implements Requirement {
     Whatever,
     IsType,

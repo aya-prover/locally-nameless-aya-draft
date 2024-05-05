@@ -2,9 +2,12 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
+import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.MetaVar;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -37,6 +40,11 @@ public interface ContextBased {
   }
 
   default @NotNull Term mockTerm(@NotNull Param param, @NotNull SourcePos pos) {
-    throw new UnsupportedOperationException("TODO");
+    return freshMeta(param.name(), pos, new MetaVar.OfType(param.type()));
+  }
+
+  default @NotNull MetaCall freshMeta(String name, @NotNull SourcePos pos, MetaVar.Requirement req) {
+    var args = localCtx().extract().<Term>map(FreeTerm::new).toImmutableSeq();
+    return new MetaCall(new MetaVar(name, args.size(), req), pos, args);
   }
 }
