@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya;
 
+import org.aya.normalize.PrimFactory;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.TyckState;
@@ -19,8 +20,12 @@ public interface TestUtil {
   Reporter THROWING = new ThrowingReporter(AyaPrettierOptions.debug());
 
   static @NotNull TermComparator conversion() {
-    return new Unifier(new TyckState(factory()), makeLocalCtx(),
+    return new Unifier(emptyState(), makeLocalCtx(),
       IgnoringReporter.INSTANCE, SourcePos.NONE, Ordering.Eq);
+  }
+
+  static @NotNull TyckState emptyState() {
+    return new TyckState(new PrimFactory());
   }
 
   static @NotNull LocalCtx makeLocalCtx() {

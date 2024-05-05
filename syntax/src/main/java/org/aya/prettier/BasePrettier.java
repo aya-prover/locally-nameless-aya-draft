@@ -390,8 +390,8 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   public interface Usage<T, R> extends ToIntBiFunction<T, R> {
     sealed interface Ref {
       record Free(@NotNull LocalVar var) implements Ref {}
-
       record Bound(int idx) implements Ref {}
+      enum AnyFree implements Ref {INSTANCE}
     }
   }
 }

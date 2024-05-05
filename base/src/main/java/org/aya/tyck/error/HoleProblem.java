@@ -30,7 +30,7 @@ public sealed interface HoleProblem extends Problem {
   ) implements HoleProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
-        Doc.english("Can't perform pattern unification on hole with the following spine:"),
+        Doc.english("The following spine is not in pattern fragment:"),
         BasePrettier.coreArgsDoc(options, term.args())
       );
     }
@@ -53,16 +53,15 @@ public sealed interface HoleProblem extends Problem {
   record BadlyScopedError(
     @Override @NotNull MetaCall term,
     @NotNull Term solved,
-    @NotNull Seq<LocalVar> scopeCheck
+    @NotNull Seq<LocalVar> allowed
   ) implements HoleProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.english("The solution"),
         Doc.par(1, solved.toDoc(options)),
         Doc.plain("is not well-scoped"),
-        Doc.cat(Doc.english("In particular, these variables are not in scope:"),
-          Doc.ONE_WS,
-          Doc.commaList(scopeCheck.view()
+        Doc.sep(Doc.english("Only the variables below are allowed:"),
+          Doc.commaList(allowed.view()
             .map(BasePrettier::varDoc)
             .map(Doc::code))));
     }

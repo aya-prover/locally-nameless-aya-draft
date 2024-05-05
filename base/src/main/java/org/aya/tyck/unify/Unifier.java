@@ -4,6 +4,7 @@ package org.aya.tyck.unify;
 
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
+import org.aya.prettier.FindUsage;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
@@ -27,6 +28,7 @@ public final class Unifier extends TermComparator {
     var spine = meta.args();
     var inverted = MutableArrayList.<LocalVar>create(spine.size());
     var overlap = MutableList.<LocalVar>create();
+    var returnType = type;
     // TODO: type check the rhs according to the meta's info, need double checker
     for (var arg : spine) {
       // TODO: apply uneta
@@ -41,14 +43,20 @@ public final class Unifier extends TermComparator {
 
     // In this case, the solution may not be unique (see #608),
     // so we may delay its resolution to the end of the tycking when we disallow vague unification.
-    if (overlap.isNotEmpty()) {
-      // TODO: find usages of the overlapping variables in the rhs
+    if (overlap.anyMatch(var -> FindUsage.Free.applyAsInt(rhs, var) > 0)) {
+      // TODO: addEqn
+      return returnType;
     }
     // Now we are sure that the variables in overlap are all unused.
 
-    var candidate = inverted.view().foldRight(rhs, (var, wip) -> wip.bind(var));
+    var candidate = inverted.view().foldRight(rhs, (var, wip) ->
+      // We know already that overlapping terms are unused yet, so optimize it a little bit
+      overlap.contains(var) ? wip : wip.bind(var));
 
-    // TODO: scope check: if any FreeTerm is in candidate, report error
+    if (FindUsage.AnyFree.applyAsInt(rhs) > 0) {
+      reporter.report(new HoleProblem.BadlyScopedError(meta, rhs, inverted));
+      return null;
+    }
 
     // TODO: synthesize the type in case it's not provided
     return type;
