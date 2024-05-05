@@ -3,6 +3,8 @@
 package org.aya.tyck.error;
 
 import kala.collection.Seq;
+import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
@@ -11,6 +13,7 @@ import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
@@ -75,7 +78,7 @@ public sealed interface HoleProblem extends Problem {
     }
   }
 
-  /*record CannotFindGeneralSolution(
+  record CannotFindGeneralSolution(
     @NotNull ImmutableSeq<TyckState.Eqn> eqns
   ) implements Problem {
     @Override public @NotNull SourcePos sourcePos() {
@@ -93,5 +96,5 @@ public sealed interface HoleProblem extends Problem {
     @Override public @NotNull Severity level() {
       return Severity.INFO;
     }
-  }*/
+  }
 }

@@ -86,7 +86,7 @@ public final class Unifier extends TermComparator {
     }
 
     // In this case, the solution may not be unique (see #608),
-    // so we may delay its resolution to the end of the tycking when we disallow vague unification.
+    // so we may delay its resolution to the end of the tycking when we disallow delayed unification.
     if (overlap.anyMatch(var -> FindUsage.Free.applyAsInt(rhs, var) > 0)) {
       if (allowDelay) {
         state.addEqn(createEqn(meta, rhs));
