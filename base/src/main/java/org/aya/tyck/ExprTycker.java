@@ -13,10 +13,7 @@ import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.*;
-import org.aya.tyck.error.BadTypeError;
-import org.aya.tyck.error.Goal;
-import org.aya.tyck.error.LicitError;
-import org.aya.tyck.error.NoRuleError;
+import org.aya.tyck.error.*;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
 import org.aya.tyck.tycker.Unifiable;
@@ -66,6 +63,24 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         var freshHole = freshMeta(Constants.randomName(hole), expr.sourcePos(), new MetaVar.OfType(type));
         if (hole.explicit()) reporter.report(new Goal(state, freshHole, hole.accessibleLocal().get()));
         yield new Result.Default(freshHole, type);
+      }
+      case Expr.Tuple(var elems) when type instanceof SigmaTerm sigmaTerm -> {
+        var result = sigmaTerm.check(elems, (elem, ty) -> inherit(elem, ty).wellTyped());
+        Term wellTyped;
+
+        if (result.isErr()) {
+          switch (result.getErr()) {
+            case TooManyElement, TooManyParameter ->
+              fail(new TupleError.ElemMismatchError(expr.sourcePos(), sigmaTerm.params().size(), elems.size()));
+            case CheckFailed -> Panic.unreachable();
+          }
+
+          wellTyped = new ErrorTerm(expr.data());
+        } else {
+          wellTyped = new TupTerm(result.get());
+        }
+
+        yield new Result.Default(wellTyped, sigmaTerm);
       }
       default -> {
         var syn = synthesize(expr);

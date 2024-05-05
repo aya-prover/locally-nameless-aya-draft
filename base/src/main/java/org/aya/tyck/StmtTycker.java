@@ -13,7 +13,6 @@ import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.SortTerm;
-import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
 import org.aya.tyck.tycker.Problematic;

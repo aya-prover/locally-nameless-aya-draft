@@ -62,7 +62,7 @@ public record DoubleChecker(
         yield sigmaTy.check(elems, (elem, param) -> {
           if (inherit(whnf(elem), param)) return elem;
           return null;
-        }) != null;
+        }).isOk();
       }
       case LamTerm(var body) when whnf(expected) instanceof PiTerm(var pParam, var pLast) -> unifier.subscoped(() -> {
         var param = unifier.putIndex(pParam);

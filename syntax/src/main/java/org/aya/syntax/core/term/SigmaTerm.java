@@ -4,6 +4,7 @@ package org.aya.syntax.core.term;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import kala.control.Result;
 import kala.function.IndexedFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,17 +64,15 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
 
   /**
    * A simple "generalized type checking" for tuples.
-   *
-   * @return null if "too many items" error occur
    */
-  public <T> @Nullable TupTerm check(
+  public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind> check(
     @NotNull ImmutableSeq<? extends T> it,
     @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> inherit
   ) {
     return check(it.iterator(), inherit);
   }
 
-  public <T> @Nullable TupTerm check(
+  public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind> check(
     @NotNull Iterator<? extends T> iter,
     @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> checker
   ) {
@@ -85,16 +84,26 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
       var first = params.getFirst()
         .instantiateTele(args.view());
       var result = checker.apply(item, first);
-      if (result == null) return null;
+      if (result == null) return Result.err(ErrorKind.CheckFailed);
       args.append(result);
       params = params.drop(1);
     }
 
-    if (iter.hasNext() || params.isNotEmpty()) {
-      // Too less or many items
-      return null;
+    if (iter.hasNext()) {
+      return Result.err(ErrorKind.TooManyElement);
     }
 
-    return new TupTerm(args.toImmutableArray());
+    if (params.isNotEmpty()) {
+      return Result.err(ErrorKind.TooManyParameter);
+    }
+
+    return Result.ok(args.toImmutableSeq());
+  }
+
+  // ruast!
+  public enum ErrorKind {
+    TooManyElement,
+    TooManyParameter,
+    CheckFailed
   }
 }

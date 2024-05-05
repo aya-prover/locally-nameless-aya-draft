@@ -71,7 +71,7 @@ public final class Synthesizer extends AbstractTycker {
           if (!(pTy instanceof SortTerm pSort)) return null;
           pTys.append(pSort);
           return t;
-        }) != null;
+        }).isOk();
 
         // TODO: in case we want to recover the code XD
         // var params = MutableList.<Term>create();
