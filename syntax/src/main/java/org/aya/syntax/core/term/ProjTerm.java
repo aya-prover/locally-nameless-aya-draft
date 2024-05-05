@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,5 +26,12 @@ public record ProjTerm(@NotNull Term of, int index) implements Term {
       case TupTerm(var elems) -> elems.get(material.index);
       default -> material;
     };
+  }
+
+  /**
+   * Build a sequence in form {@code [ projOf.1 , projOf.2 , ... , projOf.{until - 1} ]}
+   */
+  public static @NotNull ImmutableSeq<Term> projSubst(@NotNull Term projOf, int until) {
+    return ImmutableSeq.fill(until, i -> new ProjTerm(projOf, i));
   }
 }

@@ -32,13 +32,20 @@ public record SortTerm(@NotNull SortKind kind, int lift) implements StableWHNF, 
     };
   }
 
-  public @NotNull SortTerm elevate(int lift) {
-    if (kind.hasLevel()) return new SortTerm(kind, this.lift + lift);
-    else return this;
+  @Override
+  public @NotNull SortTerm doElevate(int lift) {
+    return switch (kind) {
+      case Type, Set -> new SortTerm(kind, this.lift + lift);
+      case ISet -> lift == 1 ? Set1 : Set1.doElevate(lift - 1);
+    };
   }
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return this;
+  }
+
+  public static @NotNull SortTerm lub(@NotNull SortTerm lhs, @NotNull SortTerm rhs) {
+    throw new UnsupportedOperationException("TODO");
   }
 }

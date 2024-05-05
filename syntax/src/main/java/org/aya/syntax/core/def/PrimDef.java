@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumMap;
 import java.util.Objects;
 
 import static org.aya.syntax.core.term.SortTerm.Type0;

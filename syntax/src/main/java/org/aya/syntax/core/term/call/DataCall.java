@@ -27,7 +27,7 @@ public record DataCall(
     return update(Callable.descent(args, f));
   }
 
-  @Override public @NotNull Tele elevate(int level) {
+  @Override public @NotNull Tele doElevate(int level) {
     return new DataCall(ref, ulift + level, args);
   }
 

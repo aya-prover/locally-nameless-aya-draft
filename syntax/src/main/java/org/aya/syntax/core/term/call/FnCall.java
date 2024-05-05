@@ -24,7 +24,7 @@ public record FnCall(
     return update(Callable.descent(args, f));
   }
 
-  @Override public @NotNull Tele elevate(int level) {
+  @Override public @NotNull Tele doElevate(int level) {
     return new FnCall(ref, ulift + level, args);
   }
 }

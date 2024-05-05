@@ -156,8 +156,21 @@ public sealed interface Term extends Serializable, AyaDocile
     return this.descent((_, t) -> f.apply(t));
   }
 
+  /**
+   * Lift the sort level of this term
+   *
+   * @param level level, should be non-negative
+   */
+  @ApiStatus.NonExtendable
   default @NotNull Term elevate(int level) {
-    return descent((_, t) -> t.elevate(level));
+    assert level >= 0 : "level >= 0";
+    if (level == 0) return this;
+    return doElevate(level);
+  }
+
+  default @NotNull Term doElevate(int level) {
+    // Assumption : level > 0
+    return descent((_, t) -> t.doElevate(level));
   }
 
   record Matching(
