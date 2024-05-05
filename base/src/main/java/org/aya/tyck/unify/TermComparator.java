@@ -16,6 +16,7 @@ import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.LevelError;
 import org.aya.tyck.tycker.AbstractTycker;
@@ -153,9 +154,17 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
     var rhs = whnf(preRhs);
     if ((!(lhs == preLhs && rhs == preRhs)) && compareApprox(lhs, rhs) != null) return true;
 
-    // TODO: solve meta
-
-    if (type == null) {
+    if (rhs instanceof MetaCall rMeta) {
+      // In case we're comparing two metas with one IsType and the other has OfType,
+      // prefer solving the IsType one as the OfType one.
+      if (lhs instanceof MetaCall lMeta && lMeta.ref().req() == MetaVar.Misc.IsType)
+        return solveMeta(lMeta, rMeta, type) != null;
+      return solveMeta(rMeta, lhs, type) != null;
+    }
+    // ^ Beware of the order!!
+    if (lhs instanceof MetaCall lMeta) {
+      return solveMeta(lMeta, rhs, type) != null;
+    } else if (type == null) {
       return compareUntyped(lhs, rhs) != null;
     }
 
@@ -207,19 +216,19 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
    * @return the whnfed type of {@param preLhs} and {@param preRhs} if they are 'the same', null otherwise.
    */
   private @Nullable Term compareUntyped(@NotNull Term preLhs, @NotNull Term preRhs) {
-    var result = compareApprox(preLhs, preRhs);
-    if (result != null) return result;
+    {
+      var result = compareApprox(preLhs, preRhs);
+      if (result != null) return result;
+    }
 
     var lhs = whnf(preLhs);
     var rhs = whnf(preRhs);
     if (!(lhs == preLhs && rhs == preRhs)) {
-      result = compareApprox(lhs, rhs);
+      var result = compareApprox(lhs, rhs);
       if (result != null) return result;
     }
 
-    // TODO: meta
-
-    result = doCompareUntyped(lhs, rhs);
+    var result = doCompareUntyped(lhs, rhs);
     if (result != null) return whnf(result);
     fail(lhs, rhs);
     return null;
@@ -249,6 +258,7 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
       }
       case FreeTerm(var lvar) -> rhs instanceof FreeTerm(var rvar) && lvar == rvar ? localCtx().get(lvar) : null;
       case DimTerm l -> rhs instanceof DimTerm r && l == r ? l : null;
+      case MetaCall mCall -> solveMeta(mCall, rhs, null);
       // We already compare arguments in compareApprox, if we arrive here,
       // it means their arguments don't match (even the ref don't match),
       // so we are unable to do more if we can't normalize them.
