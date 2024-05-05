@@ -10,6 +10,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
+import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.ForLSP;
@@ -91,10 +92,10 @@ public sealed interface Pattern extends AyaDocile {
   // TODO: QualifiedRef here
 
   record Ctor(
-    @NotNull WithPos<@NotNull AnyVar> resolved,
+    @NotNull WithPos<@NotNull DefVar<?, ?>> resolved,
     @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params
   ) implements Pattern {
-    public Ctor(@NotNull SourcePos pos, @NotNull AnyVar maybe) {
+    public Ctor(@NotNull SourcePos pos, @NotNull DefVar<?, ?> maybe) {
       this(new WithPos<>(pos, maybe), ImmutableSeq.empty());
     }
 

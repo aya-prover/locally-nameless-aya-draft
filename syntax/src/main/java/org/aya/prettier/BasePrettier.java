@@ -15,7 +15,7 @@ import org.aya.pretty.doc.Style;
 import org.aya.pretty.style.AyaStyleKey;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
@@ -93,24 +93,8 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return visitCalls(assoc, fn, this::term, outer, args, showImplicits);
   }
 
-  public @NotNull Doc visitCalls(
-    @NotNull DefVar<?, ?> var, @NotNull Style style,
-    @NotNull SeqLike<@NotNull Arg<Term>> args,
-    @NotNull Outer outer, boolean showImplicits
-  ) {
-    return visitCalls(var.assoc(), linkRef(var, style), args.view(), outer, showImplicits);
-  }
-
-  public @NotNull Doc visitArgsCalls(
-    @NotNull DefVar<?, ?> var, @NotNull Style style,
-    @NotNull SeqLike<@NotNull Arg<Term>> args, @NotNull Outer outer
-  ) {
-    return visitCalls(var, style, args, outer, optionImplicit());
-  }
-
   public @NotNull Doc visitCoreCalls(
-    @NotNull DefVar<?, ?> var, @NotNull Doc head,
-    @NotNull SeqLike<Term> args, @NotNull Outer outer, boolean showImplicits
+    @NotNull DefVar<?, ?> var, @NotNull SeqLike<Term> args, @NotNull Outer outer, boolean showImplicits
   ) {
     var preargs = args.toImmutableSeq();
 
@@ -125,14 +109,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     // [explicitArgs.isEmpty] if licitArgs doesn't include all [var] args.
     var explicitArgs = preargs.view().drop(licitArgs.size()).map(Arg::ofExplicitly);
 
-    return visitCalls(var.assoc(), head, licitArgs.view().appendedAll(explicitArgs), outer, showImplicits);
-  }
-
-  public @NotNull Doc visitCoreCalls(
-    @NotNull DefVar<?, ?> var, @NotNull Style style,
-    @NotNull SeqLike<Term> args, @NotNull Outer outer, boolean showImplicits
-  ) {
-    return visitCoreCalls(var, linkRef(var, style), args, outer, showImplicits);
+    return visitCalls(var.assoc(), refVar(var), licitArgs.view().appendedAll(explicitArgs), outer, showImplicits);
   }
 
   /**
@@ -207,9 +184,6 @@ public abstract class BasePrettier<Term extends AyaDocile> {
         ? Doc.parened(withEx)
         : withEx;
   }
-
-  /*
-   */
 
   /**
    * Pretty-print a telescope in a dumb (but conservative) way.
@@ -302,15 +276,15 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return coerce ? Doc.styled(KEYWORD, "coerce") : Doc.empty();
   }
 
-  static @NotNull Doc primDoc(AnyVar ref) {
-    return Doc.sep(Doc.styled(KEYWORD, "prim"), linkDef(ref, PRIM));
+  static @NotNull Doc primDoc(DefVar<?, ?> ref) {
+    return Doc.sep(Doc.styled(KEYWORD, "prim"), refVar(ref));
   }
 
-  public static @NotNull Doc linkDef(@NotNull AnyVar ref, @NotNull Style color) {
+  private static @NotNull Doc linkDef(@NotNull AnyVar ref, @NotNull Style color) {
     return Doc.linkDef(Doc.styled(color, ref.name()), linkIdOf(ref));
   }
 
-  public static @NotNull Doc linkRef(@NotNull AnyVar ref, @NotNull Style color) {
+  private static @NotNull Doc linkRef(@NotNull AnyVar ref, @NotNull Style color) {
     return Doc.linkRef(Doc.styled(color, ref.name()), linkIdOf(ref));
   }
 
@@ -342,22 +316,32 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return Doc.linkDef(Doc.plain(ref.name()), linkIdOf(ref));
   }
 
+  public static @NotNull Doc refVar(DefVar<?, ?> ref) {
+    var style = chooseStyle(ref.concrete);
+    return style != null ? linkRef(ref, style) : varDoc(ref);
+  }
+
   public static @NotNull Doc defVar(DefVar<?, ?> ref) {
     var style = chooseStyle(ref.concrete);
     return style != null ? linkDef(ref, style) : varDoc(ref);
   }
 
-  protected static @Nullable Style chooseStyle(Object concrete) {
-    return switch (concrete) {
-      case DefVar<?, ?> d -> chooseStyle(d.concrete);
-      case TeleDecl.FnDecl d -> FN;
-      case TeleDecl.DataDecl d -> DATA;
-      case TeleDecl.DataCtor d -> CON;
-      case TeleDecl.PrimDecl d -> PRIM;
-/*
+  protected static @Nullable Style chooseStyle(Object obj) {
+    return switch (obj) {
+      case DefVar<?, ?> d when d.concrete != null -> chooseStyle(d.concrete);
+      case DefVar<?, ?> d -> chooseStyle(d.core);
+      case TeleDecl.FnDecl _ -> FN;
+      case TeleDecl.DataDecl _ -> DATA;
+      case TeleDecl.DataCtor _ -> CON;
+      case TeleDecl.PrimDecl _ -> PRIM;
+      case FnDef _ -> FN;
+      case DataDef _ -> DATA;
+      case CtorDef _ -> CON;
+      case PrimDef _ -> PRIM;
+      /*
       case ClassDecl d -> CLAZZ;
       case TeleDecl.ClassMember d -> MEMBER;
-*/
+      */
       case null, default -> null;
     };
   }
@@ -378,8 +362,6 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     Codomain,
     BinOp,
     Domain,
-    IMax,
-    IMin,
     AppHead,
     AppSpine,
     ProjHead,

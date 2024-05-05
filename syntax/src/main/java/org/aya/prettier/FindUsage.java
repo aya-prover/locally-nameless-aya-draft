@@ -14,6 +14,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.ToIntFunction;
 
+/**
+ * It is in this module instead of somewhere in base because it's needed by {@link CorePrettier},
+ * which is in the syntax module.
+ */
 public record FindUsage(@NotNull Ref ref) implements IndexedFunction<Term, Integer> {
   @Override
   public Integer apply(int index, Term term) {

@@ -267,7 +267,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       case Pattern.CalmFace _ -> Doc.bracedUnless(Doc.plain(Constants.ANONYMOUS_PREFIX), licit);
       case Pattern.Number number -> Doc.bracedUnless(Doc.plain(String.valueOf(number.number())), licit);
       case Pattern.Ctor ctor -> {
-        var name = linkRef(ctor.resolved().data(), CON);
+        var name = refVar(ctor.resolved().data());
         var ctorDoc = ctor.params().isEmpty()
           ? name
           : Doc.sep(name, visitMaybeCtorPatterns(ctor.params(), Outer.AppSpine, Doc.ALT_WS));
@@ -372,7 +372,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         var prelude = declPrelude(decl);
         prelude.appendAll(Seq.from(decl.modifiers).view().map(this::visitModifier));
         prelude.append(KW_DEF);
-        prelude.append(linkDef(decl.ref, FN));
+        prelude.append(defVar(decl.ref));
         prelude.append(visitTele(decl.telescope));
         appendResult(prelude, decl.result);
         yield Doc.cat(Doc.sepNonEmpty(prelude),
@@ -386,7 +386,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       case TeleDecl.DataDecl decl -> {
         var prelude = declPrelude(decl);
         prelude.append(KW_DATA);
-        prelude.append(linkDef(decl.ref, CLAZZ));
+        prelude.append(defVar(decl.ref));
         prelude.append(visitTele(decl.telescope));
         appendResult(prelude, decl.result);
         yield Doc.cat(Doc.sepNonEmpty(prelude),
@@ -411,7 +411,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         var ret = ctor.result == null ? Doc.empty() : Doc.sep(HAS_TYPE, term(Outer.Free, ctor.result));
         var doc = Doc.cblock(Doc.sepNonEmpty(
           coe(ctor.coerce),
-          linkDef(ctor.ref, CON),
+          defVar(ctor.ref),
           visitTele(ctor.telescope),
           ret), 2, Doc.empty() /*partial(ctor.clauses)*/);    // TODO: partial
         /*

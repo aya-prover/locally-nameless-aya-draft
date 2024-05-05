@@ -75,8 +75,8 @@ public class CorePrettier extends BasePrettier<Term> {
       // case IntegerTerm shaped -> shaped.repr() == 0
       //   ? linkLit(0, shaped.ctorRef(CodeShape.GlobalId.ZERO), CON)
       //   : linkLit(shaped.repr(), shaped.ctorRef(CodeShape.GlobalId.SUC), CON);
-      case ConCallLike conCall -> visitCoreCalls(conCall.ref(), CON, conCall.conArgs(), outer, optionImplicit());
-      case FnCall fnCall -> visitCoreCalls(fnCall.ref(), FN, fnCall.args(), outer, optionImplicit());
+      case ConCallLike conCall -> visitCoreCalls(conCall.ref(), conCall.conArgs(), outer, optionImplicit());
+      case FnCall fnCall -> visitCoreCalls(fnCall.ref(), fnCall.args(), outer, optionImplicit());
       case SigmaTerm(var params) -> {
         var tele = generateNames(params.dropLast(1));
         var last = params.getLast().instantiateTele(tele.view().map(p -> new FreeTerm(p.ref())));
@@ -106,10 +106,7 @@ public class CorePrettier extends BasePrettier<Term> {
           }
           // if (call instanceof FieldTerm access) bodyDoc = visitAccessHead(access);
           // else {
-          var style = chooseStyle(defVar);
-          bodyDoc = style != null
-            ? visitCoreCalls(defVar, style, args, outer, optionImplicit())
-            : visitCoreCalls(defVar, varDoc(defVar), args,
+          bodyDoc = visitCoreCalls(defVar, args,
               params.isEmpty() ? outer : Outer.Free,
               optionImplicit());
           // }
@@ -155,12 +152,11 @@ public class CorePrettier extends BasePrettier<Term> {
         var implicits = optionImplicit();
         // Infix def-calls
         if (head instanceof Callable call && call.ref() instanceof DefVar<?, ?> var) {
-          yield visitCoreCalls(var, defVar(var),
-            call.args().view().appendedAll(args), outer, implicits);
+          yield visitCoreCalls(var, call.args().view().appendedAll(args), outer, implicits);
         }
         yield visitCoreApp(null, term(Outer.AppHead, head), args.view(), outer, implicits);
       }
-      case PrimCall prim -> visitCoreCalls(prim.ref(), PRIM, prim.args(), outer, optionImplicit());
+      case PrimCall prim -> visitCoreCalls(prim.ref(), prim.args(), outer, optionImplicit());
       // case RefTerm.Field term -> linkRef(term.ref(), MEMBER);
       case ProjTerm(var of, var ix) ->
         Doc.cat(term(Outer.ProjHead, of), Doc.symbol("."), Doc.plain(String.valueOf(ix)));
@@ -191,7 +187,7 @@ public class CorePrettier extends BasePrettier<Term> {
         yield checkParen(outer, doc, Outer.BinOp);
       }
       // case ClassCall classCall -> visitArgsCalls(classCall.ref(), CLAZZ, classCall.orderedArgs(), outer);
-      case DataCall dataCall -> visitCoreCalls(dataCall.ref(), DATA, dataCall.args(), outer, optionImplicit());
+      case DataCall dataCall -> visitCoreCalls(dataCall.ref(), dataCall.args(), outer, optionImplicit());
       // case ListTerm shaped -> {
       //   var subterms = shaped.repr().map(x -> term(Outer.Free, x));
       //   var nil = shaped.ctorRef(CodeShape.GlobalId.NIL);
@@ -257,7 +253,7 @@ public class CorePrettier extends BasePrettier<Term> {
       }
       case Pat.Bind bind -> Doc.bracedUnless(linkDef(bind.bind()), licit);
       case Pat.Ctor ctor -> {
-        var ctorDoc = visitCoreCalls(ctor.ref(), CON, ctor.args().view().map(PatToTerm::visit), outer,
+        var ctorDoc = visitCoreCalls(ctor.ref(), ctor.args().view().map(PatToTerm::visit), outer,
           optionImplicit());
         yield ctorDoc(outer, licit, ctorDoc, ctor.args().isEmpty());
       }
@@ -280,7 +276,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var tele = enrich(def.telescope());
         var subst = tele.view().<Term>map(p -> new FreeTerm(p.ref()));
         line1.appendAll(new Doc[]{
-          linkDef(def.ref(), FN),
+          defVar(def.ref()),
           visitTele(tele),
           Tokens.HAS_TYPE,
           term(Outer.Free, def.result)
@@ -298,7 +294,7 @@ public class CorePrettier extends BasePrettier<Term> {
       //   term(Outer.Free, field.result));
       case CtorDef ctor -> {
         var doc = Doc.sepNonEmpty(coe(ctor.coerce),
-          linkDef(ctor.ref(), CON),
+          defVar(ctor.ref()),
           visitTele(enrich(ctor.selfTele)));
         Doc line1;
         // if (ctor.pats.isNotEmpty()) {
@@ -320,7 +316,7 @@ public class CorePrettier extends BasePrettier<Term> {
           .toImmutableSeq();
 
         var line1 = MutableList.of(Doc.styled(KEYWORD, "data"),
-          linkDef(def.ref(), DATA),
+          defVar(def.ref()),
           visitTele(richDataTele),
           Doc.symbol(":"),
           term(Outer.Free, def.result));
@@ -344,9 +340,7 @@ public class CorePrettier extends BasePrettier<Term> {
     @NotNull ImmutableSeq<ParamLike<Term>> richSelfTele,
     boolean coerce
   ) {
-    var doc = Doc.sepNonEmpty(coe(coerce),
-      linkDef(ref, CON),
-      visitTele(richSelfTele));
+    var doc = Doc.sepNonEmpty(coe(coerce), defVar(ref), visitTele(richSelfTele));
     Doc line1;
     // if (ctor.pats.isNotEmpty()) {
     //   var pats = Doc.commaList(ctor.pats.view().map(pat -> pat(pat, Outer.Free)));
