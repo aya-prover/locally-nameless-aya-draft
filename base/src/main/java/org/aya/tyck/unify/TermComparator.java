@@ -390,11 +390,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return var;
   }
 
-  private @NotNull LocalVar putIndex(@NotNull Term term) {
-    // TODO: supply name
-    var var = new LocalVar(nameGen.next(whnf(term)));
-    localCtx().put(var, term);
-    return var;
+  public @NotNull LocalVar putIndex(@NotNull Term term) {
+    return super.putIndex(nameGen, term);
   }
 
   public @NotNull FailureData getFailure() {

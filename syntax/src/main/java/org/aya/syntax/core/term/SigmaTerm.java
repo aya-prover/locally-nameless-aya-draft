@@ -8,6 +8,7 @@ import kala.function.IndexedFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.function.BiFunction;
 
 /**
@@ -65,25 +66,35 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
    *
    * @return null if "too many items" error occur
    */
-  public <T> @Nullable TupTerm check(@NotNull ImmutableSeq<? extends T> it, @NotNull BiFunction<T, Term, Term> inherit) {
-    var items = MutableList.<Term>create();
-    var againstTele = params.view();
-    var spine = MutableList.<Term>create();
-    for (var iter = it.iterator(); iter.hasNext(); ) {
+  public <T> @Nullable TupTerm check(
+    @NotNull ImmutableSeq<? extends T> it,
+    @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> inherit
+  ) {
+    return check(it.iterator(), inherit);
+  }
+
+  public <T> @Nullable TupTerm check(
+    @NotNull Iterator<? extends T> iter,
+    @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> checker
+  ) {
+    var params = this.params.view();
+    var args = MutableList.<Term>create();
+
+    while (iter.hasNext() && params.isNotEmpty()) {
       var item = iter.next();
-      var first = againstTele.getFirst()
-        // the closest term (0) is the last term in spine
-        .instantiateAll(spine.view().reversed());
-      var result = inherit.apply(item, first);
-      items.append(result);
-      againstTele = againstTele.drop(1);
-      if (againstTele.isNotEmpty())
-        // LGTM! The show must go on
-        spine.append(result);
-      else if (iter.hasNext())
-        // Too many items
-        return null;
+      var first = params.getFirst()
+        .instantiateTele(args.view());
+      var result = checker.apply(item, first);
+      if (result == null) return null;
+      args.append(result);
+      params = params.drop(1);
     }
-    return new TupTerm(items.toImmutableArray());
+
+    if (iter.hasNext() || params.isNotEmpty()) {
+      // Too less or many items
+      return null;
+    }
+
+    return new TupTerm(args.toImmutableArray());
   }
 }

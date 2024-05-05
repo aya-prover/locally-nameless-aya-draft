@@ -107,8 +107,8 @@ public sealed interface Term extends Serializable, AyaDocile
    * Instantiate in telescope-order. For example:<br/>
    * Consider a signature {@code (?2 : Nat) (?1 : Bool) (?0 : True) -> P ?2 ?0 ?1},
    * we can instantiate the result {@code P ?2 ?0 ?1} by some argument {@code [ 114514 , false , tt ] },
-   * now it becomes {@code P 114514 tt false }
-   * without this method, we need to reverse the list.
+   * now it becomes {@code P 114514 tt false}.
+   * Without this method, we need to reverse the list.
    */
   default @NotNull Term instantiateTele(@NotNull SeqView<Term> tele) {
     return instantiateAll(tele.reversed());

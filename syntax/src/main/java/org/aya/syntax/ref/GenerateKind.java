@@ -18,6 +18,11 @@ public sealed interface GenerateKind {
     INSTANCE;
   }
 
+  // This LocalVar is generated for tyck, should not alive after tyck
+  enum Tyck implements GenerateKind {
+    INSTANCE;
+  }
+
   // record Generalized(@NotNull GeneralizedVar origin) implements GenerateKind {
   // }
 

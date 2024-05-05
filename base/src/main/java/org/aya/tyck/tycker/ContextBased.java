@@ -10,6 +10,7 @@ import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.ApiStatus;
@@ -40,6 +41,14 @@ public interface ContextBased {
     var result = action.get();
     setLocalCtx(parentCtx);
     return result;
+  }
+
+  @Contract(mutates = "this")
+  default <R> R with(@NotNull LocalVar var, @NotNull Term type, @NotNull Supplier<R> action) {
+    return subscoped(() -> {
+      localCtx().put(var, type);
+      return action.get();
+    });
   }
 
   default @NotNull Term mockTerm(@NotNull Param param, @NotNull SourcePos pos) {

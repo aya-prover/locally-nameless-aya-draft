@@ -4,8 +4,11 @@ package org.aya.generic;
 
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.*;
+import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.xtt.*;
+import org.aya.syntax.ref.GenerateKind;
+import org.aya.syntax.ref.LocalVar;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,6 +24,11 @@ public class NameGenerator {
 
   public @NotNull String next(@Nullable Term whty) {
     return whty == null ? nextName(null) : nextName(nameOf(whty));
+  }
+
+  // TODO: replace all usage of next with nextVar except this
+  public @NotNull LocalVar nextVar(@Nullable Term whty) {
+    return new LocalVar(next(whty), SourcePos.SER, GenerateKind.Tyck.INSTANCE);
   }
 
   public @NotNull String nextName(@Nullable String typeName) {
