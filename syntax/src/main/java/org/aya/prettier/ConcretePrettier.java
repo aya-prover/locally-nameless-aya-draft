@@ -58,7 +58,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
           term(Outer.AppSpine, first),
           seq.view().drop(1).map(x -> new Arg<>(x.arg().data(), x.explicit())),
           outer,
-          options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs)
+          optionImplicit()
         );
       }
       case Expr.LitString expr -> Doc.plain('"' + StringUtil.unescapeStringCharacters(expr.string()) + '"');
@@ -76,7 +76,6 @@ public class ConcretePrettier extends BasePrettier<Expr> {
                 return t;
               });
             }
-            ;
           }
         };
 
@@ -99,7 +98,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         yield visitConcreteCalls(assoc,
           term(Outer.AppHead, head.data()),
           args.view(), outer,
-          options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs));
+          optionImplicit());
       }
       case Expr.Lambda expr -> {
         var pair = Nested.destructNested(WithPos.dummy(expr));
@@ -163,8 +162,8 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       case Expr.Sort expr -> {
         var fn = Doc.styled(KEYWORD, expr.kind().name());
         if (!expr.kind().hasLevel()) yield fn;
-        yield visitCalls(null, fn, (nc, l) -> l.toDoc(options), outer,
-          SeqView.of(new Arg<>(o -> Doc.plain(String.valueOf(expr.lift())), true)), true);
+        yield visitCalls(null, fn, (_, l) -> l.toDoc(options), outer,
+          SeqView.of(new Arg<>(_ -> Doc.plain(String.valueOf(expr.lift())), true)), true);
       }
       case Expr.Lift expr -> Doc.sep(Seq
         .from(IntRange.closed(1, expr.lift()).iterator()).view()
@@ -251,14 +250,6 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       // );
     };
   }
-
-/*
-  private Doc partial(Expr.PartEl el) {
-    return Doc.join(Doc.spaced(Doc.symbol("|")), el.clauses().map(cl -> Doc.sep(
-      term(Outer.Free, cl.component1()), Doc.symbol(":="), term(Outer.Free, cl.component2()))
-    ));
-  }
-*/
 
   public @NotNull Doc patterns(@NotNull ImmutableSeq<Pattern> patterns) {
     return Doc.commaList(patterns.map(pattern -> pattern(pattern, true, Outer.Free)));
@@ -404,7 +395,6 @@ public class ConcretePrettier extends BasePrettier<Expr> {
           visitBindBlock(decl.bindBlock())
         );
       }/*
-      case TeleDecl.PrimDecl decl -> primDoc(decl.ref);
       case TeleDecl.ClassMember field -> {
         var doc = MutableList.of(Doc.symbol("|"),
           coe(field.coerce),
@@ -431,7 +421,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         */
         yield Doc.sep(BAR, doc);
       }
-      case TeleDecl.PrimDecl primDecl -> throw new UnsupportedOperationException("TODO");
+      case TeleDecl.PrimDecl primDecl -> primDoc(primDecl.ref);
     };
   }
 

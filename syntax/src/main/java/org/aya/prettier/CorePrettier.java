@@ -24,6 +24,7 @@ import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 /**
@@ -64,11 +65,9 @@ public class CorePrettier extends BasePrettier<Term> {
       case MetaCall term -> {
         var name = term.ref();
         var inner = varDoc(name);
-        var showImplicits = options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs);
-        if (options.map.get(AyaPrettierOptions.Key.InlineMetas))
-          yield visitCoreApp(null, inner, term.args().view(), outer, showImplicits);
-        yield Doc.wrap("{?", "?}",
-          visitCoreApp(null, inner, term.args().view(), Outer.Free, showImplicits));
+        Function<Outer, Doc> factory = o -> visitCoreApp(null, inner, term.args().view(), o, optionImplicit());
+        if (options.map.get(AyaPrettierOptions.Key.InlineMetas)) yield factory.apply(outer);
+        yield Doc.wrap("{?", "?}", factory.apply(Outer.Free));
       }
       // case MetaLitTerm lit ->
       //   lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
@@ -110,7 +109,7 @@ public class CorePrettier extends BasePrettier<Term> {
           var style = chooseStyle(defVar);
           bodyDoc = style != null
             ? visitCoreCalls(defVar, style, args, outer, optionImplicit())
-            : visitCoreApp(defVar.assoc(), varDoc(defVar), args,
+            : visitCoreCalls(defVar, varDoc(defVar), args,
               params.isEmpty() ? outer : Outer.Free,
               optionImplicit());
           // }
@@ -130,7 +129,7 @@ public class CorePrettier extends BasePrettier<Term> {
         if (!kind.hasLevel()) yield fn;
         yield visitCalls(null, fn, (_, t) -> t.toDoc(options), outer,
           SeqView.of(new Arg<>(_ -> Doc.plain(String.valueOf(lift)), true)),
-          options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs)
+          optionImplicit()
         );
       }
       case DimTyTerm _ -> Doc.styled(PRIM, "I");
@@ -153,7 +152,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var args = pair.args();
         var head = pair.fun();
         // if (head instanceof RefTerm.Field fieldRef) yield visitArgsCalls(fieldRef.ref(), MEMBER, args, outer);
-        var implicits = options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs);
+        var implicits = optionImplicit();
         // Infix def-calls
         if (head instanceof Callable call && call.ref() instanceof DefVar<?, ?> var) {
           yield visitCoreCalls(var, defVar(var),
