@@ -4,6 +4,7 @@ package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
+import org.aya.TestUtil;
 import org.aya.generic.Modifier;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.SortTerm;
@@ -31,11 +32,11 @@ public class ConversionTest {
 
     var term0 = new FnCall(ref, 0, ImmutableSeq.of(SortTerm.Type0));
     var term1 = new FnCall(ref, 0, ImmutableSeq.of(SortTerm.Type0));
-    assertTrue(new MockConversionChecker().compare(term0, term1, null));
-    assertTrue(new MockConversionChecker().compare(term0, term1, SortTerm.Type0));
+    assertTrue(TestUtil.conversion().compare(term0, term1, null));
+    assertTrue(TestUtil.conversion().compare(term0, term1, SortTerm.Type0));
 
     var term2 = new FnCall(ref, 0, ImmutableSeq.of(SortTerm.Set0));
-    assertFalse(new MockConversionChecker().compare(term0, term2, null));
-    assertFalse(new MockConversionChecker().compare(term0, term2, SortTerm.Type0));
+    assertFalse(TestUtil.conversion().compare(term0, term2, null));
+    assertFalse(TestUtil.conversion().compare(term0, term2, SortTerm.Type0));
   }
 }

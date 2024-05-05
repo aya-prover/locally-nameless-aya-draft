@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 // TODO: make unification TermComparator
-public abstract non-sealed class TermComparator extends AbstractTycker {
+public abstract sealed class TermComparator extends AbstractTycker permits Unifier {
   protected final @NotNull SourcePos pos;
   protected final @NotNull Ordering cmp;
   // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
@@ -54,9 +54,9 @@ public abstract non-sealed class TermComparator extends AbstractTycker {
   /**
    * Trying to solve {@param meta} with {@param rhs}
    */
-  protected abstract @Nullable Term doSolveMeta(@NotNull /*MetaTerm*/ Term meta, @NotNull Term rhs, @Nullable Term type);
+  protected abstract @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type);
 
-  protected @Nullable Term solveMeta(@NotNull /*MetaTerm*/ Term meta, @NotNull Term rhs, @Nullable Term type) {
+  protected @Nullable Term solveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
     if (!solveMeta) return null;
     return doSolveMeta(meta, rhs, type);
   }

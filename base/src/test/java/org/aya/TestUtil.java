@@ -4,6 +4,12 @@ package org.aya;
 
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.tyck.TyckState;
+import org.aya.tyck.unify.TermComparator;
+import org.aya.tyck.unify.Unifier;
+import org.aya.util.Ordering;
+import org.aya.util.error.SourcePos;
+import org.aya.util.reporter.IgnoringReporter;
 import org.aya.util.reporter.Reporter;
 import org.aya.util.reporter.ThrowingReporter;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +17,11 @@ import org.jetbrains.annotations.NotNull;
 public interface TestUtil {
   @NotNull
   Reporter THROWING = new ThrowingReporter(AyaPrettierOptions.debug());
+
+  static @NotNull TermComparator conversion() {
+    return new Unifier(new TyckState(), makeLocalCtx(),
+      IgnoringReporter.INSTANCE, SourcePos.NONE, Ordering.Eq);
+  }
 
   static @NotNull LocalCtx makeLocalCtx() {
     return new LocalCtx();
