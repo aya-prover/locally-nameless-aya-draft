@@ -4,17 +4,17 @@ package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import org.aya.generic.Constants;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
-import org.aya.syntax.ref.AnyVar;
-import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.LocalCtx;
-import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.*;
 import org.aya.tyck.error.BadTypeError;
+import org.aya.tyck.error.Goal;
 import org.aya.tyck.error.LicitError;
 import org.aya.tyck.error.NoRuleError;
 import org.aya.tyck.tycker.AbstractTycker;
@@ -37,6 +37,9 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     super(state, ctx, reporter);
   }
 
+  /**
+   * @param type may not be in whnf, because we want unnormalized type to be used for unification.
+   */
   public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
     return switch (expr.data()) {
       case Expr.Lambda(var ref, var body) -> switch (type) {
@@ -59,6 +62,11 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         }
         default -> fail(expr.data(), type, BadTypeError.pi(state, expr, type));
       };
+      case Expr.Hole hole -> {
+        var freshHole = freshMeta(Constants.randomName(hole), expr.sourcePos(), new MetaVar.OfType(type));
+        if (hole.explicit()) reporter.report(new Goal(state, freshHole, hole.accessibleLocal().get()));
+        yield new Result.Default(freshHole, type);
+      }
       default -> {
         var syn = synthesize(expr);
         unifyTyReported(syn.type(), type, expr);
@@ -78,10 +86,10 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   private @NotNull SortTerm sort(@NotNull WithPos<Expr> errorMsg, @NotNull Term term) {
     return switch (whnf(term)) {
       case SortTerm u -> u;
-      // case MetaTerm hole -> {
-      //   unifyTyReported(hole, SortTerm.Type0, errorMsg);
-      //   yield SortTerm.Type0;
-      // }
+      case MetaCall hole -> {
+        unifyTyReported(hole, SortTerm.Type0, errorMsg);
+        yield SortTerm.Type0;
+      }
       default -> {
         fail(BadTypeError.univ(state, errorMsg, term));
         yield SortTerm.Type0;
@@ -116,18 +124,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         yield checkApplication(ref, expr.sourcePos(), a);
       }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
-      case Expr.Lambda(var ref, var body) -> {
-        // TODO: tyck untyped lambda
-        throw new UnsupportedOperationException("TODO");
-        // var paramResult = ty(ref);
-        // yield subscoped(() -> {
-        //   localCtx().put(ref.ref(), paramResult);
-        //   var bodyResult = synthesize(body).bind(ref.ref());
-        //   var lamTerm = new LamTerm(bodyResult.wellTyped());
-        //   var ty = new PiTerm(paramResult, bodyResult.type());
-        //   return new Result.Default(lamTerm, ty);
-        // });
-      }
+      case Expr.Lambda lam -> inherit(expr, generatePi(lam, expr.sourcePos()));
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
       case Expr.Ref(var ref) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());

@@ -2,8 +2,11 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
+import org.aya.generic.Constants;
+import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
@@ -46,5 +49,17 @@ public interface ContextBased {
   default @NotNull MetaCall freshMeta(String name, @NotNull SourcePos pos, MetaVar.Requirement req) {
     var args = localCtx().extract().<Term>map(FreeTerm::new).toImmutableSeq();
     return new MetaCall(new MetaVar(name, pos, args.size(), req), args);
+  }
+
+  default @NotNull Term generatePi(Expr.@NotNull Lambda expr, SourcePos sourcePos) {
+    var param = expr.param();
+    return generatePi(sourcePos, param.ref().name());
+  }
+
+  private @NotNull Term generatePi(@NotNull SourcePos pos, @NotNull String name) {
+    var genName = name + Constants.GENERATED_POSTFIX;
+    var domain = freshMeta(genName + "ty", pos, MetaVar.Misc.IsType);
+    var codomain = freshMeta(genName + "ret", pos, MetaVar.Misc.IsType);
+    return new PiTerm(domain, codomain);
   }
 }
