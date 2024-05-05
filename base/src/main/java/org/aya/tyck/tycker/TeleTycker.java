@@ -33,11 +33,15 @@ public interface TeleTycker {
     var finalParam = tele.zipView(cTele)
       .map(p -> new WithPos<>(p.component2().sourcePos(), p.component1()))
       .toImmutableSeq();
-    return new Signature<>(finalParam, bindResult(tycker.ty(result), locals));
+    var finalResult = bindResult(tycker.ty(result), locals);
+    tycker.solveMetas();
+    // TODO: zonk these data
+    return new Signature<>(finalParam, finalResult);
   }
 
   /**
    * Check the tele with free variables remaining in the localCtx.
+   * Does not zonk!
    */
   @Contract(pure = true)
   static @NotNull MutableSeq<Param> checkTeleFree(ImmutableSeq<Expr.Param> cTele, ExprTycker tycker) {

@@ -103,13 +103,13 @@ public final class Unifier extends TermComparator {
       overlap.contains(var) ? wip : wip.bind(var));
 
     if (FindUsage.AnyFree.applyAsInt(rhs) > 0) {
-      reporter.report(new HoleProblem.BadlyScopedError(meta, rhs, inverted));
+      fail(new HoleProblem.BadlyScopedError(meta, rhs, inverted));
       return null;
     }
 
     // TODO: add "confused" references
     if (FindUsage.Meta.applyAsInt(candidate, meta.ref()) > 0) {
-      reporter.report(new HoleProblem.RecursionError(meta, candidate));
+      fail(new HoleProblem.RecursionError(meta, candidate));
       return null;
     }
     state.solve(meta.ref(), candidate);
@@ -119,9 +119,9 @@ public final class Unifier extends TermComparator {
   }
 
   private void reportBadSpine(@NotNull MetaCall meta) {
-    reporter.report(new HoleProblem.BadSpineError(meta));
+    fail(new HoleProblem.BadSpineError(meta));
   }
   private void reportIllTyped(@NotNull MetaCall meta, @NotNull Term rhs) {
-    reporter.report(new HoleProblem.IllTypedError(meta, state, rhs));
+    fail(new HoleProblem.IllTypedError(meta, state, rhs));
   }
 }

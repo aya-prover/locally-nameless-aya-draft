@@ -186,7 +186,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           // Implicit insertion
           if (arg.explicit() != param.explicit()) {
             if (!arg.explicit()) {
-              reporter.report(new LicitError.BadImplicitArg(arg));
+              fail(new LicitError.BadImplicitArg(arg));
               break;
             } else if (arg.name() == null) {
               // here, arg.explicit() == true and param.explicit() == false
@@ -200,7 +200,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
               }
               // ^ insert implicits before the named argument
               if (paramIx == params.size()) {
-                reporter.report(new LicitError.BadImplicitArg(arg));
+                fail(new LicitError.BadImplicitArg(arg));
                 break;
               }
             }
@@ -223,7 +223,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
 
   private Result generateApplication(@NotNull ImmutableSeq<Expr.NamedArg> args, Result start) throws NotPi {
     return args.foldLeftChecked(start, (acc, arg) -> {
-      if (arg.name() != null || !arg.explicit()) reporter.report(new LicitError.BadNamedArg(arg));
+      if (arg.name() != null || !arg.explicit()) fail(new LicitError.BadNamedArg(arg));
       switch (acc.type()) {
         case PiTerm (var param, var body) -> {
           var wellTy = inherit(arg.arg(), param).wellTyped();

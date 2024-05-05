@@ -10,7 +10,10 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.Signature;
+import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.SortTerm;
+import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
 import org.aya.tyck.tycker.Problematic;
@@ -77,7 +80,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
         if (signature.result() instanceof SortTerm userSort) {
           sort = userSort;
         } else {
-          reporter.report(BadTypeError.univ(tycker.state, data.result, signature.result()));
+          fail(BadTypeError.univ(tycker.state, data.result, signature.result()));
         }
         data.signature = new Signature<>(signature.param(), sort);
       }
@@ -93,20 +96,20 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
           return;
         }
         if (prim.telescope.isNotEmpty()) {
-          // ErrorExpr on prim.result means the result type is unspecified.
           if (prim.result == null) {
-            reporter.report(new PrimError.NoResultType(prim));
+            fail(new PrimError.NoResultType(prim));
             return;
           }
         }
-        // var tele = checkTele(prim.telescope, prim.result, tycker);
-        // tycker.unifyTyReported(
-        //   PiTerm.make(tele, result),
-        //   PiTerm.make(core.telescope, core.result),
-        //   prim.result);
-        // prim.signature = new Def.Signature<>(tele, result);
-        // tycker.solveMetas();
-        // tycker.ctx = new SeqLocalCtx();
+        assert prim.result != null;
+        var tele = checkTele(prim.telescope, prim.result, tycker);
+        tycker.unifyTyReported(
+          PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
+          PiTerm.make(core.telescope.view().map(Param::type), core.result),
+          prim.result);
+        prim.signature = tele;
+        tycker.solveMetas();
+        assert tycker.localCtx().isEmpty() : "If this fails, replace it with tycker.setLocalCtx(new LocalCtx());";
       }
     }
   }
