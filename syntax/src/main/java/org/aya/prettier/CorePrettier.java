@@ -61,15 +61,15 @@ public class CorePrettier extends BasePrettier<Term> {
     return switch (preterm) {
       case FreeTerm(var var) -> varDoc(var);
       case LocalTerm(var idx) -> Doc.plain(STR."^\{idx}");
-      // case MetaTerm term -> {
-      //   var name = term.ref();
-      //   var inner = varDoc(name);
-      //   var showImplicits = options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs);
-      //   if (options.map.get(AyaPrettierOptions.Key.InlineMetas))
-      //     yield visitCalls(null, inner, term.args().view(), outer, showImplicits);
-      //   yield Doc.wrap("{?", "?}",
-      //     visitCalls(null, inner, term.args().view(), Outer.Free, showImplicits));
-      // }
+      case MetaCall term -> {
+        var name = term.ref();
+        var inner = varDoc(name);
+        var showImplicits = options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs);
+        if (options.map.get(AyaPrettierOptions.Key.InlineMetas))
+          yield visitCoreApp(null, inner, term.args().view(), outer, showImplicits);
+        yield Doc.wrap("{?", "?}",
+          visitCoreApp(null, inner, term.args().view(), Outer.Free, showImplicits));
+      }
       // case MetaLitTerm lit ->
       //   lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
       case TupTerm(var items) -> Doc.parened(argsDoc(options, items.map(Arg::ofExplicitly)));
@@ -110,9 +110,9 @@ public class CorePrettier extends BasePrettier<Term> {
           var style = chooseStyle(defVar);
           bodyDoc = style != null
             ? visitCoreCalls(defVar, style, args, outer, optionImplicit())
-            : visitCalls(defVar.assoc(), varDoc(defVar), args.map(Arg::ofExplicitly),
+            : visitCoreApp(defVar.assoc(), varDoc(defVar), args,
               params.isEmpty() ? outer : Outer.Free,
-              options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs));
+              optionImplicit());
           // }
         } else bodyDoc = term(Outer.Free, body);
 
@@ -159,7 +159,7 @@ public class CorePrettier extends BasePrettier<Term> {
           yield visitCoreCalls(var, defVar(var),
             call.args().view().appendedAll(args), outer, implicits);
         }
-        yield visitCalls(null, term(Outer.AppHead, head), args.view().map(Arg::ofExplicitly), outer, implicits);
+        yield visitCoreApp(null, term(Outer.AppHead, head), args.view(), outer, implicits);
       }
       case PrimCall prim -> visitCoreCalls(prim.ref(), PRIM, prim.args(), outer, optionImplicit());
       // case RefTerm.Field term -> linkRef(term.ref(), MEMBER);

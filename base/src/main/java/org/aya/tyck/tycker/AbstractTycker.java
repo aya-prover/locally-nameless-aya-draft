@@ -5,18 +5,15 @@ package org.aya.tyck.tycker;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.unify.Synthesizer;
 import org.aya.tyck.unify.TermComparator;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits ExprTycker, TermComparator {
+public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits ExprTycker, Synthesizer, TermComparator {
   public @NotNull TyckState state;
   private @NotNull LocalCtx localCtx;
   public final @NotNull Reporter reporter;
-
-  protected AbstractTycker(@NotNull TyckState state, @NotNull Reporter reporter) {
-    this(state, new LocalCtx(), reporter);
-  }
 
   protected AbstractTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
     this.state = state;

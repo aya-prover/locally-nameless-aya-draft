@@ -6,7 +6,6 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.call.MetaCall;
-import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
 public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
@@ -26,7 +25,7 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
   public @NotNull Term make() {
     return switch (fun) {
       case LamTerm(var body) -> body.instantiate(arg);
-      case MetaCall(var ref, SourcePos pos, var args) -> new MetaCall(ref, pos, args.appended(arg));
+      case MetaCall(var ref, var args) -> new MetaCall(ref, args.appended(arg));
       default -> this;
     };
   }

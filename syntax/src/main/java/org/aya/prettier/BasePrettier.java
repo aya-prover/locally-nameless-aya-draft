@@ -77,6 +77,14 @@ public abstract class BasePrettier<Term extends AyaDocile> {
 
   protected abstract @NotNull Doc term(@NotNull Outer outer, @NotNull Term term);
 
+  public @NotNull Doc visitCoreApp(
+    @Nullable Assoc assoc, @NotNull Doc fn,
+    @NotNull SeqView<Term> args,
+    @NotNull Outer outer, boolean showImplicits
+  ) {
+    return visitCalls(assoc, fn, this::term, outer, args.map(Arg::ofExplicitly), showImplicits);
+  }
+
   public @NotNull Doc visitCalls(
     @Nullable Assoc assoc, @NotNull Doc fn,
     @NotNull SeqView<? extends @NotNull BinOpElem<Term>> args,
@@ -97,7 +105,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     @NotNull DefVar<?, ?> var, @NotNull Style style,
     @NotNull SeqLike<@NotNull Arg<Term>> args, @NotNull Outer outer
   ) {
-    return visitCalls(var, style, args, outer, options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs));
+    return visitCalls(var, style, args, outer, optionImplicit());
   }
 
   public @NotNull Doc visitCoreCalls(
@@ -110,7 +118,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
       ? TeleDef.defTele((DefVar<? extends TeleDef, ? extends TeleDecl<?>>) var)
       : ImmutableSeq.empty();
 
-    // licited args, note that this may not includes all [var] args since [preargs.size()] may less than [licit.size()]
+    // licited args, note that this may not include all [var] args since [preargs.size()] may less than [licit.size()]
     // this is safe since the core call is always fully applied, that is, no missing implicit arguments.
     var licitArgs = preargs.zip(licit, (t, p) -> new Arg<>(t, p.explicit()));
     // explicit arguments, these are not [var] arguments, for example, a function [f {Nat} Nat : Nat -> Nat]
@@ -174,7 +182,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return checkParen(outer, call, Outer.AppSpine);
   }
 
-  public static <T extends AyaDocile> Doc arg(@NotNull Fmt<T> fmt, @NotNull BinOpElem<T> arg, @NotNull Outer outer) {
+  protected static <T extends AyaDocile> Doc arg(@NotNull Fmt<T> fmt, @NotNull BinOpElem<T> arg, @NotNull Outer outer) {
     if (arg.explicit()) return fmt.apply(outer, arg.term());
     return Doc.braced(fmt.apply(Outer.Free, arg.term()));
   }
@@ -194,8 +202,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
    */
   @NotNull Doc ctorDoc(@NotNull Outer outer, boolean ex, Doc ctorDoc, boolean noParams) {
     var withEx = Doc.bracedUnless(ctorDoc, ex);
-    return !ex
-      ? withEx
+    return !ex ? withEx
       : outer != Outer.Free && !noParams
         ? Doc.parened(withEx)
         : withEx;
@@ -210,7 +217,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
    * @see #visitTele(Seq, AyaDocile, Usage)
    */
   public @NotNull Doc visitTele(@NotNull Seq<? extends ParamLike<Term>> telescope) {
-    return visitTele(telescope, null, (t, v) -> 1);
+    return visitTele(telescope, null, (_, _) -> 1);
   }
 
   /**
