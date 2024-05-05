@@ -409,4 +409,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       return new FailureData(f.apply(lhs), f.apply(rhs));
     }
   }
+
+  public boolean checkEqn(@NotNull TyckState.Eqn eqn) {
+    return compare(eqn.lhs(), eqn.rhs(), null);
+  }
 }

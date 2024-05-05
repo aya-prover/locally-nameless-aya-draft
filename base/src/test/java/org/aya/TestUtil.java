@@ -21,7 +21,7 @@ public interface TestUtil {
 
   static @NotNull TermComparator conversion() {
     return new Unifier(emptyState(), makeLocalCtx(),
-      IgnoringReporter.INSTANCE, SourcePos.NONE, Ordering.Eq);
+      IgnoringReporter.INSTANCE, SourcePos.NONE, Ordering.Eq, true);
   }
 
   static @NotNull TyckState emptyState() {

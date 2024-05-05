@@ -21,8 +21,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class Unifier extends TermComparator {
-  public Unifier(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter, @NotNull SourcePos pos, @NotNull Ordering cmp) {
+  private final boolean allowDelay;
+  public Unifier(
+    @NotNull TyckState state,
+    @NotNull LocalCtx ctx,
+    @NotNull Reporter reporter,
+    @NotNull SourcePos pos,
+    @NotNull Ordering cmp,
+    boolean allowDelay
+  ) {
     super(state, ctx, reporter, pos, cmp);
+    this.allowDelay = allowDelay;
+  }
+
+  public @NotNull TyckState.Eqn createEqn(@NotNull Term lhs, @NotNull Term rhs) {
+    return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx());
   }
 
   @Override protected @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
@@ -67,7 +80,7 @@ public final class Unifier extends TermComparator {
         inverted.append(var);
         if (inverted.contains(var)) overlap.append(var);
       } else {
-        reporter.report(new HoleProblem.BadSpineError(meta));
+        reportBadSpine(meta);
         return null;
       }
     }
@@ -75,8 +88,13 @@ public final class Unifier extends TermComparator {
     // In this case, the solution may not be unique (see #608),
     // so we may delay its resolution to the end of the tycking when we disallow vague unification.
     if (overlap.anyMatch(var -> FindUsage.Free.applyAsInt(rhs, var) > 0)) {
-      // TODO: addEqn
-      return returnType;
+      if (allowDelay) {
+        state.addEqn(createEqn(meta, rhs));
+        return returnType;
+      } else {
+        reportBadSpine(meta);
+        return null;
+      }
     }
     // Now we are sure that the variables in overlap are all unused.
 
@@ -89,6 +107,7 @@ public final class Unifier extends TermComparator {
       return null;
     }
 
+    // TODO: add "confused" references
     if (FindUsage.Meta.applyAsInt(candidate, meta.ref()) > 0) {
       reporter.report(new HoleProblem.RecursionError(meta, candidate));
       return null;
@@ -99,6 +118,9 @@ public final class Unifier extends TermComparator {
     return type;
   }
 
+  private void reportBadSpine(@NotNull MetaCall meta) {
+    reporter.report(new HoleProblem.BadSpineError(meta));
+  }
   private void reportIllTyped(@NotNull MetaCall meta, @NotNull Term rhs) {
     reporter.report(new HoleProblem.IllTypedError(meta, state, rhs));
   }
