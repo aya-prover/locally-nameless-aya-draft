@@ -4,7 +4,6 @@ package org.aya.syntax.core;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.TestUtil;
-import org.aya.normalize.Normalizer;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.ref.LocalVar;
@@ -47,7 +46,7 @@ public class BindTest {
     var YXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, y, of(ty), true), of(XY));
     var XYXY = new Expr.Lambda(new Expr.Param(SourcePos.NONE, x, of(pi), true), of(YXY));
 
-    var tycker = new ExprTycker(new TyckState(), TestUtil.makeLocalCtx(), TestUtil.THROWING);
+    var tycker = new ExprTycker(new TyckState(factory()), TestUtil.makeLocalCtx(), TestUtil.THROWING);
     var result = tycker.synthesize(of(XYXY));
   }
 

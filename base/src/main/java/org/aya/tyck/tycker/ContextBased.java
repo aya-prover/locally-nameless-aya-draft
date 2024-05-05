@@ -45,6 +45,6 @@ public interface ContextBased {
 
   default @NotNull MetaCall freshMeta(String name, @NotNull SourcePos pos, MetaVar.Requirement req) {
     var args = localCtx().extract().<Term>map(FreeTerm::new).toImmutableSeq();
-    return new MetaCall(new MetaVar(name, args.size(), req), pos, args);
+    return new MetaCall(new MetaVar(name, pos, args.size(), req), args);
   }
 }

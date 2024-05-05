@@ -7,6 +7,7 @@ module aya.base {
   requires org.commonmark;
 
   exports org.aya.prelude;
+  exports org.aya.normalize;
   exports org.aya.resolve.context;
   exports org.aya.tyck.tycker;
   exports org.aya.tyck.unify;

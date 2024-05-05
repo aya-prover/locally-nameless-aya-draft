@@ -34,7 +34,6 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
 
   public @NotNull Term whnf(@NotNull Term term) {
     if (term instanceof StableWHNF) return term;
-
     var postTerm = term.descent(this);
 
     return switch (postTerm) {
@@ -54,9 +53,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       case FnCall(var ref, int ulift, var args) when ref.core != null -> {
         throw new UnsupportedOperationException("TODO: implement");
       }
-      case PrimCall(var ref, _, int ulift, ImmutableSeq<Term> args) -> {
-        throw new UnsupportedOperationException("TODO: implement");
-      }
+      case PrimCall prim -> state.factory().unfold(prim, state);
       case MetaPatTerm(Pat.Meta meta) -> {
         var solution = meta.solution().get();
         if (solution == null) yield term;

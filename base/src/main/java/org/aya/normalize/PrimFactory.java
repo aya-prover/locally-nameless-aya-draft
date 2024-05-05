@@ -181,8 +181,9 @@ public final class PrimFactory {
     return seeds.getOption(name).map(seed -> seed.dependency().filterNot(this::have));
   }
 
-  public @NotNull Term unfold(@NotNull ID name, @NotNull PrimCall primCall, @NotNull TyckState state) {
-    return seeds.get(name).unfold.apply(primCall, state);
+  public @NotNull Term unfold(@NotNull PrimCall primCall, @NotNull TyckState state) {
+    var id = primCall.id();
+    return seeds.get(id).unfold.apply(primCall, state);
   }
 
   public void clear() {

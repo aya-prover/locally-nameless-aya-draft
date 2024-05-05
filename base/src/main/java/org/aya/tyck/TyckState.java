@@ -3,14 +3,16 @@
 package org.aya.tyck;
 
 import kala.collection.mutable.MutableMap;
+import org.aya.normalize.PrimFactory;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.MetaVar;
 import org.jetbrains.annotations.NotNull;
 
 public record TyckState(
-  @NotNull MutableMap<MetaVar, Term> solutions
+  @NotNull MutableMap<MetaVar, Term> solutions,
+  @NotNull PrimFactory factory
 ) {
-  public TyckState() {
-    this(MutableMap.create());
+  public TyckState(@NotNull PrimFactory factory) {
+    this(MutableMap.create(), factory);
   }
 }

@@ -19,7 +19,7 @@ public interface TestUtil {
   Reporter THROWING = new ThrowingReporter(AyaPrettierOptions.debug());
 
   static @NotNull TermComparator conversion() {
-    return new Unifier(new TyckState(), makeLocalCtx(),
+    return new Unifier(new TyckState(factory()), makeLocalCtx(),
       IgnoringReporter.INSTANCE, SourcePos.NONE, Ordering.Eq);
   }
 
