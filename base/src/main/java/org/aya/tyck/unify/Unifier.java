@@ -47,29 +47,25 @@ public final class Unifier extends TermComparator {
     var needUnify = true;
     // TODO: the code below is incomplete
     switch (meta.ref().req()) {
-      case MetaVar.Misc misc -> {
-        switch (misc) {
-          case Whatever -> needUnify = false;
-          case IsType -> {
-            switch (rhs) {
-              case Formation _ -> {}
-              case MetaCall rMeta -> {
-                // TODO: rMeta.req().isType(synthesizer)
-              }
-              default -> {
-                // TODO: synthesize and set the returnType to the result of synthesis
-              }
-            }
-            needUnify = false;
+      case MetaVar.Misc.Whatever -> needUnify = false;
+      case MetaVar.Misc.IsType -> {
+        switch (rhs) {
+          case Formation _ -> {}
+          case MetaCall rMeta -> {
+            // TODO: rMeta.req().isType(synthesizer)
+          }
+          default -> {
+            // TODO: synthesize and set the returnType to the result of synthesis
           }
         }
+        needUnify = false;
       }
       case MetaVar.OfType(var target) -> {
         if (type != null && !compare(type, target, null)) {
           reportIllTyped(meta, rhs);
           return null;
         }
-        // TODO: freezeHoles
+        // TODO: Ice Spell 「 Perfect Freeze 」
         returnType = target;
       }
     }
@@ -102,12 +98,20 @@ public final class Unifier extends TermComparator {
       // We know already that overlapping terms are unused yet, so optimize it a little bit
       overlap.contains(var) ? wip : wip.bind(var));
 
-    if (FindUsage.AnyFree.applyAsInt(rhs) > 0) {
+    var findUsage = FindUsage.anyFree(candidate);
+    if (findUsage.termUsage > 0) {
       fail(new HoleProblem.BadlyScopedError(meta, rhs, inverted));
       return null;
     }
-
-    // TODO: add "confused" references
+    if (findUsage.metaUsage > 0) {
+      if (allowDelay) {
+        state.addEqn(createEqn(meta, candidate));
+        return returnType;
+      } else {
+        fail(new HoleProblem.BadlyScopedError(meta, rhs, inverted));
+        return null;
+      }
+    }
     if (FindUsage.Meta.applyAsInt(candidate, meta.ref()) > 0) {
       fail(new HoleProblem.RecursionError(meta, candidate));
       return null;

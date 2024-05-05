@@ -12,8 +12,6 @@ import org.aya.syntax.ref.MetaVar;
 import org.aya.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.ToIntFunction;
-
 /**
  * It is in this module instead of somewhere in base because it's needed by {@link CorePrettier},
  * which is in the syntax module.
@@ -21,9 +19,9 @@ import java.util.function.ToIntFunction;
 public record FindUsage(@NotNull Ref ref, @NotNull Accumulator accumulator) {
   public FindUsage(@NotNull Ref ref) {this(ref, new Accumulator());}
   // Z \oplus Z
-  static class Accumulator {
-    int metaUsage;
-    int termUsage;
+  public static class Accumulator {
+    public int metaUsage;
+    public int termUsage;
     boolean inMeta = false;
     public Accumulator(int metaUsage, int termUsage) {
       this.metaUsage = metaUsage;
@@ -68,8 +66,11 @@ public record FindUsage(@NotNull Ref ref, @NotNull Accumulator accumulator) {
     new FindUsage(new Ref.Free(l)).apply(0, t);
   public static final @NotNull BasePrettier.Usage<Term, MetaVar> Meta = (t, l) ->
     new FindUsage(new Ref.Meta(l)).apply(0, t);
-  public static final @NotNull ToIntFunction<Term> AnyFree = t ->
-    new FindUsage(Ref.AnyFree.INSTANCE).apply(0, t);
   public static final @NotNull BasePrettier.Usage<Term, Integer> Bound = (t, i) ->
     new FindUsage(new Ref.Bound(i)).apply(0, t);
+  public static @NotNull Accumulator anyFree(Term t) {
+    var findUsage = new FindUsage(Ref.AnyFree.INSTANCE);
+    findUsage.find(0, t);
+    return findUsage.accumulator;
+  }
 }

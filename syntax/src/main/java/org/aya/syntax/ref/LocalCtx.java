@@ -3,9 +3,10 @@
 package org.aya.syntax.ref;
 
 import kala.collection.SeqView;
+import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableList;
-import kala.collection.mutable.MutableMap;
 import org.aya.syntax.core.term.Term;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,12 +14,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.UnaryOperator;
 
 public record LocalCtx(
-  @NotNull MutableMap<LocalVar, Term> binds,
+  @NotNull MutableLinkedHashMap<LocalVar, Term> binds,
   @NotNull MutableList<LocalVar> vars,
   @Nullable LocalCtx parent
 ) {
   public LocalCtx() {
-    this(MutableMap.create(), MutableList.create(), null);
+    this(MutableLinkedHashMap.of(), MutableList.create(), null);
   }
 
   public boolean isEmpty() {
@@ -27,7 +28,7 @@ public record LocalCtx(
 
   @Contract("-> new")
   public @NotNull LocalCtx derive() {
-    return new LocalCtx(MutableMap.create(), MutableList.create(), this);
+    return new LocalCtx(MutableLinkedHashMap.of(), MutableList.create(), this);
   }
 
   public int size() {
@@ -41,7 +42,7 @@ public record LocalCtx(
       if (result != null) return result;
       ctx = ctx.parent;
     }
-    throw new UnsupportedOperationException("¿");
+    throw new Panic("¿");
   }
 
   public @Nullable Term getLocal(@NotNull LocalVar name) {
@@ -58,7 +59,7 @@ public record LocalCtx(
     var newBinds = this.binds.view()
       .mapValues((_, t) -> mapper.apply(t));
 
-    return new LocalCtx(MutableMap.from(newBinds), vars, parent == null ? null : parent.map(mapper));
+    return new LocalCtx(MutableLinkedHashMap.from(newBinds), vars, parent == null ? null : parent.map(mapper));
   }
 
   public SeqView<LocalVar> extract() {
