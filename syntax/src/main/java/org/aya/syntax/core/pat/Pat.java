@@ -3,9 +3,7 @@
 package org.aya.syntax.core.pat;
 
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableAnyList;
 import kala.collection.mutable.MutableList;
-import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
@@ -27,7 +25,10 @@ import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Patterns in the core syntax.
@@ -45,9 +46,7 @@ public sealed interface Pat extends AyaDocile {
 
   default ImmutableSeq<Tuple2<LocalVar, Term>> collectBindings() {
     var buffer = MutableList.<Tuple2<LocalVar, Term>>create();
-
     consumeBindings((var, type) -> buffer.append(kala.tuple.Tuple.of(var, type)));
-
     return buffer.toImmutableSeq();
   }
 
@@ -59,19 +58,12 @@ public sealed interface Pat extends AyaDocile {
   enum Absurd implements Pat {
     INSTANCE;
 
-    @Override
-    public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
+    @Override public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
       return this;
     }
 
-    @Override
-    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
-    }
-
-    @Override
-    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
-      return this;
-    }
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {}
+    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {return this;}
   }
 
   @Override
@@ -91,13 +83,11 @@ public sealed interface Pat extends AyaDocile {
       return update(termOp.apply(type));
     }
 
-    @Override
-    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
       consumer.accept(bind, type);
     }
 
-    @Override
-    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
       return this;
     }
   }
@@ -112,13 +102,11 @@ public sealed interface Pat extends AyaDocile {
       return update(elements.map(patOp));
     }
 
-    @Override
-    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
       elements.forEach(e -> e.consumeBindings(consumer));
     }
 
-    @Override
-    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
       return update(elements.map(x -> x.inline(ctx)));
     }
   }
@@ -131,19 +119,15 @@ public sealed interface Pat extends AyaDocile {
       return this.args.sameElements(args, true) ? this : new Ctor(ref, args);
     }
 
-
-    @Override
-    public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
+    @Override public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
       return update(args.map(patOp));
     }
 
-    @Override
-    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
       args.forEach(arg -> arg.consumeBindings(consumer));
     }
 
-    @Override
-    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
       return update(args.map(x -> x.inline(ctx)));
     }
   }
@@ -182,13 +166,17 @@ public sealed interface Pat extends AyaDocile {
       // only used for constructor ownerTele extraction for simpler indexed types
     }
 
-    @Override
-    public @NotNull Pat inline(@NotNull LocalCtx ctx) {
-      return getOrElse(() -> {
+    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+      var solution = this.solution.get();
+      if (solution == null) {
         var name = new LocalVar(fakeBind, errorReport, GenerateKind.Anonymous.INSTANCE);
         ctx.put(name, type);
-        return new Bind(name, type);
-      });
+        solution = new Bind(name, type);
+        // We need to set solution if no solution
+        this.solution.set(solution);
+      }
+
+      return solution;
     }
 
     public <R> @NotNull R map(@NotNull Function<Pat, R> mapper, @NotNull Supplier<R> aDefaults) {
@@ -216,9 +204,7 @@ public sealed interface Pat extends AyaDocile {
     @Nullable WithPos<T> expr
   ) implements AyaDocile {
     @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-      // throw new UnsupportedOperationException("TODO");
       var prettier = new CorePrettier(options);
-      ;
       var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
         pats.view().map(p -> prettier.pat(Arg.ofExplicitly(p), BasePrettier.Outer.Free)))));
       return expr == null ? doc : Doc.sep(doc, Doc.symbol("=>"), expr.data().toDoc(options));
