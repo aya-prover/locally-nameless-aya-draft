@@ -15,4 +15,7 @@ public record TyckState(
   public TyckState(@NotNull PrimFactory factory) {
     this(MutableMap.create(), factory);
   }
+  public void solve(MetaVar meta, Term candidate) {
+    solutions.put(meta, candidate);
+  }
 }

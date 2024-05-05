@@ -8,7 +8,9 @@ import org.aya.prettier.BasePrettier.Usage.Ref;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.LocalTerm;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.MetaVar;
 import org.aya.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,6 +26,7 @@ public record FindUsage(@NotNull Ref ref) implements IndexedFunction<Term, Integ
     return switch (new Pair<>(term, ref)) {
       case Pair(FreeTerm(_), Ref.AnyFree _) -> 1;
       case Pair(FreeTerm(var var), Ref.Free(var fvar)) when var == fvar -> 1;
+      case Pair(MetaCall meta, Ref.Meta(var fvar)) when meta.ref() == fvar -> 1;
       case Pair(LocalTerm(var idx), Ref.Bound(var idy)) when idx == (idy + index) -> 1;
       default -> {
         var accMut = MutableIntValue.create();
@@ -39,6 +42,8 @@ public record FindUsage(@NotNull Ref ref) implements IndexedFunction<Term, Integ
 
   public static final @NotNull BasePrettier.Usage<Term, LocalVar> Free = (t, l) ->
     new FindUsage(new Ref.Free(l)).apply(0, t);
+  public static final @NotNull BasePrettier.Usage<Term, MetaVar> Meta = (t, l) ->
+    new FindUsage(new Ref.Meta(l)).apply(0, t);
   public static final @NotNull ToIntFunction<Term> AnyFree = t ->
     new FindUsage(Ref.AnyFree.INSTANCE).apply(0, t);
   public static final @NotNull BasePrettier.Usage<Term, Integer> Bound = (t, i) ->

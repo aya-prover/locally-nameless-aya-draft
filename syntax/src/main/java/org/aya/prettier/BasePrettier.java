@@ -17,10 +17,7 @@ import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.term.Param;
-import org.aya.syntax.ref.AnyVar;
-import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.LocalVar;
-import org.aya.syntax.ref.ModulePath;
+import org.aya.syntax.ref.*;
 import org.aya.util.Arg;
 import org.aya.util.BinOpElem;
 import org.aya.util.binop.Assoc;
@@ -376,6 +373,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   public interface Usage<T, R> extends ToIntBiFunction<T, R> {
     sealed interface Ref {
       record Free(@NotNull LocalVar var) implements Ref {}
+      record Meta(@NotNull MetaVar var) implements Ref {}
       record Bound(int idx) implements Ref {}
       enum AnyFree implements Ref {INSTANCE}
     }

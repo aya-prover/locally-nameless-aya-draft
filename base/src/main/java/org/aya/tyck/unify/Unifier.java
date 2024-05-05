@@ -89,6 +89,12 @@ public final class Unifier extends TermComparator {
       return null;
     }
 
+    if (FindUsage.Meta.applyAsInt(candidate, meta.ref()) > 0) {
+      reporter.report(new HoleProblem.RecursionError(meta, candidate));
+      return null;
+    }
+    state.solve(meta.ref(), candidate);
+
     // TODO: synthesize the type in case it's not provided
     return type;
   }

@@ -18,14 +18,8 @@ import org.jetbrains.annotations.NotNull;
 /** @author ice1000 */
 public sealed interface HoleProblem extends Problem {
   @NotNull MetaCall term();
-
-  @Override default @NotNull Severity level() {
-    return Severity.ERROR;
-  }
-
-  @Override default @NotNull SourcePos sourcePos() {
-    return term().ref().pos();
-  }
+  @Override default @NotNull Severity level() {return Severity.ERROR;}
+  @Override default @NotNull SourcePos sourcePos() {return term().ref().pos();}
 
   record BadSpineError(
     @Override @NotNull MetaCall term
@@ -69,10 +63,7 @@ public sealed interface HoleProblem extends Problem {
     }
   }
 
-  record RecursionError(
-    @Override @NotNull MetaCall term,
-    @NotNull Term sol
-  ) implements HoleProblem {
+  record RecursionError(@Override @NotNull MetaCall term, @NotNull Term sol) implements HoleProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.sep(
