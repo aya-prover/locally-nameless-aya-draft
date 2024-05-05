@@ -3,11 +3,13 @@
 package org.aya.tyck.error;
 
 import kala.collection.Seq;
+import kala.collection.mutable.MutableList;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.tyck.TyckState;
 import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Problem;
@@ -36,7 +38,7 @@ public sealed interface HoleProblem extends Problem {
     }
   }
 
-  /*record IllTypedError(
+  record IllTypedError(
     @Override @NotNull MetaCall term,
     @NotNull TyckState state,
     @Override @NotNull Term solution
@@ -48,7 +50,7 @@ public sealed interface HoleProblem extends Problem {
       UnifyInfo.exprInfo(solution, options, state, list);
       return Doc.vcat(list);
     }
-  }*/
+  }
 
   record BadlyScopedError(
     @Override @NotNull MetaCall term,

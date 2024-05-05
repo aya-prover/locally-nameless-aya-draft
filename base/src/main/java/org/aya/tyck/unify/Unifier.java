@@ -5,11 +5,13 @@ package org.aya.tyck.unify;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import org.aya.prettier.FindUsage;
+import org.aya.syntax.core.term.Formation;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.HoleProblem;
 import org.aya.util.Ordering;
@@ -29,6 +31,35 @@ public final class Unifier extends TermComparator {
     var inverted = MutableArrayList.<LocalVar>create(spine.size());
     var overlap = MutableList.<LocalVar>create();
     var returnType = type;
+    var needUnify = true;
+    // TODO: the code below is incomplete
+    switch (meta.ref().req()) {
+      case MetaVar.Misc misc -> {
+        switch (misc) {
+          case Whatever -> needUnify = false;
+          case IsType -> {
+            switch (rhs) {
+              case Formation _ -> {}
+              case MetaCall rMeta -> {
+                // TODO: rMeta.req().isType(synthesizer)
+              }
+              default -> {
+                // TODO: synthesize and set the returnType to the result of synthesis
+              }
+            }
+            needUnify = false;
+          }
+        }
+      }
+      case MetaVar.OfType(var target) -> {
+        if (type != null && !compare(type, target, null)) {
+          reportIllTyped(meta, rhs);
+          return null;
+        }
+        // TODO: freezeHoles
+        returnType = target;
+      }
+    }
     // TODO: type check the rhs according to the meta's info, need double checker
     for (var arg : spine) {
       // TODO: apply uneta
@@ -60,5 +91,9 @@ public final class Unifier extends TermComparator {
 
     // TODO: synthesize the type in case it's not provided
     return type;
+  }
+
+  private void reportIllTyped(@NotNull MetaCall meta, @NotNull Term rhs) {
+    reporter.report(new HoleProblem.IllTypedError(meta, state, rhs));
   }
 }
