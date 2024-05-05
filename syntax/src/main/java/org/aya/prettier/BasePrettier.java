@@ -267,9 +267,13 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs);
   }
 
+  /**
+   * @param ref if it has type {@link DefVar}, use refVar or defVar instead.
+   */
   public static @NotNull Doc varDoc(@NotNull AnyVar ref) {
     if (ref == LocalVar.IGNORED) return Doc.plain("_");
-    else return Doc.linkRef(Doc.plain(ref.name()), linkIdOf(ref));
+    if (ref instanceof LocalVar) return linkRef(ref, LOCAL_VAR);
+    return Doc.linkDef(Doc.plain(ref.name()), linkIdOf(ref));
   }
 
   static @NotNull Doc coe(boolean coerce) {

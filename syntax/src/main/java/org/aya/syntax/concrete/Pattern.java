@@ -9,7 +9,6 @@ import org.aya.generic.AyaDocile;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;

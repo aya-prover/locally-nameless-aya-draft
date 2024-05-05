@@ -4,7 +4,7 @@ package org.aya.tyck.error;
 
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
-import org.aya.syntax.ref.AnyVar;
+import org.aya.syntax.ref.DefVar;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -44,9 +44,9 @@ public interface TyckOrderError extends TyckError {
   }*/
 
   @Contract(pure = true)
-  static @NotNull Panic notYetTycked(@NotNull AnyVar var) {
+  static @NotNull Panic notYetTycked(@NotNull DefVar<?, ?> var) {
     var msg = Doc.sep(Doc.english("Attempting to use a definition"),
-      Doc.code(BasePrettier.varDoc(var)),
+      Doc.code(BasePrettier.refVar(var)),
       Doc.english("which is not yet typechecked"));
     return new Panic(msg.debugRender());
   }

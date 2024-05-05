@@ -74,38 +74,13 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   private @NotNull Panic noRules(@NotNull Term term) {
     return new Panic(STR."\{term.getClass()}: \{term.toDoc(AyaPrettierOptions.debug()).debugRender()}");
   }
-
-  /**
-   * Check whether {@param term} is a call, so that we can compare its arguments first.
-   */
-  private static boolean isCall(@NotNull Term term) {
-    return term instanceof FnCall || term instanceof ConCallLike || term instanceof PrimCall;
-  }
-
   /// endregion Utilities
 
-  /**
-   * Compare {@param lhs} and {@param rhs} with whnf requirement.
-   */
-  private boolean compareWHNF(@NotNull Term lhs, @NotNull Term rhs, @Nullable Term type) {
-    var mLhs = whnf(lhs);
-    var mRhs = whnf(rhs);
-    if (mLhs == lhs && mRhs == rhs) {
-      // Nothing change, doesn't satisfy the requirement
-      return false;
-    }
-
-    return compare(lhs, rhs, type);
-  }
-
-  /**
-   * Compare arguments ONLY.
-   *
-   * @see TermComparator#isCall(Term)
-   */
+  /** Compare arguments ONLY. */
   private @Nullable Term compareApprox(@NotNull Term lhs, @NotNull Term rhs) {
     return switch (new Pair<>(lhs, rhs)) {
       case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
+      case Pair(PrimCall lFn, PrimCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
       case Pair(ConCallLike lCon, ConCallLike rCon) -> compareConApprox(lCon, rCon);
       default -> null;
     };

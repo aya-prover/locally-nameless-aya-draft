@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
  * and check the solution against the iterated <strong>codomain</strong> instead of the type itself.
  *
  * @param ctxSize size of the original context.
+ * @param pos     error report of this MetaCall will be associated with this position.
  * @see MetaCall
  */
 public record MetaVar(

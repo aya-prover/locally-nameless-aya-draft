@@ -41,23 +41,6 @@ public class CorePrettier extends BasePrettier<Term> {
     super(options);
   }
 
-  // private @Nullable Doc binCube(Restr.Side<Term> a, Restr.Side<Term> b, LocalVar var, @NotNull Outer outer) {
-  //   if (!(a.cof().ands().sizeEquals(1) && b.cof().ands().sizeEquals(1)))
-  //     return null;
-  //   var aa = a.cof().ands().get(0);
-  //   var bb = b.cof().ands().get(0);
-  //   if (aa.inst() instanceof RefTerm(var ref) && ref == var && aa.isOne() == !bb.isOne()
-  //     && bb.inst() instanceof RefTerm(var ref2) && ref2 == var
-  //   ) {
-  //     var aaa = term(Outer.BinOp, a.u());
-  //     var bbb = term(Outer.BinOp, b.u());
-  //     var eq = Doc.symbol("=");
-  //     var doc = aa.isOne() ? Doc.sep(bbb, eq, aaa) : Doc.sep(aaa, eq, bbb);
-  //     return checkParen(outer, doc, Outer.BinOp);
-  //   }
-  //   return null;
-  // }
-
   @Override public @NotNull Doc term(@NotNull Outer outer, @NotNull Term preterm) {
     return switch (preterm) {
       case FreeTerm(var var) -> varDoc(var);

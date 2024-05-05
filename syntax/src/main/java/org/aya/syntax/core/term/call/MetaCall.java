@@ -10,7 +10,6 @@ import org.aya.syntax.ref.MetaVar;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @param pos error report of this MetaCall will be associated with this position.
  * @param args can grow!! See {@link AppTerm#make()}
  */
 public record MetaCall(

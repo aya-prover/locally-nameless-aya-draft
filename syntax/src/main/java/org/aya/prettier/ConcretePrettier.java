@@ -140,8 +140,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       case Expr.Unresolved expr -> Doc.plain(expr.name().join());
       case Expr.Ref expr -> {
         var ref = expr.var();
-        if (ref instanceof DefVar<?, ?> defVar) yield defVar(defVar);
-        else yield varDoc(ref);
+        yield ref instanceof DefVar<?, ?> defVar ? defVar(defVar) : varDoc(ref);
       }
       case Expr.LitInt expr -> Doc.plain(String.valueOf(expr.integer()));
       case Expr.RawSort e -> Doc.styled(KEYWORD, e.kind().name());

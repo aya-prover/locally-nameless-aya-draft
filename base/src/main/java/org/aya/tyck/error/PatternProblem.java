@@ -41,7 +41,7 @@ public sealed interface PatternProblem extends Problem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.sep(
         Doc.english("Absurd pattern does not fit here because"),
-        Doc.code(BasePrettier.varDoc(available.ref())),
+        Doc.code(BasePrettier.refVar(available.ref())),
         Doc.english("is still available")
       );
     }
