@@ -60,8 +60,7 @@ public final class Synthesizer extends AbstractTycker {
 
         if (!(bTy instanceof SortTerm bSort)) yield null;
 
-        // TODO: yield lub
-        throw new UnsupportedOperationException("TODO");
+        yield SortTerm.lub(pSort, bSort);
       }
       case LamTerm _ -> null;
       case SigmaTerm sigmaTerm -> {
@@ -94,8 +93,8 @@ public final class Synthesizer extends AbstractTycker {
 
         if (!succ) yield null;
 
-        // TODO: yield lub pTys
-        throw new UnsupportedOperationException("TODO");
+        // This is safe since a [SigmaTerm] has at least 2 parameters.
+        yield pTys.reduce(SortTerm::lub);
       }
       case TupTerm _ -> null;
       case FreeTerm(var var) -> localCtx().get(var);
