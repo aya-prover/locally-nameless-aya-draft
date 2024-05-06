@@ -46,9 +46,9 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
 
     if (expr instanceof Expr.Sugar satou) {
       return desugar(sourcePos, satou);
+    } else {
+      return expr.descent(this);
     }
-
-    return expr;
   }
 
   public @NotNull Expr desugar(@NotNull SourcePos sourcePos, @NotNull Expr.Sugar satou) {

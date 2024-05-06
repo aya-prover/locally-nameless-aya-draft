@@ -134,7 +134,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
 
   private @NotNull Result doSynthesize(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
-      case Expr.Sugar _ -> throw new IllegalArgumentException("these exprs are desugared, should be unreachable");
+      case Expr.Sugar s ->
+        throw new IllegalArgumentException(STR."\{s.getClass()} is desugared, should be unreachable");
       case Expr.App(var f, var a) -> {
         if (!(f.data() instanceof Expr.Ref(var ref))) throw new IllegalStateException("function must be Expr.Ref");
         yield checkApplication(ref, expr.sourcePos(), a);
