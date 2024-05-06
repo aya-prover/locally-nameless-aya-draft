@@ -46,58 +46,11 @@ public final class Unifier extends TermComparator {
   @Override protected @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
     // Assumption: rhs is in whnf
     var spine = meta.args();
+    var returnType = computeReturnType(meta, rhs, type);
+    if (returnType == null) return null;
+
     var inverted = MutableArrayList.<LocalVar>create(spine.size());
     var overlap = MutableList.<LocalVar>create();
-    var returnType = type;
-    var needUnify = true;
-    // Running double checker is important, see #327 last task (`coe'`)
-    var checker = new DoubleChecker(derive(meta.ref().pos(), cmp));
-    // TODO: the code below is incomplete
-    switch (meta.ref().req()) {
-      case MetaVar.Misc.Whatever -> needUnify = false;
-      case MetaVar.Misc.IsType -> {
-        switch (rhs) {
-          case Formation _ -> {}
-          /*case MetaCall rMeta -> {
-            if (!rMeta.ref().req().isType(checker.synthesizer())) {
-              reportIllTyped(meta, rhs);
-              return null;
-            }
-          }*/
-          default -> {
-            var synthesize = checker.synthesizer().trySynth(rhs);
-            if (!(synthesize instanceof SortTerm)) {
-              reportIllTyped(meta, rhs);
-              return null;
-            }
-            if (returnType == null) returnType = synthesize;
-          }
-        }
-        needUnify = false;
-      }
-      case MetaVar.OfType(var target) -> {
-        if (type != null && !compare(type, target, null)) {
-          reportIllTyped(meta, rhs);
-          return null;
-        }
-        // TODO: Ice Spell 「 Perfect Freeze 」
-        returnType = target;
-      }
-    }
-    if (needUnify) {
-      // Check the solution.
-      if (returnType != null) {
-        // resultTy might be an ErrorTerm, what to do?
-        if (!checker.inherit(rhs, returnType))
-          reportIllTyped(meta, rhs);
-      } else {
-        returnType = checker.synthesizer().trySynth(rhs);
-        if (returnType == null) {
-          throw new UnsupportedOperationException("TODO: add an error report for this");
-        }
-      }
-    }
-    if (!needUnify && returnType == null) returnType = SortTerm.Type0;
     for (var arg : spine) {
       // TODO: apply uneta
       if (whnf(arg) instanceof FreeTerm(var var)) {
@@ -146,6 +99,63 @@ public final class Unifier extends TermComparator {
     }
     state.solve(meta.ref(), candidate);
     return returnType;
+  }
+
+  /**
+   * @return null if ill-typed
+   */
+  private @Nullable Term computeReturnType(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
+    var needUnify = true;
+    var returnType = type;
+    // Running double checker is important, see #327 last task (`coe'`)
+    var checker = new DoubleChecker(derive(meta.ref().pos(), cmp));
+    // TODO: the code below is incomplete
+    switch (meta.ref().req()) {
+      case MetaVar.Misc.Whatever -> needUnify = false;
+      case MetaVar.Misc.IsType -> {
+        switch (rhs) {
+          case Formation _ -> {}
+          /*case MetaCall rMeta -> {
+            if (!rMeta.ref().req().isType(checker.synthesizer())) {
+              reportIllTyped(meta, rhs);
+              return null;
+            }
+          }*/
+          default -> {
+            var synthesize = checker.synthesizer().trySynth(rhs);
+            if (!(synthesize instanceof SortTerm)) {
+              reportIllTyped(meta, rhs);
+              return null;
+            }
+            if (returnType == null) returnType = synthesize;
+          }
+        }
+        needUnify = false;
+      }
+      case MetaVar.OfType(var target) -> {
+        if (type != null && !compare(type, target, null)) {
+          reportIllTyped(meta, rhs);
+          return null;
+        }
+        // TODO: Ice Spell 「 Perfect Freeze 」
+        returnType = target;
+      }
+    }
+    if (needUnify) {
+      // Check the solution.
+      if (returnType != null) {
+        // resultTy might be an ErrorTerm, what to do?
+        if (!checker.inherit(rhs, returnType))
+          reportIllTyped(meta, rhs);
+      } else {
+        returnType = checker.synthesizer().trySynth(rhs);
+        if (returnType == null) {
+          throw new UnsupportedOperationException("TODO: add an error report for this");
+        }
+      }
+    }
+    if (!needUnify && returnType == null) return SortTerm.Type0;
+    else return returnType;
   }
 
   private void reportBadSpine(@NotNull MetaCall meta) {
