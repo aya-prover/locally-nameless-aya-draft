@@ -70,11 +70,11 @@ public record DoubleChecker(
       }
       case LamTerm(var body) -> subscoped(() -> switch (whnf(expected)) {
         case PiTerm(var dom, var cod) ->  {
-          var param = synthesizer.putIndex(dom);
+          var param = unifier.putIndex(dom);
           yield inherit(body.instantiate(param), cod.instantiate(param));
         }
         case EqTerm eq -> {
-          var param = synthesizer.putIndex(DimTyTerm.INSTANCE);
+          var param = unifier.putIndex(DimTyTerm.INSTANCE);
           yield inherit(body.instantiate(param), eq.A());
         }
         default -> failF(new BadExprError(preterm, unifier.pos, expected));
