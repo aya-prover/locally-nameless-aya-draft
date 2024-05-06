@@ -2,15 +2,18 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import kala.function.IndexedFunction;
+import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * @author re-xyr
@@ -98,5 +101,25 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
     TooManyElement,
     TooManyParameter,
     CheckFailed
+  }
+
+  @NotNull public SeqView<Term> view(Function<Term, LocalVar> putIndex) {
+    return new SeqView<>() {
+      @Override public @NotNull Iterator<Term> iterator() {
+        return new Iterator<>() {
+          private final MutableList<Term> args = MutableList.create();
+          private int index = 0;
+          @Override public boolean hasNext() {
+            return index < params.size();
+          }
+          @Override public Term next() {
+            if (index == 0) return params.get(index++);
+            var result = params.get(index++).instantiateTele(args.view());
+            args.append(new FreeTerm(putIndex.apply(result)));
+            return result;
+          }
+        };
+      }
+    };
   }
 }

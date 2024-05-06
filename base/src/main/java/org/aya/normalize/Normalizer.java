@@ -47,7 +47,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         yield result == app ? result : whnf(result);
       }
       case ProjTerm proj -> {
-        var result = ProjTerm.make(proj);
+        var result = proj.make();
         yield result == proj ? result : whnf(result);
       }
       case FnCall(var ref, int ulift, var args) when ref.core != null -> {

@@ -51,14 +51,7 @@ public record DoubleChecker(
       }
       case SigmaTerm sigma -> {
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
-        var args = MutableList.<Term>create();
-        yield subscoped(() -> sigma.params().allMatch(param -> {
-          var freeParam = param.instantiateTele(args.view());
-          var result = inherit(freeParam, expectedTy);
-          var bind = putIndex(param);
-          args.append(new FreeTerm(bind));
-          return result;
-        }));
+        yield subscoped(() -> sigma.view(this::putIndex).allMatch(param -> inherit(param, expectedTy)));
       }
       case TupTerm(var elems) when whnf(expected) instanceof SigmaTerm sigmaTy -> {
         // This is not an assertion because the input is not guaranteed to be well-typed

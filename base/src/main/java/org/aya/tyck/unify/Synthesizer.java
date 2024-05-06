@@ -69,22 +69,14 @@ public record Synthesizer(
       }
       case SigmaTerm sigma -> {
         var pTys = MutableList.<SortTerm>create();
-        var params = MutableList.<Term>create();
-
-        var succ = subscoped(() -> {
-          for (var p : sigma.params()) {
-            var freeP = p.instantiateTele(params.view());
-            var pTy = trySynth(freeP);
-            if (!(pTy instanceof SortTerm pSort)) return false;
+        boolean succ = subscoped(() -> {
+          for (var p : sigma.view(this::putIndex)) {
+            if (!(trySynth(p) instanceof SortTerm pSort)) return false;
             pTys.append(pSort);
-
-            var param = putIndex(freeP);
-            params.append(new FreeTerm(param));
           }
 
           return true;
         });
-
         if (!succ) yield null;
 
         // This is safe since a [SigmaTerm] has at least 2 parameters.
