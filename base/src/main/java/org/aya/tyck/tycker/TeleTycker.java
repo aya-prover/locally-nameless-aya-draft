@@ -3,6 +3,7 @@
 package org.aya.tyck.tycker;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableSeq;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.Signature;
@@ -82,13 +83,18 @@ public interface TeleTycker {
    * Load a well-typed {@link Signature} into {@link ExprTycker#localCtx()}
    */
   @Contract(mutates = "param2")
-  static void loadTele(@NotNull ImmutableSeq<LocalVar> binds, @NotNull Signature<?> signature, @NotNull ExprTycker tycker) {
+  static void loadTele(
+    @NotNull ImmutableSeq<LocalVar> binds,
+    @NotNull Signature<?> signature,
+    @NotNull ExprTycker tycker) {
     assert binds.sizeEquals(signature.param());
+    var tele = MutableList.<LocalVar>create();
 
     binds.view().zip(signature.param()).forEach(pair -> {
       var ref = pair.component1();
       var param = pair.component2();
-      tycker.localCtx().put(ref, param.data().type());
+      tycker.localCtx().put(ref, param.data().type().instantiateTeleVar(tele.view()));
+      tele.append(ref);
     });
   }
 }

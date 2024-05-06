@@ -25,7 +25,7 @@ import static org.aya.tyck.tycker.TeleTycker.checkTele;
 import static org.aya.tyck.tycker.TeleTycker.loadTele;
 
 public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
-  private @NotNull Def check(Decl predecl, ExprTycker tycker) {
+  public @NotNull Def check(Decl predecl, ExprTycker tycker) {
     if (predecl instanceof TeleDecl<?> decl) {
       if (decl.signature != null) loadTele(decl.telescope.map(Expr.Param::ref), decl.signature, tycker);
       else checkHeader(decl, tycker);
@@ -44,7 +44,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
 
         yield switch (fnDecl.body) {
           case TeleDecl.ExprBody exprBody -> {
-            var result = tycker.inherit(exprBody.expr(), signature.result());
+            var result = tycker.inherit(exprBody.expr(), signature.result().instantiateTeleVar(teleVars.view()));
             var wellBody = result.wellTyped();
             var wellTy = result.type();
             // TODO: wellTy may contains meta, zonk them!

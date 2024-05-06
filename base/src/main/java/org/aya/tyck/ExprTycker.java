@@ -18,6 +18,7 @@ import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
 import org.aya.tyck.tycker.Unifiable;
 import org.aya.tyck.unify.TermComparator;
+import org.aya.tyck.unify.Unifier;
 import org.aya.util.Ordering;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
@@ -252,7 +253,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
 
   @Override
   public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
-    throw new UnsupportedOperationException("TODO");
+    return new Unifier(state(), localCtx(), reporter(), pos, order, true);    // TODO: allowDelay?
   }
 
   protected static final class NotPi extends Exception {
