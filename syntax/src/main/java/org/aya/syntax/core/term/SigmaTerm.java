@@ -64,34 +64,35 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
   //     new TupTerm(items.toImmutableArray()));
   // }
 
+  @FunctionalInterface
+  public interface Checker<T> extends BiFunction<@NotNull T, @NotNull Term, @Nullable Term> {
+  }
+
   /**
    * A simple "generalized type checking" for tuples.
    */
-  public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind> check(
-    @NotNull ImmutableSeq<? extends T> it,
-    @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> inherit
-  ) {
-    return check(it.iterator(), inherit);
+  public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind>
+  check(@NotNull ImmutableSeq<? extends T> it, @NotNull Checker<T> checker) {
+    return check(it.iterator(), checker);
   }
 
-  public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind> check(
-    @NotNull Iterator<? extends T> iter,
-    @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> checker
-  ) {
-    var params = this.params.view();
+  public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind>
+  check(@NotNull Iterator<? extends T> iter, @NotNull Checker<T> checker) {
     var args = MutableList.<Term>create();
+    var params = view(t -> {
+      var result = checker.apply(iter.next(), t);
+      if (result != null) args.append(result);
+      return result;
+    }).iterator();
 
-    while (iter.hasNext() && params.isNotEmpty()) {
-      var item = iter.next();
-      var first = params.getFirst().instantiateTele(args.view());
-      var result = checker.apply(item, first);
-      if (result == null) return Result.err(ErrorKind.CheckFailed);
-      args.append(result);
-      params = params.drop(1);
+    while (iter.hasNext() && params.hasNext()) {
+      // param.next() calls iter.next()
+      if (params.next() == null) return Result.err(ErrorKind.CheckFailed);
     }
+    // if each call to params.next() returns non-null, then they must be all added to args
 
     if (iter.hasNext()) return Result.err(ErrorKind.TooManyElement);
-    if (params.isNotEmpty()) return Result.err(ErrorKind.TooManyParameter);
+    if (params.hasNext()) return Result.err(ErrorKind.TooManyParameter);
     return Result.ok(args.toImmutableSeq());
   }
 
