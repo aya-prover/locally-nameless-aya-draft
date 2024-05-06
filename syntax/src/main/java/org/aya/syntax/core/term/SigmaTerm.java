@@ -9,7 +9,6 @@ import kala.function.IndexedFunction;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.function.BiFunction;
 
 /**
@@ -66,18 +65,12 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
    * A simple "generalized type checking" for tuples.
    */
   public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind> check(
-    @NotNull ImmutableSeq<? extends T> it,
-    @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> inherit
-  ) {
-    return check(it.iterator(), inherit);
-  }
-
-  public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind> check(
-    @NotNull Iterator<? extends T> iter,
+    @NotNull ImmutableSeq<? extends T> elem,
     @NotNull BiFunction<@NotNull T, @NotNull Term, @Nullable Term> checker
   ) {
     var params = this.params.view();
     var args = MutableList.<Term>create();
+    var iter = elem.iterator();
 
     while (iter.hasNext() && params.isNotEmpty()) {
       var item = iter.next();
