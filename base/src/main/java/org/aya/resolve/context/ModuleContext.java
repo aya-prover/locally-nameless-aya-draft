@@ -199,7 +199,7 @@ public sealed interface ModuleContext extends Context permits NoExportContext, P
     var candidates = symbols.resolveUnqualified(name);
     if (candidates.map().isEmpty()) {
       if (getUnqualifiedMaybe(name, sourcePos) != null
-        && (!(ref instanceof LocalVar localVar) || !(localVar.generateKind() instanceof GenerateKind.Anonymous))) {
+        && (!(ref instanceof LocalVar local) || local.generateKind() != GenerateKind.Basic.Anonymous)) {
         // {name} isn't used in this scope, but used in outer scope, shadow!
         reporter().report(new NameProblem.ShadowingWarn(name, sourcePos));
       }

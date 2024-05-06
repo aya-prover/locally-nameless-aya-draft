@@ -13,11 +13,11 @@ public record LocalVar(
   @NotNull GenerateKind generateKind
 ) implements AnyVar {
   public LocalVar(@NotNull String name) {
-    this(name, SourcePos.NONE, GenerateKind.None.INSTANCE);
+    this(name, SourcePos.NONE, GenerateKind.Basic.None);
   }
 
   public LocalVar(@NotNull String name, @NotNull SourcePos definition) {
-    this(name, definition, GenerateKind.None.INSTANCE);
+    this(name, definition, GenerateKind.Basic.None);
   }
 
   public static @NotNull LocalVar from(@NotNull WithPos<String> id) {

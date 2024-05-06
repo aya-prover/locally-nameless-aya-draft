@@ -167,7 +167,7 @@ public sealed interface Pat extends AyaDocile {
     @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
       var solution = this.solution.get();
       if (solution == null) {
-        var name = new LocalVar(fakeBind, errorReport, GenerateKind.Anonymous.INSTANCE);
+        var name = new LocalVar(fakeBind, errorReport, GenerateKind.Basic.Anonymous);
         ctx.put(name, type);
         solution = new Bind(name, type);
         // We need to set solution if no solution

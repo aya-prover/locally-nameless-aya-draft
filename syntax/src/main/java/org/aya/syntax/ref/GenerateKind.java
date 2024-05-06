@@ -7,20 +7,16 @@ package org.aya.syntax.ref;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface GenerateKind {
-  /**
-   * Not generated
-   */
-  enum None implements GenerateKind {
-    INSTANCE;
-  }
-
-  enum Anonymous implements GenerateKind {
-    INSTANCE;
-  }
-
-  // This LocalVar is generated for tyck, should not alive after tyck
-  enum Tyck implements GenerateKind {
-    INSTANCE;
+  enum Basic implements GenerateKind {
+    /**
+     * Not generated
+     */
+    None,
+    Anonymous,
+    /**
+     * This LocalVar is generated for tyck, should not alive after tyck
+     */
+    Tyck,
   }
 
   // record Generalized(@NotNull GeneralizedVar origin) implements GenerateKind {

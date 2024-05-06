@@ -28,7 +28,7 @@ public class NameGenerator {
 
   // TODO: replace all usage of next with nextVar except this
   public @NotNull LocalVar nextVar(@Nullable Term whty) {
-    return new LocalVar(next(whty), SourcePos.SER, GenerateKind.Tyck.INSTANCE);
+    return new LocalVar(next(whty), SourcePos.SER, GenerateKind.Basic.Tyck);
   }
 
   public @NotNull String nextName(@Nullable String typeName) {
