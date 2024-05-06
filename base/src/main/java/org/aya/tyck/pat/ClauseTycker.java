@@ -36,8 +36,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     boolean hasError
   ) {}
 
-  @Override
-  public @NotNull Reporter reporter() {
+  @Override public @NotNull Reporter reporter() {
     return exprTycker.reporter;
   }
 

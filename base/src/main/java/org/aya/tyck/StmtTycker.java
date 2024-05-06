@@ -15,6 +15,7 @@ import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
+import org.aya.tyck.pat.ClauseTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
@@ -53,6 +54,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
             yield factory.apply(wellTy, Either.left(wellBody));
           }
           case TeleDecl.BlockBody blockBody -> {
+            var clauseTycker = new ClauseTycker(tycker);
             var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
             if (orderIndependent) {
               throw new UnsupportedOperationException("Dame Desu!");
