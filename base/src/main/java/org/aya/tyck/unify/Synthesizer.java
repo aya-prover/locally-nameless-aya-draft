@@ -39,6 +39,12 @@ public record Synthesizer(
     return result;
   }
 
+  public @NotNull Term synthDontNormalize(@NotNull Term term) {
+    var result = synthesize(term);
+    assert result != null : term.toDoc(AyaPrettierOptions.debug()).debugRender();
+    return result;
+  }
+
   /**
    * @param term a whnfed term
    * @return type of term if success

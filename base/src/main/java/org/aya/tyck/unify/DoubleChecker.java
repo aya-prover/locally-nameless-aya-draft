@@ -4,6 +4,8 @@ package org.aya.tyck.unify;
 
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.core.term.xtt.DimTyTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
@@ -12,6 +14,7 @@ import org.aya.tyck.tycker.ContextBased;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.StateBased;
 import org.aya.util.error.Panic;
+import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +51,8 @@ public record DoubleChecker(
           return inherit(pBody.instantiate(param), expectedTy);
         });
       }
-      case SigmaTerm sigma -> throw new UnsupportedOperationException("TODO");
+      case SigmaTerm sigma -> sigma.params().view()
+        .allMatch(param -> inherit(param, expected));
       case TupTerm(var elems) when whnf(expected) instanceof SigmaTerm sigmaTy -> {
         // This is not an assertion because the input is not guaranteed to be well-typed
         if (!elems.sizeEquals(sigmaTy.params())) yield false;
@@ -58,18 +62,25 @@ public record DoubleChecker(
           return null;
         }).isOk();
       }
-      case LamTerm(var body) when whnf(expected) instanceof PiTerm(var dom, var cod) -> subscoped(() -> {
-        var param = synthesizer.putIndex(dom);
-        return inherit(body.instantiate(param), cod.instantiate(param));
+      case LamTerm(var body) -> subscoped(() -> switch (whnf(expected)) {
+        case PiTerm(var dom, var cod) ->  {
+          var param = synthesizer.putIndex(dom);
+          yield inherit(body.instantiate(param), cod.instantiate(param));
+        }
+        case EqTerm eq -> {
+          var param = synthesizer.putIndex(DimTyTerm.INSTANCE);
+          yield inherit(body.instantiate(param), eq.A());
+        }
+        default -> failF(new BadExprError(preterm, unifier.pos, expected));
       });
-      case TupTerm _, LamTerm _ -> {
-        fail(new BadExprError(preterm, unifier.pos, expected));
-        yield false;
-      }
+      case TupTerm _ -> failF(new BadExprError(preterm, unifier.pos, expected));
 
-      // TODO: @ice1000 more
-      default -> unifier.compare(synthesizer.synth(preterm), expected, null);
+      default -> unifier.compare(synthesizer.synthDontNormalize(preterm), expected, null);
     };
+  }
+  private boolean failF(@NotNull Problem problem) {
+    fail(problem);
+    return false;
   }
   @Override public @NotNull LocalCtx localCtx() {
     return unifier.localCtx();
