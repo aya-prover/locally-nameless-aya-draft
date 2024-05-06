@@ -8,6 +8,7 @@ import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.BadExprError;
@@ -44,7 +45,7 @@ public record DoubleChecker(
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
         if (!inheritPiDom(pParam, expectedTy)) yield false;
         yield unifier.subscoped(() -> {
-          var param = synthesizer.putIndex(pParam);
+          var param = putIndex(pParam);
           return inherit(pBody.instantiate(param), expectedTy);
         });
       }
@@ -54,7 +55,7 @@ public record DoubleChecker(
         yield subscoped(() -> sigma.params().allMatch(param -> {
           var freeParam = param.instantiateTele(args.view());
           var result = inherit(freeParam, expectedTy);
-          var bind = unifier.putIndex(param);
+          var bind = putIndex(param);
           args.append(new FreeTerm(bind));
           return result;
         }));
@@ -70,11 +71,11 @@ public record DoubleChecker(
       }
       case LamTerm(var body) -> subscoped(() -> switch (whnf(expected)) {
         case PiTerm(var dom, var cod) ->  {
-          var param = unifier.putIndex(dom);
+          var param = putIndex(dom);
           yield inherit(body.instantiate(param), cod.instantiate(param));
         }
         case EqTerm eq -> {
-          var param = unifier.putIndex(DimTyTerm.INSTANCE);
+          var param = putIndex(DimTyTerm.INSTANCE);
           yield inherit(body.instantiate(param), eq.A());
         }
         default -> failF(new BadExprError(preterm, unifier.pos, expected));
@@ -103,5 +104,9 @@ public record DoubleChecker(
 
   @Override public @NotNull Reporter reporter() {
     return unifier.reporter();
+  }
+
+  public @NotNull LocalVar putIndex(@NotNull Term type) {
+    return unifier.putIndex(type);
   }
 }
