@@ -65,15 +65,15 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       }
       case TeleDecl.DataCtor dataCtor -> throw new UnsupportedOperationException("TODO");
       case TeleDecl.DataDecl dataDecl -> throw new UnsupportedOperationException("TODO");
-      case TeleDecl.PrimDecl primDecl -> null;
+      case TeleDecl.PrimDecl primDecl -> throw new UnsupportedOperationException("TODO");
     };
   }
 
   private void checkHeader(TeleDecl<?> decl, ExprTycker tycker) {
     switch (decl) {
-      case TeleDecl.DataCtor con -> {}
+      case TeleDecl.DataCtor con -> throw new UnsupportedOperationException("TODO");
       case TeleDecl.DataDecl data -> {
-        assert data.result != null;
+        assert data.result != null;   // TODO: really?
         var signature = checkTele(data.telescope, data.result, tycker);
         SortTerm sort = SortTerm.Type0;
         if (signature.result() instanceof SortTerm userSort) {
@@ -83,7 +83,11 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
         }
         data.signature = new Signature<>(signature.param(), sort);
       }
-      case TeleDecl.FnDecl fn -> fn.signature = checkTele(fn.telescope, fn.result, tycker);
+      case TeleDecl.FnDecl fn -> {
+        var result = fn.result;
+        if (result == null) result = new WithPos<>(fn.sourcePos(), new Expr.Hole(false, null));
+        fn.signature = checkTele(fn.telescope, result, tycker);
+      }
       case TeleDecl.PrimDecl prim -> {
         // This directly corresponds to the tycker.localCtx = new LocalCtx();
         //  at the end of this case clause.

@@ -25,8 +25,8 @@ public interface TeleTycker {
    */
   @Contract(pure = true)
   static @NotNull Signature<Term> checkTele(
-    ImmutableSeq<Expr.Param> cTele,
-    WithPos<Expr> result, ExprTycker tycker
+    @NotNull ImmutableSeq<Expr.Param> cTele,
+    @NotNull WithPos<Expr> result, @NotNull ExprTycker tycker
   ) {
     var tele = checkTeleFree(cTele, tycker);
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
