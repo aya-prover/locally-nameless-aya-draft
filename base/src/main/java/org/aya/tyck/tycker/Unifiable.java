@@ -6,7 +6,7 @@ import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.Term;
 import org.aya.tyck.error.UnifyError;
 import org.aya.tyck.error.UnifyInfo;
-import org.aya.tyck.unify.TermComparator;
+import org.aya.unify.TermComparator;
 import org.aya.util.Ordering;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;

@@ -13,7 +13,7 @@ import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.error.HoleProblem;
-import org.aya.tyck.unify.Unifier;
+import org.aya.unify.Unifier;
 import org.aya.util.Ordering;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;

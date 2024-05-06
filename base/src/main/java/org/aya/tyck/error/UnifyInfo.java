@@ -7,7 +7,7 @@ import org.aya.normalize.Normalizer;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.Term;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.unify.TermComparator;
+import org.aya.unify.TermComparator;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 
