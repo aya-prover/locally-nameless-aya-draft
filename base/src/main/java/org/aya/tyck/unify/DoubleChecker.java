@@ -37,10 +37,6 @@ public record DoubleChecker(
   }
 
   public boolean inherit(@NotNull Term preterm, @NotNull Term expected) {
-    if (expected instanceof MetaCall) {
-      // TODO: the original code seems useless (can be handled in default case)
-    }
-
     return switch (preterm) {
       case ErrorTerm _ -> true;
       case PiTerm(var pParam, var pBody) -> {

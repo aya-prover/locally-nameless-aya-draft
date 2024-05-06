@@ -7,6 +7,7 @@ import kala.collection.mutable.MutableList;
 import org.aya.prettier.FindUsage;
 import org.aya.syntax.core.term.Formation;
 import org.aya.syntax.core.term.FreeTerm;
+import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
@@ -38,6 +39,10 @@ public final class Unifier extends TermComparator {
     return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx());
   }
 
+  public @NotNull Unifier derive(@NotNull SourcePos pos, Ordering ordering) {
+    return new Unifier(state, localCtx().derive(), reporter, pos, ordering, allowDelay);
+  }
+
   @Override protected @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
     // Assumption: rhs is in whnf
     var spine = meta.args();
@@ -45,17 +50,27 @@ public final class Unifier extends TermComparator {
     var overlap = MutableList.<LocalVar>create();
     var returnType = type;
     var needUnify = true;
+    // Running double checker is important, see #327 last task (`coe'`)
+    var checker = new DoubleChecker(derive(meta.ref().pos(), cmp));
     // TODO: the code below is incomplete
     switch (meta.ref().req()) {
       case MetaVar.Misc.Whatever -> needUnify = false;
       case MetaVar.Misc.IsType -> {
         switch (rhs) {
           case Formation _ -> {}
-          case MetaCall rMeta -> {
-            // TODO: rMeta.req().isType(synthesizer)
-          }
+          /*case MetaCall rMeta -> {
+            if (!rMeta.ref().req().isType(checker.synthesizer())) {
+              reportIllTyped(meta, rhs);
+              return null;
+            }
+          }*/
           default -> {
-            // TODO: synthesize and set the returnType to the result of synthesis
+            var synthesize = checker.synthesizer().trySynth(rhs);
+            if (!(synthesize instanceof SortTerm)) {
+              reportIllTyped(meta, rhs);
+              return null;
+            }
+            if (returnType == null) returnType = synthesize;
           }
         }
         needUnify = false;
@@ -69,7 +84,20 @@ public final class Unifier extends TermComparator {
         returnType = target;
       }
     }
-    // TODO: type check the rhs according to the meta's info, need double checker
+    if (needUnify) {
+      // Check the solution.
+      if (returnType != null) {
+        // resultTy might be an ErrorTerm, what to do?
+        if (!checker.inherit(rhs, returnType))
+          reportIllTyped(meta, rhs);
+      } else {
+        returnType = checker.synthesizer().trySynth(rhs);
+        if (returnType == null) {
+          throw new UnsupportedOperationException("TODO: add an error report for this");
+        }
+      }
+    }
+    if (!needUnify && returnType == null) returnType = SortTerm.Type0;
     for (var arg : spine) {
       // TODO: apply uneta
       if (whnf(arg) instanceof FreeTerm(var var)) {
@@ -117,9 +145,7 @@ public final class Unifier extends TermComparator {
       return null;
     }
     state.solve(meta.ref(), candidate);
-
-    // TODO: synthesize the type in case it's not provided
-    return type;
+    return returnType;
   }
 
   private void reportBadSpine(@NotNull MetaCall meta) {
