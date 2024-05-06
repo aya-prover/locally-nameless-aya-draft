@@ -6,12 +6,12 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.tyck.pat.BindEater;
-import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 

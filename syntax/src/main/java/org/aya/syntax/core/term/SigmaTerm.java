@@ -81,8 +81,7 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
 
     while (iter.hasNext() && params.isNotEmpty()) {
       var item = iter.next();
-      var first = params.getFirst()
-        .instantiateTele(args.view());
+      var first = params.getFirst().instantiateTele(args.view());
       var result = checker.apply(item, first);
       if (result == null) return Result.err(ErrorKind.CheckFailed);
       args.append(result);

@@ -8,8 +8,6 @@ import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 
-import static org.aya.prettier.Tokens.BAR;
-
 /**
  * @author ice1000
  */

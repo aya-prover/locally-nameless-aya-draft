@@ -6,8 +6,8 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.Desalt;
 import org.aya.resolve.visitor.StmtBinder;
-import org.aya.resolve.visitor.StmtResolver;
 import org.aya.resolve.visitor.StmtPreResolver;
+import org.aya.resolve.visitor.StmtResolver;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.jetbrains.annotations.NotNull;
 

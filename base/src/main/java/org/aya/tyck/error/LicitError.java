@@ -4,11 +4,9 @@ package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.core.term.PiTerm;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
-import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface LicitError extends TyckError {

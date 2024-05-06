@@ -9,10 +9,7 @@ import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.function.UnaryOperator;
 
 /**
  * Terms that behave like a {@link ConCall}, for example:
