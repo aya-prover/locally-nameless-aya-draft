@@ -16,7 +16,6 @@ import org.aya.syntax.core.term.SortTerm;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
 import org.aya.tyck.tycker.Problematic;
-import org.aya.tyck.tycker.TeleTycker;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -43,14 +42,14 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
         var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
         yield switch (fnDecl.body) {
-          case TeleDecl.ExprBody exprBody -> {
-            var result = tycker.inherit(exprBody.expr(), signature.result().instantiateTeleVar(teleVars.view()));
+          case TeleDecl.ExprBody(var expr) -> {
+            var result = tycker.inherit(expr, signature.result().instantiateTeleVar(teleVars.view()));
             var wellBody = result.wellTyped();
             var wellTy = result.type();
             // TODO: wellTy may contains meta, zonk them!
-            wellBody = TeleTycker.bindResult(wellBody, teleVars);
+            wellBody = wellBody.bindTele(teleVars.view());
             // we still need to bind [wellTy] in case it was a hole
-            wellTy = TeleTycker.bindResult(wellTy, teleVars);
+            wellTy = wellTy.bindTele(teleVars.view());
             yield factory.apply(wellTy, Either.left(wellBody));
           }
           case TeleDecl.BlockBody blockBody -> {
@@ -73,14 +72,12 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     switch (decl) {
       case TeleDecl.DataCtor con -> throw new UnsupportedOperationException("TODO");
       case TeleDecl.DataDecl data -> {
-        assert data.result != null;   // TODO: really?
-        var signature = checkTele(data.telescope, data.result, tycker);
-        SortTerm sort = SortTerm.Type0;
-        if (signature.result() instanceof SortTerm userSort) {
-          sort = userSort;
-        } else {
-          fail(BadTypeError.univ(tycker.state, data.result, signature.result()));
-        }
+        var result = data.result;
+        if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
+        var signature = checkTele(data.telescope, result, tycker);
+        var sort = SortTerm.Type0;
+        if (signature.result() instanceof SortTerm userSort) sort = userSort;
+        else fail(BadTypeError.univ(tycker.state, result, signature.result()));
         data.signature = new Signature<>(signature.param(), sort);
       }
       case TeleDecl.FnDecl fn -> {
