@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * @author ice1000
- * @see AppTerm#make(AppTerm)
+ * @see AppTerm#make()
  */
 public sealed interface Callable extends Term permits Callable.Common, MetaCall {
   @NotNull AnyVar ref();
@@ -29,7 +29,7 @@ public sealed interface Callable extends Term permits Callable.Common, MetaCall 
    * Call to a {@link TeleDecl}.
    */
   sealed interface Tele extends Common permits ConCallLike, DataCall, FnCall, PrimCall {
-    @Override @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> ref();
+    @Override @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<? extends Term>> ref();
     int ulift();
   }
 
