@@ -7,13 +7,12 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import kala.function.IndexedFunction;
-import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * @author re-xyr
@@ -103,7 +102,7 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
     CheckFailed
   }
 
-  @NotNull public SeqView<Term> view(Function<Term, LocalVar> putIndex) {
+  @NotNull public SeqView<Term> view(UnaryOperator<Term> putIndex) {
     return new SeqView<>() {
       @Override public @NotNull Iterator<Term> iterator() {
         return new Iterator<>() {
@@ -115,7 +114,7 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
           @Override public Term next() {
             if (index == 0) return params.get(index++);
             var result = params.get(index++).instantiateTele(args.view());
-            args.append(new FreeTerm(putIndex.apply(result)));
+            args.append(putIndex.apply(result));
             return result;
           }
         };

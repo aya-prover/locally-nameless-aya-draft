@@ -70,11 +70,10 @@ public record Synthesizer(
       case SigmaTerm sigma -> {
         var pTys = MutableList.<SortTerm>create();
         boolean succ = subscoped(() -> {
-          for (var p : sigma.view(this::putIndex)) {
+          for (var p : sigma.view(i -> new FreeTerm(putIndex(i)))) {
             if (!(trySynth(p) instanceof SortTerm pSort)) return false;
             pTys.append(pSort);
           }
-
           return true;
         });
         if (!succ) yield null;

@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.unify;
 
-import kala.collection.mutable.MutableList;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -51,7 +50,8 @@ public record DoubleChecker(
       }
       case SigmaTerm sigma -> {
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
-        yield subscoped(() -> sigma.view(this::putIndex).allMatch(param -> inherit(param, expectedTy)));
+        yield subscoped(() -> sigma.view(i -> new FreeTerm(putIndex(i)))
+          .allMatch(param -> inherit(param, expectedTy)));
       }
       case TupTerm(var elems) when whnf(expected) instanceof SigmaTerm sigmaTy -> {
         // This is not an assertion because the input is not guaranteed to be well-typed
