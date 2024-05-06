@@ -89,14 +89,8 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
       params = params.drop(1);
     }
 
-    if (iter.hasNext()) {
-      return Result.err(ErrorKind.TooManyElement);
-    }
-
-    if (params.isNotEmpty()) {
-      return Result.err(ErrorKind.TooManyParameter);
-    }
-
+    if (iter.hasNext()) return Result.err(ErrorKind.TooManyElement);
+    if (params.isNotEmpty()) return Result.err(ErrorKind.TooManyParameter);
     return Result.ok(args.toImmutableSeq());
   }
 

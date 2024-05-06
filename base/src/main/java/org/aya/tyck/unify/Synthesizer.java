@@ -14,27 +14,27 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.tycker.AbstractTycker;
+import org.aya.tyck.tycker.ContextBased;
+import org.aya.tyck.tycker.StateBased;
 import org.aya.util.error.Panic;
-import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
-
-public final class Synthesizer extends AbstractTycker {
-  private final @NotNull NameGenerator nameGen = new NameGenerator();
-
-  public Synthesizer(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
-    super(state, ctx, reporter);
+public record Synthesizer(
+  @NotNull NameGenerator nameGen,
+  @NotNull AbstractTycker tycker
+) implements StateBased, ContextBased {
+  public Synthesizer(@NotNull AbstractTycker tycker) {
+    this(new NameGenerator(), tycker);
   }
 
-  public @Nullable Term trySynthesizeWHNF(@NotNull Term term) {
-    var result = synthesize(whnf(term));      // TODO: we don't whnf term in old project, that seems suspicious
+  public @Nullable Term trySynth(@NotNull Term term) {
+    var result = synthesize(term);
     return result == null ? null : whnf(result);
   }
 
-  public @NotNull Term synthesizeWHNF(@NotNull Term term) {
-    var result = trySynthesizeWHNF(term);
+  public @NotNull Term synth(@NotNull Term term) {
+    var result = trySynth(term);
     assert result != null : term.toDoc(AyaPrettierOptions.debug()).debugRender();
     return result;
   }
@@ -43,53 +43,41 @@ public final class Synthesizer extends AbstractTycker {
    * @param term a whnfed term
    * @return type of term if success
    */
-  public @Nullable Term synthesize(@NotNull Term term) {
+  private @Nullable Term synthesize(@NotNull Term term) {
     return switch (term) {
       case AppTerm(var f, var a) -> {
-        var fTy = trySynthesizeWHNF(f);
+        var fTy = trySynth(f);
         yield fTy instanceof PiTerm pi ? pi.body().instantiate(a) : null;
       }
       case PiTerm pi -> {
-        var pTy = trySynthesizeWHNF(pi.param());
+        var pTy = trySynth(pi.param());
         if (!(pTy instanceof SortTerm pSort)) yield null;
 
         var bTy = subscoped(() -> {
           var param = putIndex(pi.param());
-          return trySynthesizeWHNF(pi.body().instantiate(param));
+          return trySynth(pi.body().instantiate(param));
         });
 
         if (!(bTy instanceof SortTerm bSort)) yield null;
-
         yield SortTerm.lub(pSort, bSort);
       }
-      case LamTerm _ -> null;
-      case SigmaTerm sigmaTerm -> {
+      case SigmaTerm sigma -> {
         var pTys = MutableList.<SortTerm>create();
+        var params = MutableList.<Term>create();
 
-        var succ = sigmaTerm.check(new SigmaIterator(this, sigmaTerm.params().iterator()), (t, param) -> {
-          var pTy = trySynthesizeWHNF(param);
-          if (!(pTy instanceof SortTerm pSort)) return null;
-          pTys.append(pSort);
-          return t;
-        }).isOk();
+        var succ = subscoped(() -> {
+          for (var p : sigma.params()) {
+            var freeP = p.instantiateTele(params.view());
+            var pTy = trySynth(freeP);
+            if (!(pTy instanceof SortTerm pSort)) return false;
+            pTys.append(pSort);
 
-        // TODO: in case we want to recover the code XD
-        // var params = MutableList.<Term>create();
-        //
-        // var succ = subscoped(() -> {
-        //   for (var p : sigmaTerm.params()) {
-        //     var freeP = p.instantiateTele(params.view());
-        //     var pTy = trySynthesizeWHNF(freeP);
-        //     if (!(pTy instanceof SortTerm pSort)) return false;
-        //     pTys.append(pSort);
-        //
-        //     var param = putIndex(freeP);
-        //     params.append(new FreeTerm(param));
-        //   }
-        //
-        //   return true;
-        // });
-        //
+            var param = putIndex(freeP);
+            params.append(new FreeTerm(param));
+          }
+
+          return true;
+        });
 
         if (!succ) yield null;
 
@@ -97,11 +85,12 @@ public final class Synthesizer extends AbstractTycker {
         yield pTys.reduce(SortTerm::lub);
       }
       case TupTerm _ -> null;
+      case LamTerm _ -> null;
       case FreeTerm(var var) -> localCtx().get(var);
       case LocalTerm _ -> throw new Panic("LocalTerm");
       case MetaPatTerm meta -> meta.meta().type();
       case ProjTerm(Term of, int index) -> {
-        var ofTy = trySynthesizeWHNF(of);
+        var ofTy = trySynth(of);
         if (!(ofTy instanceof SigmaTerm ofSigma)) yield null;
         yield ofSigma.params().get(index - 1)
           // the type of projOf.{index - 1} may refer to the previous parameters
@@ -112,31 +101,30 @@ public final class Synthesizer extends AbstractTycker {
         .elevate(teleCall.ulift());
 
       case MetaCall _ -> throw new UnsupportedOperationException("TODO");
-      case CoeTerm _ -> throw new UnsupportedOperationException("TODO");
-      case PAppTerm _ -> throw new UnsupportedOperationException("TODO");
-      case ErrorTerm errorTerm -> ErrorTerm.typeOf(errorTerm);
-      case SortTerm sortTerm -> sortTerm.succ();
-      case DimTerm _ -> throw new UnsupportedOperationException("TODO");
-      case DimTyTerm _ -> throw new UnsupportedOperationException("TODO");
-      case EqTerm _ -> throw new UnsupportedOperationException("TODO");
+      case CoeTerm coe -> coe.family();
+      case PAppTerm papp -> {
+        var fTy = trySynth(papp.fun());
+        if (!(fTy instanceof EqTerm eq)) yield null;
+        yield eq.A().instantiate(papp.arg());
+      }
+      case ErrorTerm error -> ErrorTerm.typeOf(error);
+      case SortTerm sort -> sort.succ();
+      case DimTerm _ -> DimTyTerm.INSTANCE;
+      case DimTyTerm _ -> SortTerm.ISet;
+      case EqTerm eq -> synthesize(eq.A());
     };
   }
 
   public @NotNull LocalVar putIndex(@NotNull Term type) {
-    return super.putIndex(nameGen, type);
+    return tycker.putIndex(nameGen, type);
   }
-
-  private record SigmaIterator(@NotNull Synthesizer synthesizer,
-                               @NotNull Iterator<Term> typeIter) implements Iterator<FreeTerm> {
-    @Override
-    public boolean hasNext() {
-      return typeIter.hasNext();
-    }
-
-    @Override
-    public FreeTerm next() {
-      var bind = synthesizer.putIndex(typeIter.next());
-      return new FreeTerm(bind);
-    }
+  @Override public @NotNull TyckState state() {
+    return tycker.state;
+  }
+  @Override public @NotNull LocalCtx localCtx() {
+    return tycker.localCtx();
+  }
+  @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
+    return tycker.setLocalCtx(ctx);
   }
 }

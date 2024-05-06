@@ -4,29 +4,23 @@ package org.aya.tyck.unify;
 
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.BadExprError;
+import org.aya.tyck.tycker.ContextBased;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.StateBased;
 import org.aya.util.error.Panic;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-// TODO: unifier and synthesizer use something that look similar, i.e. TyckState and LocalCtx
 public record DoubleChecker(
   @NotNull Unifier unifier,
   @NotNull Synthesizer synthesizer
-) implements StateBased, Problematic {
-  @Override
-  public @NotNull TyckState state() {
-    // TODO: which state we should use?
-    return unifier.state();
-  }
-
-  @Override
-  public @NotNull Reporter reporter() {
-    return unifier.reporter();
+) implements StateBased, ContextBased, Problematic {
+  public DoubleChecker(@NotNull Unifier unifier) {
+    this(unifier, new Synthesizer(unifier));
   }
 
   public boolean inheritTy(@NotNull Term ty, @NotNull SortTerm expected) {
@@ -34,7 +28,7 @@ public record DoubleChecker(
       // TODO
     }
 
-    if (!(synthesizer.trySynthesizeWHNF(ty) instanceof SortTerm tyty)) return false;
+    if (!(synthesizer.trySynth(ty) instanceof SortTerm tyty)) return false;
     // TODO: check type
     throw new UnsupportedOperationException("TODO");
   }
@@ -50,13 +44,13 @@ public record DoubleChecker(
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
         if (!inheritTy(pParam, expectedTy)) yield false;
         yield unifier.subscoped(() -> {
-          var param = unifier.putIndex(pParam);
+          var param = synthesizer.putIndex(pParam);
           return inherit(pBody.instantiate(param), expectedTy);
         });
       }
       case SigmaTerm sigma -> throw new UnsupportedOperationException("TODO");
       case TupTerm(var elems) when whnf(expected) instanceof SigmaTerm sigmaTy -> {
-        // TODO: assertion?
+        // This is not an assertion because the input is not guaranteed to be well-typed
         if (!elems.sizeEquals(sigmaTy.params())) yield false;
 
         yield sigmaTy.check(elems, (elem, param) -> {
@@ -64,9 +58,9 @@ public record DoubleChecker(
           return null;
         }).isOk();
       }
-      case LamTerm(var body) when whnf(expected) instanceof PiTerm(var pParam, var pLast) -> unifier.subscoped(() -> {
-        var param = unifier.putIndex(pParam);
-        return inherit(body.instantiate(param), pLast.instantiate(param));
+      case LamTerm(var body) when whnf(expected) instanceof PiTerm(var dom, var cod) -> subscoped(() -> {
+        var param = synthesizer.putIndex(dom);
+        return inherit(body.instantiate(param), cod.instantiate(param));
       });
       case TupTerm _, LamTerm _ -> {
         fail(new BadExprError(preterm, unifier.pos, expected));
@@ -74,7 +68,19 @@ public record DoubleChecker(
       }
 
       // TODO: @ice1000 more
-      default -> unifier.compare(synthesizer.synthesizeWHNF(preterm), expected, null);
+      default -> unifier.compare(synthesizer.synth(preterm), expected, null);
     };
+  }
+  @Override public @NotNull LocalCtx localCtx() {
+    return unifier.localCtx();
+  }
+  @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
+    return unifier.setLocalCtx(ctx);
+  }
+  @Override public @NotNull TyckState state() {
+    return unifier.state();
+  }
+  @Override public @NotNull Reporter reporter() {
+    return unifier.reporter();
   }
 }
