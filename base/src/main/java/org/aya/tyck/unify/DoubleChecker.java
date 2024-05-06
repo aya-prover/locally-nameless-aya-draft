@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.unify;
 
+import kala.collection.mutable.MutableList;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -47,8 +48,17 @@ public record DoubleChecker(
           return inherit(pBody.instantiate(param), expectedTy);
         });
       }
-      case SigmaTerm sigma -> sigma.params().view()
-        .allMatch(param -> inherit(param, expected));
+      case SigmaTerm sigma -> {
+        if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
+        var args = MutableList.<Term>create();
+        yield subscoped(() -> sigma.params().allMatch(param -> {
+          var freeParam = param.instantiateTele(args.view());
+          var result = inheritTy(freeParam, expectedTy);
+          var bind = unifier.putIndex(param);
+          args.append(new FreeTerm(bind));
+          return result;
+        }));
+      }
       case TupTerm(var elems) when whnf(expected) instanceof SigmaTerm sigmaTy -> {
         // This is not an assertion because the input is not guaranteed to be well-typed
         if (!elems.sizeEquals(sigmaTy.params())) yield false;
@@ -78,15 +88,19 @@ public record DoubleChecker(
     fail(problem);
     return false;
   }
+
   @Override public @NotNull LocalCtx localCtx() {
     return unifier.localCtx();
   }
+
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
     return unifier.setLocalCtx(ctx);
   }
+
   @Override public @NotNull TyckState state() {
     return unifier.state();
   }
+
   @Override public @NotNull Reporter reporter() {
     return unifier.reporter();
   }
