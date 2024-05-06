@@ -27,7 +27,7 @@ public record DoubleChecker(
     this(unifier, new Synthesizer(unifier));
   }
 
-  public boolean inheritTy(@NotNull Term ty, @NotNull SortTerm expected) {
+  public boolean inheritPiDom(@NotNull Term ty, @NotNull SortTerm expected) {
     if (ty instanceof MetaCall meta && meta.ref().req() == MetaVar.Misc.IsType) {
       // TODO
     }
@@ -42,7 +42,7 @@ public record DoubleChecker(
       case ErrorTerm _ -> true;
       case PiTerm(var pParam, var pBody) -> {
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
-        if (!inheritTy(pParam, expectedTy)) yield false;
+        if (!inheritPiDom(pParam, expectedTy)) yield false;
         yield unifier.subscoped(() -> {
           var param = synthesizer.putIndex(pParam);
           return inherit(pBody.instantiate(param), expectedTy);
@@ -53,7 +53,7 @@ public record DoubleChecker(
         var args = MutableList.<Term>create();
         yield subscoped(() -> sigma.params().allMatch(param -> {
           var freeParam = param.instantiateTele(args.view());
-          var result = inheritTy(freeParam, expectedTy);
+          var result = inherit(freeParam, expectedTy);
           var bind = unifier.putIndex(param);
           args.append(new FreeTerm(bind));
           return result;
