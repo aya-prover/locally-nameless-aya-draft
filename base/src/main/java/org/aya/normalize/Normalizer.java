@@ -5,10 +5,10 @@ package org.aya.normalize;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.ImmutableSet;
 import kala.control.Option;
-import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.AnyVar;
@@ -54,10 +54,15 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         throw new UnsupportedOperationException("TODO: implement");
       }
       case PrimCall prim -> state.factory().unfold(prim, state);
-      case MetaPatTerm(Pat.Meta meta) -> {
+      case MetaPatTerm(var meta) -> {
         var solution = meta.solution().get();
         if (solution == null) yield term;
         yield whnf(PatToTerm.visit(solution));
+      }
+      case MetaCall(var ref, var args) -> {
+        var solution = state.solutions().getOrNull(ref);
+        if (solution == null) yield term;
+        yield whnf(MetaCall.app(ref, solution, args));
       }
       // TODO: handle other cases
       default -> term;

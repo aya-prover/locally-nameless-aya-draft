@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.ref;
 
+import kala.collection.SeqView;
 import org.aya.generic.AyaDocile;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.Term;
@@ -29,7 +30,9 @@ public record MetaVar(
 
   @Override public int hashCode() {return System.identityHashCode(this);}
 
-  public sealed interface Requirement extends AyaDocile {}
+  public sealed interface Requirement extends AyaDocile {
+    Requirement bind(SeqView<LocalVar> vars);
+  }
   public enum Misc implements Requirement {
     Whatever,
     IsType,
@@ -40,10 +43,20 @@ public record MetaVar(
         case IsType -> Doc.sep(Doc.plain("_"), Doc.symbols(":", "?"));
       };
     }
+    @Override public Misc bind(SeqView<LocalVar> vars) {
+      return this;
+    }
   }
+  /**
+   * @param type hopefully in the closed context.
+   *             Upon creation, it will be bound with all the local vars.
+   */
   public record OfType(@NotNull Term type) implements Requirement {
     @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
       return Doc.sep(Doc.symbol("?"), Doc.symbol(":"), type.toDoc(options));
+    }
+    @Override public OfType bind(SeqView<LocalVar> vars) {
+      return new OfType(type.bindTele(vars));
     }
   }
 }

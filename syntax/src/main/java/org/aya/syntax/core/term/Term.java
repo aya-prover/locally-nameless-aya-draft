@@ -40,6 +40,7 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   default @NotNull Term subst(@NotNull MapLike<LocalVar, Term> map) {
+    if (map.isEmpty()) return this;
     var acc = this;
     for (var key : map.keysView()) {
       var value = map.get(key);
@@ -67,7 +68,14 @@ public sealed interface Term extends Serializable, AyaDocile
     return bindAt(var, 0);
   }
 
+  /**
+   * You might not want to call this method! Use {@link #bindTele} instead.
+   *
+   * @see #instantiateAll(SeqView)
+   * @see #instantiateTele(SeqView)
+   */
   default @NotNull Term bindAll(@NotNull SeqView<LocalVar> vars) {
+    if (vars.isEmpty()) return this;
     return vars.foldLeftIndexed(this, (idx, acc, var) -> acc.bindAt(var, idx));
   }
 
@@ -88,6 +96,7 @@ public sealed interface Term extends Serializable, AyaDocile
    */
   @ApiStatus.Internal
   default @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
+    if (list.isEmpty()) return this;
     return descent((i, t) -> t.replaceAllFrom(from + i, list));
   }
 
@@ -115,15 +124,24 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   default @NotNull Term instantiateTeleVar(@NotNull SeqView<LocalVar> teleVars) {
-    return instantiateTele(teleVars.map(FreeTerm::new));
+    return instantiateAllVars(teleVars.reversed());
   }
 
   /**
-   * Instantiate {@code 0..args.size() - 1} with {@param args}
+   * Instantiate {@code 0..args.size() - 1} with {@param args}.
+   * You might not want to call this method! Use {@link #instantiateTele} instead.
+   *
+   * @see #instantiateTele(SeqView)
    */
   default @NotNull Term instantiateAll(@NotNull SeqView<Term> args) {
     return replaceAllFrom(0, args.toImmutableSeq());
   }
+
+  /**
+   * You might not want to call this method! Use {@link #instantiateTeleVar} instead.
+   *
+   * @see #instantiateTeleVar(SeqView)
+   */
   default @NotNull Term instantiateAllVars(@NotNull SeqView<LocalVar> args) {
     return instantiateAll(args.map(FreeTerm::new));
   }
@@ -133,18 +151,18 @@ public sealed interface Term extends Serializable, AyaDocile
    *          The index indicates how many new bindings are introduced.
    *          For example, a {@link LamTerm}:
    *          <pre>
-   *              Γ, a : A ⊢ b : B<br/>
-   *          --------------------------<br/>
-   *          Γ ⊢ fn (a : A) => (b : B)
-   *          </pre>
+   *                                         Γ, a : A ⊢ b : B<br/>
+   *                                     --------------------------<br/>
+   *                                     Γ ⊢ fn (a : A) => (b : B)
+   *                                     </pre>
    *          {@code f} will apply to {@code b}, but the context of {@code b}: `Γ, a : A` has a new binding,
    *          therefore the implementation should be {@code f.apply(1, b)}.
    *          In the other hand, a {@link AppTerm}:
    *          <pre>
-   *          Γ ⊢ g : A → B   Γ ⊢ a : A<br/>
-   *          --------------------------<br/>
-   *                 Γ ⊢ g a : B
-   *          </pre>
+   *                                     Γ ⊢ g : A → B   Γ ⊢ a : A<br/>
+   *                                     --------------------------<br/>
+   *                                            Γ ⊢ g a : B
+   *                                     </pre>
    *          {@code f} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
    *          so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.

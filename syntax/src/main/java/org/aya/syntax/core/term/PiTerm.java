@@ -3,11 +3,13 @@
 package org.aya.syntax.core.term;
 
 import kala.collection.SeqLike;
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -35,36 +37,6 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
     return Tuple.of(params.toImmutableSeq(), term);
   }
 
-  // /**
-  //  * @param fmap   usually whnf or identity
-  //  * @param params will be of size unequal to limit in case of failure
-  //  */
-  // public static @NotNull Result.Default unpiOrPath(
-  //   @NotNull Term ty, @NotNull Term term, @NotNull UnaryOperator<Term> fmap,
-  //   @NotNull MutableList<LocalVar> params, int limit
-  // ) {
-  //   if (limit <= 0) return new Result.Default(term, ty);
-  //   return switch (fmap.apply(ty)) {
-  //     case PiTerm(var param, var body) when param.explicit() -> {
-  //       if (param.type() != IntervalTerm.INSTANCE) yield new Result.Default(term, ty);
-  //       params.append(param.ref());
-  //       yield unpiOrPath(body, AppTerm.make(term, param.toArg()), fmap, params, limit - 1);
-  //     }
-  //     case PathTerm cube -> {
-  //       var cubeParams = cube.params();
-  //       int delta = limit - cubeParams.size();
-  //       if (delta >= 0) {
-  //         params.appendAll(cubeParams);
-  //         yield unpiOrPath(cube.type(), cube.applyDimsTo(term), fmap, params, delta);
-  //       } else {
-  //         throw new UnsupportedOperationException("TODO");
-  //       }
-  //     }
-  //     case Term anyway -> new Result.Default(term, anyway);
-  //   };
-  // }
-  //
-
   // TODO: dependsOn(SortTerm)
   // public static @NotNull SortTerm lub(@NotNull SortTerm domain, @NotNull SortTerm codomain) {
   //   var alift = domain.lift();
@@ -86,10 +58,6 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
   // }
   //
 
-  // public static Term makeIntervals(Seq<LocalVar> list, Term type) {
-  //   return make(list.view().map(IntervalTerm::param), type);
-  // }
-
   // public @NotNull LamTerm coe(@NotNull CoeTerm coe, @NotNull LamTerm.Param varI) {
   //   var M = new LamTerm.Param(new LocalVar("f"), true);
   //   var a = new LamTerm.Param(new LocalVar("a"), param.explicit());
@@ -100,10 +68,12 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
   //       new Arg<>(AppTerm.make(M.toTerm(), new Arg<>(arg, param.explicit())), true))));
   // }
 
-  /** Call body.inst(term) directly instead. */
-  @Deprecated(forRemoval = true)
-  public @NotNull Term substBody(@NotNull Term term) {
-    return body.instantiate(term);
+  public static @NotNull Term substBody(@NotNull Term pi, @NotNull SeqView<Term> args) {
+    for (var arg : args) {
+      if (pi instanceof PiTerm realPi) pi = realPi.body.instantiate(arg);
+      else Panic.unreachable();
+    }
+    return pi;
   }
 
   public @NotNull Term parameters(@NotNull MutableList<@NotNull Term> params) {

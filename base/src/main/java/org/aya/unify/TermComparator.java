@@ -231,7 +231,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         // Make type
         var spine = ImmutableSeq.fill(ldx /* ldx is 0-based */, i -> ProjTerm.make(lof, i));    // 0 = lof.0, 1 = lof.1, ...
         // however, for {lof.ldx}, the nearest(0) element is {lof.(idx - 1)}, so we need to reverse the spine.
-        yield params.get(ldx).instantiateAll(spine.view().reversed());
+        yield params.get(ldx).instantiateTele(spine.view());
       }
       case FreeTerm(var lvar) -> rhs instanceof FreeTerm(var rvar) && lvar == rvar ? localCtx().get(lvar) : null;
       case DimTerm l -> rhs instanceof DimTerm r && l == r ? l : null;
@@ -305,8 +305,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     if (!list.sizeEquals(rist)) return onFailed.get();
     if (list.isEmpty()) return continuation.apply(vars.toImmutableSeq());
     return compareTypeWith(
-      list.getFirst().instantiateAllVars(vars.reversed()),
-      rist.getFirst().instantiateAllVars(vars.reversed()), onFailed, var ->
+      list.getFirst().instantiateTeleVar(vars),
+      rist.getFirst().instantiateTeleVar(vars), onFailed, var ->
         compareTypesWithAux(vars.appended(var), list.drop(1), rist.drop(1), onFailed, continuation));
   }
 

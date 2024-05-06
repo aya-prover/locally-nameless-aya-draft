@@ -17,13 +17,8 @@ public record LamTerm(Term body) implements StableWHNF {
   }
 
   public static @NotNull Term make(int paramSize, @NotNull Term body) {
-    var result = body;
-
-    for (var i = 0; i < paramSize; ++i) {
-      result = new LamTerm(result);
-    }
-
-    return result;
+    for (var i = 0; i < paramSize; ++i) body = new LamTerm(body);
+    return body;
   }
 
   /**

@@ -5,10 +5,7 @@ package org.aya.unify;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import org.aya.prettier.FindUsage;
-import org.aya.syntax.core.term.Formation;
-import org.aya.syntax.core.term.FreeTerm;
-import org.aya.syntax.core.term.SortTerm;
-import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -46,8 +43,6 @@ public final class Unifier extends TermComparator {
   @Override protected @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
     // Assumption: rhs is in whnf
     var spine = meta.args();
-    var returnType = computeReturnType(meta, rhs, type);
-    if (returnType == null) return null;
 
     var inverted = MutableArrayList.<LocalVar>create(spine.size());
     var overlap = MutableList.<LocalVar>create();
@@ -61,6 +56,9 @@ public final class Unifier extends TermComparator {
         return null;
       }
     }
+
+    var returnType = computeReturnType(meta, rhs, type);
+    if (returnType == null) return null;
 
     // In this case, the solution may not be unique (see #608),
     // so we may delay its resolution to the end of the tycking when we disallow delayed unification.
@@ -93,11 +91,14 @@ public final class Unifier extends TermComparator {
         return null;
       }
     }
-    if (FindUsage.meta(candidate, meta.ref()) > 0) {
+    var ref = meta.ref();
+    if (FindUsage.meta(candidate, ref) > 0) {
       fail(new HoleProblem.RecursionError(meta, candidate));
       return null;
     }
-    state.solve(meta.ref(), candidate);
+    // It might have extra arguments, in those cases we need to abstract them out.
+    candidate = LamTerm.make(spine.size() - ref.ctxSize(), candidate);
+    state.solve(ref, candidate);
     return returnType;
   }
 
@@ -107,10 +108,10 @@ public final class Unifier extends TermComparator {
   private @Nullable Term computeReturnType(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
     var needUnify = true;
     var returnType = type;
+    var ref = meta.ref();
     // Running double checker is important, see #327 last task (`coe'`)
-    var checker = new DoubleChecker(derive(meta.ref().pos(), cmp));
-    // TODO: the code below is incomplete
-    switch (meta.ref().req()) {
+    var checker = new DoubleChecker(derive(ref.pos(), cmp));
+    switch (ref.req()) {
       case MetaVar.Misc.Whatever -> needUnify = false;
       case MetaVar.Misc.IsType -> {
         switch (rhs) {
@@ -133,6 +134,7 @@ public final class Unifier extends TermComparator {
         needUnify = false;
       }
       case MetaVar.OfType(var target) -> {
+        target = MetaCall.appType(ref, target, meta.args());
         if (type != null && !compare(type, target, null)) {
           reportIllTyped(meta, rhs);
           return null;

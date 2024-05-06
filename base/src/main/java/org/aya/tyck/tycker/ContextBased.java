@@ -56,8 +56,9 @@ public interface ContextBased {
   }
 
   default @NotNull MetaCall freshMeta(String name, @NotNull SourcePos pos, MetaVar.Requirement req) {
-    var args = localCtx().extract().<Term>map(FreeTerm::new).toImmutableSeq();
-    return new MetaCall(new MetaVar(name, pos, args.size(), req), args);
+    var vars = localCtx().extract().toImmutableSeq();
+    var args = vars.<Term>map(FreeTerm::new);
+    return new MetaCall(new MetaVar(name, pos, args.size(), req.bind(vars.view())), args);
   }
 
   default @NotNull Term generatePi(Expr.@NotNull Lambda expr, SourcePos sourcePos) {
@@ -67,8 +68,8 @@ public interface ContextBased {
 
   private @NotNull Term generatePi(@NotNull SourcePos pos, @NotNull String name) {
     var genName = name + Constants.GENERATED_POSTFIX;
-    var domain = freshMeta(genName + "ty", pos, MetaVar.Misc.IsType);
-    var codomain = freshMeta(genName + "ret", pos, MetaVar.Misc.IsType);
+    var domain = freshMeta(STR."\{genName}ty", pos, MetaVar.Misc.IsType);
+    var codomain = freshMeta(STR."\{genName}ret", pos, MetaVar.Misc.IsType);
     return new PiTerm(domain, codomain);
   }
 }

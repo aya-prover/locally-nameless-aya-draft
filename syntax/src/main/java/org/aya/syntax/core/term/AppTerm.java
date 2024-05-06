@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
@@ -20,6 +21,10 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
 
   public static @NotNull Term make(@NotNull Term f, @NotNull Term a) {
     return new AppTerm(f, a).make();
+  }
+  public static @NotNull Term make(@NotNull Term f, @NotNull SeqView<Term> args) {
+    for (var arg : args) f = make(f, arg);
+    return f;
   }
 
   public @NotNull Term make() {
