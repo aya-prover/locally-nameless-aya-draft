@@ -107,14 +107,15 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
     return new SeqView<>() {
       @Override public @NotNull Iterator<Term> iterator() {
         return new Iterator<>() {
-          private final MutableList<Term> args = MutableList.create();
-          private int index = 0;
+          private final @NotNull MutableList<Term> args = MutableList.create();
+          private final @NotNull Iterator<Term> paramIter = params.iterator();
           @Override public boolean hasNext() {
-            return index < params.size();
+            return paramIter.hasNext();
           }
           @Override public Term next() {
-            if (index == 0) return params.get(index++);
-            var result = params.get(index++).instantiateTele(args.view());
+            var next = paramIter.next();
+            if (args.isEmpty()) return next;
+            var result = next.instantiateTele(args.view());
             args.append(putIndex.apply(result));
             return result;
           }

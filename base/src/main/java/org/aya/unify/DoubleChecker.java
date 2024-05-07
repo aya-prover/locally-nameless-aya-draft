@@ -19,10 +19,14 @@ import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @apiNote {@link Unifier#localCtx()} should be the same object as {@link Synthesizer#localCtx()}
+ */
 public record DoubleChecker(
   @NotNull Unifier unifier,
   @NotNull Synthesizer synthesizer
 ) implements StateBased, ContextBased, Problematic {
+
   public DoubleChecker(@NotNull Unifier unifier) {
     this(unifier, new Synthesizer(unifier));
   }
