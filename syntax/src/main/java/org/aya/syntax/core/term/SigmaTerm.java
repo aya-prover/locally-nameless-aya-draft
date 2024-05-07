@@ -113,9 +113,7 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
             return paramIter.hasNext();
           }
           @Override public Term next() {
-            var next = paramIter.next();
-            if (args.isEmpty()) return next;
-            var result = next.instantiateTele(args.view());
+            var result = paramIter.next().instantiateTele(args.view());
             args.append(putIndex.apply(result));
             return result;
           }
