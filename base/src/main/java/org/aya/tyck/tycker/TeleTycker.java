@@ -28,16 +28,24 @@ public interface TeleTycker {
     @NotNull ImmutableSeq<Expr.Param> cTele,
     @NotNull WithPos<Expr> result, @NotNull ExprTycker tycker
   ) {
-    var tele = checkTeleFree(cTele, tycker);
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
-    bindTele(locals, tele);
-    var finalParam = tele.zipView(cTele)
-      .map(p -> new WithPos<>(p.component2().sourcePos(), p.component1()))
-      .toImmutableSeq();
+    var finalParam = checkTele(cTele, tycker);
     var finalResult = bindResult(tycker.ty(result), locals);
     tycker.solveMetas();
     // TODO: zonk these data
     return new Signature<>(finalParam, finalResult);
+  }
+
+  static @NotNull ImmutableSeq<WithPos<Param>> checkTele(
+    @NotNull ImmutableSeq<Expr.Param> cTele,
+    @NotNull ExprTycker tycker
+  ) {
+    var tele = checkTeleFree(cTele, tycker);
+    var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
+    bindTele(locals, tele);
+    return tele.zipView(cTele)
+      .map(p -> new WithPos<>(p.component2().sourcePos(), p.component1()))
+      .toImmutableSeq();
   }
 
   /**

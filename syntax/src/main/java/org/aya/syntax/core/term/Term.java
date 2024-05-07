@@ -62,7 +62,7 @@ public sealed interface Term extends Serializable, AyaDocile
    * abstract :: Name → Expr → Scope
    * </pre>
    *
-   * @see #instantiate
+   * @see #instantiate(Term)
    */
   default @NotNull Term bind(@NotNull LocalVar var) {
     return bindAt(var, 0);
