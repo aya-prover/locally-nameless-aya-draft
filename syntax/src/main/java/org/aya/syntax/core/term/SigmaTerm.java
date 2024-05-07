@@ -103,7 +103,7 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
     CheckFailed
   }
 
-  @NotNull public SeqView<Term> view(UnaryOperator<Term> putIndex) {
+  @NotNull public SeqView<Term> view(@NotNull UnaryOperator<Term> putIndex) {
     return new SeqView<>() {
       @Override public @NotNull Iterator<Term> iterator() {
         return new Iterator<>() {

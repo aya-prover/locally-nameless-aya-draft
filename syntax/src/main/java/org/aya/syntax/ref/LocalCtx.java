@@ -62,7 +62,10 @@ public record LocalCtx(
     return new LocalCtx(MutableLinkedHashMap.from(newBinds), vars, parent == null ? null : parent.map(mapper));
   }
 
-  public SeqView<LocalVar> extract() {
+  /**
+   * Collect free variables of this context, usually used for {@link MetaVar}
+   */
+  public @NotNull SeqView<LocalVar> extract() {
     SeqView<LocalVar> parentView = parent == null ? SeqView.empty() : parent.extract();
     return parentView.concat(vars);
   }
