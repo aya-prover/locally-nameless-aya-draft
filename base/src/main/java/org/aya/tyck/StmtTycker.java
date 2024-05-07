@@ -151,8 +151,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
 
     var teleTycker = new TeleTycker.Ctor(exprTycker, dataSig.result());
     var wellTele = teleTycker.checkTele(ctorDecl.telescope);
-    var result = freeDataCall;    // TODO: we need to bind something, but what?
-    var sig = new Signature<>(wellTele, result)
+    var sig = new Signature<>(wellTele, freeDataCall)
       .bindTele(dataTele.view());     // TODO: bind pattern bindings if indexed data
 
     if (!(sig.result() instanceof DataCall dataResult)) {
@@ -163,7 +162,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     ctorDecl.signature = new Signature<>(sig.param(), dataResult);
 
     // TODO: handle ownerTele and coerce
-    var konCore = new CtorDef(dataRef, ref, ImmutableSeq.empty(), wellTele.map(WithPos::data), result, false);
+    var konCore = new CtorDef(dataRef, ref, ImmutableSeq.empty(), wellTele.map(WithPos::data), dataResult, false);
     ref.core = konCore;
   }
 }

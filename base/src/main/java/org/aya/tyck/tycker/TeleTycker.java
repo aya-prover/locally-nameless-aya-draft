@@ -14,6 +14,7 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
+import org.aya.tyck.error.UnifyError;
 import org.aya.unify.Synthesizer;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
@@ -124,7 +125,7 @@ public sealed interface TeleTycker extends ContextBased {
     public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
       var result = exprTycker.ty(typeExpr);
       if (!new Synthesizer(exprTycker).inheritPiDom(result, dataResult)) {
-        // TODO report
+        exprTycker.reporter.report(new UnifyError.PiDom(typeExpr.data(), typeExpr.sourcePos(), result, dataResult));
       }
 
       return result;

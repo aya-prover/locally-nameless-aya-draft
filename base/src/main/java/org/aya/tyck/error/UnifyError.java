@@ -4,6 +4,8 @@ package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.core.term.SortTerm;
+import org.aya.syntax.core.term.Term;
 import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
@@ -43,4 +45,18 @@ public sealed interface UnifyError extends TyckError {
     }
   }
 */
+
+  record PiDom(
+    @Override @NotNull Expr expr,
+    @Override @NotNull SourcePos sourcePos,
+    Term result, SortTerm sort
+  ) implements UnifyError {
+    @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
+      return Doc.vcat(
+        Doc.english("The type"),
+        Doc.par(1, result.toDoc(options)),
+        Doc.english("is in the domain of a function whose type is"),
+        Doc.par(1, sort.toDoc(options)));
+    }
+  }
 }
