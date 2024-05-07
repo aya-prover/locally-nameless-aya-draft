@@ -51,10 +51,18 @@ public interface ContextBased {
     });
   }
 
+  /**
+   * Generate a fresh {@link MetaCall} with type {@link Param#type()}
+   */
   default @NotNull Term mockTerm(@NotNull Param param, @NotNull SourcePos pos) {
     return freshMeta(param.name(), pos, new MetaVar.OfType(param.type()));
   }
 
+  /**
+   * Construct a fresh {@link MetaCall}
+   *
+   * @see LocalCtx#extract()
+   */
   default @NotNull MetaCall freshMeta(String name, @NotNull SourcePos pos, MetaVar.Requirement req) {
     var vars = localCtx().extract().toImmutableSeq();
     var args = vars.<Term>map(FreeTerm::new);

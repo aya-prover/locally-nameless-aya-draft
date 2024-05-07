@@ -82,7 +82,7 @@ public interface TeleTycker {
   /**
    * Load a well-typed {@link Signature} into {@link ExprTycker#localCtx()}
    */
-  @Contract(mutates = "param2")
+  @Contract(mutates = "param3")
   static void loadTele(
     @NotNull ImmutableSeq<LocalVar> binds,
     @NotNull Signature<?> signature,
