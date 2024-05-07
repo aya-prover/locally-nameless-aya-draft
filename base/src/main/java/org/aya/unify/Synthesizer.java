@@ -12,6 +12,7 @@ import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.ContextBased;
@@ -26,6 +27,16 @@ public record Synthesizer(
 ) implements StateBased, ContextBased {
   public Synthesizer(@NotNull AbstractTycker tycker) {
     this(new NameGenerator(), tycker);
+  }
+
+  public boolean inheritPiDom(@NotNull Term ty, @NotNull SortTerm expected) {
+    if (ty instanceof MetaCall meta && meta.ref().req() == MetaVar.Misc.IsType) {
+      // TODO
+    }
+
+    if (!(trySynth(ty) instanceof SortTerm tyty)) return false;
+    // TODO: check type
+    throw new UnsupportedOperationException("TODO");
   }
 
   public @Nullable Term trySynth(@NotNull Term term) {

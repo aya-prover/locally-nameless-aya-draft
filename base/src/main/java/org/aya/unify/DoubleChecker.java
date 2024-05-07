@@ -3,12 +3,10 @@
 package org.aya.unify;
 
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
-import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.BadExprError;
 import org.aya.tyck.tycker.ContextBased;
@@ -31,22 +29,12 @@ public record DoubleChecker(
     this(unifier, new Synthesizer(unifier));
   }
 
-  public boolean inheritPiDom(@NotNull Term ty, @NotNull SortTerm expected) {
-    if (ty instanceof MetaCall meta && meta.ref().req() == MetaVar.Misc.IsType) {
-      // TODO
-    }
-
-    if (!(synthesizer.trySynth(ty) instanceof SortTerm tyty)) return false;
-    // TODO: check type
-    throw new UnsupportedOperationException("TODO");
-  }
-
   public boolean inherit(@NotNull Term preterm, @NotNull Term expected) {
     return switch (preterm) {
       case ErrorTerm _ -> true;
       case PiTerm(var pParam, var pBody) -> {
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
-        if (!inheritPiDom(pParam, expectedTy)) yield false;
+        if (!synthesizer.inheritPiDom(pParam, expectedTy)) yield false;
         yield unifier.subscoped(() -> {
           var param = putIndex(pParam);
           return inherit(pBody.instantiate(param), expectedTy);

@@ -63,6 +63,7 @@ public sealed interface Term extends Serializable, AyaDocile
    * </pre>
    *
    * @see #instantiate(Term)
+   * @apiNote {@code bind-preserve : ∀ (T : Type) (T extends Term) (t : T) → ¬ (T = FreeTerm) → ∀ (var : LocalVar) → t.bind(var) instanceof T}
    */
   default @NotNull Term bind(@NotNull LocalVar var) {
     return bindAt(var, 0);

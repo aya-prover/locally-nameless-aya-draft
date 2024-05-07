@@ -2,26 +2,31 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.def.CtorDef;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.Signature;
+import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.SortTerm;
+import org.aya.syntax.core.term.call.DataCall;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
 import org.aya.tyck.pat.ClauseTycker;
 import org.aya.tyck.tycker.Problematic;
+import org.aya.tyck.tycker.TeleTycker;
+import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-import static org.aya.tyck.tycker.TeleTycker.checkTele;
 import static org.aya.tyck.tycker.TeleTycker.loadTele;
 
 public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
@@ -71,12 +76,14 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
   }
 
   private void checkHeader(TeleDecl<?> decl, ExprTycker tycker) {
+    var teleTycker = new TeleTycker.Default(tycker);
+
     switch (decl) {
       case TeleDecl.DataCtor con -> throw new UnsupportedOperationException("TODO");
       case TeleDecl.DataDecl data -> {
         var result = data.result;
         if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
-        var signature = checkTele(data.telescope, result, tycker);
+        var signature = teleTycker.checkTele(data.telescope, result);
         var sort = SortTerm.Type0;
         if (signature.result() instanceof SortTerm userSort) sort = userSort;
         else fail(BadTypeError.univ(tycker.state, result, signature.result()));
@@ -85,7 +92,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       case TeleDecl.FnDecl fn -> {
         var result = fn.result;
         if (result == null) result = new WithPos<>(fn.sourcePos(), new Expr.Hole(false, null));
-        fn.signature = checkTele(fn.telescope, result, tycker);
+        fn.signature = teleTycker.checkTele(fn.telescope, result);
       }
       case TeleDecl.PrimDecl prim -> {
         // This directly corresponds to the tycker.localCtx = new LocalCtx();
@@ -104,7 +111,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
           }
         }
         assert prim.result != null;
-        var tele = checkTele(prim.telescope, prim.result, tycker);
+        var tele = teleTycker.checkTele(prim.telescope, prim.result);
         tycker.unifyTyReported(
           PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
           PiTerm.make(core.telescope.view().map(Param::type), core.result),
@@ -114,5 +121,49 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
         assert tycker.localCtx().isEmpty() : "If this fails, replace it with tycker.setLocalCtx(new LocalCtx());";
       }
     }
+  }
+
+  /**
+   * Kitsune says kon!
+   *
+   * @apiNote remember to subscope
+   */
+  private void checkKitsune(@NotNull TeleDecl.DataCtor dataCtor, @NotNull ExprTycker exprTycker) {
+    var ref = dataCtor.ref;
+    if (ref.core != null) return;
+    var ctorDecl = ref.concrete;
+    var dataRef = dataCtor.dataRef;
+    var dataDecl = dataRef.concrete;
+    assert dataDecl != null && ctorDecl != null;
+    var dataSig = dataDecl.signature;
+    assert dataSig != null;
+    var dataTele = dataDecl.telescope.map(Expr.Param::ref);
+    loadTele(dataTele, dataSig, exprTycker);
+    var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
+    // now dataTele are in localCtx
+    // TODO: check patterns if there are
+    var ctorTy = ctorDecl.result;
+    if (ctorTy == null) {
+      // TODO: handle Path result
+      // TODO: unify ctorTy and freeDataCall
+      throw new UnsupportedOperationException("TODO");
+    }
+
+    var teleTycker = new TeleTycker.Ctor(exprTycker, dataSig.result());
+    var wellTele = teleTycker.checkTele(ctorDecl.telescope);
+    var result = freeDataCall;    // TODO: we need to bind something, but what?
+    var sig = new Signature<>(wellTele, result)
+      .bindTele(dataTele.view());     // TODO: bind pattern bindings if indexed data
+
+    if (!(sig.result() instanceof DataCall dataResult)) {
+      Panic.unreachable();
+      return;
+    }
+
+    ctorDecl.signature = new Signature<>(sig.param(), dataResult);
+
+    // TODO: handle ownerTele and coerce
+    var konCore = new CtorDef(dataRef, ref, ImmutableSeq.empty(), wellTele.map(WithPos::data), result, false);
+    ref.core = konCore;
   }
 }
