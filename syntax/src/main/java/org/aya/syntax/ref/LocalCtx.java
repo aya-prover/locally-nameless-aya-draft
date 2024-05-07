@@ -42,7 +42,7 @@ public record LocalCtx(
       if (result != null) return result;
       ctx = ctx.parent;
     }
-    throw new Panic("¿");
+    throw new Panic(STR."¿: Not in scope: \{name.name()} (defined at \{name.definition()})");
   }
 
   public @Nullable Term getLocal(@NotNull LocalVar name) {
