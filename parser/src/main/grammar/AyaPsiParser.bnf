@@ -77,6 +77,7 @@
     KW_DO = 'do'
     KW_SELF = 'self'
     KW_OVERRIDE = 'override'
+    KW_ELIM = 'elim'
 
     // Unimplemented but reserved
     KW_CODATA = 'codata'
@@ -205,7 +206,8 @@ loosers ::= KW_LOOSER qualifiedId+
 
 fnDecl ::= declModifiers*
  KW_DEF declNameOrInfix
- tele* type? fnBody bindBlock? { pin=2 }
+ tele* type? elims? fnBody bindBlock? { pin=2 }
+private elims ::= KW_ELIM weakId+ { pin=1 }
 
 private simpleBody ::= IMPLIES expr { pin=1 }
 fnBody ::= simpleBody

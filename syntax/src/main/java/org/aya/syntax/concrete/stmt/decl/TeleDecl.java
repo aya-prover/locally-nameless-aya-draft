@@ -13,6 +13,7 @@ import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -131,9 +132,9 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     }
   }
 
-  public record BlockBody(ImmutableSeq<Pattern.Clause> clauses) implements FnBody {
+  public record BlockBody(ImmutableSeq<Pattern.Clause> clauses, ImmutableSeq<WithPos<LocalVar>> elims) implements FnBody {
     @Override public BlockBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
-      return new BlockBody(clauses.map(g));
+      return new BlockBody(clauses.map(g), elims);
     }
   }
 

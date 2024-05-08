@@ -11,7 +11,7 @@ public final class Tokens {
   private Tokens() {
   }
 
-  public static final Doc LAMBDA = Doc.symbol("\\");
+  public static final Doc LAMBDA = Doc.styled(KEYWORD, Doc.symbol("\\"));
   public static final Doc ARROW = Doc.symbol("->");
   public static final Doc LARROW = Doc.symbol("<-");
   public static final Doc FN_DEFINED_AS = Doc.symbol("=>");
@@ -28,7 +28,7 @@ public final class Tokens {
 
   public static final Doc KW_DO = Doc.styled(KEYWORD, "do");
   public static final Doc KW_AS = Doc.styled(KEYWORD, "as");
-  public static final Doc KW_SIGMA = Doc.styled(KEYWORD, "Sig");
+  public static final Doc KW_SIGMA = Doc.styled(KEYWORD, Doc.symbol("Sig"));
   public static final Doc KW_PI = Doc.styled(KEYWORD, "Fn");
   public static final Doc KW_LET = Doc.styled(KEYWORD, "let");
   public static final Doc KW_IN = Doc.styled(KEYWORD, "in");
@@ -38,4 +38,6 @@ public final class Tokens {
   public static final Doc KW_TIGHTER = Doc.styled(KEYWORD, "tighter");
   public static final Doc KW_LOOSER = Doc.styled(KEYWORD, "looser");
   public static final Doc KW_BIND = Doc.styled(KEYWORD, "bind");
+  public static final Doc KW_ELIM = Doc.styled(KEYWORD, "elim");
+  public static final Doc KW_PRIM = Doc.styled(KEYWORD, "prim");
 }

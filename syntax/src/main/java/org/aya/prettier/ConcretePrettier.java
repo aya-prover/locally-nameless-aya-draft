@@ -112,7 +112,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
           telescope = exTele;
         }
 
-        var prelude = MutableList.of(Doc.styled(KEYWORD, LAMBDA));
+        var prelude = MutableList.of(LAMBDA);
         var docTele = telescope.map(this::lambdaParam);
 
         prelude.appendAll(docTele);
@@ -153,7 +153,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       //       Doc.plain("=>"), term(Outer.Free, t.body()))
       //   )));
       case Expr.Sigma expr -> checkParen(outer, Doc.sep(
-        Doc.styled(KEYWORD, KW_SIGMA),
+        KW_SIGMA,
         visitTele(expr.params().dropLast(1)),
         SIGMA_RESULT,
         term(Outer.Codomain, expr.params().getLast().type())), Outer.BinOp);
@@ -377,7 +377,9 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         yield Doc.cat(Doc.sepNonEmpty(prelude),
           switch (decl.body) {
             case TeleDecl.ExprBody(var expr) -> Doc.cat(Doc.spaced(FN_DEFINED_AS), term(Outer.Free, expr));
-            case TeleDecl.BlockBody(var clauses) -> Doc.cat(Doc.line(), Doc.nest(2, visitClauses(clauses)));
+            case TeleDecl.BlockBody(var clauses, ImmutableSeq<WithPos<LocalVar>> elims) -> Doc.vcat(Doc.sep(KW_ELIM,
+                Doc.commaList(elims.map(i -> varDoc(i.data())))),
+              Doc.nest(2, visitClauses(clauses)));
           },
           visitBindBlock(decl.bindBlock())
         );

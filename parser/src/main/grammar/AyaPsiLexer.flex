@@ -143,6 +143,7 @@ BLOCK_COMMENT_END   = "*/"
   "new"                 { return KW_NEW; }
   "do"                  { return KW_DO; }
   "self"                { return KW_SELF; }
+  "elim"                { return KW_ELIM; }
   "override"            { return KW_OVERRIDE; }
   "codata"              { return KW_CODATA; }
   "let"                 { return KW_LET; }

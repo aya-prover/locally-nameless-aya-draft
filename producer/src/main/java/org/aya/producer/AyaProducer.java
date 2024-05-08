@@ -285,7 +285,10 @@ public record AyaProducer(
 
     var fnBodyNode = node.peekChild(FN_BODY);
     if (fnBodyNode == null) return error(node.childrenView().getFirst(), "Expect a function body");
-    var dynamite = fnBody(fnBodyNode);
+
+    var fnMods = info.modifier().toFnModifiers();
+    var tele = telescope(node.childrenOfType(TELE));
+    var dynamite = fnBody(tele.map(p -> p.ref()), fnBodyNode);
     if (dynamite == null) return null;
     var inline = info.modifier.misc(ModifierParser.Modifier.Inline);
     var overlap = info.modifier.misc(ModifierParser.Modifier.Overlap);
@@ -296,18 +299,23 @@ public record AyaProducer(
       reporter.report(new ModifierProblem(overlap, ModifierParser.Modifier.Overlap, ModifierProblem.Reason.Duplicative));
     }
 
-    var fnMods = info.modifier().toFnModifiers();
-    var tele = telescope(node.childrenOfType(TELE));
     var ty = typeOrNull(node.peekChild(TYPE));
     return new TeleDecl.FnDecl(info.info, fnMods, name, tele, ty, dynamite);
   }
 
-  public @Nullable TeleDecl.FnBody fnBody(@NotNull GenericNode<?> node) {
+  public @Nullable TeleDecl.FnBody fnBody(@NotNull ImmutableSeq<LocalVar> vars, @NotNull GenericNode<?> node) {
     var expr = node.peekChild(EXPR);
     var implies = node.peekChild(IMPLIES);
     if (expr == null && implies != null) return error(implies, "Expect function body");
     if (expr != null) return new TeleDecl.ExprBody(expr(expr));
-    return new TeleDecl.BlockBody(node.childrenOfType(BARRED_CLAUSE).map(this::bareOrBarredClause).toImmutableSeq());
+    var body = node.childrenOfType(BARRED_CLAUSE)
+      .map(this::bareOrBarredClause).toImmutableSeq();
+    var elims = node.childrenOfType(WEAK_ID)
+      .map(this::weakId)
+      .map(id -> new WithPos<>(id.sourcePos(),
+        vars.find(v -> v.name().equals(id.data())).getOrDefault(LocalVar.IGNORED)))
+      .toImmutableSeq();
+    return new TeleDecl.BlockBody(body, elims);
   }
 
   private void giveMeOpen(@NotNull ModifierParser.Modifiers modiSet, @NotNull Decl decl, @NotNull MutableList<Stmt> additional) {

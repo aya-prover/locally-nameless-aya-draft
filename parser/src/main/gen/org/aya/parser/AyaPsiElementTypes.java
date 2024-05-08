@@ -135,6 +135,7 @@ public interface AyaPsiElementTypes {
   IElementType KW_DATA = new AyaPsiTokenType("data");
   IElementType KW_DEF = new AyaPsiTokenType("def");
   IElementType KW_DO = new AyaPsiTokenType("do");
+  IElementType KW_ELIM = new AyaPsiTokenType("elim");
   IElementType KW_EXAMPLE = new AyaPsiTokenType("example");
   IElementType KW_EXTENDS = new AyaPsiTokenType("extends");
   IElementType KW_FIXL = new AyaPsiTokenType("fixl");

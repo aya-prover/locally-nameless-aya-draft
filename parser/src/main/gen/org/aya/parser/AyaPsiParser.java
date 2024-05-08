@@ -886,6 +886,35 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
+  // KW_ELIM weakId+
+  static boolean elims(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "elims")) return false;
+    if (!nextTokenIs(b, KW_ELIM)) return false;
+    boolean r, p;
+    Marker m = enter_section_(b, l, _NONE_);
+    r = consumeToken(b, KW_ELIM);
+    p = r; // pin = 1
+    r = r && elims_1(b, l + 1);
+    exit_section_(b, l, m, r, p, null);
+    return r || p;
+  }
+
+  // weakId+
+  private static boolean elims_1(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "elims_1")) return false;
+    boolean r;
+    Marker m = enter_section_(b);
+    r = weakId(b, l + 1);
+    while (r) {
+      int c = current_position_(b);
+      if (!weakId(b, l + 1)) break;
+      if (!empty_element_parsed_guard_(b, "elims_1", c)) break;
+    }
+    exit_section_(b, m, null, r);
+    return r;
+  }
+
+  /* ********************************************************** */
   // <<commaSep expr>>
   static boolean exprList(PsiBuilder b, int l) {
     return commaSep(b, l + 1, expr_parser_);
@@ -918,7 +947,7 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
   /* ********************************************************** */
   // declModifiers*
   //  KW_DEF declNameOrInfix
-  //  tele* type? fnBody bindBlock?
+  //  tele* type? elims? fnBody bindBlock?
   public static boolean fnDecl(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "fnDecl")) return false;
     boolean r, p;
@@ -929,8 +958,9 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
     r = r && report_error_(b, declNameOrInfix(b, l + 1));
     r = p && report_error_(b, fnDecl_3(b, l + 1)) && r;
     r = p && report_error_(b, fnDecl_4(b, l + 1)) && r;
+    r = p && report_error_(b, fnDecl_5(b, l + 1)) && r;
     r = p && report_error_(b, fnBody(b, l + 1)) && r;
-    r = p && fnDecl_6(b, l + 1) && r;
+    r = p && fnDecl_7(b, l + 1) && r;
     exit_section_(b, l, m, r, p, null);
     return r || p;
   }
@@ -964,9 +994,16 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
     return true;
   }
 
+  // elims?
+  private static boolean fnDecl_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "fnDecl_5")) return false;
+    elims(b, l + 1);
+    return true;
+  }
+
   // bindBlock?
-  private static boolean fnDecl_6(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "fnDecl_6")) return false;
+  private static boolean fnDecl_7(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "fnDecl_7")) return false;
     bindBlock(b, l + 1);
     return true;
   }

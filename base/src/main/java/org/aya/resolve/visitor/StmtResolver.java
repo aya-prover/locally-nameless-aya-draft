@@ -12,7 +12,9 @@ import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
+import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
@@ -57,11 +59,11 @@ public interface StmtResolver {
         // Generalized works for simple bodies and signatures
         var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl);
         decl.body = switch (decl.body) {
-          case TeleDecl.BlockBody(var cls) -> {
+          case TeleDecl.BlockBody(var cls, ImmutableSeq<WithPos<LocalVar>> elims) -> {
             // introducing generalized variable is not allowed in clauses, hence we insert them before body resolving
             insertGeneralizedVars(decl, resolver);
             var clausesResolver = resolver.enterClauses();
-            var body = new TeleDecl.BlockBody(cls.map(clausesResolver::apply));
+            var body = new TeleDecl.BlockBody(cls.map(clausesResolver::apply), elims);
             // TODO[hoshino]: How about sharing {resolver#reference} between resolver and clausesResolver?
             resolver.reference().appendAll(clausesResolver.reference());
             yield body;

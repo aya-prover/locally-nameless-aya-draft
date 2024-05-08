@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
+import static org.aya.prettier.Tokens.*;
+
 /**
  * It's the pretty printer.
  * Credit after <a href="https://github.com/jonsterling/dreamtt/blob/main/frontend/Distiller.ml">Jon Sterling</a>
@@ -64,7 +66,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var tele = generateNames(params.dropLast(1));
         var last = params.getLast().instantiateTele(tele.view().map(p -> new FreeTerm(p.ref())));
         var doc = Doc.sep(
-          Doc.styled(KEYWORD, Doc.symbol("Sig")),
+          KW_SIGMA,
           visitTele(tele, last, FindUsage::free),
           Doc.symbol("**"),
           justType(Arg.ofExplicitly(last), Outer.Codomain)
@@ -97,7 +99,7 @@ public class CorePrettier extends BasePrettier<Term> {
 
         if (params.isEmpty()) yield bodyDoc;
 
-        var list = MutableList.of(Doc.styled(KEYWORD, Tokens.LAMBDA));
+        var list = MutableList.of(LAMBDA);
         params.forEach(param -> list.append(Doc.bracedUnless(linkDef(param), true)));
         list.append(Tokens.FN_DEFINED_AS);
         list.append(bodyDoc);
@@ -161,7 +163,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var params = generateNames(pair.component1());
         var body = pair.component2().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));
         var doc = Doc.sep(
-          Doc.styled(KEYWORD, Tokens.KW_PI),
+          Tokens.KW_PI,
           visitTele(params, body, FindUsage::free),
           Tokens.ARROW,
           term(Outer.Codomain, body)
@@ -254,7 +256,7 @@ public class CorePrettier extends BasePrettier<Term> {
     return switch (predef) {
       case PrimDef def -> primDoc(def.ref());
       case FnDef def -> {
-        var line1 = MutableList.of(Doc.styled(KEYWORD, "def"));
+        var line1 = MutableList.of(KW_DEF);
         def.modifiers.forEach(m -> line1.append(Doc.styled(KEYWORD, m.keyword)));
         var tele = enrich(def.telescope());
         var subst = tele.view().<Term>map(p -> new FreeTerm(p.ref()));
@@ -298,7 +300,7 @@ public class CorePrettier extends BasePrettier<Term> {
           .reversed()
           .toImmutableSeq();
 
-        var line1 = MutableList.of(Doc.styled(KEYWORD, "data"),
+        var line1 = MutableList.of(KW_DATA,
           defVar(def.ref()),
           visitTele(richDataTele),
           Doc.symbol(":"),

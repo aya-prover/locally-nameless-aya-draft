@@ -29,6 +29,8 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.ToIntBiFunction;
 
+import static org.aya.prettier.Tokens.KW_PRIM;
+
 /**
  * @author ice1000
  */
@@ -278,7 +280,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   }
 
   static @NotNull Doc primDoc(DefVar<?, ?> ref) {
-    return Doc.sep(Doc.styled(KEYWORD, "prim"), refVar(ref));
+    return Doc.sep(KW_PRIM, refVar(ref));
   }
 
   private static @NotNull Doc linkDef(@NotNull AnyVar ref, @NotNull Style color) {
