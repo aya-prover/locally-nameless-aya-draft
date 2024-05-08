@@ -46,7 +46,6 @@ import java.util.function.Supplier;
  */
 public class PatternTycker implements Problematic {
   private final @NotNull ExprTycker exprTycker;
-  private final @NotNull Reporter reporter;
 
   /**
    * A bound telescope (i.e. all the reference to the former parameter are LocalTerm)
@@ -67,13 +66,11 @@ public class PatternTycker implements Problematic {
 
   public PatternTycker(
     @NotNull ExprTycker exprTycker,
-    @NotNull Reporter reporter,
     @NotNull SeqView<Param> telescope,
     @NotNull Term result,
     @NotNull MutableMap<LocalVar, Term> asSubst
   ) {
     this.exprTycker = exprTycker;
-    this.reporter = reporter;
     this.telescope = telescope;
     this.result = result;
     this.paramSubst = MutableList.create();
@@ -359,7 +356,7 @@ public class PatternTycker implements Problematic {
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @NotNull WithPos<Pattern> outerPattern
   ) {
-    var sub = new PatternTycker(exprTycker, reporter, telescope, result, asSubst);
+    var sub = new PatternTycker(exprTycker, telescope, result, asSubst);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 
     hasError = hasError || sub.hasError;
@@ -472,9 +469,8 @@ public class PatternTycker implements Problematic {
 
   /// region Error Reporting
 
-  @Override
-  public @NotNull Reporter reporter() {
-    return this.reporter;
+  @Override public @NotNull Reporter reporter() {
+    return exprTycker.reporter;
   }
 
   private @NotNull Pat withError(Problem problem, Term param) {

@@ -41,11 +41,12 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   }
 
   private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope, @NotNull Term result) {
-    return new PatternTycker(exprTycker, reporter(), telescope, result, MutableMap.create());
+    return new PatternTycker(exprTycker, telescope, result, MutableMap.create());
   }
 
   private @NotNull LhsResult checkLhs(
     @NotNull Signature<? extends Term> signature,
+    @NotNull ImmutableSeq<LocalVar> vars,
     @NotNull Pattern.Clause clause
   ) {
     var tycker = newPatternTycker(signature.param().view().map(WithPos::data), signature.result());
