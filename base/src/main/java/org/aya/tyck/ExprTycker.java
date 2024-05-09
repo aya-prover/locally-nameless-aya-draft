@@ -130,16 +130,13 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       }
       case Expr.Sigma(var elems) -> subscoped(() -> {
         var tele = MutableList.<LocalVar>create();
-        var boundWellTyped = MutableList.<Term>create();
-
-        elems.forEach(elem -> {
+        return new SigmaTerm(elems.map(elem -> {
           var result = ty(elem.typeExpr());
-          boundWellTyped.append(result.bindTele(tele.view()));
+          var boundResult = result.bindTele(tele.view());
           localCtx().put(elem.ref(), result);
           tele.append(elem.ref());
-        });
-
-        return new SigmaTerm(boundWellTyped.toImmutableSeq());
+          return boundResult;
+        }));
       });
       default -> synthesize(expr).wellTyped();
     };
