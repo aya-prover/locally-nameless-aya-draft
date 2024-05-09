@@ -35,16 +35,19 @@ public interface AppTycker {
       var fnVar = (DefVar<FnDef, TeleDecl.FnDecl>) defVar;
       return makeArgs.applyChecked(TeleDef.defTele(fnVar), args -> new Result.Default(
         new FnCall(fnVar, 0, args),
-        TeleDef.defType(fnVar)
+        TeleDef.defResult(fnVar).instantiateTele(args.view())
       ));
     } else if (core instanceof DataDef || concrete instanceof TeleDecl.DataDecl) {
       var dataVar = (DefVar<DataDef, TeleDecl.DataDecl>) defVar;
       return makeArgs.applyChecked(TeleDef.defTele(dataVar), args -> new Result.Default(
         new DataCall(dataVar, 0, args),
-        TeleDef.defType(dataVar)
+        TeleDef.defResult(dataVar).instantiateTele(args.view())
       ));
     } else if (core instanceof ConDef || concrete instanceof TeleDecl.DataCon) {
-      var ctorVar = (DefVar<ConDef, TeleDecl.DataCon>) defVar;
+      var conVar = (DefVar<ConDef, TeleDecl.DataCon>) defVar;
+
+      var conTele = TeleDef.defType(conVar);
+      // var dataTele = TeleDef.defTele(conVar.)
       // TODO: original code looks terrible
       throw new UnsupportedOperationException("TODO");
     }

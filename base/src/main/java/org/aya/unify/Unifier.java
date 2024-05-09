@@ -73,10 +73,7 @@ public final class Unifier extends TermComparator {
     }
     // Now we are sure that the variables in overlap are all unused.
 
-    var candidate = inverted.view().foldRight(rhs, (var, wip) ->
-      // We know already that overlapping terms are unused yet, so optimize it a little bit
-      overlap.contains(var) ? wip : wip.bind(var));
-
+    var candidate = rhs.bindTele(inverted.view());
     var findUsage = FindUsage.anyFree(candidate);
     if (findUsage.termUsage > 0) {
       fail(new HoleProblem.BadlyScopedError(meta, rhs, inverted));
