@@ -79,7 +79,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     var teleTycker = new TeleTycker.Default(tycker);
 
     switch (decl) {
-      case TeleDecl.DataCtor con -> throw new UnsupportedOperationException("TODO");
+      case TeleDecl.DataCtor con -> checkKitsune(con, tycker);
       case TeleDecl.DataDecl data -> {
         var result = data.result;
         if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
@@ -134,13 +134,14 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     var ctorDecl = ref.concrete;
     var dataRef = dataCtor.dataRef;
     var dataDecl = dataRef.concrete;
-    assert dataDecl != null && ctorDecl != null;
+    assert dataDecl != null && ctorDecl != null : "no concrete";
     var dataSig = dataDecl.signature;
-    assert dataSig != null;
+    assert dataSig != null : "the header of data should be tycked";
     var dataTele = dataDecl.telescope.map(Expr.Param::ref);
     loadTele(dataTele, dataSig, exprTycker);
-    var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
     // now dataTele are in localCtx
+    // The result that a ctor should be, unless... TODO: it is a Path result
+    var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
     // TODO: check patterns if there are
     var ctorTy = ctorDecl.result;
     if (ctorTy == null) {
@@ -151,6 +152,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
 
     var teleTycker = new TeleTycker.Ctor(exprTycker, dataSig.result());
     var wellTele = teleTycker.checkTele(ctorDecl.telescope);
+    // the result will NEVER refer to the telescope of ctor, unless... TODO: it is a Path result
     var sig = new Signature<>(wellTele, freeDataCall)
       .bindTele(dataTele.view());     // TODO: bind pattern bindings if indexed data
 
