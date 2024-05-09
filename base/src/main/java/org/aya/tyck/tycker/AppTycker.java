@@ -13,7 +13,7 @@ import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.core.Result;
+import org.aya.tyck.Result;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 

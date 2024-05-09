@@ -4,7 +4,7 @@ package org.aya.tyck.tycker;
 
 import org.aya.normalize.Finalizer;
 import org.aya.normalize.Normalizer;
-import org.aya.syntax.core.Result;
+import org.aya.tyck.Result;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;

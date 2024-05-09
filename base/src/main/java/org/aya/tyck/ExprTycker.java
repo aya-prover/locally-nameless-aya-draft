@@ -8,7 +8,6 @@ import kala.collection.mutable.MutableTreeSet;
 import org.aya.generic.Constants;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.core.Result;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -34,17 +33,18 @@ import java.util.Comparator;
 public final class ExprTycker extends AbstractTycker implements Unifiable {
   public final @NotNull MutableTreeSet<WithPos<Expr.WithTerm>> withTerms =
     MutableTreeSet.create(Comparator.comparing(SourceNode::sourcePos));
-  public ExprTycker(
-    @NotNull TyckState state,
-    @NotNull LocalCtx ctx,
-    @NotNull Reporter reporter
-  ) {
+  public void addWithTerm(@NotNull Expr.WithTerm with, @NotNull SourcePos pos, @NotNull Term type) {
+    withTerms.add(new WithPos<>(pos, with));
+    with.theCoreType().set(type);
+  }
+
+  public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
     super(state, ctx, reporter);
   }
 
   public void solveMetas() {
     state.solveMetas(reporter);
-    withTerms.forEach(with -> with.data().theCore().update(this::freezeHoles));
+    withTerms.forEach(with -> with.data().theCoreType().update(this::freezeHoles));
   }
 
   /**
@@ -134,6 +134,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());
       case Expr.Pi(var param, var last) -> {
         var wellParam = ty(param.typeExpr());
+        addWithTerm(param, param.sourcePos(),  wellParam);
         yield subscoped(() -> {
           localCtx().put(param.ref(), wellParam);
           var wellLast = ty(last).bind(param.ref());
@@ -155,6 +156,14 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   }
 
   public @NotNull Result synthesize(@NotNull WithPos<Expr> expr) {
+    var result = doSynthesize(expr);
+    if (expr.data() instanceof Expr.WithTerm with) {
+      addWithTerm(with, expr.sourcePos(), result.type());
+    }
+    return result;
+  }
+
+  public @NotNull Result doSynthesize(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
       case Expr.Sugar s ->
         throw new IllegalArgumentException(STR."\{s.getClass()} is desugared, should be unreachable");

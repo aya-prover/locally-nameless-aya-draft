@@ -19,7 +19,7 @@ public class TyckTest {
       data Nat | O | S Nat
       data FreeMonoid (A : Type) | e | cons A (FreeMonoid A)
 
-      def id {A : Type} (a : A) => a
+      def id {A : Type} (a : A) : A => a
       def lam (A : Type) : Fn (a : A) -> Type => fn a => A
       def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a)
         : Sig (a : A) ** B a => (id a, id (b a))

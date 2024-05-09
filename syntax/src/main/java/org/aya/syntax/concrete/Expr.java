@@ -14,7 +14,7 @@ import org.aya.prettier.BasePrettier;
 import org.aya.prettier.ConcretePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.QualifiedID;
-import org.aya.syntax.core.Result;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
@@ -35,8 +35,8 @@ public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f);
   @ForLSP
   sealed interface WithTerm {
-    @NotNull MutableValue<Result> theCore();
-    default @Nullable Result core() { return theCore().get(); }
+    @NotNull MutableValue<Term> theCoreType();
+    default @Nullable Term coreType() { return theCoreType().get(); }
   }
 
   /** Yes, please */
@@ -51,11 +51,11 @@ public sealed interface Expr extends AyaDocile {
     @Override @NotNull SourcePos sourcePos,
     @NotNull LocalVar ref,
     @NotNull WithPos<Expr> typeExpr,
-    boolean explicit
-    // @ForLSP MutableValue<Result> theCore
-  ) implements SourceNode, AyaDocile, ParamLike<Expr> {
+    boolean explicit,
+    @ForLSP MutableValue<Term> theCoreType
+  ) implements SourceNode, AyaDocile, ParamLike<Expr>, WithTerm {
     @Override public @NotNull ParamLike<Expr> map(@NotNull UnaryOperator<Expr> mapper) {
-      return new Param(sourcePos, ref, typeExpr.map(mapper), explicit);
+      return new Param(sourcePos, ref, typeExpr.map(mapper), explicit, theCoreType);
     }
 
     @Override public @NotNull Expr type() { return typeExpr.data(); }
@@ -64,8 +64,12 @@ public sealed interface Expr extends AyaDocile {
       this(sourcePos, var, new WithPos<>(sourcePos, new Hole(false, null)), explicit);
     }
 
+    public Param(@NotNull SourcePos sourcePos, @NotNull LocalVar ref, @NotNull WithPos<Expr> typeExpr, boolean explicit) {
+      this(sourcePos, ref, new WithPos<>(sourcePos, new Hole(false, null)), explicit, MutableValue.create());
+    }
+
     public @NotNull Param update(@NotNull WithPos<Expr> type) {
-      return type == typeExpr() ? this : new Param(sourcePos, ref, type, explicit);
+      return type == typeExpr() ? this : new Param(sourcePos, ref, type, explicit, theCoreType);
     }
 
     public @NotNull Param descent(@NotNull PosedUnaryOperator<Expr> f) {
@@ -184,7 +188,7 @@ public sealed interface Expr extends AyaDocile {
     @NotNull WithPos<Expr> tup,
     @NotNull Either<Integer, QualifiedID> ix,
     @Nullable AnyVar resolvedVar,
-    @NotNull MutableValue<Result> theCore
+    @NotNull MutableValue<Term> theCoreType
   ) implements Expr, WithTerm {
     public Proj(
       @NotNull WithPos<Expr> tup,
@@ -194,7 +198,7 @@ public sealed interface Expr extends AyaDocile {
     }
 
     public @NotNull Expr.Proj update(@NotNull WithPos<Expr> tup) {
-      return tup == tup() ? this : new Proj(tup, ix, resolvedVar, theCore);
+      return tup == tup() ? this : new Proj(tup, ix, resolvedVar, theCoreType);
     }
 
     @Override public @NotNull Expr.Proj descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
