@@ -49,7 +49,6 @@ public sealed interface ModuleContext extends Context permits NoExportContext, P
    */
   @NotNull MutableMap<ModuleName.Qualified, ModuleExport> modules();
 
-
   /**
    * Things (symbol or module) that are exported by this module.
    */
@@ -63,7 +62,7 @@ public sealed interface ModuleContext extends Context permits NoExportContext, P
     var symbol = symbols().getUnqualifiedMaybe(name);
     if (symbol.isOk()) return symbol.get();
     switch (symbol.getErr()) {
-      case NotFound -> {}
+      case NotFound -> { }
       case Ambiguous -> reportAndThrow(new NameProblem.AmbiguousNameError(
         name, symbols().resolveUnqualified(name).moduleNames(), sourcePos));
     }

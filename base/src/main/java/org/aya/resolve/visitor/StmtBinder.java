@@ -71,7 +71,7 @@ public interface StmtBinder {
         visitBind(ctx, decl.ref, decl.bindBlock(), info);
       }
       case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, _) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
-      case ResolvingStmt.TopDecl(TeleDecl.PrimDecl _, _) -> {}
+      case ResolvingStmt.TopDecl(TeleDecl.PrimDecl _, _) -> { }
       case ResolvingStmt.TopDecl _ -> Panic.unreachable();
       case ResolvingStmt.MiscDecl(TeleDecl.DataCtor ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
       case ResolvingStmt.MiscDecl _ -> Panic.unreachable();

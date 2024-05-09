@@ -34,7 +34,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableMap<LocalVar, Term> asSubst,
     @NotNull Pat.Preclause<Expr> clause,
     boolean hasError
-  ) {}
+  ) { }
 
   @Override public @NotNull Reporter reporter() {
     return exprTycker.reporter;

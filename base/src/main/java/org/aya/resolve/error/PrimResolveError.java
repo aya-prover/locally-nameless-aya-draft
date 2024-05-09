@@ -11,8 +11,8 @@ import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 
 public interface PrimResolveError extends Problem {
-  @Override default @NotNull Stage stage() {return Stage.RESOLVE;}
-  @Override default @NotNull Severity level() {return Severity.ERROR;}
+  @Override default @NotNull Stage stage() { return Stage.RESOLVE; }
+  @Override default @NotNull Severity level() { return Severity.ERROR; }
 
   record UnknownPrim(
     @Override @NotNull SourcePos sourcePos,

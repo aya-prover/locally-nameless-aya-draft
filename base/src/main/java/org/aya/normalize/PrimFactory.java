@@ -138,7 +138,7 @@ public final class PrimFactory {
   }
   */
 
-  private @NotNull PrimCall primCall(@NotNull PrimCall prim, @NotNull TyckState tyckState) {return prim;}
+  private @NotNull PrimCall primCall(@NotNull PrimCall prim, @NotNull TyckState tyckState) { return prim; }
 
   public final @NotNull PrimSeed intervalType = new PrimSeed(ID.I,
     ((_, _) -> DimTyTerm.INSTANCE),

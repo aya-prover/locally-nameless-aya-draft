@@ -165,8 +165,6 @@ public interface StmtResolver {
     // decl.telescope = decl.telescope.prependedAll(resolver.allowedGeneralizes().valuesView());
   }
 
-
-
   @Contract("_, _ -> fail")
   static Context.ResolvingInterruptedException resolvingInterrupt(Reporter reporter, Problem problem) {
     reporter.report(problem);

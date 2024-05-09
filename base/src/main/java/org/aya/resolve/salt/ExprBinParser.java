@@ -77,7 +77,6 @@ public class ExprBinParser extends BinOpParser<AyaBinOpSet, WithPos<Expr>, Expr.
     }
   }
 
-
   @Override public @NotNull Expr.NamedArg makeSectionApp(
     @NotNull SourcePos pos, Expr.@NotNull NamedArg op, @NotNull Function<Expr.NamedArg, WithPos<Expr>> lamBody
   ) {

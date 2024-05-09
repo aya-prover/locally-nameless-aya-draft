@@ -6,7 +6,8 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
-import org.aya.resolve.context.*;
+import org.aya.resolve.context.BindContext;
+import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.ref.AnyVar;
@@ -20,13 +21,13 @@ import org.jetbrains.annotations.NotNull;
  * @author re-xyr
  */
 public interface NameProblem extends Problem {
-  @Override default @NotNull Stage stage() {return Stage.RESOLVE;}
+  @Override default @NotNull Stage stage() { return Stage.RESOLVE; }
   interface Error extends NameProblem {
-    @Override default @NotNull Severity level() {return Severity.ERROR;}
+    @Override default @NotNull Severity level() { return Severity.ERROR; }
   }
 
   interface Warn extends NameProblem {
-    @Override default @NotNull Severity level() {return Severity.WARN;}
+    @Override default @NotNull Severity level() { return Severity.WARN; }
   }
 
   record AmbiguousNameError(

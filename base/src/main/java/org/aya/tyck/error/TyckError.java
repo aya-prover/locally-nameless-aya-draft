@@ -6,6 +6,6 @@ import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 
 public interface TyckError extends Problem {
-  @Override default @NotNull Problem.Severity level() {return Severity.ERROR;}
-  @Override default @NotNull Stage stage() {return Stage.TYCK;}
+  @Override default @NotNull Problem.Severity level() { return Severity.ERROR; }
+  @Override default @NotNull Stage stage() { return Stage.TYCK; }
 }

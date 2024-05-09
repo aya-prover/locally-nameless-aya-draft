@@ -61,7 +61,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   }
 
   @Contract(pure = true) public abstract @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<RetTy>> ref();
-  @Override public @NotNull DeclInfo info() {return info;}
+  @Override public @NotNull DeclInfo info() { return info; }
 
   /**
    * @implNote {@link TeleDecl#signature} is always null.
@@ -83,7 +83,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       this.telescope = telescope;
     }
 
-    @Override public @NotNull DefVar<CtorDef, DataCtor> ref() {return ref;}
+    @Override public @NotNull DefVar<CtorDef, DataCtor> ref() { return ref; }
   }
 
   /**
@@ -116,7 +116,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       body.forEach(ctors -> ctors.descentInPlace(f, p));
     }
 
-    @Override public @NotNull DefVar<DataDef, DataDecl> ref() {return ref;}
+    @Override public @NotNull DefVar<DataDef, DataDecl> ref() { return ref; }
   }
 
   public sealed interface FnBody {
@@ -190,6 +190,6 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       ref = DefVar.concrete(this, name);
     }
 
-    @Override public @NotNull DefVar<PrimDef, PrimDecl> ref() {return ref;}
+    @Override public @NotNull DefVar<PrimDef, PrimDecl> ref() { return ref; }
   }
 }

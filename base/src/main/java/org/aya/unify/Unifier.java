@@ -114,7 +114,7 @@ public final class Unifier extends TermComparator {
       case MetaVar.Misc.Whatever -> needUnify = false;
       case MetaVar.Misc.IsType -> {
         switch (rhs) {
-          case Formation _ -> {}
+          case Formation _ -> { }
           /*case MetaCall rMeta -> {
             if (!rMeta.ref().req().isType(checker.synthesizer())) {
               reportIllTyped(meta, rhs);

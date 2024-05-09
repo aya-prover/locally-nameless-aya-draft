@@ -33,9 +33,9 @@ public sealed abstract class AbstractTycker implements StateBased, ContextBased,
     state.solveMetas(reporter);
   }
 
-  @Override public @NotNull LocalCtx localCtx() {return localCtx;}
-  @Override public @NotNull TyckState state() {return state;}
-  @Override public @NotNull Reporter reporter() {return reporter;}
+  @Override public @NotNull LocalCtx localCtx() { return localCtx; }
+  @Override public @NotNull TyckState state() { return state; }
+  @Override public @NotNull Reporter reporter() { return reporter; }
 
   public @NotNull LocalVar putIndex(@NotNull NameGenerator nameGen, @NotNull Term type) {
     var var = nameGen.nextVar(whnf(type));

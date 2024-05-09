@@ -12,7 +12,10 @@ import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 
-public record Goal(@NotNull TyckState state, @NotNull MetaCall hole, @NotNull ImmutableSeq<LocalVar> scope) implements Problem {
+public record Goal(
+  @NotNull TyckState state, @NotNull MetaCall hole,
+  @NotNull ImmutableSeq<LocalVar> scope
+) implements Problem {
   @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
     var meta = hole.ref();
     return Doc.plain("TODO: meta pretty print");
@@ -48,6 +51,6 @@ public record Goal(@NotNull TyckState state, @NotNull MetaCall hole, @NotNull Im
   @Override public @NotNull SourcePos sourcePos() {
     return hole.ref().pos();
   }
-  @Override public @NotNull Severity level() {return Severity.GOAL;}
-  @Override public @NotNull Stage stage() {return Stage.TYCK;}
+  @Override public @NotNull Severity level() { return Severity.GOAL; }
+  @Override public @NotNull Stage stage() { return Stage.TYCK; }
 }

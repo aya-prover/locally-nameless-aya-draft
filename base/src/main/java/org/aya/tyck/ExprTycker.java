@@ -253,7 +253,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     return args.foldLeftChecked(start, (acc, arg) -> {
       if (arg.name() != null || !arg.explicit()) fail(new LicitError.BadNamedArg(arg));
       switch (acc.type()) {
-        case PiTerm (var param, var body) -> {
+        case PiTerm(var param, var body) -> {
           var wellTy = inherit(arg.arg(), param).wellTyped();
           return new Result.Default(AppTerm.make(acc.wellTyped(), wellTy), body.instantiate(wellTy));
         }

@@ -38,7 +38,7 @@ public record UnifyInfo(@NotNull TyckState state) {
     @NotNull Term actual,
     @NotNull Term expected,
     @NotNull TermComparator.FailureData failureData
-  ) {}
+  ) { }
 
   public @NotNull Doc describeUnify(
     @NotNull PrettierOptions options,

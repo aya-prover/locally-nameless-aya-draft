@@ -72,7 +72,7 @@ public record ModuleExport(
           switch (oldUnit.getErrOrNull()) {
             case NotFound -> badNames.append(qname);
             case Ambiguous -> ambiNames.append(new WithPos<>(qname.sourcePos(), qname.name()));
-            case null -> {}
+            case null -> { }
           }
         });
       }

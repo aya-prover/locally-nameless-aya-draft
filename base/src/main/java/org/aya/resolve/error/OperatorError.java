@@ -15,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 
 public interface OperatorError extends Problem {
-  @Override default @NotNull Problem.Severity level() {return Problem.Severity.ERROR;}
-  @Override default @NotNull Stage stage() {return Stage.PARSE;}
+  @Override default @NotNull Problem.Severity level() { return Problem.Severity.ERROR; }
+  @Override default @NotNull Stage stage() { return Stage.PARSE; }
 
   record BadBindBlock(@NotNull SourcePos sourcePos, @NotNull String op) implements OperatorError {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {

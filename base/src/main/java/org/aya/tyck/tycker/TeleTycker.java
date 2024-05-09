@@ -107,10 +107,8 @@ public sealed interface TeleTycker extends ContextBased {
     public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
       return tycker.ty(typeExpr);
     }
-    @Override public void solveMetas() {tycker.solveMetas();}
-
-    @Override public @NotNull LocalCtx localCtx() {return tycker.localCtx();}
-
+    @Override public void solveMetas() { tycker.solveMetas(); }
+    @Override public @NotNull LocalCtx localCtx() { return tycker.localCtx(); }
     @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
       return tycker.setLocalCtx(ctx);
     }
@@ -126,9 +124,8 @@ public sealed interface TeleTycker extends ContextBased {
 
       return result;
     }
-    @Override public void solveMetas() {tycker.solveMetas();}
-    @Override public @NotNull LocalCtx localCtx() {return tycker.localCtx();}
-
+    @Override public void solveMetas() { tycker.solveMetas(); }
+    @Override public @NotNull LocalCtx localCtx() { return tycker.localCtx(); }
     @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
       return tycker.setLocalCtx(ctx);
     }

@@ -139,7 +139,6 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-
   @Override default @NotNull Severity level() {
     return Severity.ERROR;
   }

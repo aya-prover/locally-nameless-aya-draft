@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  *   ResolvingStmt : Set _
  *   ResolvingStmt = Σ[ s ∈ Stmt ] ExtInfo s
  * </pre>
- *
+ * <p>
  * FIXME: I agree, we can use {@code Option<Context>} for now.
  */
 public sealed interface ResolvingStmt {
@@ -44,6 +44,6 @@ public sealed interface ResolvingStmt {
     @Override @NotNull TeleDecl<?> stmt();
   }
 
-  record TopDecl(@Override @NotNull TeleDecl<?> stmt, @NotNull Context innerCtx) implements ResolvingTeleDecl {}
-  record MiscDecl(@Override @NotNull Decl stmt) implements ResolvingDecl {}
+  record TopDecl(@Override @NotNull TeleDecl<?> stmt, @NotNull Context innerCtx) implements ResolvingTeleDecl { }
+  record MiscDecl(@Override @NotNull Decl stmt) implements ResolvingDecl { }
 }

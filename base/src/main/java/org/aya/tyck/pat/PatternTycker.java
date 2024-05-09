@@ -228,7 +228,7 @@ public class PatternTycker implements Problematic {
     return generatedPats.toImmutableSeq();
   }
 
-  record PushTelescope(@NotNull ImmutableSeq<Pat> wellTyped, @NotNull WithPos<Expr> newBody) {}
+  record PushTelescope(@NotNull ImmutableSeq<Pat> wellTyped, @NotNull WithPos<Expr> newBody) { }
 
   /**
    * @apiNote requires: {@code currentParam} is not null and is an unchecked parameter, say, no well typed pat for it.

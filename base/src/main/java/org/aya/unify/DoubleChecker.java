@@ -54,7 +54,7 @@ public record DoubleChecker(
         }).isOk();
       }
       case LamTerm(var body) -> subscoped(() -> switch (whnf(expected)) {
-        case PiTerm(var dom, var cod) ->  {
+        case PiTerm(var dom, var cod) -> {
           var param = putIndex(dom);
           yield inherit(body.instantiate(param), cod.instantiate(param));
         }
