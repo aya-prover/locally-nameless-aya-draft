@@ -113,6 +113,10 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     };
   }
 
+  /**
+   * Make sure you handle all possible types, that is, if you call {@link #ty(WithPos)} in {@link #synthesize(WithPos)}
+   * with some condition {@code C}, then you have to handle {@code C} in this method.
+   */
   private @NotNull Term doTy(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
       case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());
@@ -124,6 +128,19 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           return new PiTerm(wellParam, wellLast);
         });
       }
+      case Expr.Sigma(var elems) -> subscoped(() -> {
+        var tele = MutableList.<LocalVar>create();
+        var boundWellTyped = MutableList.<Term>create();
+
+        elems.forEach(elem -> {
+          var result = ty(elem.typeExpr());
+          boundWellTyped.append(result.bindTele(tele.view()));
+          localCtx().put(elem.ref(), result);
+          tele.append(elem.ref());
+        });
+
+        return new SigmaTerm(boundWellTyped.toImmutableSeq());
+      });
       default -> synthesize(expr).wellTyped();
     };
   }

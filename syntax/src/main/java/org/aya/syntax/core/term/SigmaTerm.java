@@ -24,6 +24,7 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
 
   @Override
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+    // TODO: we need to inst parameters with vars, same for Pi
     return update(params.mapIndexed(f));
   }
 
