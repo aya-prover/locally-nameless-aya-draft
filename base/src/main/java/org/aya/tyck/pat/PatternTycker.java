@@ -11,7 +11,6 @@ import kala.control.Result;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.generic.SortKind;
-import org.aya.normalize.Normalizer;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.ConDef;
@@ -334,7 +333,7 @@ public class PatternTycker implements Problematic {
       var type = currentParam.type();
       Pat pat;
       var freshName = currentParam.name();
-      if (new Normalizer(exprTycker.state()).whnf(type) instanceof DataCall dataCall) {
+      if (exprTycker.whnf(type) instanceof DataCall dataCall) {
         // this pattern would be a Con, it can be inferred
         // TODO: I NEED A SOURCE POS!!
         pat = new Pat.Meta(MutableValue.create(), freshName, dataCall, SourcePos.NONE);
@@ -393,7 +392,7 @@ public class PatternTycker implements Problematic {
    * @return null means selection failed
    */
   private @Nullable Selection selectCon(Term type, @Nullable AnyVar name, @NotNull WithPos<Pattern> pattern) {
-    if (!(new Normalizer(exprTycker.state()).whnf(type) instanceof DataCall dataCall)) {
+    if (!(exprTycker.whnf(type) instanceof DataCall dataCall)) {
       foundError(new PatternProblem.SplittingOnNonData(pattern, type));
       return null;
     }

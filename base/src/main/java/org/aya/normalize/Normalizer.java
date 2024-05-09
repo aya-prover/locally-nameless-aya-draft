@@ -33,7 +33,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     return whnf(term);
   }
 
-  public @NotNull Term whnf(@NotNull Term term) {
+  private @NotNull Term whnf(@NotNull Term term) {
     if (term instanceof StableWHNF) return term;
     var postTerm = term.descent(this);
 
@@ -57,11 +57,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       };
       case PrimCall prim -> state.factory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
-      case MetaCall(var ref, var args) -> {
-        var solution = state.solutions().getOrNull(ref);
-        if (solution == null) yield term;
-        yield whnf(MetaCall.app(ref, solution, args));
-      }
+      case MetaCall meta -> state.computeSolution(meta, this::whnf);
       // TODO: handle other cases
       default -> term;
     };

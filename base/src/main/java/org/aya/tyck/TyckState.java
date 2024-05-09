@@ -23,6 +23,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 public record TyckState(
   @NotNull MutableList<Eqn> eqns,
@@ -56,6 +57,12 @@ public record TyckState(
         reporter.report(new HoleProblem.CannotFindGeneralSolution(eqns));
       }
     }
+  }
+
+  public @NotNull Term computeSolution(@NotNull MetaCall meta, @NotNull UnaryOperator<Term> f) {
+    return solutions.getOption(meta.ref())
+      .map(sol -> f.apply(MetaCall.app(meta.ref(), sol, meta.args())))
+      .getOrDefault(meta);
   }
 
   /** @return true if <code>this.eqns</code> and <code>this.activeMetas</code> are mutated. */

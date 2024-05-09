@@ -12,6 +12,7 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
@@ -37,14 +38,14 @@ public sealed interface HoleProblem extends Problem {
 
   record IllTypedError(
     @Override @NotNull MetaCall term,
-    @NotNull TyckState state,
+    @Override @NotNull TyckState state,
     @Override @NotNull Term solution
-  ) implements HoleProblem {
+  ) implements HoleProblem, Stateful {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       var list = MutableList.of(Doc.english("The meta (denoted ? below) is supposed to satisfy:"),
         Doc.par(1, term.ref().req().toDoc(options)),
         Doc.english("However, the solution below does not seem so:"));
-      UnifyInfo.exprInfo(solution, options, state, list);
+      UnifyInfo.exprInfo(solution, options, this, list);
       return Doc.vcat(list);
     }
   }
@@ -93,8 +94,6 @@ public sealed interface HoleProblem extends Problem {
       return Doc.english("Solving equation(s) with not very general solution(s)");
     }
 
-    @Override public @NotNull Severity level() {
-      return Severity.INFO;
-    }
+    @Override public @NotNull Severity level() { return Severity.INFO; }
   }
 }

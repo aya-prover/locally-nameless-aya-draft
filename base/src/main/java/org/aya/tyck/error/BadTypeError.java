@@ -8,6 +8,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.Term;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
@@ -18,14 +19,14 @@ public record BadTypeError(
   @Override @NotNull SourcePos sourcePos,
   @NotNull Term actualType, @NotNull Doc action,
   @NotNull Doc thing, @NotNull AyaDocile desired,
-  @NotNull TyckState state
-) implements TyckError {
+  @Override @NotNull TyckState state
+) implements TyckError, Stateful {
   @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
     var list = MutableList.of(
       Doc.sep(Doc.english("Unable to"), action, Doc.english("the expression")),
       Doc.par(1, expr.toDoc(options)),
       Doc.sep(Doc.english("because the type"), thing, Doc.english("is not a"), Doc.cat(desired.toDoc(options), Doc.plain(",")), Doc.english("but instead:")));
-    UnifyInfo.exprInfo(actualType, options, state, list);
+    UnifyInfo.exprInfo(actualType, options, this, list);
     return Doc.vcat(list);
   }
 

@@ -3,21 +3,17 @@
 package org.aya.tyck.error;
 
 import kala.collection.mutable.MutableList;
-import org.aya.normalize.Normalizer;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.Term;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.unify.TermComparator;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public record UnifyInfo(@NotNull TyckState state) {
-  private @NotNull Term whnf(Term failureTermL) {
-    return new Normalizer(state).whnf(failureTermL);
-  }
-
+public record UnifyInfo(@Override @NotNull TyckState state) implements Stateful {
   private static void compareExprs(@NotNull Doc mid, Doc actualDoc, Doc expectedDoc, Doc actualNFDoc, Doc expectedNFDoc, MutableList<@NotNull Doc> buf) {
     exprInfo(actualDoc, actualNFDoc, buf);
     buf.append(mid);
@@ -30,8 +26,8 @@ public record UnifyInfo(@NotNull TyckState state) {
       buf.append(Doc.par(1, Doc.parened(Doc.sep(Doc.plain("Normalized:"), actualNFDoc))));
   }
 
-  public static void exprInfo(Term term, PrettierOptions options, TyckState state, MutableList<@NotNull Doc> buf) {
-    exprInfo(term.toDoc(options), new Normalizer(state).whnf(term).toDoc(options), buf);
+  public static void exprInfo(Term term, PrettierOptions options, Stateful state, MutableList<@NotNull Doc> buf) {
+    exprInfo(term.toDoc(options), state.whnf(term).toDoc(options), buf);
   }
 
   public record Comparison(

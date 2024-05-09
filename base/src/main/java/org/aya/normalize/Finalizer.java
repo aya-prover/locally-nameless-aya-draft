@@ -2,32 +2,53 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.normalize;
 
+import kala.collection.mutable.MutableSinglyLinkedList;
 import kala.collection.mutable.MutableStack;
+import org.aya.normalize.error.UnsolvedMeta;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
+import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public record Finalizer(
-  @NotNull Stateful delegate,
-  @NotNull MutableStack<Term> stack
-) implements Stateful {
-  @Override public @NotNull TyckState state() { return delegate.state(); }
-  public @NotNull Term doZonk(@NotNull Term preterm) {
-    return switch (preterm) {
-      case MetaCall meta -> whnf(meta);
-      case MetaPatTerm meta -> whnf(meta);
-      default -> preterm.descent(this::zonk);
+public interface Finalizer {
+  @NotNull TyckState state();
+  default @NotNull Term doZonk(@NotNull Term term) {
+    return switch (term) {
+      case MetaCall meta -> state().computeSolution(meta, this::doZonk);
+      case MetaPatTerm meta -> meta.inline(this::doZonk);
+      // case MetaLitTerm meta -> whnf(meta);
+      default -> term.descent(this::zonk);
     };
   }
+  @NotNull Term zonk(@NotNull Term term);
 
-  public @NotNull Term zonk(@NotNull Term term) {
-    stack.push(term);
-    var result = doZonk(term);
-    // TODO: check whether result is a Meta(LitTerm|Call|PatTerm)
-    stack.pop();
-    return result;
+  record Freeze(@NotNull Stateful delegate) implements Finalizer {
+    @Override public @NotNull TyckState state() { return delegate.state(); }
+    @Override public @NotNull Term zonk(@NotNull Term term) { return doZonk(term); }
+  }
+
+  record Zonk<T extends Problematic & Stateful>(
+    @NotNull T delegate, @NotNull MutableSinglyLinkedList<Term> stack
+  ) implements Finalizer, Stateful, Problematic {
+    @Override public @NotNull TyckState state() { return delegate.state(); }
+    @Override public @NotNull Reporter reporter() { return delegate.reporter(); }
+    public @NotNull Term zonk(@NotNull Term term) {
+      stack.push(term);
+      var result = doZonk(term);
+      // result shall not be MetaPatTerm
+      if (result instanceof MetaCall meta) {
+        fail(new UnsolvedMeta(stack.view()
+          .drop(1)
+          .map(this::freezeHoles)
+          .toImmutableSeq(), meta.ref().pos(), meta.ref().name()));
+      }
+      // TODO: MetaLitTerm
+      stack.pop();
+      return result;
+    }
   }
 }
