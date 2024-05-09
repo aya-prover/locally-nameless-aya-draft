@@ -9,9 +9,9 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.BadExprError;
-import org.aya.tyck.tycker.ContextBased;
+import org.aya.tyck.tycker.Contextful;
 import org.aya.tyck.tycker.Problematic;
-import org.aya.tyck.tycker.StateBased;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 public record DoubleChecker(
   @NotNull Unifier unifier,
   @NotNull Synthesizer synthesizer
-) implements StateBased, ContextBased, Problematic {
+) implements Stateful, Contextful, Problematic {
 
   public DoubleChecker(@NotNull Unifier unifier) {
     this(unifier, new Synthesizer(unifier));

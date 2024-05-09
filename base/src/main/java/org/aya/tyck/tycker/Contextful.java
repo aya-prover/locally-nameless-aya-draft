@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 /**
  * Indicating something is {@link LocalCtx}ful
  */
-public interface ContextBased {
+public interface Contextful {
   @NotNull LocalCtx localCtx();
 
   /**

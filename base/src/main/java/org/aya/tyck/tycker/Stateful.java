@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author ice1000
  * @see #whnf(Term)
- * @see ContextBased
+ * @see Contextful
  */
-public interface StateBased {
+public interface Stateful {
   @NotNull TyckState state();
   default @NotNull Term whnf(@NotNull Term term) {
     return new Normalizer(state()).whnf(term);

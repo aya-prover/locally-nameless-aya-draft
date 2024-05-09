@@ -16,8 +16,8 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.tycker.AbstractTycker;
-import org.aya.tyck.tycker.ContextBased;
-import org.aya.tyck.tycker.StateBased;
+import org.aya.tyck.tycker.Contextful;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 public record Synthesizer(
   @NotNull NameGenerator nameGen,
   @NotNull AbstractTycker tycker
-) implements StateBased, ContextBased {
+) implements Stateful, Contextful {
   public Synthesizer(@NotNull AbstractTycker tycker) {
     this(new NameGenerator(), tycker);
   }

@@ -20,7 +20,7 @@ import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface TeleTycker extends ContextBased {
+public sealed interface TeleTycker extends Contextful {
   /**
    * Tyck a expr that is expected to be a type
    *

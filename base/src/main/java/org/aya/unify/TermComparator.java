@@ -20,7 +20,7 @@ import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.LevelError;
 import org.aya.tyck.tycker.AbstractTycker;
-import org.aya.tyck.tycker.ContextBased;
+import org.aya.tyck.tycker.Contextful;
 import org.aya.util.Ordering;
 import org.aya.util.Pair;
 import org.aya.util.error.Panic;
@@ -279,7 +279,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   /**
    * Compare {@param lTy} and {@param rTy}
    *
-   * @param continuation invoked with {@code ? : lTy} in {@link ContextBased#localCtx()} if {@param lTy} is the 'same' as {@param rTy}
+   * @param continuation invoked with {@code ? : lTy} in {@link Contextful#localCtx()} if {@param lTy} is the 'same' as {@param rTy}
    */
   private <R> R compareTypeWith(
     @NotNull Term lTy,

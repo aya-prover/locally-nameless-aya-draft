@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public interface Unifiable extends Problematic, StateBased {
+public interface Unifiable extends Problematic, Stateful {
   @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order);
 
   /**
