@@ -49,8 +49,8 @@ public final class Unifier extends TermComparator {
     for (var arg : spine) {
       // TODO: apply uneta
       if (whnf(arg) instanceof FreeTerm(var var)) {
-        inverted.append(var);
         if (inverted.contains(var)) overlap.append(var);
+        inverted.append(var);
       } else {
         reportBadSpine(meta);
         return null;

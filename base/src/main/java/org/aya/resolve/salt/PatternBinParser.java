@@ -10,6 +10,7 @@ import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.error.PatternProblem;
+import org.aya.tyck.tycker.Problematic;
 import org.aya.util.Arg;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.BinOpParser;
@@ -17,12 +18,13 @@ import org.aya.util.binop.BinOpSet;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
+import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 
-public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pattern>, Arg<WithPos<Pattern>>> {
+public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pattern>, Arg<WithPos<Pattern>>> implements Problematic {
   private final @NotNull ResolveInfo resolveInfo;
 
   public PatternBinParser(@NotNull ResolveInfo resolveInfo, @NotNull SeqView<@NotNull Arg<WithPos<Pattern>>> seq) {
@@ -38,9 +40,7 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
   private static final Arg<WithPos<Pattern>> OP_APP = new Arg<>(new WithPos<>(SourcePos.NONE,
     new Pattern.Bind(new LocalVar(BinOpSet.APP_ELEM.name()))), true);
 
-  @Override protected @NotNull Arg<WithPos<Pattern>> appOp() {
-    return OP_APP;
-  }
+  @Override protected @NotNull Arg<WithPos<Pattern>> appOp() { return OP_APP; }
 
   @Override public @NotNull Arg<WithPos<Pattern>>
   makeSectionApp(@NotNull SourcePos pos, @NotNull Arg<WithPos<Pattern>> op, @NotNull Function<Arg<WithPos<Pattern>>, WithPos<Pattern>> lamBody) {
@@ -48,15 +48,15 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
   }
 
   @Override protected void reportAmbiguousPred(String op1, String op2, SourcePos pos) {
-    opSet.reporter.report(new OperatorError.Precedence(op1, op2, pos));
+    fail(new OperatorError.Precedence(op1, op2, pos));
   }
 
   @Override protected void reportFixityError(Assoc top, Assoc current, String topOp, String currentOp, SourcePos pos) {
-    opSet.reporter.report(new OperatorError.Fixity(currentOp, current, topOp, top, pos));
+    fail(new OperatorError.Fixity(currentOp, current, topOp, top, pos));
   }
 
   @Override protected void reportMissingOperand(String op, SourcePos pos) {
-    opSet.reporter.report(new OperatorError.MissingOperand(pos, op));
+    fail(new OperatorError.MissingOperand(pos, op));
   }
 
   @Override protected @NotNull WithPos<Pattern> createErrorExpr(@NotNull SourcePos sourcePos) {
@@ -76,8 +76,9 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
       var newCon = new Pattern.Con(con.resolved(), con.params().appended(new Arg<>(arg.term(), arg.explicit())));
       return new Arg<>(new WithPos<>(pos, newCon), explicit);
     } else {
-      opSet.reporter.report(new PatternProblem.UnknownCon(func));
+      fail(new PatternProblem.UnknownCon(func));
       throw new Context.ResolvingInterruptedException();
     }
   }
+  @Override public @NotNull Reporter reporter() { return opSet.reporter; }
 }

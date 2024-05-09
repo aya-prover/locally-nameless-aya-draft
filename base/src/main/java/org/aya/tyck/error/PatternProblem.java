@@ -17,11 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 public sealed interface PatternProblem extends Problem {
   @NotNull WithPos<? extends Pattern> pattern();
-
-  @Override
-  default @NotNull SourcePos sourcePos() {
-    return pattern().sourcePos();
-  }
+  @Override default @NotNull SourcePos sourcePos() { return pattern().sourcePos(); }
 
   record BlockedEval(
     @Override @NotNull WithPos<Pattern> pattern,
