@@ -56,11 +56,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         case Either.Right(var clauses) -> throw new UnsupportedOperationException("TODO");
       };
       case PrimCall prim -> state.factory().unfold(prim, state);
-      case MetaPatTerm(var meta) -> {
-        var solution = meta.solution().get();
-        if (solution == null) yield term;
-        yield whnf(PatToTerm.visit(solution));
-      }
+      case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall(var ref, var args) -> {
         var solution = state.solutions().getOrNull(ref);
         if (solution == null) yield term;

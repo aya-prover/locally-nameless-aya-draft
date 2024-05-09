@@ -4,7 +4,10 @@ package org.aya.syntax.core.term;
 
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.UnaryOperator;
 
 /**
  * A meta-like term, but it will be solved while pattern tyck
@@ -12,5 +15,10 @@ import org.jetbrains.annotations.NotNull;
 public record MetaPatTerm(@NotNull Pat.Meta meta) implements Term {
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return this;
+  }
+
+  public @NotNull Term inline(@NotNull UnaryOperator<Term> map) {
+    var solution = meta.solution().get();
+    return solution != null ? map.apply(PatToTerm.visit(solution)) : this;
   }
 }

@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
-import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.Expr;
@@ -87,7 +86,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       case TeleDecl.DataDecl data -> {
         var result = data.result;
         if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
-        var signature = teleTycker.checkTele(data.telescope, result);
+        var signature = teleTycker.checkSignature(data.telescope, result);
         var sort = SortTerm.Type0;
         if (signature.result() instanceof SortTerm userSort) sort = userSort;
         else fail(BadTypeError.univ(tycker.state, result, signature.result()));
@@ -96,7 +95,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       case TeleDecl.FnDecl fn -> {
         var result = fn.result;
         if (result == null) result = new WithPos<>(fn.sourcePos(), new Expr.Hole(false, null));
-        fn.signature = teleTycker.checkTele(fn.telescope, result);
+        fn.signature = teleTycker.checkSignature(fn.telescope, result);
       }
       case TeleDecl.PrimDecl prim -> {
         // This directly corresponds to the tycker.localCtx = new LocalCtx();
@@ -115,7 +114,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
           }
         }
         assert prim.result != null;
-        var tele = teleTycker.checkTele(prim.telescope, prim.result);
+        var tele = teleTycker.checkSignature(prim.telescope, prim.result);
         tycker.unifyTyReported(
           PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
           PiTerm.make(core.telescope.view().map(Param::type), core.result),

@@ -33,7 +33,7 @@ public sealed interface TeleTycker extends Contextful {
    * @return a locally nameless signature computed from what's in the localCtx.
    */
   @Contract(pure = true)
-  default @NotNull Signature<Term> checkTele(
+  default @NotNull Signature<Term> checkSignature(
     @NotNull ImmutableSeq<Expr.Param> cTele,
     @NotNull WithPos<Expr> result
   ) {
