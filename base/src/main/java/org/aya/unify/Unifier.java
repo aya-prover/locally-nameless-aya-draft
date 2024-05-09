@@ -97,8 +97,7 @@ public final class Unifier extends TermComparator {
       return null;
     }
     // It might have extra arguments, in those cases we need to abstract them out.
-    candidate = LamTerm.make(spine.size() - ref.ctxSize(), candidate);
-    state.solve(ref, candidate);
+    solve(ref, LamTerm.make(spine.size() - ref.ctxSize(), candidate));
     return returnType;
   }
 

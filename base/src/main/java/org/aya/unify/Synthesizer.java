@@ -35,7 +35,7 @@ public record Synthesizer(
       var typed = meta.asPiDom(expected);
       // The old code checks recursion in solve, now we don't, but it's okay,
       // since it is impossible for this `solve` to fail.
-      state().solve(meta.ref(), typed);
+      solve(meta.ref(), typed);
       return true;
     }
 

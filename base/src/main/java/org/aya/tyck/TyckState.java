@@ -19,6 +19,7 @@ import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Reporter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
@@ -32,11 +33,12 @@ public record TyckState(
   public TyckState(@NotNull PrimFactory factory) {
     this(MutableList.create(), MutableList.create(), MutableMap.create(), factory);
   }
+  @ApiStatus.Internal
   public void solve(MetaVar meta, Term candidate) {
     solutions.put(meta, candidate);
   }
 
-  public void solveEqn(
+  private void solveEqn(
     @NotNull Reporter reporter,
     @NotNull Eqn eqn, boolean allowDelay
   ) {

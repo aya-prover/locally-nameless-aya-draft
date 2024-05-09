@@ -4,6 +4,7 @@ package org.aya.tyck.tycker;
 
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,5 +20,11 @@ public interface StateBased {
   @NotNull TyckState state();
   default @NotNull Term whnf(@NotNull Term term) {
     return new Normalizer(state()).whnf(term);
+  }
+  /**
+   * Does not validate solution.
+   */
+  default void solve(MetaVar meta, Term solution) {
+    state().solve(meta, solution);
   }
 }

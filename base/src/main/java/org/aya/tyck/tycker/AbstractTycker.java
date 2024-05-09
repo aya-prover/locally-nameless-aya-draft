@@ -13,7 +13,7 @@ import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
 public sealed abstract class AbstractTycker implements StateBased, ContextBased, Problematic permits ExprTycker, TermComparator {
-  public @NotNull TyckState state;
+  public final @NotNull TyckState state;
   private @NotNull LocalCtx localCtx;
   public final @NotNull Reporter reporter;
 
