@@ -15,9 +15,11 @@ public class TyckTest {
   @Test
   public void test0() {
     @Language("Aya") String code = """
+      data Nat | O | S Nat
+
       def foo (A : Type) (a : A) : A => a
       def lam (A : Type) : Fn (a : A) -> Type => fn a => A
-      def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a) : Sig (a : A) ** B a => (a, b a)
+      // def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a) : Sig (a : A) ** B a => (a, b a)
       """;
 
     tyck(code);

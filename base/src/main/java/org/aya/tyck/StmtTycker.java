@@ -8,10 +8,7 @@ import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.CtorDef;
-import org.aya.syntax.core.def.Def;
-import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.Signature;
+import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
@@ -26,6 +23,8 @@ import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 import static org.aya.tyck.tycker.TeleTycker.loadTele;
 
@@ -69,8 +68,13 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
           }
         };
       }
-      case TeleDecl.DataCtor dataCtor -> throw new UnsupportedOperationException("TODO");
-      case TeleDecl.DataDecl dataDecl -> throw new UnsupportedOperationException("TODO");
+      case TeleDecl.DataCtor dataCtor -> Objects.requireNonNull(dataCtor.ref.core);   // see checkHeader
+      case TeleDecl.DataDecl dataDecl -> {
+        var sig = dataDecl.signature;
+        assert sig != null;
+        var kitsuneTachi = dataDecl.body.map(kon -> (CtorDef) check(kon, tycker));
+        yield new DataDef(dataDecl.ref, sig.param().map(WithPos::data), sig.result(), kitsuneTachi);
+      }
       case TeleDecl.PrimDecl primDecl -> throw new UnsupportedOperationException("TODO");
     };
   }
@@ -144,7 +148,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
     // TODO: check patterns if there are
     var ctorTy = ctorDecl.result;
-    if (ctorTy == null) {
+    if (ctorTy != null) {
       // TODO: handle Path result
       // TODO: unify ctorTy and freeDataCall
       throw new UnsupportedOperationException("TODO");

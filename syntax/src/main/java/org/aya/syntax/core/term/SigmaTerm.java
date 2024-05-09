@@ -80,7 +80,7 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
   public <T> @NotNull Result<ImmutableSeq<Term>, ErrorKind>
   check(@NotNull Iterator<? extends T> iter, @NotNull Checker<T> checker) {
     var args = MutableList.<Term>create();
-    var params = view(t -> {
+    Iterator<@Nullable Term> params = view(t -> {
       var result = checker.apply(iter.next(), t);
       if (result != null) args.append(result);
       return result;
