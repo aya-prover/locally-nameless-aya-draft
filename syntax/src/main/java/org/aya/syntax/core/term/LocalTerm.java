@@ -23,6 +23,9 @@ public record LocalTerm(int index) implements Term {
 
   @Override public @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
     var i = index - from;
+    // * i < 0: this LocalTerm is free
+    // * i < list.size(): this LocalTerm is Local, and should be replaced with [list.get(i)]
+    // * i >= list.size(): this LocalTerm is Local, but stay
     if (0 <= i && i < list.size()) return list.get(i);
     return this;
   }

@@ -89,7 +89,7 @@ public sealed interface TeleTycker extends ContextBased {
   }
 
   @Contract(mutates = "param3")
-  static @NotNull Term loadTele(
+  static void loadTele(
     @NotNull ImmutableSeq<LocalVar> binds,
     @NotNull Signature<?> signature,
     @NotNull ExprTycker tycker) {
@@ -100,7 +100,6 @@ public sealed interface TeleTycker extends ContextBased {
       tycker.localCtx().put(ref, param.data().type().instantiateTeleVar(tele.view()));
       tele.append(ref);
     });
-    return signature.result().instantiateTeleVar(tele.view());
   }
 
   record Default(@NotNull ExprTycker tycker) implements TeleTycker {
