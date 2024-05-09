@@ -125,7 +125,7 @@ public sealed interface TeleTycker extends ContextBased {
     public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
       var result = exprTycker.ty(typeExpr);
       if (!new Synthesizer(exprTycker).inheritPiDom(result, dataResult)) {
-        exprTycker.reporter.report(new UnifyError.PiDom(typeExpr.data(), typeExpr.sourcePos(), result, dataResult));
+        exprTycker.fail(new UnifyError.PiDom(typeExpr.data(), typeExpr.sourcePos(), result, dataResult));
       }
 
       return result;

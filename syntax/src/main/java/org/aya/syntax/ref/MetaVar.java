@@ -5,6 +5,7 @@ package org.aya.syntax.ref;
 import kala.collection.SeqView;
 import org.aya.generic.AyaDocile;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.util.error.SourcePos;
@@ -57,6 +58,17 @@ public record MetaVar(
     }
     @Override public OfType bind(SeqView<LocalVar> vars) {
       return new OfType(type.bindTele(vars));
+    }
+  }
+  /**
+   * The meta variable is the domain of a pi type which is of a known type.
+   */
+  public record PiDom(@NotNull SortTerm sort) implements Requirement {
+    @Override public PiDom bind(SeqView<LocalVar> vars) {
+      return this;
+    }
+    @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+      return Doc.sep(Doc.symbols("?", "->", "_", ":"), sort.toDoc(options));
     }
   }
 }

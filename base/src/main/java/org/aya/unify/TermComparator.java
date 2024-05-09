@@ -342,19 +342,19 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return switch (cmp) {
       case Gt -> {
         if (!sortLt(r, l)) {
-          reporter().report(new LevelError(pos, l, r, false));
+          fail(new LevelError(pos, l, r, false));
           yield false;
         } else yield true;
       }
       case Eq -> {
         if (!(l.kind() == r.kind() && l.lift() == r.lift())) {
-          reporter().report(new LevelError(pos, l, r, true));
+          fail(new LevelError(pos, l, r, true));
           yield false;
         } else yield true;
       }
       case Lt -> {
         if (!sortLt(l, r)) {
-          reporter().report(new LevelError(pos, r, l, false));
+          fail(new LevelError(pos, r, l, false));
           yield false;
         } else yield true;
       }

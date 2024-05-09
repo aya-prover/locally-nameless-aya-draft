@@ -142,6 +142,9 @@ public final class Unifier extends TermComparator {
         // TODO: Ice Spell 「 Perfect Freeze 」
         returnType = target;
       }
+      case MetaVar.PiDom(var sort) -> {
+        if (!checker.synthesizer().inheritPiDom(rhs, sort)) reportIllTyped(meta, rhs);
+      }
     }
     if (needUnify) {
       // Check the solution.

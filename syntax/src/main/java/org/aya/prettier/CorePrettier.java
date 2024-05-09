@@ -93,8 +93,8 @@ public class CorePrettier extends BasePrettier<Term> {
           // if (call instanceof FieldTerm access) bodyDoc = visitAccessHead(access);
           // else {
           bodyDoc = visitCoreCalls(defVar, args,
-              params.isEmpty() ? outer : Outer.Free,
-              optionImplicit());
+            params.isEmpty() ? outer : Outer.Free,
+            optionImplicit());
           // }
         } else bodyDoc = term(Outer.Free, body);
 
@@ -354,15 +354,11 @@ public class CorePrettier extends BasePrettier<Term> {
   }
 
   /// region Name Generating
-
   private record CoreParam(
     @Override @NotNull LocalVar ref,
     @Override @NotNull Term type
   ) implements ParamLike<Term> {
-    @Override
-    public boolean explicit() {
-      return true;
-    }
+    @Override public boolean explicit() {return true;}
 
     @Override public @NotNull ParamLike<Term> map(@NotNull UnaryOperator<Term> mapper) {
       return new CoreParam(ref, mapper.apply(type));
@@ -395,7 +391,8 @@ public class CorePrettier extends BasePrettier<Term> {
       var freeTy = param.instantiateTele(richTele.view()    // mutable view!!😱
         .map(x -> new FreeTerm(x.ref())));
       // perhaps we can obtain the whnf of ty as the name
-      richTele.append(new CoreParam(generateName(null), freeTy));
+      // ice: just use freeTy I think it's ok
+      richTele.append(new CoreParam(generateName(freeTy), freeTy));
     }
 
     return richTele.toImmutableSeq();
@@ -409,6 +406,5 @@ public class CorePrettier extends BasePrettier<Term> {
   private @NotNull LocalVar generateName(@Nullable Term whty) {
     return new LocalVar(nameGen.next(whty), SourcePos.SER);
   }
-
   /// endregion Name Generating
 }
