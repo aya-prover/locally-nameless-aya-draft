@@ -7,6 +7,8 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import kala.function.IndexedFunction;
+import org.aya.generic.SortKind;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,25 +24,21 @@ public record SigmaTerm(@NotNull ImmutableSeq<Term> params) implements StableWHN
     return params.sameElements(params(), true) ? this : new SigmaTerm(params);
   }
 
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    // TODO: we need to inst parameters with vars, same for Pi
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(params.mapIndexed(f));
   }
 
-  // public static @NotNull SortTerm lub(@NotNull SortTerm x, @NotNull SortTerm y) {
-  //   int lift = Math.max(x.lift(), y.lift());
-  //   if (x.kind() == SortKind.Set || y.kind() == SortKind.Set) {
-  //     return new SortTerm(SortKind.Set, lift);
-  //   } else if (x.kind() == SortKind.Type || y.kind() == SortKind.Type) {
-  //     return new SortTerm(SortKind.Type, lift);
-  //   } else if (x.kind() == SortKind.ISet || y.kind() == SortKind.ISet) {
-  //     // ice: this is controversial, but I think it's fine.
-  //     // See https://github.com/agda/cubical/pull/910#issuecomment-1233113020
-  //     return SortTerm.ISet;
-  //   }
-  //   throw new AssertionError("unreachable");
-  // }
+  public static @NotNull SortTerm lub(@NotNull SortTerm x, @NotNull SortTerm y) {
+    int lift = Math.max(x.lift(), y.lift());
+    return x.kind() == SortKind.Set || y.kind() == SortKind.Set
+      ? new SortTerm(SortKind.Set, lift)
+      : x.kind() == SortKind.Type || y.kind() == SortKind.Type
+        ? new SortTerm(SortKind.Type, lift)
+        : x.kind() == SortKind.ISet || y.kind() == SortKind.ISet
+          // ice: this is controversial, but I think it's fine.
+          // See https://github.com/agda/cubical/pull/910#issuecomment-1233113020
+          ? SortTerm.ISet : Panic.unreachable();
+  }
 
   // public @NotNull LamTerm coe(@NotNull CoeTerm coe, @NotNull LamTerm.Param i) {
   //   var t = new RefTerm(new LocalVar("t"));

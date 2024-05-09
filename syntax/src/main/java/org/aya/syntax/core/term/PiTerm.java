@@ -9,6 +9,7 @@ import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
+import org.aya.generic.SortKind;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,41 +23,39 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
     return param == this.param && body == this.body ? this : new PiTerm(param, body);
   }
 
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(f.apply(0, param), f.apply(1, body));
   }
 
-  public static @NotNull Tuple2<ImmutableSeq<Term>, Term> unpi(@NotNull Term term, @NotNull UnaryOperator<Term> pre) {
+  public record Unpi(
+    @NotNull ImmutableSeq<Term> params,
+    @NotNull Term body
+  ) {}
+  public static @NotNull Unpi unpi(@NotNull Term term, @NotNull UnaryOperator<Term> pre) {
     var params = MutableList.<Term>create();
     while (pre.apply(term) instanceof PiTerm(var param, var body)) {
       params.append(param);
       term = body;
     }
 
-    return Tuple.of(params.toImmutableSeq(), term);
+    return new Unpi(params.toImmutableSeq(), term);
   }
 
-  // TODO: dependsOn(SortTerm)
-  // public static @NotNull SortTerm lub(@NotNull SortTerm domain, @NotNull SortTerm codomain) {
-  //   var alift = domain.lift();
-  //   var blift = codomain.lift();
-  //   return switch (domain.kind()) {
-  //     case Type -> switch (codomain.kind()) {
-  //       case Type, Set -> new SortTerm(SortKind.Type, Math.max(alift, blift));
-  //       case ISet -> new SortTerm(SortKind.Set, alift);
-  //     };
-  //     case ISet -> switch (codomain.kind()) {
-  //       case ISet -> SortTerm.Set0;
-  //       case Set, Type -> codomain;
-  //     };
-  //     case Set -> switch (codomain.kind()) {
-  //       case Set, Type -> new SortTerm(SortKind.Set, Math.max(alift, blift));
-  //       case ISet -> new SortTerm(SortKind.Set, alift);
-  //     };
-  //   };
-  // }
-  //
+  public static @NotNull SortTerm lub(@NotNull SortTerm domain, @NotNull SortTerm codomain) {
+    var alift = domain.lift();
+    var blift = codomain.lift();
+    return switch (domain.kind()) {
+      case Type -> switch (codomain.kind()) {
+        case Type -> new SortTerm(SortKind.Type, Math.max(alift, blift));
+        case ISet, Set -> new SortTerm(SortKind.Set, alift);
+      };
+      case ISet -> switch (codomain.kind()) {
+        case ISet -> SortTerm.Set0;
+        case Set, Type -> codomain;
+      };
+      case Set -> new SortTerm(SortKind.Set, Math.max(alift, blift));
+    };
+  }
 
   // public @NotNull LamTerm coe(@NotNull CoeTerm coe, @NotNull LamTerm.Param varI) {
   //   var M = new LamTerm.Param(new LocalVar("f"), true);

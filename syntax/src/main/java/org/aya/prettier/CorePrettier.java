@@ -161,8 +161,8 @@ public class CorePrettier extends BasePrettier<Term> {
           term(Outer.Codomain, body0)
         ), Outer.BinOp);
         var pair = PiTerm.unpi(body0, UnaryOperator.identity());
-        var params = generateNames(pair.component1());
-        var body = pair.component2().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));
+        var params = generateNames(pair.params());
+        var body = pair.body().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));
         var doc = Doc.sep(
           Tokens.KW_PI,
           visitTele(params, body, FindUsage::free),

@@ -44,8 +44,4 @@ public record SortTerm(@NotNull SortKind kind, int lift) implements StableWHNF, 
   public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return this;
   }
-
-  public static @NotNull SortTerm lub(@NotNull SortTerm lhs, @NotNull SortTerm rhs) {
-    throw new UnsupportedOperationException("TODO");
-  }
 }

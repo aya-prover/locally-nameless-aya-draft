@@ -84,7 +84,7 @@ public record Synthesizer(
         });
 
         if (!(bTy instanceof SortTerm bSort)) yield null;
-        yield SortTerm.lub(pSort, bSort);
+        yield PiTerm.lub(pSort, bSort);
       }
       case SigmaTerm sigma -> {
         var pTys = MutableList.<SortTerm>create();
@@ -98,7 +98,7 @@ public record Synthesizer(
         if (!succ) yield null;
 
         // This is safe since a [SigmaTerm] has at least 2 parameters.
-        yield pTys.reduce(SortTerm::lub);
+        yield pTys.reduce(SigmaTerm::lub);
       }
       case TupTerm _ -> null;
       case LamTerm _ -> null;
