@@ -61,11 +61,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   }
 
   @Contract(pure = true) public abstract @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<RetTy>> ref();
-
-  @Override
-  public @NotNull DeclInfo info() {
-    return info;
-  }
+  @Override public @NotNull DeclInfo info() {return info;}
 
   /**
    * @implNote {@link TeleDecl#signature} is always null.
@@ -87,9 +83,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       this.telescope = telescope;
     }
 
-    @Override public @NotNull DefVar<CtorDef, DataCtor> ref() {
-      return ref;
-    }
+    @Override public @NotNull DefVar<CtorDef, DataCtor> ref() {return ref;}
   }
 
   /**
@@ -117,9 +111,12 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       body.forEach(ctors -> ctors.dataRef = ref);
     }
 
-    @Override public @NotNull DefVar<DataDef, DataDecl> ref() {
-      return this.ref;
+    @Override public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
+      super.descentInPlace(f, p);
+      body.forEach(ctors -> ctors.descentInPlace(f, p));
     }
+
+    @Override public @NotNull DefVar<DataDef, DataDecl> ref() {return ref;}
   }
 
   public sealed interface FnBody {
@@ -132,7 +129,8 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     }
   }
 
-  public record BlockBody(ImmutableSeq<Pattern.Clause> clauses, ImmutableSeq<WithPos<LocalVar>> elims) implements FnBody {
+  public record BlockBody(ImmutableSeq<Pattern.Clause> clauses,
+                          ImmutableSeq<WithPos<LocalVar>> elims) implements FnBody {
     @Override public BlockBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
       return new BlockBody(clauses.map(g), elims);
     }
@@ -164,9 +162,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       this.body = body;
     }
 
-    @Override public @NotNull DefVar<FnDef, FnDecl> ref() {
-      return ref;
-    }
+    @Override public @NotNull DefVar<FnDef, FnDecl> ref() { return ref; }
 
     @Override
     public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
@@ -191,11 +187,9 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       @Nullable WithPos<Expr> result
     ) {
       super(new DeclInfo(Accessibility.Public, sourcePos, entireSourcePos, null, BindBlock.EMPTY), telescope, result);
-      this.ref = DefVar.concrete(this, name);
+      ref = DefVar.concrete(this, name);
     }
 
-    @Override public @NotNull DefVar<PrimDef, PrimDecl> ref() {
-      return ref;
-    }
+    @Override public @NotNull DefVar<PrimDef, PrimDecl> ref() {return ref;}
   }
 }
