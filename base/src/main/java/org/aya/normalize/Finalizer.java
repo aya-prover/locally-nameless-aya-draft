@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.unify;
+package org.aya.normalize;
 
 import kala.collection.mutable.MutableStack;
 import org.aya.syntax.core.term.MetaPatTerm;
@@ -14,10 +14,7 @@ public record Finalizer(
   @NotNull Stateful delegate,
   @NotNull MutableStack<Term> stack
 ) implements Stateful {
-  @Override public @NotNull TyckState state() {
-    return delegate.state();
-  }
-
+  @Override public @NotNull TyckState state() { return delegate.state(); }
   public @NotNull Term doZonk(@NotNull Term preterm) {
     return switch (preterm) {
       case MetaCall meta -> whnf(meta);

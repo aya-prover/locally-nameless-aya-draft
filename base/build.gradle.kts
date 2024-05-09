@@ -6,10 +6,13 @@ dependencies {
   api(project(":syntax"))
   api(project(":tools-md"))
   implementation(libs.commonmark)
+  // implementation(libs.manifold.delegate.runtime)
+  // annotationProcessor(libs.manifold.delegate.codegen)
   testImplementation(project(":producer"))
   testImplementation(libs.junit.params)
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)
+  // testAnnotationProcessor(libs.manifold.delegate.codegen)
 }
 
 val genDir = file("src/main/gen")
