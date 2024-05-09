@@ -27,6 +27,7 @@ public sealed interface TeleTycker extends ContextBased {
    * @return well-typed type or {@link ErrorTerm}
    */
   @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr);
+  void solveMetas();
 
   /**
    * @return a locally nameless signature computed from what's in the localCtx.
@@ -39,7 +40,7 @@ public sealed interface TeleTycker extends ContextBased {
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
     var finalParam = checkTele(cTele);
     var finalResult = checkType(result).bindTele(locals.view());
-    // TODO: tycker.solveMetas();
+    solveMetas();
     // TODO: zonk these data
     return new Signature<>(finalParam, finalResult);
   }
@@ -102,42 +103,35 @@ public sealed interface TeleTycker extends ContextBased {
     return signature.result().instantiateTeleVar(tele.view());
   }
 
-  record Default(@NotNull ExprTycker exprTycker) implements TeleTycker {
+  record Default(@NotNull ExprTycker tycker) implements TeleTycker {
     @Override
     public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
-      return exprTycker.ty(typeExpr);
+      return tycker.ty(typeExpr);
     }
+    @Override public void solveMetas() {tycker.solveMetas();}
 
-    @Override
-    public @NotNull LocalCtx localCtx() {
-      return exprTycker.localCtx();
-    }
+    @Override public @NotNull LocalCtx localCtx() {return tycker.localCtx();}
 
-    @Override
-    public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
-      return exprTycker.setLocalCtx(ctx);
+    @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
+      return tycker.setLocalCtx(ctx);
     }
   }
 
-  record Ctor(@NotNull ExprTycker exprTycker, @NotNull SortTerm dataResult) implements TeleTycker {
+  record Ctor(@NotNull ExprTycker tycker, @NotNull SortTerm dataResult) implements TeleTycker {
     @Override
     public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
-      var result = exprTycker.ty(typeExpr);
-      if (!new Synthesizer(exprTycker).inheritPiDom(result, dataResult)) {
-        exprTycker.fail(new UnifyError.PiDom(typeExpr.data(), typeExpr.sourcePos(), result, dataResult));
+      var result = tycker.ty(typeExpr);
+      if (!new Synthesizer(tycker).inheritPiDom(result, dataResult)) {
+        tycker.fail(new UnifyError.PiDom(typeExpr.data(), typeExpr.sourcePos(), result, dataResult));
       }
 
       return result;
     }
+    @Override public void solveMetas() {tycker.solveMetas();}
+    @Override public @NotNull LocalCtx localCtx() {return tycker.localCtx();}
 
-    @Override
-    public @NotNull LocalCtx localCtx() {
-      return exprTycker.localCtx();
-    }
-
-    @Override
-    public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
-      return exprTycker.setLocalCtx(ctx);
+    @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
+      return tycker.setLocalCtx(ctx);
     }
   }
 }
