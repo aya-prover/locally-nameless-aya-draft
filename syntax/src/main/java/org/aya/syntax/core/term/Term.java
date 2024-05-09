@@ -167,6 +167,8 @@ public sealed interface Term extends Serializable, AyaDocile
    *          {@code f} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
    *          so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.
+   * @apiNote Note that {@link Term}s provided by {@param f} might contain {@link LocalTerm},
+   *          therefore your {@param f} should be able to handle them.
    */
   @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f);
 

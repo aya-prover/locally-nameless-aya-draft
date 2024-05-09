@@ -16,6 +16,7 @@ public class TyckTest {
   public void test0() {
     @Language("Aya") String code = """
       data Nat | O | S Nat
+      data FreeMonoid (A : Type) | e | cons A (FreeMonoid A)
 
       def foo (A : Type) (a : A) : A => a
       def lam (A : Type) : Fn (a : A) -> Type => fn a => A
