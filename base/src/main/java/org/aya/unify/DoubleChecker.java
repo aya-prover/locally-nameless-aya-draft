@@ -34,11 +34,10 @@ public record DoubleChecker(
       case ErrorTerm _ -> true;
       case PiTerm(var pParam, var pBody) -> {
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
-        if (!synthesizer.inheritPiDom(pParam, expectedTy)) yield false;
-        yield unifier.subscoped(() -> {
+        yield synthesizer.inheritPiDom(pParam, expectedTy) ? unifier.subscoped(() -> {
           var param = putIndex(pParam);
           return inherit(pBody.instantiate(param), expectedTy);
-        });
+        }) : Boolean.valueOf(false);
       }
       case SigmaTerm sigma -> {
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();

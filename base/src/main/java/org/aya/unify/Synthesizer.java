@@ -32,7 +32,11 @@ public record Synthesizer(
 
   public boolean inheritPiDom(@NotNull Term ty, @NotNull SortTerm expected) {
     if (ty instanceof MetaCall meta && meta.ref().req() == MetaVar.Misc.IsType) {
-      // TODO
+      var typed = meta.asPiDom(expected);
+      // The old code checks recursion in solve, now we don't, but it's okay,
+      // since it is impossible for this `solve` to fail.
+      state().solve(meta.ref(), typed);
+      return true;
     }
 
     if (!(trySynth(ty) instanceof SortTerm tyty)) return false;

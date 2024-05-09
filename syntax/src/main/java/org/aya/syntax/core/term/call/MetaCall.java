@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.PiTerm;
+import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.MetaVar;
 import org.jetbrains.annotations.NotNull;
@@ -26,6 +27,10 @@ public record MetaCall(
     var directArgs = args.sliceView(0, ref.ctxSize());
     var restArgs = args.sliceView(ref.ctxSize(), args.size());
     return PiTerm.substBody(rhsType.instantiateTele(directArgs), restArgs);
+  }
+
+  public @NotNull MetaCall asPiDom(@NotNull SortTerm result) {
+    return ref.asPiDom(result, args);
   }
 
   public @NotNull Term update(@NotNull ImmutableSeq<Term> args) {

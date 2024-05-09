@@ -3,6 +3,7 @@
 package org.aya.syntax.ref;
 
 import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.AyaDocile;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.SortTerm;
@@ -30,6 +31,12 @@ public record MetaVar(
   @Override public boolean equals(@Nullable Object o) {return this == o;}
 
   @Override public int hashCode() {return System.identityHashCode(this);}
+
+  public @NotNull MetaCall asPiDom(@NotNull SortTerm sort, @NotNull ImmutableSeq<Term> args) {
+    assert req == Misc.IsType;
+    var typed = new MetaVar(name, pos, ctxSize, new PiDom(sort));
+    return new MetaCall(typed, args);
+  }
 
   public sealed interface Requirement extends AyaDocile {
     Requirement bind(SeqView<LocalVar> vars);
