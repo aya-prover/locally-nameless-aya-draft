@@ -3,6 +3,8 @@
 package org.aya.syntax.core.term;
 
 import org.aya.generic.AyaDocile;
+import org.aya.prettier.BasePrettier;
+import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
@@ -41,7 +43,6 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
 
   @Override
   public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-    // TODO
-    throw new UnsupportedOperationException("TODO");
+    return new CorePrettier(options).visitParam(this, BasePrettier.Outer.Free);
   }
 }

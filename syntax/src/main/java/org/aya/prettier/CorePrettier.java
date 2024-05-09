@@ -17,6 +17,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.error.SourcePos;
@@ -344,6 +345,12 @@ public class CorePrettier extends BasePrettier<Term> {
     return Doc.vcat(clauses.view().map(matching ->
       // TODO: toDoc use a new CorePrettier => new NameGenerator
       Doc.sep(Tokens.BAR, matching.toDoc(options))));
+  }
+
+  public @NotNull Doc visitParam(@NotNull Param param, @NotNull Outer outer) {
+    return justType(
+      new CoreParam(new LocalVar(param.name(), SourcePos.SER, GenerateKind.Basic.Tyck), param.type()),
+      outer);
   }
 
   /// region Name Generating

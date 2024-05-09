@@ -22,7 +22,7 @@ public class TyckTest {
       // def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a) : Sig (a : A) ** B a => (a, b a)
       """;
 
-    tyck(code);
+    var result = tyck(code);
   }
 
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
