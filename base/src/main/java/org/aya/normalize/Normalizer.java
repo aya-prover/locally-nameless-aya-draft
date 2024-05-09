@@ -4,6 +4,7 @@ package org.aya.normalize;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.ImmutableSet;
+import kala.control.Either;
 import kala.control.Option;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
@@ -50,9 +51,10 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         var result = proj.make();
         yield result == proj ? result : whnf(result);
       }
-      case FnCall(var ref, int ulift, var args) when ref.core != null -> {
-        throw new UnsupportedOperationException("TODO: implement");
-      }
+      case FnCall(var ref, int ulift, var args) when ref.core != null -> switch (ref.core.body) {
+        case Either.Left(var body) -> body.instantiateTele(args.view());
+        case Either.Right(var clauses) -> throw new UnsupportedOperationException("TODO");
+      };
       case PrimCall prim -> state.factory().unfold(prim, state);
       case MetaPatTerm(var meta) -> {
         var solution = meta.solution().get();
