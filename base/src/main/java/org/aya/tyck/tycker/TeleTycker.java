@@ -88,19 +88,18 @@ public sealed interface TeleTycker extends ContextBased {
   }
 
   @Contract(mutates = "param3")
-  static void loadTele(
+  static @NotNull Term loadTele(
     @NotNull ImmutableSeq<LocalVar> binds,
     @NotNull Signature<?> signature,
     @NotNull ExprTycker tycker) {
     assert binds.sizeEquals(signature.param());
     var tele = MutableList.<LocalVar>create();
 
-    binds.view().zip(signature.param()).forEach(pair -> {
-      var ref = pair.component1();
-      var param = pair.component2();
+    binds.forEachWith(signature.param(), (ref, param) -> {
       tycker.localCtx().put(ref, param.data().type().instantiateTeleVar(tele.view()));
       tele.append(ref);
     });
+    return signature.result().instantiateTeleVar(tele.view());
   }
 
   record Default(@NotNull ExprTycker exprTycker) implements TeleTycker {

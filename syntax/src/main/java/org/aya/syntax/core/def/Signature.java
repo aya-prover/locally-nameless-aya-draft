@@ -5,6 +5,7 @@ package org.aya.syntax.core.def;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.AyaDocile;
+import org.aya.prettier.Tokens;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
@@ -50,7 +51,6 @@ public record Signature<T extends Term>(
   }
 
   @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-    // return Doc.sep(Doc.sep(param.view().map(p -> p.toDoc(options))), Doc.symbol("->"), result.toDoc(options));
-    throw new UnsupportedOperationException("TODO");
+    return Doc.sep(Doc.sep(param.view().map(p -> p.data().toDoc(options))), Tokens.ARROW, result.toDoc(options));
   }
 }
