@@ -124,7 +124,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         var wellParam = ty(param.typeExpr());
         yield subscoped(() -> {
           localCtx().put(param.ref(), wellParam);
-          var wellLast = ty(last);
+          var wellLast = ty(last).bind(param.ref());
           return new PiTerm(wellParam, wellLast);
         });
       }
