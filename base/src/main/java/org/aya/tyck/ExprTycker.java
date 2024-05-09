@@ -4,9 +4,11 @@ package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import kala.collection.mutable.MutableTreeSet;
 import org.aya.generic.Constants;
 import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.core.Result;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -21,18 +23,28 @@ import org.aya.unify.TermComparator;
 import org.aya.unify.Unifier;
 import org.aya.util.Ordering;
 import org.aya.util.error.Panic;
+import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
+
 public final class ExprTycker extends AbstractTycker implements Unifiable {
+  public final @NotNull MutableTreeSet<WithPos<Expr.WithTerm>> withTerms =
+    MutableTreeSet.create(Comparator.comparing(SourceNode::sourcePos));
   public ExprTycker(
     @NotNull TyckState state,
     @NotNull LocalCtx ctx,
     @NotNull Reporter reporter
   ) {
     super(state, ctx, reporter);
+  }
+
+  public void solveMetas() {
+    state.solveMetas(reporter);
+    withTerms.forEach(with -> with.data().theCore().update(this::freezeHoles));
   }
 
   /**

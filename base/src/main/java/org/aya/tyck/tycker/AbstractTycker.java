@@ -29,10 +29,6 @@ public sealed abstract class AbstractTycker implements Stateful, Contextful, Pro
     return old;
   }
 
-  public void solveMetas() {
-    state.solveMetas(reporter);
-  }
-
   @Override public @NotNull LocalCtx localCtx() { return localCtx; }
   @Override public @NotNull TyckState state() { return state; }
   @Override public @NotNull Reporter reporter() { return reporter; }

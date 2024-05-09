@@ -97,13 +97,13 @@ public record ExprResolver(
 
   public @NotNull Expr pre(@NotNull Expr expr) {
     return switch (expr) {
-      case Expr.Proj(var tup, var ix, var resolved/*, var theCore*/) -> {
-        if (ix.isLeft()) yield new Expr.Proj(tup, ix, resolved/*, theCore*/);
+      case Expr.Proj(var tup, var ix, var resolved, var theCore) -> {
+        if (ix.isLeft()) yield new Expr.Proj(tup, ix, resolved, theCore);
         var projName = ix.getRightValue();
         var resolvedIx = ctx.getMaybe(projName);
         // TODO: require Record things
         // if (resolvedIx == null) ctx.reportAndThrow(new FieldError.UnknownField(projName.sourcePos(), projName.join()));
-        yield new Expr.Proj(tup, ix, resolvedIx/*, theCore*/);
+        yield new Expr.Proj(tup, ix, resolvedIx, theCore);
       }
       case Expr.Hole hole -> {
         hole.accessibleLocal().set(ctx.collect(MutableList.create()).toImmutableSeq());

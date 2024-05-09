@@ -18,5 +18,6 @@ module aya.syntax {
   exports org.aya.syntax.core.term.call;
   exports org.aya.syntax.core.term.xtt;
   exports org.aya.syntax.core.term;
+  exports org.aya.syntax.core;
   exports org.aya.syntax.ref;
 }

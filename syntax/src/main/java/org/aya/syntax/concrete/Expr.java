@@ -14,9 +14,11 @@ import org.aya.prettier.BasePrettier;
 import org.aya.prettier.ConcretePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.QualifiedID;
+import org.aya.syntax.core.Result;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
+import org.aya.util.ForLSP;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
@@ -31,10 +33,14 @@ import java.util.function.UnaryOperator;
 
 public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f);
+  @ForLSP
+  sealed interface WithTerm {
+    @NotNull MutableValue<Result> theCore();
+    default @Nullable Result core() { return theCore().get(); }
+  }
 
   /** Yes, please */
-  sealed interface Sugar {
-  }
+  sealed interface Sugar { }
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
@@ -52,10 +58,7 @@ public sealed interface Expr extends AyaDocile {
       return new Param(sourcePos, ref, typeExpr.map(mapper), explicit);
     }
 
-    @Override
-    public @NotNull Expr type() {
-      return typeExpr.data();
-    }
+    @Override public @NotNull Expr type() { return typeExpr.data(); }
 
     public Param(@NotNull SourcePos sourcePos, @NotNull LocalVar var, boolean explicit) {
       this(sourcePos, var, new WithPos<>(sourcePos, new Hole(false, null)), explicit);
@@ -71,7 +74,7 @@ public sealed interface Expr extends AyaDocile {
   }
 
   /**
-   * @param filling the inner expr of goal
+   * @param filling  the inner expr of goal
    * @param explicit whether the hole is a type-directed programming goal or
    *                 a to-be-solved by tycking hole.
    * @author ice1000
@@ -133,10 +136,7 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record Ref(@NotNull AnyVar var) implements Expr {
-    @Override
-    public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return this;
-    }
+    @Override public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
   }
 
   record Lambda(
@@ -183,18 +183,18 @@ public sealed interface Expr extends AyaDocile {
   record Proj(
     @NotNull WithPos<Expr> tup,
     @NotNull Either<Integer, QualifiedID> ix,
-    @Nullable AnyVar resolvedVar
-    // , @NotNull MutableValue<Result> theCore    TODO: unable to access Result
-  ) implements Expr {
+    @Nullable AnyVar resolvedVar,
+    @NotNull MutableValue<Result> theCore
+  ) implements Expr, WithTerm {
     public Proj(
       @NotNull WithPos<Expr> tup,
       @NotNull Either<Integer, QualifiedID> ix
     ) {
-      this(tup, ix, null/*, MutableValue.create()*/);
+      this(tup, ix, null, MutableValue.create());
     }
 
     public @NotNull Expr.Proj update(@NotNull WithPos<Expr> tup) {
-      return tup == tup() ? this : new Proj(tup, ix, resolvedVar/*, theCore*/);
+      return tup == tup() ? this : new Proj(tup, ix, resolvedVar, theCore);
     }
 
     @Override public @NotNull Expr.Proj descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
@@ -370,7 +370,6 @@ public sealed interface Expr extends AyaDocile {
         && applicativePure == names.applicativePure;
     }
   }
-
 
   record Do(
     @NotNull Expr bindName,   // TODO: perhaps we don't need the source pos of (>>=)

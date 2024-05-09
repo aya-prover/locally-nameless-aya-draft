@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.tyck;
+package org.aya.syntax.core;
 
 import org.aya.generic.AyaDocile;
 import org.aya.syntax.core.term.SortTerm;
@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 public sealed interface Result {
   @NotNull Term wellTyped();
   @NotNull Term type();
-  @NotNull Result freezeHoles(@NotNull TyckState state);
 
   default @NotNull Result.Default bind(@NotNull LocalVar var) {
     return new Default(wellTyped().bind(var), type().bind(var));
@@ -26,19 +25,9 @@ public sealed interface Result {
     public static @NotNull Default error(@NotNull AyaDocile description) {
       throw new UnsupportedOperationException("TODO");
     }
-
-    @Override public @NotNull Default freezeHoles(@NotNull TyckState state) {
-      throw new UnsupportedOperationException("TODO");
-    }
   }
 
   record Sort(@Override @NotNull SortTerm wellTyped) implements Result {
-    @Override public @NotNull SortTerm type() {
-      return wellTyped.succ();
-    }
-
-    @Override public @NotNull Sort freezeHoles(@NotNull TyckState state) {
-      return this;
-    }
+    @Override public @NotNull SortTerm type() { return wellTyped.succ(); }
   }
 }

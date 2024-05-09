@@ -29,10 +29,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     this(state, ImmutableSet.empty());
   }
 
-  @Override public Term apply(Term term) {
-    return whnf(term);
-  }
-
+  @Override public Term apply(Term term) { return whnf(term); }
   private @NotNull Term whnf(@NotNull Term term) {
     if (term instanceof StableWHNF) return term;
     var postTerm = term.descent(this);

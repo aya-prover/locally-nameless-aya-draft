@@ -134,12 +134,8 @@ public record Synthesizer(
   public @NotNull LocalVar putIndex(@NotNull Term type) {
     return tycker.putIndex(nameGen, type);
   }
-  @Override public @NotNull TyckState state() {
-    return tycker.state;
-  }
-  @Override public @NotNull LocalCtx localCtx() {
-    return tycker.localCtx();
-  }
+  @Override public @NotNull TyckState state() { return tycker.state; }
+  @Override public @NotNull LocalCtx localCtx() { return tycker.localCtx(); }
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
     return tycker.setLocalCtx(ctx);
   }
