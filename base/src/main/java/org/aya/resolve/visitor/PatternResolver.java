@@ -8,7 +8,7 @@ import org.aya.resolve.error.NameProblem;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.CtorDef;
+import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
@@ -41,15 +41,15 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
   public @NotNull Pattern post(@NotNull SourcePos pos, @NotNull Pattern pat) {
     return switch (pat) {
       case Pattern.Bind bind -> {
-        // Check whether this {bind} is a Ctor
+        // Check whether this {bind} is a Con
         var conMaybe = context.iterate(ctx -> isCon(ctx.getUnqualifiedLocalMaybe(bind.bind().name(), pos)));
         if (conMaybe != null) {
-          // It intents to be a ctor!
+          // It wants to be a con!
           addReference(conMaybe);
-          yield new Pattern.Ctor(pos, conMaybe);
+          yield new Pattern.Con(pos, conMaybe);
         }
 
-        // It is not a Ctor, it is a bind
+        // It is not a constructor, it is a bind
         context = context.bind(bind.bind());
         yield bind;
       }
@@ -60,7 +60,7 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
         var conMaybe = context.iterate(ctx -> isCon(ctx.getQualifiedLocalMaybe(mod, qid.name(), pos)));
         if (conMaybe != null) {
           addReference(conMaybe);
-          yield new Pattern.Ctor(pos, conMaybe);
+          yield new Pattern.Con(pos, conMaybe);
         }
 
         // !! No Such Thing !!
@@ -83,8 +83,8 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
   private static @Nullable DefVar<?, ?> isCon(@Nullable AnyVar myMaybe) {
     if (myMaybe == null) return null;
     if (myMaybe instanceof DefVar<?, ?> def && (
-      def.core instanceof CtorDef
-        || def.concrete instanceof TeleDecl.DataCtor
+      def.core instanceof ConDef
+        || def.concrete instanceof TeleDecl.DataCon
         || def.core instanceof PrimDef
         || def.concrete instanceof TeleDecl.PrimDecl
     )) return def;

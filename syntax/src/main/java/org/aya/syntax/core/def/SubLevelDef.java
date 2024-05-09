@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author ice1000
  */
-public sealed abstract class SubLevelDef implements TeleDef permits CtorDef {
+public sealed abstract class SubLevelDef implements TeleDef permits ConDef {
   public final @NotNull ImmutableSeq<Param> ownerTele;
   public final @NotNull ImmutableSeq<Param> selfTele;
   public final @NotNull Term result;

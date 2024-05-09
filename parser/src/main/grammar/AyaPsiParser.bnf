@@ -248,16 +248,16 @@ dataDecl ::= declModifiers*
  KW_DATA declNameOrInfix?
  tele* type? bindBlock? dataBody* { pin=2 }
 
-dataBody ::= BAR (dataCtorClause | dataCtor) {
+dataBody ::= BAR (dataConClause | dataCon) {
   mixin="org.aya.intellij.psi.impl.AyaPsiGenericDeclImpl"
   implements="org.aya.intellij.psi.AyaPsiGenericDecl"
   pin=1
 }
 
-dataCtor ::= KW_COERCE? declNameOrInfix tele* type? partialBlock? bindBlock?
+dataCon ::= KW_COERCE? declNameOrInfix tele* type? partialBlock? bindBlock?
 partialBlock ::= <<braced partialInner>>
 
-dataCtorClause ::= patterns IMPLIES dataCtor
+dataConClause ::= patterns IMPLIES dataCon
 
 // expressions
 expr ::= newExpr

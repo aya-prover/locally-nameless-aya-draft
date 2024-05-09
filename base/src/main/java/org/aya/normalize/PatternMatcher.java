@@ -31,12 +31,12 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
     return switch (pat) {
       case Pat.Absurd _ -> throw new Panic("unreachable");
       case Pat.Bind _ -> Result.ok(ImmutableSeq.of(term));
-      case Pat.Ctor ctor -> {
+      case Pat.Con con -> {
         term = pre.apply(term);
         yield switch (term) {
           case ConCallLike kon -> {
-            if (ctor.ref() != kon.ref()) yield Result.err(false);
-            yield matchMany(ctor.args(), kon.conArgs());    // arguments for data should not be matched, they are annoying
+            if (con.ref() != kon.ref()) yield Result.err(false);
+            yield matchMany(con.args(), kon.conArgs());    // arguments for data should not be matched, they are annoying
           }
           default -> Result.err(true);
         };

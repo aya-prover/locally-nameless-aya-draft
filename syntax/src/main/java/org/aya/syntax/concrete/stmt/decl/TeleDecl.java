@@ -66,12 +66,12 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   /**
    * @implNote {@link TeleDecl#signature} is always null.
    */
-  public static final class DataCtor extends TeleDecl<DataCall> {
-    public final @NotNull DefVar<CtorDef, DataCtor> ref;
+  public static final class DataCon extends TeleDecl<DataCall> {
+    public final @NotNull DefVar<ConDef, DataCon> ref;
     public DefVar<DataDef, DataDecl> dataRef;
     public final boolean coerce;
 
-    public DataCtor(
+    public DataCon(
       @NotNull DeclInfo info,
       @NotNull String name,
       @NotNull ImmutableSeq<Expr.Param> telescope,
@@ -83,7 +83,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       this.telescope = telescope;
     }
 
-    @Override public @NotNull DefVar<CtorDef, DataCtor> ref() { return ref; }
+    @Override public @NotNull DefVar<ConDef, DataCon> ref() { return ref; }
   }
 
   /**
@@ -94,16 +94,16 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
    */
   public static final class DataDecl extends TeleDecl<SortTerm> {
     public final @NotNull DefVar<DataDef, DataDecl> ref;
-    public final @NotNull ImmutableSeq<DataCtor> body;
+    public final @NotNull ImmutableSeq<DataCon> body;
     /** Yet type-checked constructors */
-    public final @NotNull MutableList<@NotNull CtorDef> checkedBody = MutableList.create();
+    public final @NotNull MutableList<@NotNull ConDef> checkedBody = MutableList.create();
 
     public DataDecl(
       @NotNull DeclInfo info,
       @NotNull String name,
       @NotNull ImmutableSeq<Expr.Param> telescope,
       @Nullable WithPos<Expr> result,
-      @NotNull ImmutableSeq<DataCtor> body
+      @NotNull ImmutableSeq<DataCon> body
     ) {
       super(info, telescope, result);
       this.body = body;

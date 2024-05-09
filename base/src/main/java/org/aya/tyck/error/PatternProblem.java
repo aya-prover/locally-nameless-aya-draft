@@ -60,7 +60,7 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  record UnavailableCtor(
+  record UnavailableCon(
     @Override @NotNull WithPos<Pattern> pattern,
     @NotNull DataCall dataCall
   ) implements PatternProblem {
@@ -73,7 +73,7 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  record UnknownCtor(
+  record UnknownCon(
     @Override @NotNull WithPos<Pattern> pattern
   ) implements PatternProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {

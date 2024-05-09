@@ -14,7 +14,7 @@ public final class PatToTerm {
     return switch (pat) {
       case Pat.Absurd absurd -> throw new Panic("unreachable");
       case Pat.Bind bind -> new FreeTerm(bind.bind());
-      case Pat.Ctor ctor -> throw new UnsupportedOperationException("TODO");
+      case Pat.Con con -> throw new UnsupportedOperationException("TODO");
       case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(PatToTerm::visit));
       case Pat.Meta meta -> new MetaPatTerm(meta);
     };

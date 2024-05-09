@@ -635,7 +635,7 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // BAR (dataCtorClause | dataCtor)
+  // BAR (dataConClause | dataCon)
   public static boolean dataBody(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "dataBody")) return false;
     if (!nextTokenIs(b, BAR)) return false;
@@ -648,79 +648,79 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
     return r || p;
   }
 
-  // dataCtorClause | dataCtor
+  // dataConClause | dataCon
   private static boolean dataBody_1(PsiBuilder b, int l) {
     if (!recursion_guard_(b, l, "dataBody_1")) return false;
     boolean r;
-    r = dataCtorClause(b, l + 1);
-    if (!r) r = dataCtor(b, l + 1);
+    r = dataConClause(b, l + 1);
+    if (!r) r = dataCon(b, l + 1);
     return r;
   }
 
   /* ********************************************************** */
   // KW_COERCE? declNameOrInfix tele* type? partialBlock? bindBlock?
-  public static boolean dataCtor(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataCtor")) return false;
+  public static boolean dataCon(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataCon")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, DATA_CTOR, "<data ctor>");
-    r = dataCtor_0(b, l + 1);
+    Marker m = enter_section_(b, l, _NONE_, DATA_CON, "<data con>");
+    r = dataCon_0(b, l + 1);
     r = r && declNameOrInfix(b, l + 1);
-    r = r && dataCtor_2(b, l + 1);
-    r = r && dataCtor_3(b, l + 1);
-    r = r && dataCtor_4(b, l + 1);
-    r = r && dataCtor_5(b, l + 1);
+    r = r && dataCon_2(b, l + 1);
+    r = r && dataCon_3(b, l + 1);
+    r = r && dataCon_4(b, l + 1);
+    r = r && dataCon_5(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }
 
   // KW_COERCE?
-  private static boolean dataCtor_0(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataCtor_0")) return false;
+  private static boolean dataCon_0(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataCon_0")) return false;
     consumeToken(b, KW_COERCE);
     return true;
   }
 
   // tele*
-  private static boolean dataCtor_2(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataCtor_2")) return false;
+  private static boolean dataCon_2(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataCon_2")) return false;
     while (true) {
       int c = current_position_(b);
       if (!tele(b, l + 1)) break;
-      if (!empty_element_parsed_guard_(b, "dataCtor_2", c)) break;
+      if (!empty_element_parsed_guard_(b, "dataCon_2", c)) break;
     }
     return true;
   }
 
   // type?
-  private static boolean dataCtor_3(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataCtor_3")) return false;
+  private static boolean dataCon_3(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataCon_3")) return false;
     type(b, l + 1);
     return true;
   }
 
   // partialBlock?
-  private static boolean dataCtor_4(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataCtor_4")) return false;
+  private static boolean dataCon_4(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataCon_4")) return false;
     partialBlock(b, l + 1);
     return true;
   }
 
   // bindBlock?
-  private static boolean dataCtor_5(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataCtor_5")) return false;
+  private static boolean dataCon_5(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataCon_5")) return false;
     bindBlock(b, l + 1);
     return true;
   }
 
   /* ********************************************************** */
-  // patterns IMPLIES dataCtor
-  public static boolean dataCtorClause(PsiBuilder b, int l) {
-    if (!recursion_guard_(b, l, "dataCtorClause")) return false;
+  // patterns IMPLIES dataCon
+  public static boolean dataConClause(PsiBuilder b, int l) {
+    if (!recursion_guard_(b, l, "dataConClause")) return false;
     boolean r;
-    Marker m = enter_section_(b, l, _NONE_, DATA_CTOR_CLAUSE, "<data ctor clause>");
+    Marker m = enter_section_(b, l, _NONE_, DATA_CON_CLAUSE, "<data con clause>");
     r = patterns(b, l + 1);
     r = r && consumeToken(b, IMPLIES);
-    r = r && dataCtor(b, l + 1);
+    r = r && dataCon(b, l + 1);
     exit_section_(b, l, m, r, false, null);
     return r;
   }

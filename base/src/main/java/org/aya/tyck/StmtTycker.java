@@ -68,11 +68,11 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
           }
         };
       }
-      case TeleDecl.DataCtor dataCtor -> Objects.requireNonNull(dataCtor.ref.core);   // see checkHeader
+      case TeleDecl.DataCon dataCon -> Objects.requireNonNull(dataCon.ref.core);   // see checkHeader
       case TeleDecl.DataDecl dataDecl -> {
         var sig = dataDecl.signature;
         assert sig != null;
-        var kitsuneTachi = dataDecl.body.map(kon -> (CtorDef) check(kon, tycker));
+        var kitsuneTachi = dataDecl.body.map(kon -> (ConDef) check(kon, tycker));
         yield new DataDef(dataDecl.ref, sig.param().map(WithPos::data), sig.result(), kitsuneTachi);
       }
       case TeleDecl.PrimDecl primDecl -> throw new UnsupportedOperationException("TODO");
@@ -83,7 +83,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     var teleTycker = new TeleTycker.Default(tycker);
 
     switch (decl) {
-      case TeleDecl.DataCtor con -> checkKitsune(con, tycker);
+      case TeleDecl.DataCon con -> checkKitsune(con, tycker);
       case TeleDecl.DataDecl data -> {
         var result = data.result;
         if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
@@ -132,11 +132,11 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
    *
    * @apiNote remember to subscope
    */
-  private void checkKitsune(@NotNull TeleDecl.DataCtor dataCtor, @NotNull ExprTycker exprTycker) {
-    var ref = dataCtor.ref;
+  private void checkKitsune(@NotNull TeleDecl.DataCon dataCon, @NotNull ExprTycker exprTycker) {
+    var ref = dataCon.ref;
     if (ref.core != null) return;
     var ctorDecl = ref.concrete;
-    var dataRef = dataCtor.dataRef;
+    var dataRef = dataCon.dataRef;
     var dataDecl = dataRef.concrete;
     assert dataDecl != null && ctorDecl != null : "no concrete";
     var dataSig = dataDecl.signature;
@@ -154,7 +154,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       throw new UnsupportedOperationException("TODO");
     }
 
-    var teleTycker = new TeleTycker.Ctor(exprTycker, dataSig.result());
+    var teleTycker = new TeleTycker.Con(exprTycker, dataSig.result());
     var wellTele = teleTycker.checkTele(ctorDecl.telescope);
     // the result will NEVER refer to the telescope of ctor, unless... TODO: it is a Path result
     var sig = new Signature<>(wellTele, freeDataCall)
@@ -168,7 +168,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     ctorDecl.signature = new Signature<>(sig.param(), dataResult);
 
     // TODO: handle ownerTele and coerce
-    var konCore = new CtorDef(dataRef, ref, ImmutableSeq.empty(), wellTele.map(WithPos::data), dataResult, false);
+    var konCore = new ConDef(dataRef, ref, ImmutableSeq.empty(), wellTele.map(WithPos::data), dataResult, false);
     ref.core = konCore;
   }
 }

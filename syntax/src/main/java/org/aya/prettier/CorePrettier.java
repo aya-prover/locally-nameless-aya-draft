@@ -238,10 +238,10 @@ public class CorePrettier extends BasePrettier<Term> {
           : Doc.bracedUnless(linkDef(generateName(null)), licit);   // TODO: supply type name
       }
       case Pat.Bind bind -> Doc.bracedUnless(linkDef(bind.bind()), licit);
-      case Pat.Ctor ctor -> {
-        var ctorDoc = visitCoreCalls(ctor.ref(), ctor.args().view().map(PatToTerm::visit), outer,
+      case Pat.Con con -> {
+        var ctorDoc = visitCoreCalls(con.ref(), con.args().view().map(PatToTerm::visit), outer,
           optionImplicit());
-        yield ctorDoc(outer, licit, ctorDoc, ctor.args().isEmpty());
+        yield ctorDoc(outer, licit, ctorDoc, con.args().isEmpty());
       }
       case Pat.Absurd _ -> Doc.bracedUnless(Doc.styled(KEYWORD, "()"), licit);
       case Pat.Tuple tuple -> Doc.licit(licit,
@@ -278,7 +278,7 @@ public class CorePrettier extends BasePrettier<Term> {
       //   visitTele(field.telescope),
       //   Doc.symbol(":"),
       //   term(Outer.Free, field.result));
-      case CtorDef ctor -> {
+      case ConDef ctor -> {
         var doc = Doc.sepNonEmpty(coe(ctor.coerce),
           defVar(ctor.ref()),
           visitTele(enrich(ctor.selfTele)));
@@ -322,7 +322,7 @@ public class CorePrettier extends BasePrettier<Term> {
   }
 
   private @NotNull Doc visitCtor(
-    @NotNull DefVar<? extends CtorDef, ? extends TeleDecl.DataCtor> ref,
+    @NotNull DefVar<? extends ConDef, ? extends TeleDecl.DataCon> ref,
     @NotNull ImmutableSeq<ParamLike<Term>> richSelfTele,
     boolean coerce
   ) {

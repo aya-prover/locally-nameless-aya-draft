@@ -19,13 +19,13 @@ import org.jetbrains.annotations.NotNull;
  *   data Stmt : Set where
  *     FnDecl : Stmt
  *     DataDecl : Stmt
- *     DataCtor : Stmt
+ *     DataCon : Stmt
  *
  *   data ExtInfo : Stmt -> Set where
  *     ExtData : Context -> ExtInfo DataDecl
  *     ExtFn : Context -> ExtInfo FnDecl
  *     -- trivial extra info
- *     ExtCtor : ExtInfo DataCtor
+ *     ExtCon : ExtInfo DataCon
  *
  *   ResolvingStmt : Set _
  *   ResolvingStmt = Σ[ s ∈ Stmt ] ExtInfo s

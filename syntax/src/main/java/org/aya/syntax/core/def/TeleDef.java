@@ -31,7 +31,7 @@ public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
     assert signature != null : defVar.name();
     return signature.param().map(WithPos::data);
   }
-  static @NotNull Seq<CtorDef> dataBody(@NotNull DefVar<? extends DataDef, ? extends TeleDecl.DataDecl> defVar) {
+  static @NotNull Seq<ConDef> dataBody(@NotNull DefVar<? extends DataDef, ? extends TeleDecl.DataDecl> defVar) {
     if (defVar.core != null) return defVar.core.body;
       // guaranteed as this is already a core term
     else return defVar.concrete.checkedBody;

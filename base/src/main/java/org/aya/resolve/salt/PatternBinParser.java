@@ -64,7 +64,7 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
   }
 
   @Override protected @Nullable OpDecl underlyingOpDecl(@NotNull Arg<WithPos<Pattern>> elem) {
-    return elem.term().data() instanceof Pattern.Ctor ref && ref.resolved().data() instanceof DefVar<?, ?> defVar
+    return elem.term().data() instanceof Pattern.Con ref && ref.resolved().data() instanceof DefVar<?, ?> defVar
       ? defVar.resolveOpDecl(resolveInfo.thisModule().modulePath())
       : null;
   }
@@ -72,11 +72,11 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
   @Override protected @NotNull Arg<WithPos<Pattern>>
   makeArg(@NotNull SourcePos pos, @NotNull WithPos<Pattern> func, @NotNull Arg<WithPos<Pattern>> arg, boolean explicit) {
     // param explicit should be ignored since the BinOpSeq we are processing already specified the explicitness
-    if (func.data() instanceof Pattern.Ctor ctor) {
-      var newCtor = new Pattern.Ctor(ctor.resolved(), ctor.params().appended(new Arg<>(arg.term(), arg.explicit())));
-      return new Arg<>(new WithPos<>(pos, newCtor), explicit);
+    if (func.data() instanceof Pattern.Con con) {
+      var newCon = new Pattern.Con(con.resolved(), con.params().appended(new Arg<>(arg.term(), arg.explicit())));
+      return new Arg<>(new WithPos<>(pos, newCon), explicit);
     } else {
-      opSet.reporter.report(new PatternProblem.UnknownCtor(func));
+      opSet.reporter.report(new PatternProblem.UnknownCon(func));
       throw new Context.ResolvingInterruptedException();
     }
   }

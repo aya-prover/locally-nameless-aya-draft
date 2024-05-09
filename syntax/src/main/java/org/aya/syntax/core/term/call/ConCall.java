@@ -5,7 +5,7 @@ package org.aya.syntax.core.term.call;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.CtorDef;
+import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
@@ -26,7 +26,7 @@ public record ConCall(
 
   public ConCall(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef,
-    @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
+    @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
     @NotNull ImmutableSeq<@NotNull Term> dataArgs,
     int ulift,
     @NotNull ImmutableSeq<@NotNull Term> conArgs

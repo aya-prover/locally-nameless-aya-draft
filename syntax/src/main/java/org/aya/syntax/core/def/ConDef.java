@@ -12,16 +12,16 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author ice1000, kiva
  */
-public final class CtorDef extends SubLevelDef {
+public final class ConDef extends SubLevelDef {
   public final @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef;
-  public final @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref;
+  public final @NotNull DefVar<ConDef, TeleDecl.DataCon> ref;
 
   /**
    * @param ownerTele See "/note/glossary.md"
    * @param selfTele  Ditto
    */
-  public CtorDef(
-    @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef, @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
+  public ConDef(
+    @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef, @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
     @NotNull ImmutableSeq<Param> ownerTele, @NotNull ImmutableSeq<Param> selfTele,
     @NotNull Term result, boolean coerce
   ) {
@@ -31,7 +31,7 @@ public final class CtorDef extends SubLevelDef {
     this.ref = ref;
   }
 
-  public @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref() {
+  public @NotNull DefVar<ConDef, TeleDecl.DataCon> ref() {
     return ref;
   }
 

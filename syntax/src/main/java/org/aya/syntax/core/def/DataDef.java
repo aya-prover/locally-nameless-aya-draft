@@ -16,11 +16,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class DataDef extends TopLevelDef<SortTerm> {
   public final @NotNull DefVar<DataDef, TeleDecl.DataDecl> ref;
-  public final @NotNull ImmutableSeq<CtorDef> body;
+  public final @NotNull ImmutableSeq<ConDef> body;
 
   public DataDef(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> ref, @NotNull ImmutableSeq<Param> telescope,
-    SortTerm result, @NotNull ImmutableSeq<CtorDef> body
+    SortTerm result, @NotNull ImmutableSeq<ConDef> body
   ) {
     super(telescope, result);
     ref.core = this;
@@ -28,7 +28,7 @@ public final class DataDef extends TopLevelDef<SortTerm> {
     this.body = body;
   }
 
-  public static @NotNull DefVar<DataDef, TeleDecl.DataDecl> fromCtor(@NotNull DefVar<CtorDef, TeleDecl.DataCtor> conHead) {
+  public static @NotNull DefVar<DataDef, TeleDecl.DataDecl> fromCtor(@NotNull DefVar<ConDef, TeleDecl.DataCon> conHead) {
     if (conHead.core != null) return conHead.core.dataRef;
     else return conHead.concrete.dataRef;
   }

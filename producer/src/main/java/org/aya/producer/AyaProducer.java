@@ -343,13 +343,13 @@ public record AyaProducer(
     return decl;
   }
 
-  public @Nullable TeleDecl.DataCtor dataBody(@NotNull GenericNode<?> node) {
-    var dataCtorClause = node.peekChild(DATA_CTOR_CLAUSE);
-    if (dataCtorClause != null) return dataCtor(
-      patterns(dataCtorClause.child(PATTERNS).child(COMMA_SEP)),
-      dataCtorClause.child(DATA_CTOR));
-    var dataCtor = node.peekChild(DATA_CTOR);
-    if (dataCtor != null) return dataCtor(ImmutableSeq.empty(), dataCtor);
+  public @Nullable TeleDecl.DataCon dataBody(@NotNull GenericNode<?> node) {
+    var dataConClause = node.peekChild(DATA_CON_CLAUSE);
+    if (dataConClause != null) return dataCtor(
+      patterns(dataConClause.child(PATTERNS).child(COMMA_SEP)),
+      dataConClause.child(DATA_CON));
+    var dataCon = node.peekChild(DATA_CON);
+    if (dataCon != null) return dataCtor(ImmutableSeq.empty(), dataCon);
     return error(node.childrenView().getFirst(), "Expect a data constructor");
   }
 
@@ -394,7 +394,7 @@ public record AyaProducer(
     );
   }
 
-  public @Nullable TeleDecl.DataCtor dataCtor(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns, @NotNull GenericNode<?> node) {
+  public @Nullable TeleDecl.DataCon dataCtor(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns, @NotNull GenericNode<?> node) {
     var info = declInfo(node, ModifierParser.SUBDECL_FILTER);
     var name = info.checkName(this);
     if (name == null) return null;
@@ -403,7 +403,7 @@ public record AyaProducer(
     var ty = node.peekChild(TYPE);
     // var par = partial(partial, partial != null ? sourcePosOf(partial) : info.info.sourcePos());
     var coe = node.peekChild(KW_COERCE) != null;
-    return new TeleDecl.DataCtor(info.info, name, tele, coe, ty == null ? null : type(ty));
+    return new TeleDecl.DataCon(info.info, name, tele, coe, ty == null ? null : type(ty));
   }
 
   public @NotNull ImmutableSeq<Expr.Param> telescope(SeqView<? extends GenericNode<?>> telescope) {

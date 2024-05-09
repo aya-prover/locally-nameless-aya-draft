@@ -43,8 +43,8 @@ public interface AppTycker {
         new DataCall(dataVar, 0, args),
         TeleDef.defType(dataVar)
       ));
-    } else if (core instanceof CtorDef || concrete instanceof TeleDecl.DataCtor) {
-      var ctorVar = (DefVar<CtorDef, TeleDecl.DataCtor>) defVar;
+    } else if (core instanceof ConDef || concrete instanceof TeleDecl.DataCon) {
+      var ctorVar = (DefVar<ConDef, TeleDecl.DataCon>) defVar;
       // TODO: original code looks terrible
       throw new UnsupportedOperationException("TODO");
     }

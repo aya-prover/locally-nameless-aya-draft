@@ -265,12 +265,12 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       case Pattern.Bind bind -> Doc.bracedUnless(linkDef(bind.bind()), licit);
       case Pattern.CalmFace _ -> Doc.bracedUnless(Doc.plain(Constants.ANONYMOUS_PREFIX), licit);
       case Pattern.Number number -> Doc.bracedUnless(Doc.plain(String.valueOf(number.number())), licit);
-      case Pattern.Ctor ctor -> {
-        var name = refVar(ctor.resolved().data());
-        var ctorDoc = ctor.params().isEmpty()
+      case Pattern.Con con -> {
+        var name = refVar(con.resolved().data());
+        var ctorDoc = con.params().isEmpty()
           ? name
-          : Doc.sep(name, visitMaybeCtorPatterns(ctor.params(), Outer.AppSpine, Doc.ALT_WS));
-        yield ctorDoc(outer, licit, ctorDoc, ctor.params().isEmpty());
+          : Doc.sep(name, visitMaybeCtorPatterns(con.params(), Outer.AppSpine, Doc.ALT_WS));
+        yield ctorDoc(outer, licit, ctorDoc, con.params().isEmpty());
       }
       case Pattern.QualifiedRef qref -> Doc.bracedUnless(Doc.plain(qref.qualifiedID().join()), licit);
       case Pattern.BinOpSeq(var param) -> {
@@ -408,7 +408,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         });
         yield Doc.sepNonEmpty(doc);
       }*/
-      case TeleDecl.DataCtor ctor -> {
+      case TeleDecl.DataCon ctor -> {
         var ret = ctor.result == null ? Doc.empty() : Doc.sep(HAS_TYPE, term(Outer.Free, ctor.result));
         var doc = Doc.cblock(Doc.sepNonEmpty(
           coe(ctor.coerce),

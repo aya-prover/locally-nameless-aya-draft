@@ -114,7 +114,7 @@ public sealed interface TeleTycker extends Contextful {
     }
   }
 
-  record Ctor(@NotNull ExprTycker tycker, @NotNull SortTerm dataResult) implements TeleTycker {
+  record Con(@NotNull ExprTycker tycker, @NotNull SortTerm dataResult) implements TeleTycker {
     @Override
     public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
       var result = tycker.ty(typeExpr);

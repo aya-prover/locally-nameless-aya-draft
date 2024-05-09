@@ -14,7 +14,7 @@ import org.aya.generic.SortKind;
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.core.def.CtorDef;
+import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
@@ -97,7 +97,7 @@ public class PatternTycker implements Problematic {
   private @NotNull Pat doTyck(@NotNull WithPos<Pattern> pattern, @NotNull Term type) {
     return switch (pattern.data()) {
       case Pattern.Absurd _ -> {
-        var selection = selectCtor(type, null, pattern);
+        var selection = selectCon(type, null, pattern);
         if (selection != null) {
           foundError(new PatternProblem.PossiblePat(pattern, selection.conHead));
         }
@@ -115,25 +115,25 @@ public class PatternTycker implements Problematic {
             pattern
           ).wellTyped());
       }
-      case Pattern.Ctor ctor -> {
-        var var = ctor.resolved().data();
-        var realCtor = selectCtor(type, var, pattern);
-        if (realCtor == null) yield randomPat(type);
-        var ctorRef = realCtor.conHead.ref();
-        var ctorCore = ctorRef.core;
+      case Pattern.Con con -> {
+        var var = con.resolved().data();
+        var realCon = selectCon(type, var, pattern);
+        if (realCon == null) yield randomPat(type);
+        var conRef = realCon.conHead.ref();
+        var conCore = conRef.core;
 
-        // It is possible that `ctor.params()` is empty.
+        // It is possible that `con.params()` is empty.
         var patterns = tyckInner(
-          ctorCore.selfTele.view(),
-          realCtor.data,
-          ctor.params().view(),
+          conCore.selfTele.view(),
+          realCon.data,
+          con.params().view(),
           pattern
         ).wellTyped;
 
-        // check if this Ctor is a ShapedCtor
-        // var typeRecog = exprTycker.shapeFactory.find(ctorRef.core.dataRef.core).getOrNull();
+        // check if this Con is a ShapedCon
+        // var typeRecog = exprTycker.shapeFacony.find(conRef.core.dataRef.core).getOrNull();
 
-        yield new Pat.Ctor(realCtor.conHead.ref(), patterns/*, typeRecog, dataCall*/);
+        yield new Pat.Con(realCon.conHead.ref(), patterns/*, typeRecog, dataCall*/);
       }
       case Pattern.Bind(var bind, var tyRef) -> {
         exprTycker.localCtx().put(bind, type);
@@ -147,14 +147,14 @@ public class PatternTycker implements Problematic {
         // var ty = term.normalize(exprTycker.state, NormalizeMode.WHNF);
         // if (ty instanceof DataCall dataCall) {
         //   var data = dataCall.ref().core;
-        //   var shape = exprTycker.shapeFactory.find(data);
+        //   var shape = exprTycker.shapeFacony.find(data);
         //   if (shape.isDefined() && shape.get().shape() == AyaShape.NAT_SHAPE)
         //     yield new Pat.ShapedInt(number, shape.get(), dataCall);
         // }
         // yield withError(new PatternProblem.BadLitPattern(pattern, term), term);
       }
       case Pattern.List(var el) -> {
-        // desugar `Pattern.List` to `Pattern.Ctor` here, but use `CodeShape` !
+        // desugar `Pattern.List` to `Pattern.Con` here, but use `CodeShape` !
         // Note: this is a special case (maybe), If there is another similar requirement,
         //       a PatternDesugarer is recommended.
 
@@ -163,10 +163,10 @@ public class PatternTycker implements Problematic {
         // var ty = term.normalize(exprTycker.state, NormalizeMode.WHNF);
         // if (ty instanceof DataCall dataCall) {
         //   var data = dataCall.ref().core;
-        //   var shape = exprTycker.shapeFactory.find(data);
+        //   var shape = exprTycker.shapeFacony.find(data);
         //   if (shape.isDefined() && shape.get().shape() == AyaShape.LIST_SHAPE)
         //     yield doTyck(new Pattern.FakeShapedList(pos, el, shape.get(), dataCall)
-        //       .constructorForm(), term);
+        //       .construconForm(), term);
         // }
         // yield withError(new PatternProblem.BadLitPattern(pattern, term), term);
       }
@@ -335,7 +335,7 @@ public class PatternTycker implements Problematic {
       Pat pat;
       var freshName = currentParam.name();
       if (new Normalizer(exprTycker.state()).whnf(type) instanceof DataCall dataCall) {
-        // this pattern would be a Ctor, it can be inferred
+        // this pattern would be a Con, it can be inferred
         // TODO: I NEED A SOURCE POS!!
         pat = new Pat.Meta(MutableValue.create(), freshName, dataCall, SourcePos.NONE);
       } else {
@@ -389,10 +389,10 @@ public class PatternTycker implements Problematic {
   }
 
   /**
-   * @param name if null, the selection will be performed on all constructors
+   * @param name if null, the selection will be performed on all construcons
    * @return null means selection failed
    */
-  private @Nullable Selection selectCtor(Term type, @Nullable AnyVar name, @NotNull WithPos<Pattern> pattern) {
+  private @Nullable Selection selectCon(Term type, @Nullable AnyVar name, @NotNull WithPos<Pattern> pattern) {
     if (!(new Normalizer(exprTycker.state()).whnf(type) instanceof DataCall dataCall)) {
       foundError(new PatternProblem.SplittingOnNonData(pattern, type));
       return null;
@@ -406,13 +406,13 @@ public class PatternTycker implements Problematic {
     }
 
     var body = TeleDef.dataBody(dataRef);
-    for (var ctor : body) {
-      if (name != null && ctor.ref() != name) continue;
-      var matchy = isCtorAvailable(dataCall, ctor, exprTycker.state);
+    for (var con : body) {
+      if (name != null && con.ref() != name) continue;
+      var matchy = isConAvailable(dataCall, con, exprTycker.state);
       if (matchy.isOk()) {
-        return new Selection(dataCall, matchy.get(), dataCall.conHead(ctor.ref()));
+        return new Selection(dataCall, matchy.get(), dataCall.conHead(con.ref()));
       }
-      // For absurd pattern, we look at the next constructor
+      // For absurd pattern, we look at the next construcon
       if (name == null) {
         // Is blocked
         if (matchy.getErr()) {
@@ -421,10 +421,10 @@ public class PatternTycker implements Problematic {
         }
         continue;
       }
-      // Since we cannot have two constructors of the same name,
-      // if the name-matching constructor mismatches the type,
+      // Since we cannot have two construcons of the same name,
+      // if the name-matching construcon mismatches the type,
       // we get an error.
-      foundError(new PatternProblem.UnavailableCtor(pattern, dataCall));
+      foundError(new PatternProblem.UnavailableCon(pattern, dataCall));
       return null;
     }
     // Here, name != null, and is not in the list of checked body
@@ -433,19 +433,19 @@ public class PatternTycker implements Problematic {
       // foundError(new TyckOrderError.NotYetTyckedError(pos.sourcePos(), name));
       // return null;
     }
-    if (name != null) foundError(new PatternProblem.UnknownCtor(pattern));
+    if (name != null) foundError(new PatternProblem.UnknownCon(pattern));
     return null;
   }
 
   /**
-   * Check whether {@param ctor} is available under {@param type}
+   * Check whether {@param con} is available under {@param type}
    */
-  private static @NotNull Result<ImmutableSeq<Term>, Boolean> isCtorAvailable(
+  private static @NotNull Result<ImmutableSeq<Term>, Boolean> isConAvailable(
     @NotNull DataCall type,
-    @NotNull CtorDef ctor,
+    @NotNull ConDef con,
     @NotNull TyckState state
   ) {
-    // TODO: ctor pattern
+    // TODO: con pattern
     return Result.ok(type.args());
   }
 

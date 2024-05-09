@@ -34,8 +34,8 @@ public interface AyaPsiElementTypes {
   IElementType CLAUSES = new AyaPsiElementType("CLAUSES");
   IElementType COMMA_SEP = new AyaPsiElementType("COMMA_SEP");
   IElementType DATA_BODY = new AyaPsiElementType("DATA_BODY");
-  IElementType DATA_CTOR = new AyaPsiElementType("DATA_CTOR");
-  IElementType DATA_CTOR_CLAUSE = new AyaPsiElementType("DATA_CTOR_CLAUSE");
+  IElementType DATA_CON = new AyaPsiElementType("DATA_CON");
+  IElementType DATA_CON_CLAUSE = new AyaPsiElementType("DATA_CON_CLAUSE");
   IElementType DATA_DECL = new AyaPsiElementType("DATA_DECL");
   IElementType DECL = new AyaPsiElementType("DECL");
   IElementType DECL_MODIFIERS = new AyaPsiElementType("DECL_MODIFIERS");

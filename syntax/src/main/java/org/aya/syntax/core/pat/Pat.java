@@ -11,7 +11,7 @@ import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.CtorDef;
+import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GenerateKind;
@@ -109,12 +109,12 @@ public sealed interface Pat extends AyaDocile {
     }
   }
 
-  record Ctor(
-    @NotNull DefVar<CtorDef, TeleDecl.DataCtor> ref,
+  record Con(
+    @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
     @NotNull ImmutableSeq<Pat> args
   ) implements Pat {
-    public @NotNull Ctor update(@NotNull ImmutableSeq<Pat> args) {
-      return this.args.sameElements(args, true) ? this : new Ctor(ref, args);
+    public @NotNull Pat.Con update(@NotNull ImmutableSeq<Pat> args) {
+      return this.args.sameElements(args, true) ? this : new Con(ref, args);
     }
 
     @Override public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {

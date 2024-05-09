@@ -335,11 +335,11 @@ public abstract class BasePrettier<Term extends AyaDocile> {
       case DefVar<?, ?> d -> chooseStyle(d.core);
       case TeleDecl.FnDecl _ -> FN;
       case TeleDecl.DataDecl _ -> DATA;
-      case TeleDecl.DataCtor _ -> CON;
+      case TeleDecl.DataCon _ -> CON;
       case TeleDecl.PrimDecl _ -> PRIM;
       case FnDef _ -> FN;
       case DataDef _ -> DATA;
-      case CtorDef _ -> CON;
+      case ConDef _ -> CON;
       case PrimDef _ -> PRIM;
       /*
       case ClassDecl d -> CLAZZ;

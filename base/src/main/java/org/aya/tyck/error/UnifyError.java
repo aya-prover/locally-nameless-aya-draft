@@ -28,7 +28,7 @@ public sealed interface UnifyError extends TyckError {
 
 /*
   record ConReturn(
-    @NotNull TeleDecl.DataCtor ctor,
+    @NotNull TeleDecl.DataCon ctor,
     @NotNull UnifyInfo.Comparison comparison,
     @NotNull UnifyInfo info
   ) implements UnifyError {

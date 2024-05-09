@@ -6,6 +6,8 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
+import org.aya.prettier.BasePrettier;
+import org.aya.prettier.ConcretePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.core.term.Term;
@@ -27,14 +29,12 @@ import org.jetbrains.annotations.Nullable;
  * @author kiva, ice1000, HoshinoTented
  */
 public sealed interface Pattern extends AyaDocile {
-  interface Salt {
-  }
+  interface Salt { }
 
   @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f);
 
-  @Override
-  default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-    throw new UnsupportedOperationException("TODO");
+  @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+    return new ConcretePrettier(options).pattern(this, true, BasePrettier.Outer.Free);
   }
 
   record Tuple(
@@ -50,27 +50,21 @@ public sealed interface Pattern extends AyaDocile {
   }
 
   record Number(int number) implements Pattern {
-    @Override public @NotNull Number descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
-      return this;
-    }
+    @Override public @NotNull Number descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   enum Absurd implements Pattern {
     INSTANCE;
 
     @Override
-    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
-      return this;
-    }
+    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   enum CalmFace implements Pattern {
     INSTANCE;
 
     @Override
-    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
-      return this;
-    }
+    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   /**
@@ -83,26 +77,24 @@ public sealed interface Pattern extends AyaDocile {
     public Bind(@NotNull LocalVar bind) {
       this(bind, MutableValue.create());
     }
-    @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
-      return this;
-    }
+    @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   // TODO: QualifiedRef here
 
-  record Ctor(
+  record Con(
     @NotNull WithPos<@NotNull DefVar<?, ?>> resolved,
     @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params
   ) implements Pattern {
-    public Ctor(@NotNull SourcePos pos, @NotNull DefVar<?, ?> maybe) {
+    public Con(@NotNull SourcePos pos, @NotNull DefVar<?, ?> maybe) {
       this(new WithPos<>(pos, maybe), ImmutableSeq.empty());
     }
 
-    public @NotNull Ctor update(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params) {
-      return params.sameElements(params(), true) ? this : new Ctor(resolved, params);
+    public @NotNull Con update(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params) {
+      return params.sameElements(params(), true) ? this : new Con(resolved, params);
     }
 
-    @Override public @NotNull Ctor descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
+    @Override public @NotNull Con descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(params.map(a -> a.descent(x -> x.descent(f))));
     }
   }
@@ -152,9 +144,7 @@ public sealed interface Pattern extends AyaDocile {
       this(qualifiedID, null, MutableValue.create());
     }
 
-    @Override public @NotNull QualifiedRef descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
-      return this;
-    }
+    @Override public @NotNull QualifiedRef descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   /** Sugared List Pattern */
@@ -198,8 +188,6 @@ public sealed interface Pattern extends AyaDocile {
       return update(patterns.map(p -> p.descent(x -> x.descent(g))), expr.map(x -> x.descent(f)));
     }
 
-    @Override public @NotNull SourcePos sourcePos() {
-      return sourcePos;
-    }
+    @Override public @NotNull SourcePos sourcePos() { return sourcePos; }
   }
 }
