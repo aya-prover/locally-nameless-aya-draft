@@ -50,7 +50,7 @@ public class CorePrettier extends BasePrettier<Term> {
       case LocalTerm(var idx) -> Doc.plain(STR."^\{idx}");
       case MetaCall term -> {
         var name = term.ref();
-        var inner = varDoc(name);
+        var inner = Doc.cat(Doc.plain("?"), varDoc(name));
         Function<Outer, Doc> factory = o -> visitCoreApp(null, inner, term.args().view(), o, optionImplicit());
         if (options.map.get(AyaPrettierOptions.Key.InlineMetas)) yield factory.apply(outer);
         yield Doc.wrap("{?", "?}", factory.apply(Outer.Free));

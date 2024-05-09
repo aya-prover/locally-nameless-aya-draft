@@ -85,7 +85,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       }
       default -> {
         var syn = synthesize(expr);
-        unifyTyReported(syn.type(), type, expr);
+        unifyTyReported(type, syn.type(), expr);
         yield syn;
       }
     };
@@ -143,10 +143,6 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   }
 
   public @NotNull Result synthesize(@NotNull WithPos<Expr> expr) {
-    return doSynthesize(expr);
-  }
-
-  private @NotNull Result doSynthesize(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
       case Expr.Sugar s ->
         throw new IllegalArgumentException(STR."\{s.getClass()} is desugared, should be unreachable");
@@ -210,7 +206,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         var result = MutableList.<Term>create();
         while (argIx < args.size() && paramIx < params.size()) {
           var arg = args.get(argIx);
-          var param = params.get(paramIx);
+          var param = params.get(paramIx).map(t -> t.instantiateTele(result.view()));
           // Implicit insertion
           if (arg.explicit() != param.explicit()) {
             if (!arg.explicit()) {
