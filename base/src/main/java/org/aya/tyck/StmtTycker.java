@@ -135,19 +135,21 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
   private void checkKitsune(@NotNull TeleDecl.DataCon dataCon, @NotNull ExprTycker exprTycker) {
     var ref = dataCon.ref;
     if (ref.core != null) return;
-    var ctorDecl = ref.concrete;
+    var conDecl = ref.concrete;
     var dataRef = dataCon.dataRef;
     var dataDecl = dataRef.concrete;
-    assert dataDecl != null && ctorDecl != null : "no concrete";
+    assert dataDecl != null && conDecl != null : "no concrete";
     var dataSig = dataDecl.signature;
     assert dataSig != null : "the header of data should be tycked";
+    // TODO: update this if there are patterns
+    var ownerTele = dataSig.param().map(x -> x.descent((_, p) -> p.implicitize()));
     var dataTele = dataDecl.telescope.map(Expr.Param::ref);
     loadTele(dataTele, dataSig, exprTycker);
     // now dataTele are in localCtx
     // The result that a ctor should be, unless... TODO: it is a Path result
     var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
     // TODO: check patterns if there are
-    var ctorTy = ctorDecl.result;
+    var ctorTy = conDecl.result;
     if (ctorTy != null) {
       // TODO: handle Path result
       // TODO: unify ctorTy and freeDataCall
@@ -155,20 +157,24 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     }
 
     var teleTycker = new TeleTycker.Con(exprTycker, dataSig.result());
-    var wellTele = teleTycker.checkTele(ctorDecl.telescope);
+    var wellTele = teleTycker.checkTele(conDecl.telescope);
     // the result will NEVER refer to the telescope of ctor, unless... TODO: it is a Path result
-    var sig = new Signature<>(wellTele, freeDataCall)
+    var halfSig = new Signature<>(wellTele, freeDataCall)
       .bindTele(dataTele.view());     // TODO: bind pattern bindings if indexed data
 
-    if (!(sig.result() instanceof DataCall dataResult)) {
+    if (!(halfSig.result() instanceof DataCall dataResult)) {
       Panic.unreachable();
       return;
     }
 
-    ctorDecl.signature = new Signature<>(sig.param(), dataResult);
+    // The signature of con should be full (the same as [konCore.telescope()])
+    conDecl.signature = new Signature<>(ownerTele.concat(halfSig.param()), dataResult);
 
     // TODO: handle ownerTele and coerce
-    var konCore = new ConDef(dataRef, ref, ImmutableSeq.empty(), wellTele.map(WithPos::data), dataResult, false);
+    var konCore = new ConDef(dataRef, ref,
+      ownerTele.map(WithPos::data),
+      halfSig.param().map(WithPos::data),
+      dataResult, false);
     ref.core = konCore;
   }
 }

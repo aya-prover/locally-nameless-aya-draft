@@ -9,10 +9,12 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.Result;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
@@ -45,13 +47,23 @@ public interface AppTycker {
       ));
     } else if (core instanceof ConDef || concrete instanceof TeleDecl.DataCon) {
       var conVar = (DefVar<ConDef, TeleDecl.DataCon>) defVar;
+      var conCore = conVar.core;
+      assert conCore != null;
+      var dataVar = conCore.dataRef;
 
-      var conTele = TeleDef.defType(conVar);
-      // var dataTele = TeleDef.defTele(conVar.)
-      // TODO: original code looks terrible
-      throw new UnsupportedOperationException("TODO");
+      var fullTele = TeleDef.defTele(conVar);   // ownerTele + selfTele
+      var ownerTele = conCore.ownerTele;
+
+      return makeArgs.applyChecked(fullTele, args -> {
+        var ownerArgs = args.take(ownerTele.size());
+        var conArgs = args.drop(ownerTele.size());
+
+        var wellTyped = new ConCall(dataVar, conVar, ownerArgs, 0, conArgs);
+        var type = TeleDef.defResult(conVar).instantiateTele(args.view());
+        return new Result.Default(wellTyped, type);
+      });
     }
 
-    throw new UnsupportedOperationException("TODO");
+    return Panic.unreachable();
   }
 }
