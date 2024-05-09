@@ -4,6 +4,7 @@ package org.aya.unify;
 
 import kala.collection.mutable.MutableList;
 import org.aya.generic.NameGenerator;
+import org.aya.generic.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
@@ -35,8 +36,11 @@ public record Synthesizer(
     }
 
     if (!(trySynth(ty) instanceof SortTerm tyty)) return false;
-    // TODO: check type
-    throw new UnsupportedOperationException("TODO");
+    return switch (tyty.kind()) {
+      case Type -> expected.kind() == SortKind.Type && tyty.lift() <= expected.lift();
+      case Set -> expected.kind() == SortKind.Set && tyty.lift() <= expected.lift();
+      case ISet -> Panic.unreachable();
+    };
   }
 
   public @Nullable Term trySynth(@NotNull Term term) {
