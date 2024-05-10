@@ -10,6 +10,11 @@ import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A Problematic is something that may have {@link Problem}
+ *
+ * @see #reporter()
+ */
 public interface Problematic {
   @NotNull Reporter reporter();
 

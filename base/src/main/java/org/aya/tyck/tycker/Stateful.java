@@ -4,18 +4,19 @@ package org.aya.tyck.tycker;
 
 import org.aya.normalize.Finalizer;
 import org.aya.normalize.Normalizer;
-import org.aya.tyck.Result;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.MetaVar;
+import org.aya.tyck.Result;
 import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Indicating something is {@link TyckState}ful,
- * therefore we can perform weak-head normalizing.
+ * therefore we can perform weak-head normalizing and <b>Ice Spell 「 Perfect Freeze 」</b>
  *
- * @author ice1000
+ * @see #state()
  * @see #whnf(Term)
+ * @see #freezeHoles(Term)
  * @see Contextful
  */
 public interface Stateful {

@@ -21,6 +21,9 @@ import java.util.function.Supplier;
 
 /**
  * Indicating something is {@link LocalCtx}ful
+ *
+ * @see #subscoped(Supplier)
+ * @see #localCtx()
  */
 public interface Contextful {
   @NotNull LocalCtx localCtx();
