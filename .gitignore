@@ -9,6 +9,7 @@ out/
 /.idea/dictionaries/*
 /.idea/.name
 /.idea/inspectionProfiles/Project_Default.xml
+/.idea/libraries/
 /.gradle/
 /.fleet/
 /.vs/
