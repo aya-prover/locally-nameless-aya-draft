@@ -65,7 +65,7 @@ public sealed interface Expr extends AyaDocile {
     }
 
     public Param(@NotNull SourcePos sourcePos, @NotNull LocalVar ref, @NotNull WithPos<Expr> typeExpr, boolean explicit) {
-      this(sourcePos, ref, new WithPos<>(sourcePos, new Hole(false, null)), explicit, MutableValue.create());
+      this(sourcePos, ref, typeExpr, explicit, MutableValue.create());
     }
 
     public @NotNull Param update(@NotNull WithPos<Expr> type) {
