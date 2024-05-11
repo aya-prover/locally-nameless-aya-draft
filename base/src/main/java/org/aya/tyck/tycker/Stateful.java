@@ -6,7 +6,7 @@ import org.aya.normalize.Finalizer;
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.MetaVar;
-import org.aya.tyck.Result;
+import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,10 +33,10 @@ public interface Stateful {
   default @NotNull Term freezeHoles(@NotNull Term term) {
     return new Finalizer.Freeze(this).zonk(term);
   }
-  default @NotNull Result freezeHoles(@NotNull Result r) {
+  default @NotNull Jdg freezeHoles(@NotNull Jdg r) {
     return switch (r) {
-      case Result.Default(var term, var type) -> new Result.Default(freezeHoles(term), freezeHoles(type));
-      case Result.Sort sort -> sort;
+      case Jdg.Default(var term, var type) -> new Jdg.Default(freezeHoles(term), freezeHoles(type));
+      case Jdg.Sort sort -> sort;
     };
   }
 }

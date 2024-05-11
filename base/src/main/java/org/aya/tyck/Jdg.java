@@ -8,11 +8,11 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface Result {
+public sealed interface Jdg {
   @NotNull Term wellTyped();
   @NotNull Term type();
 
-  default @NotNull Result.Default bind(@NotNull LocalVar var) {
+  default @NotNull Default bind(@NotNull LocalVar var) {
     return new Default(wellTyped().bind(var), type().bind(var));
   }
 
@@ -21,13 +21,13 @@ public sealed interface Result {
    *
    * @author ice1000
    */
-  record Default(@Override @NotNull Term wellTyped, @Override @NotNull Term type) implements Result {
+  record Default(@Override @NotNull Term wellTyped, @Override @NotNull Term type) implements Jdg {
     public static @NotNull Default error(@NotNull AyaDocile description) {
       throw new UnsupportedOperationException("TODO");
     }
   }
 
-  record Sort(@Override @NotNull SortTerm wellTyped) implements Result {
+  record Sort(@Override @NotNull SortTerm wellTyped) implements Jdg {
     @Override public @NotNull SortTerm type() { return wellTyped.succ(); }
   }
 }

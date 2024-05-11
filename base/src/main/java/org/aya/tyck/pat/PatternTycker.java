@@ -3,10 +3,8 @@
 package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
-import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
-import kala.collection.mutable.MutableMap;
 import kala.control.Result;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
@@ -25,7 +23,9 @@ import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
+import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.ctx.LocalSubstitution;
 import org.aya.tyck.error.PatternProblem;
 import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
@@ -60,7 +60,7 @@ public class PatternTycker implements Problematic, Stateful {
   /**
    * Substitution for `as` pattern
    */
-  private final @NotNull MutableMap<LocalVar, Term> asSubst;
+  private final @NotNull LocalSubstitution asSubst;
 
   private @UnknownNullability Param currentParam = null;
   private boolean hasError = false;
@@ -68,7 +68,7 @@ public class PatternTycker implements Problematic, Stateful {
   public PatternTycker(
     @NotNull ExprTycker exprTycker,
     @NotNull SeqView<Param> telescope,
-    @NotNull MutableMap<LocalVar, Term> asSubst
+    @NotNull LocalSubstitution asSubst
   ) {
     this.exprTycker = exprTycker;
     this.telescope = telescope;
@@ -79,7 +79,7 @@ public class PatternTycker implements Problematic, Stateful {
   public record TyckResult(
     @NotNull ImmutableSeq<Pat> wellTyped,
     @NotNull ImmutableSeq<Term> paramSubst,
-    @NotNull ImmutableMap<LocalVar, Term> asSubst,
+    @NotNull LocalSubstitution asSubst,
     @Nullable WithPos<Expr> newBody,
     boolean hasError
   ) {
@@ -166,8 +166,8 @@ public class PatternTycker implements Problematic, Stateful {
         var innerPat = doTyck(inner, type);
 
         typeRef.set(type);
-        addAsSubst(as, innerPat);
-        exprTycker.localCtx().put(as, type);
+        addAsSubst(as, innerPat, type);
+        // exprTycker.localCtx().put(as, type);
 
         yield innerPat;
       }
@@ -356,8 +356,8 @@ public class PatternTycker implements Problematic, Stateful {
     paramSubst.append(PatToTerm.visit(pattern));
   }
 
-  private void addAsSubst(@NotNull LocalVar as, @NotNull Pat pattern) {
-    asSubst.put(as, PatToTerm.visit(pattern));
+  private void addAsSubst(@NotNull LocalVar as, @NotNull Pat pattern, @NotNull Term type) {
+    asSubst.put(as, new Jdg.Default(PatToTerm.visit(pattern), type));
   }
 
   private @NotNull TyckResult done(@NotNull MutableList<Pat> wellTyped, @Nullable WithPos<Expr> newBody) {
@@ -366,7 +366,7 @@ public class PatternTycker implements Problematic, Stateful {
     return new TyckResult(
       wellTyped.toImmutableSeq(),
       paramSubst,
-      ImmutableMap.from(this.asSubst),
+      asSubst,
       newBody,
       hasError
     );

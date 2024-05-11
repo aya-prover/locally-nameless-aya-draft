@@ -3,9 +3,7 @@
 package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
-import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableMap;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
@@ -18,6 +16,8 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
+import org.aya.tyck.Jdg;
+import org.aya.tyck.ctx.LocalSubstitution;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
@@ -29,7 +29,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull LocalCtx localCtx,
     @NotNull Term type,
     @NotNull ImmutableSeq<Term> paramSubst,
-    @NotNull ImmutableMap<LocalVar, Term> asSubst,
+    @NotNull LocalSubstitution asSubst,
     @NotNull Pat.Preclause<Expr> clause,
     boolean hasError
   ) { }
@@ -39,7 +39,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   }
 
   private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope) {
-    return new PatternTycker(exprTycker, telescope, MutableMap.create());
+    return new PatternTycker(exprTycker, telescope, new LocalSubstitution());
   }
 
   private @NotNull LhsResult checkLhs(
@@ -105,13 +105,19 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         } else {
           // the localCtx will be restored after exiting [subscoped]
           exprTycker.setLocalCtx(result.localCtx);
-          // subst param and as
-          var allSubst = MutableMap.from(teleBinds.zipView(result.paramSubst));
-          // there is no intersection
-          allSubst.putAll(result.asSubst);
 
-          wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped()
-            .subst(allSubst);
+          for (var i = 0; i < teleBinds.size(); ++i) {
+            var bind = teleBinds.get(i);
+            var type = signature.param().get(i).data().type();
+            var subst = result.paramSubst.get(i);
+
+            exprTycker.localDefinition().put(bind, subst, type);
+          }
+
+          exprTycker.setLocalDefinition(new LocalSubstitution(exprTycker.localDefinition(), result.asSubst.subst()));
+          // now exprTycker has all substitutions that PatternTycker introduced.
+
+          wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
 
           // bind all pat bindings
           wellBody = result.clause.pats()
@@ -161,6 +167,12 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   private static @NotNull Term inlineTerm(@NotNull Term term) {
     return TermInline.apply(term);
   }
+  private static @NotNull Jdg inlineTerm(@NotNull Jdg r) {
+    return switch (r) {
+      case Jdg.Default(var term, var type) -> new Jdg.Default(inlineTerm(term), inlineTerm(type));
+      case Jdg.Sort sort -> sort;
+    };
+  }
 
   /**
    * Inline terms in {@param result}, please do this after inline all patterns
@@ -170,8 +182,10 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     var wellTyped = result.wellTyped().map(x -> x.inline(ctx));
     // so that {MetaPatTerm}s can be inlined safely
     var paramSubst = result.paramSubst().map(ClauseTycker::inlineTerm);
-    var asSubst = ImmutableMap.from(result.asSubst().view().mapValues((_, t) -> inlineTerm(t)));
 
-    return new PatternTycker.TyckResult(wellTyped, paramSubst, asSubst, result.newBody(), result.hasError());
+    // map in place 😱😱😱😱
+    result.asSubst().subst().replaceAll((_, t) -> inlineTerm(t));
+
+    return new PatternTycker.TyckResult(wellTyped, paramSubst, result.asSubst(), result.newBody(), result.hasError());
   }
 }

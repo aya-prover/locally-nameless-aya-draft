@@ -62,7 +62,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
   /**
    * @param type may not be in whnf, because we want unnormalized type to be used for unification.
    */
-  public @NotNull Result inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
+  public @NotNull Jdg inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
     return switch (expr.data()) {
       case Expr.Lambda(var ref, var body) -> switch (type) {
         case PiTerm(Term dom, Term cod) -> {
@@ -71,7 +71,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
             localCtx().put(ref, dom);
             return inherit(body, cod.instantiate(new FreeTerm(ref))).bind(ref);
           });
-          yield new Result.Default(new LamTerm(core.wellTyped()), type);
+          yield new Jdg.Default(new LamTerm(core.wellTyped()), type);
         }
         case EqTerm eq -> {
           var core = subscoped(() -> {
@@ -80,14 +80,14 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
             // TODO: check boundaries
             return coreBody.wellTyped();
           });
-          yield new Result.Default(new LamTerm(core), eq);
+          yield new Jdg.Default(new LamTerm(core), eq);
         }
         default -> fail(expr.data(), type, BadTypeError.pi(state, expr, type));
       };
       case Expr.Hole hole -> {
         var freshHole = freshMeta(Constants.randomName(hole), expr.sourcePos(), new MetaVar.OfType(type));
         if (hole.explicit()) reporter.report(new Goal(state, freshHole, hole.accessibleLocal().get()));
-        yield new Result.Default(freshHole, type);
+        yield new Jdg.Default(freshHole, type);
       }
       case Expr.Tuple(var elems) when type instanceof SigmaTerm sigmaTerm -> {
         var result = sigmaTerm.check(elems, (elem, ty) -> inherit(elem, ty).wellTyped());
@@ -105,7 +105,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
           wellTyped = new TupTerm(result.get());
         }
 
-        yield new Result.Default(wellTyped, sigmaTerm);
+        yield new Jdg.Default(wellTyped, sigmaTerm);
       }
       case Expr.Let let -> checkLet(let, e -> inherit(e, type));
       default -> {
@@ -120,8 +120,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
     return doTy(expr);
   }
 
-  public @NotNull Result.Sort sort(@NotNull WithPos<Expr> expr) {
-    return new Result.Sort(sort(expr, ty(expr)));
+  public @NotNull Jdg.Sort sort(@NotNull WithPos<Expr> expr) {
+    return new Jdg.Sort(sort(expr, ty(expr)));
   }
 
   private @NotNull SortTerm sort(@NotNull WithPos<Expr> errorMsg, @NotNull Term term) {
@@ -173,7 +173,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
     };
   }
 
-  public @NotNull Result synthesize(@NotNull WithPos<Expr> expr) {
+  public @NotNull Jdg synthesize(@NotNull WithPos<Expr> expr) {
     var result = doSynthesize(expr);
     if (expr.data() instanceof Expr.WithTerm with) {
       addWithTerm(with, expr.sourcePos(), result.type());
@@ -181,7 +181,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
     return result;
   }
 
-  public @NotNull Result doSynthesize(@NotNull WithPos<Expr> expr) {
+  public @NotNull Jdg doSynthesize(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
       case Expr.Sugar s ->
         throw new IllegalArgumentException(STR."\{s.getClass()} is desugared, should be unreachable");
@@ -203,22 +203,22 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
       case Expr.Sigma _ -> {
         var ty = ty(expr);
         // TODO: type level
-        yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
+        yield new Jdg.Default(ty, new SortTerm(SortKind.Type, 0));
       }
       case Expr.Pi _ -> {
         var ty = ty(expr);
         // TODO: type level
-        yield new Result.Default(ty, new SortTerm(SortKind.Type, 0));
+        yield new Jdg.Default(ty, new SortTerm(SortKind.Type, 0));
       }
       case Expr.Sort sort -> sort(expr);
       case Expr.Tuple(var items) -> {
         var results = items.map(this::synthesize);
-        var wellTypeds = results.map(Result::wellTyped);
-        var tys = results.map(Result::type);
+        var wellTypeds = results.map(Jdg::wellTyped);
+        var tys = results.map(Jdg::type);
         var wellTyped = new TupTerm(wellTypeds);
         var ty = new SigmaTerm(tys);
 
-        yield new Result.Default(wellTyped, ty);
+        yield new Jdg.Default(wellTyped, ty);
       }
       case Expr.Let let -> checkLet(let, this::synthesize);
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
@@ -228,7 +228,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
     };
   }
 
-  private @NotNull Result checkApplication(
+  private @NotNull Jdg checkApplication(
     @NotNull AnyVar f, @NotNull SourcePos sourcePos,
     @NotNull ImmutableSeq<Expr.NamedArg> args
   ) {
@@ -240,12 +240,12 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
     }
   }
 
-  private @NotNull Result doCheckApplication(
+  private @NotNull Jdg doCheckApplication(
     @NotNull AnyVar f, @NotNull ImmutableSeq<Expr.NamedArg> args
   ) throws NotPi {
     return switch (f) {
       case LocalVar lVar -> generateApplication(args,
-        new Result.Default(new FreeTerm(lVar), localCtx().get(lVar)));
+        new Jdg.Default(new FreeTerm(lVar), localCtx().get(lVar)));
       case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, (params, k) -> {
         int argIx = 0, paramIx = 0;
         var result = MutableList.<Term>create();
@@ -290,17 +290,17 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
     };
   }
 
-  private Result generateApplication(@NotNull ImmutableSeq<Expr.NamedArg> args, Result start) throws NotPi {
+  private Jdg generateApplication(@NotNull ImmutableSeq<Expr.NamedArg> args, Jdg start) throws NotPi {
     return args.foldLeftChecked(start, (acc, arg) -> {
       if (arg.name() != null || !arg.explicit()) fail(new LicitError.BadNamedArg(arg));
       switch (acc.type()) {
         case PiTerm(var param, var body) -> {
           var wellTy = inherit(arg.arg(), param).wellTyped();
-          return new Result.Default(AppTerm.make(acc.wellTyped(), wellTy), body.instantiate(wellTy));
+          return new Jdg.Default(AppTerm.make(acc.wellTyped(), wellTy), body.instantiate(wellTy));
         }
         case EqTerm(Term A, Term a, Term b) -> {
           var wellTy = inherit(arg.arg(), DimTyTerm.INSTANCE).wellTyped();
-          return new Result.Default(new PAppTerm(acc.wellTyped(), wellTy, a, b).make(), A.instantiate(wellTy));
+          return new Jdg.Default(new PAppTerm(acc.wellTyped(), wellTy, a, b).make(), A.instantiate(wellTy));
         }
         default -> throw new NotPi(acc.type());
       }
@@ -312,7 +312,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
    *
    * @param checker check the type of the body of {@param let}
    */
-  private @NotNull Result checkLet(@NotNull Expr.Let let, @NotNull Function<WithPos<Expr>, Result> checker) {
+  private @NotNull Jdg checkLet(@NotNull Expr.Let let, @NotNull Function<WithPos<Expr>, Jdg> checker) {
     // pushing telescopes into lambda params, for example:
     // `let f (x : A) : B x` is desugared to `let f : Pi (x : A) -> B x`
     var letBind = let.bind();
