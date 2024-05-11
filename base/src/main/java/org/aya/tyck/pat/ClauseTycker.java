@@ -6,7 +6,6 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
-import kala.tuple.Tuple;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;

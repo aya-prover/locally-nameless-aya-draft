@@ -19,27 +19,16 @@ public record LocalSubstitution(
   @Override @Nullable LocalSubstitution parent,
   @NotNull MutableLinkedHashMap<LocalVar, Result> subst
 ) implements Scoped<LocalVar, Result, LocalSubstitution> {
-  public LocalSubstitution() {
-    this(null, MutableLinkedHashMap.of());
-  }
+  public LocalSubstitution() { this(null, MutableLinkedHashMap.of()); }
+  @Override public @NotNull LocalSubstitution self() { return this; }
 
-  @Override
-  public @NotNull LocalSubstitution self() {
-    return this;
-  }
-
-  @Override
-  public @NotNull LocalSubstitution derive() {
+  @Override public @NotNull LocalSubstitution derive() {
     return new LocalSubstitution(this, MutableLinkedHashMap.of());
   }
 
-  @Override
-  public @NotNull Option<Result> getLocal(@NotNull LocalVar key) {
+  @Override public @NotNull Option<Result> getLocal(@NotNull LocalVar key) {
     return subst.getOption(key);
   }
 
-  @Override
-  public void putLocal(@NotNull LocalVar key, @NotNull Result value) {
-    subst.put(key, value);
-  }
+  @Override public void putLocal(@NotNull LocalVar key, @NotNull Result value) { subst.put(key, value); }
 }

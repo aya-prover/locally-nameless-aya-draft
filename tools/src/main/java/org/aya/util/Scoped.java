@@ -18,21 +18,18 @@ import java.util.function.BiFunction;
  * @param <This> the <b>final</b> type that implemented this interface
  */
 public interface Scoped<K, V, This extends Scoped<K, V, This>> {
-  @Contract(pure = true)
-  @Nullable This parent();
+  @Contract(pure = true) @Nullable This parent();
 
   /**
    * @return this object
    * @implSpec {@code self() == this}
    */
-  @Contract("-> this")
-  @NotNull This self();
+  @Contract("-> this") @NotNull This self();
 
   /**
-   * @return new {@link This} object, which {@link #parent()} is {@link this} object
+   * @return new {@link This} object, which {@link #parent()} is <code>this</code> object
    */
-  @Contract("-> new")
-  @NotNull This derive();
+  @Contract("-> new") @NotNull This derive();
 
   /**
    * Fold from bottom, you may treat a {@link Scoped} as a telescope, then

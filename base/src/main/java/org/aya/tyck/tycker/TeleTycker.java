@@ -28,6 +28,7 @@ public sealed interface TeleTycker extends Contextful {
    */
   @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr);
   void solveMetas();
+  @NotNull Term freeze(@NotNull Term term);
 
   /**
    * @return a locally nameless signature computed from what's in the localCtx.
@@ -38,10 +39,12 @@ public sealed interface TeleTycker extends Contextful {
     @NotNull WithPos<Expr> result
   ) {
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
-    var finalParam = checkTele(cTele);
-    var finalResult = checkType(result).bindTele(locals.view());
+    var checkedParam = checkTele(cTele);
+    var checkedResult = checkType(result).bindTele(locals.view());
     solveMetas();
-    // TODO: zonk these data
+    var finalParam = checkedParam.map(p -> p.map(q ->
+      q.descent(this::freeze)));
+    var finalResult = checkedResult.descent(this::freeze);
     return new Signature<>(finalParam, finalResult);
   }
 
@@ -108,6 +111,7 @@ public sealed interface TeleTycker extends Contextful {
       return tycker.ty(typeExpr);
     }
     @Override public void solveMetas() { tycker.solveMetas(); }
+    @Override public @NotNull Term freeze(@NotNull Term term) { return tycker.freezeHoles(term); }
     @Override public @NotNull LocalCtx localCtx() { return tycker.localCtx(); }
     @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
       return tycker.setLocalCtx(ctx);
@@ -121,10 +125,10 @@ public sealed interface TeleTycker extends Contextful {
       if (!new Synthesizer(tycker).inheritPiDom(result, dataResult)) {
         tycker.fail(new UnifyError.PiDom(typeExpr.data(), typeExpr.sourcePos(), result, dataResult));
       }
-
       return result;
     }
     @Override public void solveMetas() { tycker.solveMetas(); }
+    @Override public @NotNull Term freeze(@NotNull Term term) { return tycker.freezeHoles(term); }
     @Override public @NotNull LocalCtx localCtx() { return tycker.localCtx(); }
     @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
       return tycker.setLocalCtx(ctx);

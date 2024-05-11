@@ -42,15 +42,14 @@ public record LocalCtx(
     return binds.getOption(name);
   }
 
-  @Override
-  public void putLocal(@NotNull LocalVar key, @NotNull Term value) {
+  @Override public void putLocal(@NotNull LocalVar key, @NotNull Term value) {
     binds.put(key, value);
     vars.append(key);
   }
 
   @Contract(value = "_ -> new", pure = true)
   public @NotNull LocalCtx map(UnaryOperator<Term> mapper) {
-    var newBinds = this.binds.view()
+    var newBinds = binds.view()
       .mapValues((_, t) -> mapper.apply(t));
 
     return new LocalCtx(MutableLinkedHashMap.from(newBinds), vars, parent == null ? null : parent.map(mapper));
