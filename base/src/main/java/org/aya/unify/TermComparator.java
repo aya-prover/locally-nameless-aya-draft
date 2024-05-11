@@ -292,7 +292,6 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   ) {
     if (!compare(lTy, rTy, null)) return onFailed.get();
     return subscoped(() -> {
-      // TODO: supply type
       var name = putParam(new Param(nameGen.next(whnf(lTy)), lTy, true));
       return continuation.apply(name);
     });
