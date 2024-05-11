@@ -31,6 +31,7 @@ import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class ExprTycker extends AbstractTycker implements Unifiable, LocalDeful {
@@ -106,6 +107,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
 
         yield new Result.Default(wellTyped, sigmaTerm);
       }
+      case Expr.Let let -> checkLet(let, e -> inherit(e, type));
       default -> {
         var syn = synthesize(expr);
         unifyTyReported(type, syn.type(), expr);
@@ -162,6 +164,11 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
           return boundResult;
         }));
       });
+      case Expr.Let let -> checkLet(let, e -> {
+        ty(e);
+        // TODO: we need a Result!!
+        throw new UnsupportedOperationException("TODO");
+      }).wellTyped();
       default -> synthesize(expr).wellTyped();
     };
   }
@@ -213,7 +220,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
 
         yield new Result.Default(wellTyped, ty);
       }
-      case Expr.Let let -> throw new UnsupportedOperationException("TODO");
+      case Expr.Let let -> checkLet(let, this::synthesize);
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
       case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
       case Expr.Error error -> throw new Panic("Expr.Error");
@@ -298,6 +305,42 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
         default -> throw new NotPi(acc.type());
       }
     });
+  }
+
+  /**
+   * tyck a let expr with the given checker
+   *
+   * @param checker check the type of the body of {@param let}
+   */
+  private @NotNull Result checkLet(@NotNull Expr.Let let, @NotNull Function<WithPos<Expr>, Result> checker) {
+    // pushing telescopes into lambda params, for example:
+    // `let f (x : A) : B x` is desugared to `let f : Pi (x : A) -> B x`
+    var letBind = let.bind();
+    var typeExpr = Expr.buildPi(letBind.sourcePos(),
+      letBind.telescope().view(), letBind.result());
+    // as well as the body of the binding, for example:
+    // `let f x := g` is desugared to `let f := \x => g`
+    var definedAsExpr = Expr.buildLam(letBind.sourcePos(),
+      letBind.telescope().view(), letBind.definedAs());
+
+    // Now everything is in form `let f : G := g in h`
+
+    var type = ty(typeExpr); // .freezeHoles(state);
+    var definedAsResult = inherit(definedAsExpr, type);
+
+    var freeBody = subscoped(() -> {
+      localDefinitions.put(let.bind().bindName(), definedAsResult);
+      return checker.apply(let.body());
+    });
+
+    var wellTyped = new LetTerm(
+      new LetTerm.Bind(
+        new Param(let.bind().bindName().name(), definedAsResult.type(), true),
+        definedAsResult.wellTyped()
+      ), freeBody.wellTyped().bind(let.bind().bindName())
+    );
+
+    return new Result.Default(wellTyped, freeBody.type());
   }
 
   /// region Overrides

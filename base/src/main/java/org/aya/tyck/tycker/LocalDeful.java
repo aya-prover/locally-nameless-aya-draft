@@ -9,6 +9,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Supplier;
 
+/**
+ * {@link LocalSubstitution}ful environment
+ *
+ * @see LocalSubstitution
+ * @see Contextful
+ */
 public interface LocalDeful {
   @NotNull LocalSubstitution localDefinition();
 
