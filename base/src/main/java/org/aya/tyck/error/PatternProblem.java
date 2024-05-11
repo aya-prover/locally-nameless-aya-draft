@@ -89,7 +89,7 @@ public sealed interface PatternProblem extends Problem {
         Doc.english("The tuple pattern"),
         Doc.par(1, pattern.data().toDoc(options)),
         Doc.english("splits only on sigma types, while the actual type"),
-        Doc.par(1, type/*.freezeHoles(null)*/.toDoc(options)),
+        Doc.par(1, type.toDoc(options)),
         Doc.english("does not look like one"));
     }
   }
