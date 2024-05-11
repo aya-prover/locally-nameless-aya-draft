@@ -30,13 +30,8 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
     this.parentAdd = parentAdd;
   }
 
-  public @NotNull Context context() {
-    return context;
-  }
-
-  public @NotNull Pattern apply(@NotNull SourcePos pos, @NotNull Pattern pat) {
-    return post(pos, pat.descent(this));
-  }
+  public @NotNull Context context() { return context; }
+  public @NotNull Pattern apply(@NotNull SourcePos pos, @NotNull Pattern pat) { return post(pos, pat.descent(this)); }
 
   public @NotNull Pattern post(@NotNull SourcePos pos, @NotNull Pattern pat) {
     return switch (pat) {
@@ -75,9 +70,7 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
   }
 
   private void addReference(@NotNull DefVar<?, ?> defVar) {
-    if (defVar.concrete instanceof TyckUnit unit) {
-      parentAdd.accept(unit);
-    }
+    if (defVar.concrete instanceof TyckUnit unit) parentAdd.accept(unit);
   }
 
   private static @Nullable DefVar<?, ?> isCon(@Nullable AnyVar myMaybe) {

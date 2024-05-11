@@ -237,15 +237,13 @@ public record ExprResolver(
   }
 
   private @NotNull WithPos<Pattern> resolvePattern(@NotNull WithPos<Pattern> pattern, MutableValue<Context> ctx) {
-    var resolver = new PatternResolver(this.ctx, this::addReference);
+    var resolver = new PatternResolver(ctx.get(), this::addReference);
     var result = resolver.apply(pattern);
     ctx.set(resolver.context());
-    return pattern.map(x -> result);
+    return pattern.map(_ -> result);
   }
 
-  private static Context bindAs(@NotNull LocalVar as, @NotNull Context ctx) {
-    return ctx.bind(as);
-  }
+  private static Context bindAs(@NotNull LocalVar as, @NotNull Context ctx) { return ctx.bind(as); }
 
   public @NotNull Expr.Param bind(@NotNull Expr.Param param, @NotNull MutableValue<Context> ctx) {
     var p = param.descent(enter(ctx.get()));

@@ -27,13 +27,9 @@ public record LocalCtx(
     return binds.isEmpty() && (parent == null || parent.isEmpty());
   }
 
-  @Override
-  public @NotNull LocalCtx self() {
-    return this;
-  }
+  @Override public @NotNull LocalCtx self() { return this; }
 
-  @Override
-  @Contract("-> new")
+  @Override @Contract("-> new")
   public @NotNull LocalCtx derive() {
     return new LocalCtx(MutableLinkedHashMap.of(), MutableList.create(), this);
   }
