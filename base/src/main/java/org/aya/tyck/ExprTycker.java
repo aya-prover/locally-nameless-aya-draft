@@ -227,7 +227,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         var result = MutableList.<Term>create();
         while (argIx < args.size() && paramIx < params.size()) {
           var arg = args.get(argIx);
-          var param = params.get(paramIx).map(t -> t.instantiateTele(result.view()));
+          var param = params.get(paramIx).descent(t -> t.instantiateTele(result.view()));
           // Implicit insertion
           if (arg.explicit() != param.explicit()) {
             if (!arg.explicit()) {

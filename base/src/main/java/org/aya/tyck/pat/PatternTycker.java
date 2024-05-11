@@ -16,7 +16,10 @@ import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
-import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.MetaPatTerm;
+import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.SigmaTerm;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.AnyVar;
@@ -291,7 +294,7 @@ public class PatternTycker implements Problematic {
   }
 
   private <T> T onTyck(@NotNull Supplier<T> block) {
-    currentParam = currentParam.map(t -> t.instantiateTele(paramSubst.view()));
+    currentParam = currentParam.descent(t -> t.instantiateTele(paramSubst.view()));
     var result = block.get();
     telescope = telescope.drop(1);
     return result;

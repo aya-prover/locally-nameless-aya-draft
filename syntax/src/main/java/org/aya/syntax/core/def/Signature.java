@@ -27,7 +27,7 @@ public record Signature<T extends Term>(
 ) implements AyaDocile {
   public @NotNull Signature<?> bindAt(@NotNull LocalVar var, int index) {
     var boundParam = param.mapIndexed((i, p) ->
-      p.replace(p.data().map(t -> t.bindAt(var, index + i))));
+      p.replace(p.data().descent(t -> t.bindAt(var, index + i))));
     // bindAt may not preserve type here, consider [result] is a [FreeTerm].
     var boundResult = result.bindAt(var, param.size() + index);
     return new Signature<>(boundParam, boundResult);

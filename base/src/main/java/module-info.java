@@ -11,6 +11,7 @@ module aya.base {
   exports org.aya.prelude;
   exports org.aya.resolve.context;
   exports org.aya.tyck.error;
+  exports org.aya.tyck.ctx;
   exports org.aya.tyck.tycker;
   exports org.aya.tyck;
   exports org.aya.unify;

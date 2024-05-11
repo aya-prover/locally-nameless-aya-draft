@@ -185,6 +185,7 @@ public class CorePrettier extends BasePrettier<Term> {
       //   );
       // }
       // case StringTerm(var str) -> Doc.plain("\"" + StringUtil.escapeStringCharacters(str) + "\"");
+      case LetTerm _ -> throw new UnsupportedOperationException("TODO");
       case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.fun()),
         SeqView.of(new Arg<>(app.arg(), true)), outer, optionImplicit());
       case CoeTerm(var ty, var r, var s) -> visitCalls(null,
@@ -312,7 +313,7 @@ public class CorePrettier extends BasePrettier<Term> {
             // i: nth param
             // p: the param
             // instantiate reference to data tele
-            return p.map(t -> t.replaceAllFrom(i, reversedRichDataTele));
+            return p.descent(t -> t.replaceAllFrom(i, reversedRichDataTele));
           })), ctor.coerce));
 
         yield Doc.vcat(Doc.sepNonEmpty(line1),

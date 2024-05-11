@@ -5,8 +5,9 @@ package org.aya.syntax.ref;
 import kala.collection.SeqView;
 import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableList;
+import kala.control.Option;
 import org.aya.syntax.core.term.Term;
-import org.aya.util.error.Panic;
+import org.aya.util.Scoped;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,8 +17,8 @@ import java.util.function.UnaryOperator;
 public record LocalCtx(
   @NotNull MutableLinkedHashMap<LocalVar, Term> binds,
   @NotNull MutableList<LocalVar> vars,
-  @Nullable LocalCtx parent
-) {
+  @Override @Nullable LocalCtx parent
+) implements Scoped<LocalVar, Term, LocalCtx> {
   public LocalCtx() {
     this(MutableLinkedHashMap.of(), MutableList.create(), null);
   }
@@ -26,6 +27,12 @@ public record LocalCtx(
     return binds.isEmpty() && (parent == null || parent.isEmpty());
   }
 
+  @Override
+  public @NotNull LocalCtx self() {
+    return this;
+  }
+
+  @Override
   @Contract("-> new")
   public @NotNull LocalCtx derive() {
     return new LocalCtx(MutableLinkedHashMap.of(), MutableList.create(), this);
@@ -35,23 +42,14 @@ public record LocalCtx(
     return binds.size() + (parent == null ? 0 : parent.size());
   }
 
-  public @NotNull Term get(@NotNull LocalVar name) {
-    var ctx = this;
-    while (ctx != null) {
-      var result = ctx.getLocal(name);
-      if (result != null) return result;
-      ctx = ctx.parent;
-    }
-    throw new Panic(STR."¿: Not in scope: \{name.name()} (defined at \{name.definition()})");
+  public @NotNull Option<Term> getLocal(@NotNull LocalVar name) {
+    return binds.getOption(name);
   }
 
-  public @Nullable Term getLocal(@NotNull LocalVar name) {
-    return binds.getOrNull(name);
-  }
-
-  public void put(@NotNull LocalVar name, @NotNull Term type) {
-    binds.put(name, type);
-    vars.append(name);
+  @Override
+  public void putLocal(@NotNull LocalVar key, @NotNull Term value) {
+    binds.put(key, value);
+    vars.append(key);
   }
 
   @Contract(value = "_ -> new", pure = true)

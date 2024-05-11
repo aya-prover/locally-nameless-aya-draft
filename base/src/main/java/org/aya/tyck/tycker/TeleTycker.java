@@ -83,7 +83,7 @@ public sealed interface TeleTycker extends Contextful {
         var og = tele.get(j);
         // j - i is the human distance between [p] and [og]. However, we count from 0
         int ii = i, jj = j;
-        tele.set(j, og.map(x -> x.bindAt(p, jj - ii - 1)));
+        tele.set(j, og.descent(x -> x.bindAt(p, jj - ii - 1)));
       }
     }
   }

@@ -34,11 +34,15 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
   }
 
   public @NotNull Param bindAt(LocalVar ref, int i) {
-    return this.map(t -> t.bindAt(ref, i));
+    return this.descent(t -> t.bindAt(ref, i));
   }
 
-  public @NotNull Param map(@NotNull UnaryOperator<Term> mapper) {
-    return new Param(name, mapper.apply(type), explicit);
+  public @NotNull Param update(@NotNull Term type) {
+    return type == this.type ? this : new Param(name, type, explicit);
+  }
+
+  public @NotNull Param descent(@NotNull UnaryOperator<Term> mapper) {
+    return update(mapper.apply(type));
   }
 
   @Override
