@@ -5,6 +5,7 @@ package org.aya.tyck.pat;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
+import kala.range.primitive.IntRange;
 import kala.tuple.Tuple2;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
@@ -52,8 +53,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims
   ) {
-    // TODO indices
-    var indices = ImmutableIntSeq.empty();
+    var indices = elims.map(i -> vars.indexOf(i.data())).collect(ImmutableIntSeq.factory());
+    if (indices.isEmpty()) indices = IntRange.closedOpen(0, vars.size()).collect(ImmutableIntSeq.factory());
     var lhsResult = checkAllLhs(indices, signature, clauses.view());
     return checkAllRhs(vars, lhsResult);
   }
@@ -118,7 +119,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
       // * PatternTycker doesn't introduce any Meta term
       ctx = ctx.map(ClauseTycker::inlineTerm);
 
-      var newClause = new Pat.Preclause<Expr>(clause.sourcePos, patResult.wellTyped(), patResult.newBody());
+      var newClause = new Pat.Preclause<>(clause.sourcePos, patResult.wellTyped(), patResult.newBody());
       return new LhsResult(ctx, resultTerm, patResult.paramSubst(),
         patResult.asSubst(), newClause, patResult.hasError());
     });
