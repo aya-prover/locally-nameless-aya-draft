@@ -240,6 +240,9 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       // it means their arguments don't match (even the ref don't match),
       // so we are unable to do more if we can't normalize them.
       case FnCall _ -> null;
+
+      // we don't need to compare LetTerm, since they always can be wh normalized.
+      case LetTerm _ -> throw noRules(lhs);
       default -> throw noRules(lhs);
     };
   }
