@@ -55,7 +55,7 @@ public class PatternTycker implements Problematic, Stateful {
   private @NotNull SeqView<Param> telescope;
 
   /** Substitution for parameter, in the same order as parameter */
-  private final @NotNull MutableList<Term> paramSubst;
+  private final @NotNull MutableList<Jdg> paramSubst;
 
   /**
    * Substitution for `as` pattern
@@ -78,11 +78,14 @@ public class PatternTycker implements Problematic, Stateful {
 
   public record TyckResult(
     @NotNull ImmutableSeq<Pat> wellTyped,
-    @NotNull ImmutableSeq<Term> paramSubst,
+    @NotNull ImmutableSeq<Jdg> paramSubst,
     @NotNull LocalSubstitution asSubst,
     @Nullable WithPos<Expr> newBody,
     boolean hasError
   ) {
+    public @NotNull SeqView<Term> paramSubstObj() {
+      return paramSubst.view().map(Jdg::wellTyped);
+    }
   }
 
   /**
@@ -171,7 +174,7 @@ public class PatternTycker implements Problematic, Stateful {
 
         yield innerPat;
       }
-      case Pattern.Salt _ -> throw new Panic("Salt");
+      case Pattern.Salt _ -> Panic.unreachable();
     };
   }
 
@@ -297,7 +300,7 @@ public class PatternTycker implements Problematic, Stateful {
   }
 
   private <T> T onTyck(@NotNull Supplier<T> block) {
-    currentParam = currentParam.descent(t -> t.instantiateTele(paramSubst.view()));
+    currentParam = currentParam.descent(t -> t.instantiateTele(paramSubst.view().map(Jdg::wellTyped)));
     var result = block.get();
     telescope = telescope.drop(1);
     return result;
@@ -309,7 +312,7 @@ public class PatternTycker implements Problematic, Stateful {
   private @NotNull Pat tyckPattern(@NotNull WithPos<Pattern> pattern) {
     return onTyck(() -> {
       var result = doTyck(pattern, currentParam.type());
-      addArgSubst(result);
+      addArgSubst(result, currentParam.type());
       return result;
     });
   }
@@ -335,7 +338,7 @@ public class PatternTycker implements Problematic, Stateful {
         exprTycker.localCtx().put(freshVar, type);
       }
 
-      addArgSubst(pat);
+      addArgSubst(pat, currentParam.type());
       return pat;
     });
   }
@@ -352,8 +355,8 @@ public class PatternTycker implements Problematic, Stateful {
     return tyckResult.wellTyped;
   }
 
-  private void addArgSubst(@NotNull Pat pattern) {
-    paramSubst.append(PatToTerm.visit(pattern));
+  private void addArgSubst(@NotNull Pat pattern, @NotNull Term type) {
+    paramSubst.append(new Jdg.Default(PatToTerm.visit(pattern), type));
   }
 
   private void addAsSubst(@NotNull LocalVar as, @NotNull Pat pattern, @NotNull Term type) {
@@ -451,7 +454,7 @@ public class PatternTycker implements Problematic, Stateful {
     });
   }
 
-  /// endreigon Heler
+  /// endregion Helper
 
   /// region Error Reporting
 

@@ -13,6 +13,8 @@ import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.ref.LocalCtx;
+import org.aya.tyck.ctx.LocalSubstitution;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
 import org.aya.tyck.pat.ClauseTycker;
@@ -57,11 +59,17 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
             yield factory.apply(wellTy, Either.left(wellBody));
           }
           case TeleDecl.BlockBody blockBody -> {
-            var clauseTycker = new ClauseTycker(tycker);
+            // we do not load signature here, so we need a fresh ExprTycker
+            var clauseTycker = new ClauseTycker(
+              // TODO: tyck state
+              new ExprTycker(null, new LocalCtx(), new LocalSubstitution(), reporter)
+            );
+
             var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
             if (orderIndependent) {
               throw new UnsupportedOperationException("Dame Desu!");
             } else {
+
               throw new UnsupportedOperationException("Dame Desu!");
             }
           }

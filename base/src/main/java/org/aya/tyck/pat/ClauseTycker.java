@@ -28,15 +28,28 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   public record LhsResult(
     @NotNull LocalCtx localCtx,
     @NotNull Term type,
-    @NotNull ImmutableSeq<Term> paramSubst,
+    @NotNull ImmutableSeq<Jdg> paramSubst,
     @NotNull LocalSubstitution asSubst,
     @NotNull Pat.Preclause<Expr> clause,
     boolean hasError
   ) { }
 
-  @Override public @NotNull Reporter reporter() {
-    return exprTycker.reporter;
+  public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
+    @NotNull ImmutableSeq<LocalVar> vars,
+    @NotNull Signature<?> signature,
+    @NotNull SeqView<Pattern.Clause> clauses
+  ) {
+    return clauses.map(c -> checkLhs(signature, vars, c)).toImmutableSeq();
   }
+
+  public @NotNull ImmutableSeq<Pat.Preclause<Term>> checkAllRhs(
+    @NotNull ImmutableSeq<LocalVar> vars,
+    @NotNull ImmutableSeq<LhsResult> lhsResults
+  ) {
+    return lhsResults.map(x -> checkRhs(vars, x));
+  }
+
+  @Override public @NotNull Reporter reporter() { return exprTycker.reporter; }
 
   private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope) {
     return new PatternTycker(exprTycker, telescope, new LocalSubstitution());
@@ -56,7 +69,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
 
       clause.hasError |= patResult.hasError();
       patResult = inline(patResult, ctx);
-      var resultTerm = inlineTerm(signature.result().instantiateTele(patResult.paramSubst().view()));
+      var resultTerm = inlineTerm(signature.result().instantiateTele(patResult.paramSubstObj()));
       clause.patterns.view().map(it -> it.term().data()).forEach(TermInPatInline::apply);
 
       // It is safe to replace ctx:
@@ -81,50 +94,39 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   /**
    * Tyck the rhs of some clause.
    *
-   * @param signature the signature of the function
    * @param result    the tyck result of the corresponding patterns
    */
   private @NotNull Pat.Preclause<Term> checkRhs(
     @NotNull ImmutableSeq<LocalVar> teleBinds,
-    @NotNull Signature<Term> signature,
     @NotNull LhsResult result
   ) {
     return exprTycker.subscoped(() -> {
       var clause = result.clause;
       var bodyExpr = clause.expr();
       Term wellBody;
-      if (bodyExpr == null) {
-        wellBody = null;
+      if (bodyExpr == null) wellBody = null;
+      else if (result.hasError) {
+        // In case the patterns are malformed, do not check the body
+        // as we bind local variables in the pattern checker,
+        // and in case the patterns are malformed, some bindings may
+        // not be added to the localCtx of tycker, causing assertion errors
+        wellBody = new ErrorTerm(result.clause.expr().data());
       } else {
-        if (result.hasError) {
-          // In case the patterns are malformed, do not check the body
-          // as we bind local variables in the pattern checker,
-          // and in case the patterns are malformed, some bindings may
-          // not be added to the localCtx of tycker, causing assertion errors
-          wellBody = new ErrorTerm(result.clause.expr().data());
-        } else {
-          // the localCtx will be restored after exiting [subscoped]
-          exprTycker.setLocalCtx(result.localCtx);
+        // the localCtx will be restored after exiting [subscoped]
+        exprTycker.setLocalCtx(result.localCtx);
 
-          for (var i = 0; i < teleBinds.size(); ++i) {
-            var bind = teleBinds.get(i);
-            var type = signature.param().get(i).data().type();
-            var subst = result.paramSubst.get(i);
+        teleBinds.forEachWith(result.paramSubst, exprTycker.localDefinition()::put);
 
-            exprTycker.localDefinition().put(bind, subst, type);
-          }
+        exprTycker.setLocalDefinition(new LocalSubstitution(exprTycker.localDefinition(), result.asSubst.subst()));
+        // now exprTycker has all substitutions that PatternTycker introduced.
 
-          exprTycker.setLocalDefinition(new LocalSubstitution(exprTycker.localDefinition(), result.asSubst.subst()));
-          // now exprTycker has all substitutions that PatternTycker introduced.
+        wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
 
-          wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
-
-          // bind all pat bindings
-          wellBody = result.clause.pats()
-            .flatMap(Pat::collectBindings)
-            .foldLeft(wellBody, (acc, pair) ->
-              acc.bind(pair.component1()));
-        }
+        // bind all pat bindings
+        wellBody = result.clause.pats()
+          .flatMap(Pat::collectBindings)
+          .foldLeft(wellBody, (acc, pair) ->
+            acc.bind(pair.component1()));
       }
 
       return new Pat.Preclause<>(clause.sourcePos(), clause.pats(), wellBody == null ? null : WithPos.dummy(wellBody));

@@ -20,7 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 /**
- * Indicating something is {@link LocalCtx}ful
+ * Indicating something is {@link LocalCtx}ful.<br/>
+ * Whenever you want to introduce some bind, make sure you are modifying
+ * the {@link LocalCtx} that you own it, i.e. obtained from {@link Contextful#subscoped}.
+ * In fact, this is the rule of ownership 🦀🦀🦀.<br/>
  *
  * @see #subscoped(Supplier)
  * @see #localCtx()
