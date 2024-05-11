@@ -58,6 +58,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
 
       clause.hasError |= patResult.hasError();
       patResult = inline(patResult, ctx);
+      var resultTerm = inlineTerm(signature.result().instantiateTele(patResult.paramSubst().view()));
       clause.patterns.view().map(it -> it.term().data()).forEach(TermInPatInline::apply);
 
       // It is safe to replace ctx:
@@ -67,7 +68,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
 
       return new LhsResult(
         ctx,
-        patResult.result(),
+        resultTerm,
         patResult.paramSubst(),
         patResult.asSubst(),
         new Pat.Preclause<>(
@@ -88,7 +89,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   private @NotNull Pat.Preclause<Term> checkRhs(
     @NotNull ImmutableSeq<LocalVar> teleBinds,
     @NotNull Signature<Term> signature,
-    @NotNull LhsResult result) {
+    @NotNull LhsResult result
+  ) {
     return exprTycker.subscoped(() -> {
       var clause = result.clause;
       var bodyExpr = clause.expr();
@@ -172,8 +174,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     // so that {MetaPatTerm}s can be inlined safely
     var paramSubst = result.paramSubst().map(ClauseTycker::inlineTerm);
     var asSubst = ImmutableMap.from(result.asSubst().view().mapValues((_, t) -> inlineTerm(t)));
-    var resultTerm = inlineTerm(result.result());
 
-    return new PatternTycker.TyckResult(wellTyped, paramSubst, resultTerm, asSubst, result.newBody(), result.hasError());
+    return new PatternTycker.TyckResult(wellTyped, paramSubst, asSubst, result.newBody(), result.hasError());
   }
 }

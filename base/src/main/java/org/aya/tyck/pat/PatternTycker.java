@@ -49,6 +49,7 @@ public class PatternTycker implements Problematic {
    * A bound telescope (i.e. all the reference to the former parameter are LocalTerm)
    */
   private @NotNull SeqView<Param> telescope;
+  /** Used for error report */
   private final @NotNull Term result;
 
   /** Substitution for parameter, in the same order as parameter */
@@ -78,7 +79,6 @@ public class PatternTycker implements Problematic {
   public record TyckResult(
     @NotNull ImmutableSeq<Pat> wellTyped,
     @NotNull ImmutableSeq<Term> paramSubst,
-    @NotNull Term result,
     @NotNull ImmutableMap<LocalVar, Term> asSubst,
     @Nullable WithPos<Expr> newBody,
     boolean hasError
@@ -118,11 +118,7 @@ public class PatternTycker implements Problematic {
         var conCore = conRef.core;
 
         // It is possible that `con.params()` is empty.
-        var patterns = tyckInner(
-          conCore.selfTele.view(),
-          con.params().view(),
-          pattern
-        );
+        var patterns = tyckInner(conCore.selfTele.view(), con.params().view(), pattern);
 
         // check if this Con is a ShapedCon
         // var typeRecog = exprTycker.shapeFacony.find(conRef.core.dataRef.core).getOrNull();
@@ -160,7 +156,7 @@ public class PatternTycker implements Problematic {
         //   var shape = exprTycker.shapeFacony.find(data);
         //   if (shape.isDefined() && shape.get().shape() == AyaShape.LIST_SHAPE)
         //     yield doTyck(new Pattern.FakeShapedList(pos, el, shape.get(), dataCall)
-        //       .construconForm(), term);
+        //       .constructorForm(), term);
         // }
         // yield withError(new PatternProblem.BadLitPattern(pattern, term), term);
       }
@@ -211,7 +207,7 @@ public class PatternTycker implements Problematic {
 
     if (currentParam == null) {
       // too many pattern
-      foundError(new PatternProblem.TooManyPattern(pattern.term(), result));
+      foundError(new PatternProblem.TooManyPattern(pattern.term(), result.instantiateTele(paramSubst.view())));
       return null;
     }
 
@@ -368,18 +364,16 @@ public class PatternTycker implements Problematic {
     return new TyckResult(
       wellTyped.toImmutableSeq(),
       paramSubst,
-      result.instantiateTele(paramSubst.view()),
       ImmutableMap.from(this.asSubst),
       newBody,
       hasError
     );
   }
 
-  private record Selection(DataCall data, ImmutableSeq<Term> args, ConCallLike.Head conHead) {
-  }
+  private record Selection(DataCall data, ImmutableSeq<Term> args, ConCallLike.Head conHead) { }
 
   /**
-   * @param name if null, the selection will be performed on all construcons
+   * @param name if null, the selection will be performed on all constructors
    * @return null means selection failed
    */
   private @Nullable Selection selectCon(Term type, @Nullable AnyVar name, @NotNull WithPos<Pattern> pattern) {
@@ -402,7 +396,7 @@ public class PatternTycker implements Problematic {
       if (matchy.isOk()) {
         return new Selection(dataCall, matchy.get(), dataCall.conHead(con.ref()));
       }
-      // For absurd pattern, we look at the next construcon
+      // For absurd pattern, we look at the next constructor
       if (name == null) {
         // Is blocked
         if (matchy.getErr()) {
@@ -411,8 +405,8 @@ public class PatternTycker implements Problematic {
         }
         continue;
       }
-      // Since we cannot have two construcons of the same name,
-      // if the name-matching construcon mismatches the type,
+      // Since we cannot have two constructors of the same name,
+      // if the name-matching constructor mismatches the type,
       // we get an error.
       foundError(new PatternProblem.UnavailableCon(pattern, dataCall));
       return null;
