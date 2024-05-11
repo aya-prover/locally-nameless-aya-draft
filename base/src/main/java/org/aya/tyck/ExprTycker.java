@@ -325,22 +325,13 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
 
     // Now everything is in form `let f : G := g in h`
 
-    var type = ty(typeExpr); // .freezeHoles(state);
+    var type = freezeHoles(ty(typeExpr));
     var definedAsResult = inherit(definedAsExpr, type);
 
-    var freeBody = subscoped(() -> {
+    return subscoped(() -> {
       localDefinitions.put(let.bind().bindName(), definedAsResult);
       return checker.apply(let.body());
     });
-
-    var wellTyped = new LetTerm(
-      new LetTerm.Bind(
-        new Param(let.bind().bindName().name(), definedAsResult.type(), true),
-        definedAsResult.wellTyped()
-      ), freeBody.wellTyped().bind(let.bind().bindName())
-    );
-
-    return new Result.Default(wellTyped, freeBody.type());
   }
 
   /// region Overrides

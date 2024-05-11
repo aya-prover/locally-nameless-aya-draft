@@ -128,8 +128,6 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
 
   /**
    * Kitsune says kon!
-   *
-   * @apiNote remember to subscope
    */
   private void checkKitsune(@NotNull TeleDecl.DataCon dataCon, @NotNull ExprTycker exprTycker) {
     var ref = dataCon.ref;
@@ -143,8 +141,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
     // TODO: update this if there are patterns
     var ownerTele = dataSig.param().map(x -> x.descent((_, p) -> p.implicitize()));
     var dataTele = dataDecl.telescope.map(Expr.Param::ref);
-    loadTele(dataTele, dataSig, exprTycker);
-    // now dataTele are in localCtx
+    // dataTele already in localCtx
     // The result that a ctor should be, unless... TODO: it is a Path result
     var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
     // TODO: check patterns if there are

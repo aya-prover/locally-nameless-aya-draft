@@ -54,10 +54,6 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       case PrimCall prim -> state.factory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
-      case LetTerm(var bind, var body) -> {
-        var newDefinedAs = whnf(bind.definedAs());
-        yield whnf(body.instantiate(newDefinedAs));
-      }
       // TODO: handle other cases
       default -> term;
     };

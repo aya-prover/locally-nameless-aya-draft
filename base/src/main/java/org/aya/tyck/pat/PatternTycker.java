@@ -29,6 +29,7 @@ import org.aya.tyck.TyckState;
 import org.aya.tyck.error.PatternProblem;
 import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.util.Arg;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
@@ -45,7 +46,7 @@ import java.util.function.Supplier;
 /**
  * Tyck for {@link Pattern}'s, the left hand side of one clause.
  */
-public class PatternTycker implements Problematic {
+public class PatternTycker implements Problematic, Stateful {
   private final @NotNull ExprTycker exprTycker;
 
   /**
@@ -102,7 +103,7 @@ public class PatternTycker implements Problematic {
       }
       case Pattern.Tuple tuple -> {
         if (!(exprTycker.whnf(type) instanceof SigmaTerm sigma))
-          yield withError(new PatternProblem.TupleNonSig(pattern.replace(tuple), type), type);
+          yield withError(new PatternProblem.TupleNonSig(pattern.replace(tuple), freezeHoles(type)), type);
         yield new Pat.Tuple(tyckInner(
           generateNames(sigma.params()),
           tuple.patterns().view().map(Arg::ofExplicitly),
@@ -132,8 +133,8 @@ public class PatternTycker implements Problematic {
       case Pattern.CalmFace.INSTANCE ->
         new Pat.Meta(MutableValue.create(), Constants.ANONYMOUS_PREFIX, type, pattern.sourcePos());
       case Pattern.Number(var number) -> {
+        var ty = whnf(type);
         throw new UnsupportedOperationException("TODO");
-        // var ty = term.normalize(exprTycker.state, NormalizeMode.WHNF);
         // if (ty instanceof DataCall dataCall) {
         //   var data = dataCall.ref().core;
         //   var shape = exprTycker.shapeFacony.find(data);
@@ -453,6 +454,7 @@ public class PatternTycker implements Problematic {
   /// region Error Reporting
 
   @Override public @NotNull Reporter reporter() { return exprTycker.reporter; }
+  @Override public @NotNull TyckState state() { return exprTycker.state; }
 
   private @NotNull Pat withError(Problem problem, Term param) {
     foundError(problem);

@@ -22,6 +22,7 @@ public class TyckTest {
       def lam (A : Type) : Fn (a : A) -> Type => fn a => A
       def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a)
         : Sig (a : A) ** B a => (id a, id (b a))
+      def letExample (A : Type) (B : A -> Type) (f : Fn (a : A) -> B a) (a : A) : B a => let b : B a := f a in b
       """;
 
     var result = tyck(code);

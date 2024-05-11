@@ -185,7 +185,6 @@ public class CorePrettier extends BasePrettier<Term> {
       //   );
       // }
       // case StringTerm(var str) -> Doc.plain("\"" + StringUtil.escapeStringCharacters(str) + "\"");
-      case LetTerm _ -> throw new UnsupportedOperationException("TODO");
       case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.fun()),
         SeqView.of(new Arg<>(app.arg(), true)), outer, optionImplicit());
       case CoeTerm(var ty, var r, var s) -> visitCalls(null,
