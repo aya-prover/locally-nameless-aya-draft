@@ -19,8 +19,7 @@ public record ConCall(
     return head == head() && conArgs.sameElements(conArgs(), true) ? this : new ConCall(head, conArgs);
   }
 
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(head.descent(f), Callable.descent(conArgs, f));
   }
 

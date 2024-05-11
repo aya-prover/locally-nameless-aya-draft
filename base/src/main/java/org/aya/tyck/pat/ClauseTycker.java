@@ -4,6 +4,8 @@ package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.immutable.primitive.ImmutableIntSeq;
+import kala.tuple.Tuple2;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
@@ -44,12 +46,24 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     boolean hasError
   ) { }
 
-  public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
+  public @NotNull TyckResult check(
     @NotNull ImmutableSeq<LocalVar> vars,
+    @NotNull Signature<?> signature,
+    @NotNull ImmutableSeq<Pattern.Clause> clauses,
+    @NotNull ImmutableSeq<WithPos<LocalVar>> elims
+  ) {
+    // TODO indices
+    var indices = ImmutableIntSeq.empty();
+    var lhsResult = checkAllLhs(indices, signature, clauses.view());
+    return checkAllRhs(vars, lhsResult);
+  }
+
+  public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
+    @NotNull ImmutableIntSeq indices,
     @NotNull Signature<?> signature,
     @NotNull SeqView<Pattern.Clause> clauses
   ) {
-    return clauses.map(c -> checkLhs(signature, vars, c)).toImmutableSeq();
+    return clauses.map(c -> checkLhs(signature, indices, c)).toImmutableSeq();
   }
 
   public @NotNull TyckResult checkAllRhs(
@@ -75,16 +89,19 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
 
   @Override public @NotNull Reporter reporter() { return exprTycker.reporter; }
   @Override public @NotNull TyckState state() { return exprTycker.state; }
-  private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope) {
-    return new PatternTycker(exprTycker, telescope, new LocalSubstitution());
+  private @NotNull PatternTycker newPatternTycker(
+    @NotNull ImmutableIntSeq indices,
+    @NotNull SeqView<Param> telescope
+  ) {
+    return new PatternTycker(exprTycker, indices, telescope, new LocalSubstitution());
   }
 
   private @NotNull LhsResult checkLhs(
     @NotNull Signature<? extends Term> signature,
-    @NotNull ImmutableSeq<LocalVar> vars,
+    @NotNull ImmutableIntSeq indices,
     @NotNull Pattern.Clause clause
   ) {
-    var tycker = newPatternTycker(signature.param().view().map(WithPos::data));
+    var tycker = newPatternTycker(indices, signature.param().view().map(WithPos::data));
     return exprTycker.subscoped(() -> {
       // TODO: need some prework, see old project
 
@@ -101,17 +118,9 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
       // * PatternTycker doesn't introduce any Meta term
       ctx = ctx.map(ClauseTycker::inlineTerm);
 
-      return new LhsResult(
-        ctx,
-        resultTerm,
-        patResult.paramSubst(),
-        patResult.asSubst(),
-        new Pat.Preclause<>(
-          clause.sourcePos,
-          patResult.wellTyped(),
-          patResult.newBody() == null ? null : patResult.newBody()),
-        patResult.hasError()
-      );
+      var newClause = new Pat.Preclause<Expr>(clause.sourcePos, patResult.wellTyped(), patResult.newBody());
+      return new LhsResult(ctx, resultTerm, patResult.paramSubst(),
+        patResult.asSubst(), newClause, patResult.hasError());
     });
   }
 
@@ -147,10 +156,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
 
         // bind all pat bindings
-        wellBody = result.clause.pats()
-          .flatMap(Pat::collectBindings)
-          .foldLeft(wellBody, (acc, pair) ->
-            acc.bind(pair.component1()));
+        var patBindTele = result.clause.pats().view().flatMap(Pat::collectBindings).map(Tuple2::component1);
+        wellBody = wellBody.bindTele(patBindTele);
       }
 
       return new Pat.Preclause<>(clause.sourcePos(), clause.pats(), wellBody == null ? null : WithPos.dummy(wellBody));

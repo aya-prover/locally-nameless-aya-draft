@@ -13,6 +13,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalCtx;
@@ -111,10 +112,11 @@ public sealed interface Pat extends AyaDocile {
 
   record Con(
     @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
-    @NotNull ImmutableSeq<Pat> args
+    @NotNull ImmutableSeq<Pat> args,
+    @NotNull DataCall data
   ) implements Pat {
     public @NotNull Pat.Con update(@NotNull ImmutableSeq<Pat> args) {
-      return this.args.sameElements(args, true) ? this : new Con(ref, args);
+      return this.args.sameElements(args, true) ? this : new Con(ref, args, data);
     }
 
     @Override public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {

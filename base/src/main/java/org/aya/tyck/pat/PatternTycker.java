@@ -4,8 +4,10 @@ package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.immutable.primitive.ImmutableIntSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
+import kala.range.primitive.IntRange;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
@@ -49,6 +51,8 @@ import java.util.function.Supplier;
 public class PatternTycker implements Problematic, Stateful {
   private final @NotNull ExprTycker exprTycker;
 
+  private final ImmutableIntSeq indices;
+
   /**
    * A bound telescope (i.e. all the reference to the former parameter are LocalTerm)
    */
@@ -65,12 +69,18 @@ public class PatternTycker implements Problematic, Stateful {
   private @UnknownNullability Param currentParam = null;
   private boolean hasError = false;
 
+  public PatternTycker(@NotNull ExprTycker tycker, @NotNull SeqView<Param> tele, @NotNull LocalSubstitution sub) {
+    this(tycker, IntRange.closedOpen(0, tele.size()).collect(ImmutableIntSeq.factory()), tele, sub);
+  }
+
   public PatternTycker(
     @NotNull ExprTycker exprTycker,
+    @NotNull ImmutableIntSeq indices,
     @NotNull SeqView<Param> telescope,
     @NotNull LocalSubstitution asSubst
   ) {
     this.exprTycker = exprTycker;
+    this.indices = indices;
     this.telescope = telescope;
     this.paramSubst = MutableList.create();
     this.asSubst = asSubst;
@@ -128,7 +138,7 @@ public class PatternTycker implements Problematic, Stateful {
         // check if this Con is a ShapedCon
         // var typeRecog = exprTycker.shapeFacony.find(conRef.core.dataRef.core).getOrNull();
 
-        yield new Pat.Con(realCon.conHead.ref(), patterns/*, typeRecog, dataCall*/);
+        yield new Pat.Con(realCon.conHead.ref(), patterns, /* typeRecog */ realCon.data());
       }
       case Pattern.Bind(var bind, var tyRef) -> {
         exprTycker.localCtx().put(bind, type);
@@ -348,6 +358,7 @@ public class PatternTycker implements Problematic, Stateful {
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @NotNull WithPos<Pattern> outerPattern
   ) {
+    //noinspection ViewSize
     var sub = new PatternTycker(exprTycker, telescope, asSubst);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 

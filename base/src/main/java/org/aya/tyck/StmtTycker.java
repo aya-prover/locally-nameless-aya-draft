@@ -58,7 +58,7 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
             wellTy = wellTy.bindTele(teleVars.view());
             yield factory.apply(wellTy, Either.left(wellBody));
           }
-          case TeleDecl.BlockBody blockBody -> {
+          case TeleDecl.BlockBody(var clauses, var elims) -> {
             // we do not load signature here, so we need a fresh ExprTycker
             var clauseTycker = new ClauseTycker(
               // TODO: tyck state
@@ -69,8 +69,8 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
             if (orderIndependent) {
               throw new UnsupportedOperationException("Dame Desu!");
             } else {
-
-              throw new UnsupportedOperationException("Dame Desu!");
+              var patResult = clauseTycker.check(teleVars, signature, clauses, elims);
+              yield factory.apply(signature.result(), Either.right(patResult.wellTyped()));
             }
           }
         };
