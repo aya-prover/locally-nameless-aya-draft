@@ -22,7 +22,7 @@ public class SillyTycker {
 
     for (var decl : decls) {
       var def = new StmtTycker(reporter)
-        .check(decl, new ExprTycker(pf, TestUtil.makeLocalCtx(), reporter));
+        .check(decl, new ExprTycker(pf, TestUtil.makeLocalCtx(), TestUtil.makeLocalSubst(), reporter));
 
       wellTyped.append(def);
     }

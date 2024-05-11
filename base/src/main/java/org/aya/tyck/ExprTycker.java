@@ -14,9 +14,11 @@ import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.*;
+import org.aya.tyck.ctx.LocalSubstitution;
 import org.aya.tyck.error.*;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
+import org.aya.tyck.tycker.LocalDeful;
 import org.aya.tyck.tycker.Unifiable;
 import org.aya.unify.TermComparator;
 import org.aya.unify.Unifier;
@@ -29,17 +31,26 @@ import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
+import java.util.function.Supplier;
 
-public final class ExprTycker extends AbstractTycker implements Unifiable {
+public final class ExprTycker extends AbstractTycker implements Unifiable, LocalDeful {
   public final @NotNull MutableTreeSet<WithPos<Expr.WithTerm>> withTerms =
     MutableTreeSet.create(Comparator.comparing(SourceNode::sourcePos));
+  private @NotNull LocalSubstitution localDefinitions;
+
   public void addWithTerm(@NotNull Expr.WithTerm with, @NotNull SourcePos pos, @NotNull Term type) {
     withTerms.add(new WithPos<>(pos, with));
     with.theCoreType().set(type);
   }
 
-  public ExprTycker(@NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter) {
+  public ExprTycker(
+    @NotNull TyckState state,
+    @NotNull LocalCtx ctx,
+    @NotNull LocalSubstitution localDefinitions,
+    @NotNull Reporter reporter
+  ) {
     super(state, ctx, reporter);
+    this.localDefinitions = localDefinitions;
   }
 
   public void solveMetas() {
@@ -175,7 +186,13 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       case Expr.Lambda lam -> inherit(expr, generatePi(lam, expr.sourcePos()));
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref(var ref) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
+      case Expr.Ref(var ref) -> {
+        if (ref instanceof LocalVar localRef && localDefinitions.contains(localRef)) {
+          yield localDefinitions.get(localRef);
+        }
+
+        yield checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
+      }
       case Expr.Sigma _ -> {
         var ty = ty(expr);
         // TODO: type level
@@ -283,10 +300,31 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     });
   }
 
+  /// region Overrides
+
   @Override
   public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
     return new Unifier(state(), localCtx(), reporter(), pos, order, true);    // TODO: allowDelay?
   }
+
+  @Override
+  public @NotNull LocalSubstitution localDefinition() {
+    return localDefinitions;
+  }
+
+  @Override
+  public @NotNull LocalSubstitution setLocalDefinition(@NotNull LocalSubstitution newOne) {
+    var old = localDefinitions;
+    this.localDefinitions = newOne;
+    return old;
+  }
+
+  @Override
+  public <R> R subscoped(@NotNull Supplier<R> action) {
+    return super.subscoped(() -> LocalDeful.super.subscoped(action));
+  }
+
+  /// endregion Overrides
 
   protected static final class NotPi extends Exception {
     public final @NotNull Term actual;

@@ -20,6 +20,10 @@ public record LocalSubstitution(
   @Override @Nullable LocalSubstitution parent,
   @NotNull MutableLinkedHashMap<LocalVar, Result> subst
 ) implements Scoped<LocalVar, Result, LocalSubstitution> {
+  public LocalSubstitution() {
+    this(null, MutableLinkedHashMap.of());
+  }
+
   @Override
   public @NotNull LocalSubstitution self() {
     return this;

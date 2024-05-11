@@ -4,6 +4,7 @@ package org.aya.util;
 
 import kala.control.Option;
 import org.aya.util.error.Panic;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,8 +48,13 @@ public interface Scoped<K, V, This extends Scoped<K, V, This>> {
     return acc;
   }
 
+  @ApiStatus.Internal
   @NotNull Option<V> getLocal(@NotNull K key);
+
+  @ApiStatus.Internal
   void putLocal(@NotNull K key, @NotNull V value);
+
+  @ApiStatus.Internal
   default boolean containsLocal(@NotNull K key) {
     return getLocal(key).isDefined();
   }
