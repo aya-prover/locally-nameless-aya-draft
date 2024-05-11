@@ -13,8 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 public class TyckTest {
-  @Test
-  public void test0() {
+  @Test public void test0() {
     @Language("Aya") String code = """
       data Nat | O | S Nat
       data FreeMonoid (A : Type) | e | cons A (FreeMonoid A)

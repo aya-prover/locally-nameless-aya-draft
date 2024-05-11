@@ -231,7 +231,7 @@ public record ExprResolver(
   }
 
   public @NotNull Pattern.Clause apply(@NotNull Pattern.Clause clause) {
-    var mCtx = MutableValue.create(ctx());
+    var mCtx = MutableValue.create(ctx);
     var pats = clause.patterns.map(pa -> pa.descent(pat -> resolvePattern(pat, mCtx)));
     return clause.update(pats, clause.expr.map(x -> x.descent(enter(mCtx.get()))));
   }

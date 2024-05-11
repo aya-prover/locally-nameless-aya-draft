@@ -67,9 +67,7 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
     };
   }
 
-  public @NotNull PosedUnaryOperator<Pattern> pattern() {
-    return new Pat();
-  }
+  public @NotNull PosedUnaryOperator<Pattern> pattern() { return new Pat(); }
 
   private class Pat implements PosedUnaryOperator<Pattern> {
     @Override public Pattern apply(SourcePos sourcePos, Pattern pattern) {

@@ -59,7 +59,7 @@ public interface StmtResolver {
         // Generalized works for simple bodies and signatures
         var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl);
         decl.body = switch (decl.body) {
-          case TeleDecl.BlockBody(var cls, ImmutableSeq<WithPos<LocalVar>> elims) -> {
+          case TeleDecl.BlockBody(var cls, var elims) -> {
             // introducing generalized variable is not allowed in clauses, hence we insert them before body resolving
             insertGeneralizedVars(decl, resolver);
             var clausesResolver = resolver.enterClauses();

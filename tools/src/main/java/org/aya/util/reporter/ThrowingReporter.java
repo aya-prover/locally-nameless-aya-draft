@@ -17,10 +17,6 @@ Failed with `\{problem.getClass()}`: \{render}
 at \{problem.sourcePos()}""");
   }
 
-  @Override public int problemSize(Problem.@NotNull Severity severity) {
-    return 0;
-  }
-
-  @Override public void clear() {
-  }
+  @Override public int problemSize(Problem.@NotNull Severity severity) { return 0; }
+  @Override public void clear() { }
 }
