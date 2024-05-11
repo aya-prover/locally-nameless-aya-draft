@@ -12,7 +12,6 @@ import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.pat.Pat;
-import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.ErrorTerm;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Param;
@@ -40,8 +39,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     return exprTycker.reporter;
   }
 
-  private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope, @NotNull Term result) {
-    return new PatternTycker(exprTycker, telescope, result, MutableMap.create());
+  private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope) {
+    return new PatternTycker(exprTycker, telescope, MutableMap.create());
   }
 
   private @NotNull LhsResult checkLhs(
@@ -49,7 +48,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableSeq<LocalVar> vars,
     @NotNull Pattern.Clause clause
   ) {
-    var tycker = newPatternTycker(signature.param().view().map(WithPos::data), signature.result());
+    var tycker = newPatternTycker(signature.param().view().map(WithPos::data));
     return exprTycker.subscoped(() -> {
       // TODO: need some prework, see old project
 

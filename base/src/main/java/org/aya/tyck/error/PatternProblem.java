@@ -95,15 +95,13 @@ public sealed interface PatternProblem extends Problem {
   }
 
   record TooManyPattern(
-    @Override @NotNull WithPos<Pattern> pattern,
-    @NotNull Term retTy
+    @Override @NotNull WithPos<Pattern> pattern
   ) implements PatternProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.english("There is no parameter for the pattern"),
         Doc.par(1, pattern.data().toDoc(options)),
-        Doc.english("to match against, given the return type"),
-        Doc.par(1, retTy.toDoc(options)),
+        Doc.english("to match against."),
         Doc.parened(Doc.sep(
           Doc.english("and in case it's a function type, you may want to move its parameters before the"),
           Doc.code(":"),

@@ -49,8 +49,6 @@ public class PatternTycker implements Problematic {
    * A bound telescope (i.e. all the reference to the former parameter are LocalTerm)
    */
   private @NotNull SeqView<Param> telescope;
-  /** Used for error report */
-  private final @NotNull Term result;
 
   /** Substitution for parameter, in the same order as parameter */
   private final @NotNull MutableList<Term> paramSubst;
@@ -66,12 +64,10 @@ public class PatternTycker implements Problematic {
   public PatternTycker(
     @NotNull ExprTycker exprTycker,
     @NotNull SeqView<Param> telescope,
-    @NotNull Term result,
     @NotNull MutableMap<LocalVar, Term> asSubst
   ) {
     this.exprTycker = exprTycker;
     this.telescope = telescope;
-    this.result = result;
     this.paramSubst = MutableList.create();
     this.asSubst = asSubst;
   }
@@ -207,7 +203,7 @@ public class PatternTycker implements Problematic {
 
     if (currentParam == null) {
       // too many pattern
-      foundError(new PatternProblem.TooManyPattern(pattern.term(), result.instantiateTele(paramSubst.view())));
+      foundError(new PatternProblem.TooManyPattern(pattern.term()));
       return null;
     }
 
@@ -343,7 +339,7 @@ public class PatternTycker implements Problematic {
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @NotNull WithPos<Pattern> outerPattern
   ) {
-    var sub = new PatternTycker(exprTycker, telescope, SortTerm.Type0, asSubst);
+    var sub = new PatternTycker(exprTycker, telescope, asSubst);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 
     hasError = hasError || sub.hasError;
