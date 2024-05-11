@@ -206,8 +206,9 @@ public sealed interface Pat extends AyaDocile {
       return new Preclause<>(clause.sourcePos(), clause.patterns(), WithPos.dummy(clause.body()));
     }
 
-    // public static @Nullable Term.Matching lift(@NotNull Preclause<Term> clause) {
-    //   return clause.expr.map(term -> new Term.Matching(clause.sourcePos, clause.patterns, term));
-    // }
+    public static @Nullable Term.Matching lift(@NotNull Preclause<Term> clause) {
+      if (clause.expr == null) return null;
+      return new Term.Matching(clause.sourcePos, clause.pats, clause.expr.data());
+    }
   }
 }

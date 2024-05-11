@@ -17,14 +17,24 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.Jdg;
+import org.aya.tyck.TyckState;
 import org.aya.tyck.ctx.LocalSubstitution;
 import org.aya.tyck.tycker.Problematic;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
-public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problematic {
+import java.util.function.UnaryOperator;
+
+public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problematic, Stateful {
+  public record TyckResult(
+    @NotNull ImmutableSeq<Pat.Preclause<Term>> clauses,
+    @NotNull ImmutableSeq<Term.Matching> wellTyped,
+    boolean hasLhsError
+  ) { }
+
   public record LhsResult(
     @NotNull LocalCtx localCtx,
     @NotNull Term type,
@@ -42,15 +52,29 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     return clauses.map(c -> checkLhs(signature, vars, c)).toImmutableSeq();
   }
 
-  public @NotNull ImmutableSeq<Pat.Preclause<Term>> checkAllRhs(
+  public @NotNull TyckResult checkAllRhs(
     @NotNull ImmutableSeq<LocalVar> vars,
     @NotNull ImmutableSeq<LhsResult> lhsResults
   ) {
-    return lhsResults.map(x -> checkRhs(vars, x));
+    var lhsError = lhsResults.anyMatch(LhsResult::hasError);
+    var rhsResult = lhsResults.map(x -> checkRhs(vars, x));
+
+    // inline terms in rhsResult
+    rhsResult = rhsResult.map(x -> new Pat.Preclause<>(
+      x.sourcePos(),
+      x.pats().map(p -> p.descent(UnaryOperator.identity(), this::freezeHoles)),
+      x.expr() == null ? null : x.expr().descent((_, t) -> freezeHoles(t))
+    ));
+
+    return new TyckResult(
+      rhsResult,
+      rhsResult.mapNotNull(Pat.Preclause::lift),
+      lhsError
+    );
   }
 
   @Override public @NotNull Reporter reporter() { return exprTycker.reporter; }
-
+  @Override public @NotNull TyckState state() { return exprTycker.state; }
   private @NotNull PatternTycker newPatternTycker(@NotNull SeqView<Param> telescope) {
     return new PatternTycker(exprTycker, telescope, new LocalSubstitution());
   }

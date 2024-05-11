@@ -199,8 +199,7 @@ public sealed interface Term extends Serializable, AyaDocile
     @NotNull ImmutableSeq<Pat> patterns,
     @NotNull Term body
   ) implements AyaDocile {
-    @Override
-    public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+    @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
       return Pat.Preclause.weaken(this).toDoc(options);
     }
 
