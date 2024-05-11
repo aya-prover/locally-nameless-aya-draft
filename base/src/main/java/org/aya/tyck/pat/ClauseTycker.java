@@ -107,8 +107,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
           // the localCtx will be restored after exiting [subscoped]
           exprTycker.setLocalCtx(result.localCtx);
           // subst param and as
-          var allSubst = MutableMap.from(teleBinds
-            .zip(result.paramSubst, Tuple::of));
+          var allSubst = MutableMap.from(teleBinds.zipView(result.paramSubst));
           // there is no intersection
           allSubst.putAll(result.asSubst);
 
