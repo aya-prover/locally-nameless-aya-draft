@@ -10,7 +10,6 @@ import kala.collection.mutable.MutableMap;
 import kala.control.Result;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
-import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.ConDef;
@@ -105,14 +104,11 @@ public class PatternTycker implements Problematic {
       case Pattern.Tuple tuple -> {
         if (!(exprTycker.whnf(type) instanceof SigmaTerm sigma))
           yield withError(new PatternProblem.TupleNonSig(pattern.replace(tuple), type), type);
-        yield new Pat.Tuple(
-          tyckInner(
-            generateNames(sigma.params()),
-            // TODO: use Synthesizer
-            new SortTerm(SortKind.Type, 0),
-            tuple.patterns().view().map(Arg::ofExplicitly),
-            pattern
-          ).wellTyped());
+        yield new Pat.Tuple(tyckInner(
+          generateNames(sigma.params()),
+          tuple.patterns().view().map(Arg::ofExplicitly),
+          pattern
+        ));
       }
       case Pattern.Con con -> {
         var var = con.resolved().data();
@@ -124,10 +120,9 @@ public class PatternTycker implements Problematic {
         // It is possible that `con.params()` is empty.
         var patterns = tyckInner(
           conCore.selfTele.view(),
-          realCon.data,
           con.params().view(),
           pattern
-        ).wellTyped;
+        );
 
         // check if this Con is a ShapedCon
         // var typeRecog = exprTycker.shapeFacony.find(conRef.core.dataRef.core).getOrNull();
@@ -182,9 +177,7 @@ public class PatternTycker implements Problematic {
     };
   }
 
-  private void moveNext() {
-    currentParam = telescope.getFirstOrNull();
-  }
+  private void moveNext() { currentParam = telescope.getFirstOrNull(); }
 
   /**
    * Find the next param against to {@param pattern}
@@ -349,18 +342,16 @@ public class PatternTycker implements Problematic {
     });
   }
 
-  private @NotNull TyckResult tyckInner(
+  private @NotNull ImmutableSeq<Pat> tyckInner(
     @NotNull SeqView<Param> telescope,
-    @NotNull Term result,
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @NotNull WithPos<Pattern> outerPattern
   ) {
-    var sub = new PatternTycker(exprTycker, telescope, result, asSubst);
+    var sub = new PatternTycker(exprTycker, telescope, SortTerm.Type0, asSubst);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 
     hasError = hasError || sub.hasError;
-
-    return tyckResult;
+    return tyckResult.wellTyped;
   }
 
   private void addArgSubst(@NotNull Pat pattern) {
@@ -468,9 +459,7 @@ public class PatternTycker implements Problematic {
 
   /// region Error Reporting
 
-  @Override public @NotNull Reporter reporter() {
-    return exprTycker.reporter;
-  }
+  @Override public @NotNull Reporter reporter() { return exprTycker.reporter; }
 
   private @NotNull Pat withError(Problem problem, Term param) {
     foundError(problem);
