@@ -16,6 +16,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.BindBlock;
+import org.aya.syntax.concrete.stmt.Generalize;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
@@ -321,6 +322,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
   public @NotNull Doc stmt(@NotNull Stmt prestmt) {
     return switch (prestmt) {
       case Decl decl -> decl(decl);
+      case Generalize variables -> Doc.sep(Doc.styled(KEYWORD, "variables"), visitTele(variables.toExpr()));
       /*
       case Command.Import cmd -> {
         var prelude = MutableList.of(Doc.styled(KEYWORD, "import"), Doc.symbol(cmd.path().toString()));
@@ -330,7 +332,6 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         }
         yield Doc.sep(prelude);
       }
-      case Generalize variables -> Doc.sep(Doc.styled(KEYWORD, "variables"), visitTele(variables.toExpr()));
       case Command.Open cmd -> Doc.sepNonEmpty(
         visitAccess(cmd.accessibility(), Stmt.Accessibility.Private),
         Doc.styled(KEYWORD, "open"),

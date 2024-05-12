@@ -271,8 +271,11 @@ public abstract class BasePrettier<Term extends AyaDocile> {
    */
   public static @NotNull Doc varDoc(@NotNull AnyVar ref) {
     if (ref == LocalVar.IGNORED) return Doc.plain("_");
-    if (ref instanceof LocalVar) return linkRef(ref, LOCAL_VAR);
-    return Doc.linkDef(Doc.plain(ref.name()), linkIdOf(ref));
+    return switch (ref) {
+      case LocalVar _ -> linkRef(ref, LOCAL_VAR);
+      case GeneralizedVar _ -> linkRef(ref, GENERALIZED);
+      default -> Doc.linkRef(Doc.plain(ref.name()), linkIdOf(ref));
+    };
   }
 
   static @NotNull Doc coe(boolean coerce) {

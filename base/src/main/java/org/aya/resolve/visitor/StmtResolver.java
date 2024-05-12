@@ -12,9 +12,7 @@ import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
-import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
@@ -38,13 +36,12 @@ public interface StmtResolver {
       case ResolvingStmt.ResolvingDecl decl -> resolveDecl(decl, info);
       // case Command.Module mod -> resolveStmt(mod.contents(), info);
       // case Command cmd -> {}
-      // case Generalize variables -> {
-      //   assert variables.ctx != null;
-      //   var resolver = new ExprResolver(variables.ctx, ExprResolver.RESTRICTIVE);
-      //   resolver.enterBody();
-      //   variables.type = resolver.apply(variables.type);
-      //   addReferences(info, new TyckOrder.Body(variables), resolver);
-      // }
+      case ResolvingStmt.GenStmt(var variables) -> {
+        var resolver = new ExprResolver(info.thisModule(), ExprResolver.RESTRICTIVE);
+        resolver.enterBody();
+        variables.descentInPlace(resolver, (_, p) -> p);
+        addReferences(info, new TyckOrder.Body(variables), resolver);
+      }
     }
   }
 
@@ -159,10 +156,9 @@ public interface StmtResolver {
   }
 
   private static <RetTy extends Term> void insertGeneralizedVars(
-    @NotNull TeleDecl<RetTy> decl,
-    @NotNull ExprResolver resolver
+    @NotNull TeleDecl<RetTy> decl, @NotNull ExprResolver resolver
   ) {
-    // decl.telescope = decl.telescope.prependedAll(resolver.allowedGeneralizes().valuesView());
+    decl.telescope = decl.telescope.prependedAll(resolver.allowedGeneralizes().valuesView());
   }
 
   @Contract("_, _ -> fail")

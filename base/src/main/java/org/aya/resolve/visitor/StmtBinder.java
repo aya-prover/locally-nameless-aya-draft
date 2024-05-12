@@ -10,6 +10,7 @@ import org.aya.resolve.error.NameProblem;
 import org.aya.resolve.error.OperatorError;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.BindBlock;
+import org.aya.syntax.concrete.stmt.Generalize;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.ref.DefVar;
@@ -73,6 +74,7 @@ public interface StmtBinder {
       case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, _) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
       case ResolvingStmt.TopDecl(TeleDecl.PrimDecl _, _) -> { }
       case ResolvingStmt.TopDecl _ -> Panic.unreachable();
+      case ResolvingStmt.GenStmt _ -> {}
       case ResolvingStmt.MiscDecl(TeleDecl.DataCon ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
       case ResolvingStmt.MiscDecl _ -> Panic.unreachable();
       // case TeleDecl.ClassMember field -> visitBind(field.ref, field.bindBlock(), info);
@@ -82,7 +84,6 @@ public interface StmtBinder {
       //   visitBind(decl.ref, decl.bindBlock(), info);
       // }
       // case Command cmd -> {}
-      // case Generalize generalize -> {}
     }
   }
 }

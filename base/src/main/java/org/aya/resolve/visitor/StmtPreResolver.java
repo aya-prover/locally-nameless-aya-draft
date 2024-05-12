@@ -9,6 +9,7 @@ import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.PhysicalModuleContext;
 import org.aya.resolve.error.PrimResolveError;
+import org.aya.syntax.concrete.stmt.Generalize;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
@@ -85,11 +86,11 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
       //     resolveInfo.renameOp(symbol.get(), renamedOpDecl, bind, true);
       //   });
       // }
-      // case Generalize variables -> {
-      //   variables.ctx = context;
-      //   for (var variable : variables.variables)
-      //     context.defineSymbol(variable, Stmt.Accessibility.Private, variable.sourcePos);
-      // }
+      case Generalize variables -> {
+        for (var variable : variables.variables)
+          context.defineSymbol(variable, Stmt.Accessibility.Private, variable.sourcePos);
+        yield new ResolvingStmt.GenStmt(variables);
+      }
     };
   }
 

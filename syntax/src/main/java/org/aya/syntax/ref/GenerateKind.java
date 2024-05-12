@@ -2,8 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.ref;
 
-// import org.aya.concrete.stmt.GeneralizedVar;
-
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface GenerateKind {
@@ -19,9 +17,6 @@ public sealed interface GenerateKind {
     Tyck,
   }
 
-  // record Generalized(@NotNull GeneralizedVar origin) implements GenerateKind {
-  // }
-
-  record Renamed(@NotNull LocalVar origin) implements GenerateKind {
-  }
+  record Generalized(@NotNull GeneralizedVar origin) implements GenerateKind { }
+  record Renamed(@NotNull LocalVar origin) implements GenerateKind { }
 }

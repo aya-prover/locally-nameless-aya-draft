@@ -3,16 +3,20 @@
 package org.aya.resolve.visitor;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableList;
+import kala.collection.mutable.MutableMap;
 import kala.collection.mutable.MutableStack;
 import kala.value.MutableValue;
 import org.aya.generic.TyckOrder;
 import org.aya.generic.TyckUnit;
 import org.aya.resolve.context.Context;
+import org.aya.resolve.error.GeneralizedNotAvailableError;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.GeneralizedVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.Panic;
@@ -36,14 +40,14 @@ import java.util.function.Consumer;
 public record ExprResolver(
   @NotNull Context ctx,
   @NotNull Options options,
-  // @NotNull MutableMap<GeneralizedVar, Expr.Param> allowedGeneralizes,
+  @NotNull MutableMap<GeneralizedVar, Expr.Param> allowedGeneralizes,
   @NotNull MutableList<TyckOrder> reference,
   @NotNull MutableStack<Where> where,
   @Nullable Consumer<TyckUnit> parentAdd
 ) implements PosedUnaryOperator<Expr> {
 
   public ExprResolver(@NotNull Context ctx, @NotNull Options options) {
-    this(ctx, options, /*MutableLinkedHashMap.of(), */ MutableList.create(), MutableStack.create(), null);
+    this(ctx, options, MutableLinkedHashMap.of(), MutableList.create(), MutableStack.create(), null);
   }
 
   public static final @NotNull Options RESTRICTIVE = new Options(false);
@@ -64,12 +68,12 @@ public record ExprResolver(
   }
 
   public @NotNull ExprResolver enter(Context ctx) {
-    return ctx == ctx() ? this : new ExprResolver(ctx, options, /*allowedGeneralizes, */ reference, where, parentAdd);
+    return ctx == ctx() ? this : new ExprResolver(ctx, options, allowedGeneralizes, reference, where, parentAdd);
   }
 
   public @NotNull ExprResolver member(@NotNull TyckUnit decl, Where initial) {
     var resolver = new ExprResolver(ctx, RESTRICTIVE,
-//          allowedGeneralizes,
+      allowedGeneralizes,
       MutableList.of(new TyckOrder.Head(decl)),
       MutableStack.create(),
       this::addReference
@@ -86,8 +90,8 @@ public record ExprResolver(
     enterBody();
 
     var resolver = new ExprResolver(ctx, RESTRICTIVE,
-      // TODO[hoshino]: we needn't copy {allowedGeneralizes} cause this resolver is RESTRICTIVE
-//            MutableMap.from(allowedGeneralizes),
+      // Hoshino: we needn't copy {allowedGeneralizes} cause this resolver is RESTRICTIVE
+      allowedGeneralizes,
       MutableList.create(),
       MutableStack.create(),
       this::addReference);
@@ -155,20 +159,20 @@ public record ExprResolver(
         right -> right.descent(this)
       ));
       case Expr.Unresolved(var name) -> switch (ctx.get(name)) {
-        // case GeneralizedVar generalized -> {
-        //   if (!allowedGeneralizes.containsKey(generalized)) {
-        //     if (options.allowIntroduceGeneralized) {
-        //       // Ordered set semantics. Do not expect too many generalized vars.
-        //       var owner = generalized.owner;
-        //       assert owner != null : "Sanity check";
-        //       allowedGeneralizes.put(generalized, owner.toExpr(false, generalized.toLocal()));
-        //       addReference(owner);
-        //     } else {
-        //       ctx.reportAndThrow(new GeneralizedNotAvailableError(pos, generalized));
-        //     }
-        //   }
-        //   yield new Expr.Ref(pos, allowedGeneralizes.get(generalized).ref());
-        // }
+        case GeneralizedVar generalized -> {
+          if (!allowedGeneralizes.containsKey(generalized)) {
+            if (options.allowIntroduceGeneralized) {
+              // Ordered set semantics. Do not expect too many generalized vars.
+              var owner = generalized.owner;
+              assert owner != null : "Sanity check";
+              allowedGeneralizes.put(generalized, owner.toExpr(false, generalized.toLocal()));
+              addReference(owner);
+            } else {
+              ctx.reportAndThrow(new GeneralizedNotAvailableError(pos, generalized));
+            }
+          }
+          yield new Expr.Ref(allowedGeneralizes.get(generalized).ref());
+        }
         case DefVar<?, ?> def -> {
           // RefExpr is referring to a serialized core which is already tycked.
           // Collecting tyck order for tycked terms is unnecessary, just skip.
@@ -260,11 +264,6 @@ public record ExprResolver(
     });
   }
 
-  public enum Where {
-    Head,
-    Body
-  }
-
-  public record Options(boolean allowIntroduceGeneralized) {
-  }
+  public enum Where { Head, Body }
+  public record Options(boolean allowIntroduceGeneralized) { }
 }

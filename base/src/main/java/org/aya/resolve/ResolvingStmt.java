@@ -3,6 +3,7 @@
 package org.aya.resolve;
 
 import org.aya.resolve.context.Context;
+import org.aya.syntax.concrete.stmt.Generalize;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -40,10 +41,7 @@ public sealed interface ResolvingStmt {
     @Override @NotNull Decl stmt();
   }
 
-  sealed interface ResolvingTeleDecl extends ResolvingDecl {
-    @Override @NotNull TeleDecl<?> stmt();
-  }
-
-  record TopDecl(@Override @NotNull TeleDecl<?> stmt, @NotNull Context innerCtx) implements ResolvingTeleDecl { }
+  record TopDecl(@Override @NotNull TeleDecl<?> stmt, @NotNull Context innerCtx) implements ResolvingDecl { }
   record MiscDecl(@Override @NotNull Decl stmt) implements ResolvingDecl { }
+  record GenStmt(@Override @NotNull Generalize stmt) implements ResolvingStmt { }
 }
