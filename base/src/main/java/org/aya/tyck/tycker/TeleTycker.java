@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableSeq;
@@ -93,7 +94,7 @@ public sealed interface TeleTycker extends Contextful {
 
   @Contract(mutates = "param3")
   static void loadTele(
-    @NotNull ImmutableSeq<LocalVar> binds,
+    @NotNull SeqView<LocalVar> binds,
     @NotNull Signature<?> signature,
     @NotNull ExprTycker tycker) {
     assert binds.sizeEquals(signature.param());

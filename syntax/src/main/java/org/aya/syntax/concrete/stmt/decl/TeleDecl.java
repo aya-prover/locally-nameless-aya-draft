@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.concrete.stmt.decl;
 
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.generic.Modifier;
@@ -62,6 +63,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
 
   @Contract(pure = true) public abstract @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<RetTy>> ref();
   @Override public @NotNull DeclInfo info() { return info; }
+  public SeqView<LocalVar> teleVars() { return telescope.view().map(Expr.Param::ref); }
 
   /**
    * @implNote {@link TeleDecl#signature} is always null.

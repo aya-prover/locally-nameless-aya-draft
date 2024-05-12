@@ -4,6 +4,7 @@ package org.aya.tyck;
 
 import kala.control.Either;
 import org.aya.generic.Modifier;
+import org.aya.normalize.PrimFactory;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -29,11 +30,14 @@ import java.util.Objects;
 
 import static org.aya.tyck.tycker.TeleTycker.loadTele;
 
-public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
-  public @NotNull Def check(Decl predecl, ExprTycker tycker) {
+public record StmtTycker(@NotNull Reporter reporter, @NotNull PrimFactory primFactory) implements Problematic {
+  private @NotNull ExprTycker mkTycker() {
+    return new ExprTycker(new TyckState(primFactory), new LocalCtx(), new LocalSubstitution(), reporter);
+  }
+  public @NotNull Def check(Decl predecl) {
+    ExprTycker tycker = null;
     if (predecl instanceof TeleDecl<?> decl) {
-      if (decl.signature != null) loadTele(decl.telescope.map(Expr.Param::ref), decl.signature, tycker);
-      else checkHeader(decl, tycker);
+      if (decl.signature == null) checkHeader(decl, tycker = mkTycker());
     }
 
     return switch (predecl) {
@@ -49,21 +53,21 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
 
         yield switch (fnDecl.body) {
           case TeleDecl.ExprBody(var expr) -> {
+            if (tycker == null) {
+              tycker = mkTycker();
+              loadTele(fnDecl.teleVars(), fnDecl.signature, tycker);
+            }
             var result = tycker.inherit(expr, signature.result().instantiateTeleVar(teleVars.view()));
             var wellBody = result.wellTyped();
             var wellTy = result.type();
-            // TODO: wellTy may contains meta, zonk them!
-            wellBody = wellBody.bindTele(teleVars.view());
+            wellBody = tycker.freezeHoles(wellBody.bindTele(teleVars.view()));
             // we still need to bind [wellTy] in case it was a hole
-            wellTy = wellTy.bindTele(teleVars.view());
+            wellTy = tycker.freezeHoles(wellTy.bindTele(teleVars.view()));
             yield factory.apply(wellTy, Either.left(wellBody));
           }
           case TeleDecl.BlockBody(var clauses, var elims) -> {
             // we do not load signature here, so we need a fresh ExprTycker
-            var clauseTycker = new ClauseTycker(
-              // TODO: tyck state
-              new ExprTycker(null, new LocalCtx(), new LocalSubstitution(), reporter)
-            );
+            var clauseTycker = new ClauseTycker(tycker = mkTycker());
 
             var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
             if (orderIndependent) {
@@ -75,23 +79,29 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
           }
         };
       }
-      case TeleDecl.DataCon dataCon -> Objects.requireNonNull(dataCon.ref.core);   // see checkHeader
-      case TeleDecl.DataDecl dataDecl -> {
-        var sig = dataDecl.signature;
+      case TeleDecl.DataCon con -> Objects.requireNonNull(con.ref.core);   // see checkHeader
+      case TeleDecl.PrimDecl prim -> Objects.requireNonNull(prim.ref.core);
+      case TeleDecl.DataDecl data -> {
+        var sig = data.signature;
         assert sig != null;
-        var kitsuneTachi = dataDecl.body.map(kon -> (ConDef) check(kon, tycker));
-        yield new DataDef(dataDecl.ref, sig.param().map(WithPos::data), sig.result(), kitsuneTachi);
+        if (tycker == null) {
+          tycker = mkTycker();
+          loadTele(data.teleVars(), sig, tycker);
+        }
+        for (var kon : data.body) checkHeader(kon, tycker);
+        yield new DataDef(data.ref, sig.param().map(WithPos::data), sig.result(),
+          data.body.map(kon -> kon.ref.core));
       }
-      case TeleDecl.PrimDecl primDecl -> throw new UnsupportedOperationException("TODO");
     };
   }
 
-  private void checkHeader(TeleDecl<?> decl, ExprTycker tycker) {
-    var teleTycker = new TeleTycker.Default(tycker);
+  private void checkHeader(@NotNull TeleDecl<?> decl, @NotNull ExprTycker tycker) {
 
     switch (decl) {
       case TeleDecl.DataCon con -> checkKitsune(con, tycker);
+      case TeleDecl.PrimDecl prim -> checkPrim(tycker, prim);
       case TeleDecl.DataDecl data -> {
+        var teleTycker = new TeleTycker.Default(tycker);
         var result = data.result;
         if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
         var signature = teleTycker.checkSignature(data.telescope, result);
@@ -101,35 +111,10 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
         data.signature = new Signature<>(signature.param(), sort);
       }
       case TeleDecl.FnDecl fn -> {
+        var teleTycker = new TeleTycker.Default(tycker);
         var result = fn.result;
         if (result == null) result = new WithPos<>(fn.sourcePos(), new Expr.Hole(false, null));
         fn.signature = teleTycker.checkSignature(fn.telescope, result);
-      }
-      case TeleDecl.PrimDecl prim -> {
-        // This directly corresponds to the tycker.localCtx = new LocalCtx();
-        //  at the end of this case clause.
-        assert tycker.localCtx().isEmpty();
-        var core = prim.ref.core;
-        if (prim.telescope.isEmpty() && prim.result == null) {
-          var pos = decl.sourcePos();
-          prim.signature = new Signature<>(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
-          return;
-        }
-        if (prim.telescope.isNotEmpty()) {
-          if (prim.result == null) {
-            fail(new PrimError.NoResultType(prim));
-            return;
-          }
-        }
-        assert prim.result != null;
-        var tele = teleTycker.checkSignature(prim.telescope, prim.result);
-        tycker.unifyTyReported(
-          PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
-          PiTerm.make(core.telescope.view().map(Param::type), core.result),
-          prim.result);
-        prim.signature = tele;
-        tycker.solveMetas();
-        assert tycker.localCtx().isEmpty() : "If this fails, replace it with tycker.setLocalCtx(new LocalCtx());";
       }
     }
   }
@@ -180,5 +165,33 @@ public record StmtTycker(@NotNull Reporter reporter) implements Problematic {
       halfSig.param().map(WithPos::data),
       dataResult, false);
     ref.core = konCore;
+  }
+
+  private void checkPrim(@NotNull ExprTycker tycker, TeleDecl.PrimDecl prim) {
+    var teleTycker = new TeleTycker.Default(tycker);
+    // This directly corresponds to the tycker.localCtx = new LocalCtx();
+    //  at the end of this case clause.
+    assert tycker.localCtx().isEmpty();
+    var core = prim.ref.core;
+    if (prim.telescope.isEmpty() && prim.result == null) {
+      var pos = prim.sourcePos();
+      prim.signature = new Signature<>(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
+      return;
+    }
+    if (prim.telescope.isNotEmpty()) {
+      if (prim.result == null) {
+        fail(new PrimError.NoResultType(prim));
+        return;
+      }
+    }
+    assert prim.result != null;
+    var tele = teleTycker.checkSignature(prim.telescope, prim.result);
+    tycker.unifyTyReported(
+      PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
+      PiTerm.make(core.telescope.view().map(Param::type), core.result),
+      prim.result);
+    prim.signature = tele;
+    tycker.solveMetas();
+    assert tycker.localCtx().isEmpty() : "If this fails, replace it with tycker.setLocalCtx(new LocalCtx());";
   }
 }
