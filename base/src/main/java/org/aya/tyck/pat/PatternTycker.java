@@ -288,19 +288,34 @@ public class PatternTycker implements Problematic, Stateful {
       moveNext();
     }
 
+    // Hwhile : currentParam == null || patterns.isEmpty()
     // [currentParam] is the next unchecked parameter if not null (by loop invariant)
+
+    boolean needGenPat = true;
 
     if (body != null) {
       var result = pushTelescope(body);
       wellTyped.appendAll(result.wellTyped);
       body = result.newBody;
+      needGenPat = result.wellTyped.isEmpty();
+    }
+
+    if (needGenPat) {
+      // the telescope may ends with implicit parameters
+      // loop invariant: [currentParam] is the next unchecked parameter if not null
+      while (currentParam != null && !currentParam.explicit()) {
+        wellTyped.append(generatePattern());
+        // [currentParam] is checked!
+        moveNext();
+        // [currentParam] is unchecked if not null.
+      }
     }
 
     // [currentParam] is the next unchecked parameter if not null
 
     if (currentParam != null) {
       // too few patterns !
-      // the body does not have pattern, too sad
+      // the body does not have (enough) pattern, too sad
       WithPos<Pattern> errorPattern = lastPat == null
         ? Objects.requireNonNull(outerPattern)
         : lastPat.term();
