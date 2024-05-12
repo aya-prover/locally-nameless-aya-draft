@@ -4,10 +4,8 @@ package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.immutable.primitive.ImmutableIntSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
-import kala.range.primitive.IntRange;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
@@ -50,9 +48,7 @@ import java.util.function.Supplier;
  */
 public class PatternTycker implements Problematic, Stateful {
   private final @NotNull ExprTycker exprTycker;
-
-  private final ImmutableIntSeq indices;
-
+  private final boolean allowImplicit;
   /**
    * A bound telescope (i.e. all the reference to the former parameter are LocalTerm)
    */
@@ -69,21 +65,24 @@ public class PatternTycker implements Problematic, Stateful {
   private @UnknownNullability Param currentParam = null;
   private boolean hasError = false;
 
+  /**
+   * @see #tyckInner(SeqView, SeqView, WithPos)
+   */
   public PatternTycker(@NotNull ExprTycker tycker, @NotNull SeqView<Param> tele, @NotNull LocalSubstitution sub) {
-    this(tycker, IntRange.closedOpen(0, tele.size()).collect(ImmutableIntSeq.factory()), tele, sub);
+    this(tycker, tele, sub, true);
   }
 
   public PatternTycker(
     @NotNull ExprTycker exprTycker,
-    @NotNull ImmutableIntSeq indices,
     @NotNull SeqView<Param> telescope,
-    @NotNull LocalSubstitution asSubst
+    @NotNull LocalSubstitution asSubst,
+    boolean allowImplicit
   ) {
     this.exprTycker = exprTycker;
-    this.indices = indices;
     this.telescope = telescope;
     this.paramSubst = MutableList.create();
     this.asSubst = asSubst;
+    this.allowImplicit = allowImplicit;
   }
 
   public record TyckResult(
@@ -272,6 +271,11 @@ public class PatternTycker implements Problematic, Stateful {
       var currentPat = patterns.getFirst();
       patterns = patterns.drop(1);
       lastPat = currentPat;
+
+      if (!(currentPat.explicit() || allowImplicit)) {
+        // TODO: implicit disallowed
+        throw new UnsupportedOperationException("TODO");
+      }
 
       // find the next appropriate parameter
       var generated = nextParam(currentPat);

@@ -5,7 +5,6 @@ package org.aya.tyck.pat;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
-import kala.range.primitive.IntRange;
 import kala.tuple.Tuple2;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
@@ -28,6 +27,7 @@ import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.UnaryOperator;
 
@@ -54,13 +54,12 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims
   ) {
     var indices = elims.map(i -> vars.indexOf(i.data())).collect(ImmutableIntSeq.factory());
-    if (indices.isEmpty()) indices = IntRange.closedOpen(0, vars.size()).collect(ImmutableIntSeq.factory());
-    var lhsResult = checkAllLhs(indices, signature, clauses.view());
+    var lhsResult = checkAllLhs(indices.isEmpty() ? null : indices, signature, clauses.view());
     return checkAllRhs(vars, lhsResult);
   }
 
   public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
-    @NotNull ImmutableIntSeq indices,
+    @Nullable ImmutableIntSeq indices,
     @NotNull Signature<?> signature,
     @NotNull SeqView<Pattern.Clause> clauses
   ) {
@@ -91,15 +90,19 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   @Override public @NotNull Reporter reporter() { return exprTycker.reporter; }
   @Override public @NotNull TyckState state() { return exprTycker.state; }
   private @NotNull PatternTycker newPatternTycker(
-    @NotNull ImmutableIntSeq indices,
+    @Nullable ImmutableIntSeq indices,
     @NotNull SeqView<Param> telescope
   ) {
-    return new PatternTycker(exprTycker, indices, telescope, new LocalSubstitution());
+    telescope = indices != null
+      ? telescope.mapIndexed((idx, p) -> indices.contains(idx) ? p.explicitize() : p.implicitize())
+      : telescope;
+
+    return new PatternTycker(exprTycker, telescope, new LocalSubstitution(), indices == null);
   }
 
   private @NotNull LhsResult checkLhs(
     @NotNull Signature<? extends Term> signature,
-    @NotNull ImmutableIntSeq indices,
+    @Nullable ImmutableIntSeq indices,
     @NotNull Pattern.Clause clause
   ) {
     var tycker = newPatternTycker(indices, signature.rawParams().view());
@@ -128,7 +131,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   /**
    * Tyck the rhs of some clause.
    *
-   * @param result    the tyck result of the corresponding patterns
+   * @param result the tyck result of the corresponding patterns
    */
   private @NotNull Pat.Preclause<Term> checkRhs(
     @NotNull ImmutableSeq<LocalVar> teleBinds,

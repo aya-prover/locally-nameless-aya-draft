@@ -33,6 +33,10 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
     return new Param(name, type, false);
   }
 
+  public @NotNull Param explicitize() {
+    return new Param(name, type, true);
+  }
+
   public @NotNull Param bindAt(LocalVar ref, int i) {
     return this.descent(t -> t.bindAt(ref, i));
   }
