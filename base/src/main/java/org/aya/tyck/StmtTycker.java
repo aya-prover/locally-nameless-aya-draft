@@ -47,7 +47,7 @@ public record StmtTycker(@NotNull Reporter reporter, @NotNull PrimFactory primFa
 
         var factory = FnDef.factory((retTy, body) ->
           new FnDef(fnDecl.ref,
-            signature.param().map(WithPos::data),
+            signature.rawParams(),
             retTy, fnDecl.modifiers, body));
         var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
@@ -89,14 +89,13 @@ public record StmtTycker(@NotNull Reporter reporter, @NotNull PrimFactory primFa
           loadTele(data.teleVars(), sig, tycker);
         }
         for (var kon : data.body) checkHeader(kon, tycker);
-        yield new DataDef(data.ref, sig.param().map(WithPos::data), sig.result(),
+        yield new DataDef(data.ref, sig.rawParams(), sig.result(),
           data.body.map(kon -> kon.ref.core));
       }
     };
   }
 
   private void checkHeader(@NotNull TeleDecl<?> decl, @NotNull ExprTycker tycker) {
-
     switch (decl) {
       case TeleDecl.DataCon con -> checkKitsune(con, tycker);
       case TeleDecl.PrimDecl prim -> checkPrim(tycker, prim);
@@ -162,7 +161,7 @@ public record StmtTycker(@NotNull Reporter reporter, @NotNull PrimFactory primFa
     // TODO: handle ownerTele and coerce
     var konCore = new ConDef(dataRef, ref,
       ownerTele.map(WithPos::data),
-      halfSig.param().map(WithPos::data),
+      halfSig.rawParams(),
       dataResult, false);
     ref.core = konCore;
   }

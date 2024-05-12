@@ -25,6 +25,7 @@ public record Signature<T extends Term>(
   @NotNull ImmutableSeq<WithPos<Param>> param,
   @NotNull T result
 ) implements AyaDocile {
+  public @NotNull ImmutableSeq<Param> rawParams() { return param.map(WithPos::data); }
   public @NotNull Signature<?> bindAt(@NotNull LocalVar var, int index) {
     var boundParam = param.mapIndexed((i, p) ->
       p.replace(p.data().descent(t -> t.bindAt(var, index + i))));

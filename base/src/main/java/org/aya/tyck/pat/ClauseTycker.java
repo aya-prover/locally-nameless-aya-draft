@@ -102,7 +102,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableIntSeq indices,
     @NotNull Pattern.Clause clause
   ) {
-    var tycker = newPatternTycker(indices, signature.param().view().map(WithPos::data));
+    var tycker = newPatternTycker(indices, signature.rawParams().view());
     return exprTycker.subscoped(() -> {
       // TODO: need some prework, see old project
 
