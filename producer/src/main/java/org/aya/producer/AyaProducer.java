@@ -25,13 +25,11 @@ import org.aya.parser.AyaPsiParser;
 import org.aya.parser.AyaPsiTokenType;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.concrete.stmt.BindBlock;
-import org.aya.syntax.concrete.stmt.QualifiedID;
-import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.concrete.stmt.UseHide;
+import org.aya.syntax.concrete.stmt.*;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.DeclInfo;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.ref.GeneralizedVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.Arg;
@@ -100,18 +98,18 @@ public record AyaProducer(
       if (result != null) stmts.prepend(result);
       return stmts.toImmutableSeq();
     }
-    // if (node.is(GENERALIZE)) return ImmutableSeq.of(generalize(node));
+    if (node.is(GENERALIZE)) return ImmutableSeq.of(generalize(node));
     return unreachable(node);
   }
 
-  // public @NotNull Generalize generalize(@NotNull GenericNode<?> node) {
-  //   return new Generalize(sourcePosOf(node),
-  //     node.childrenOfType(GENERALIZE_PARAM_NAME)
-  //       .map(this::generalizeParamName)
-  //       .map(id -> new GeneralizedVar(id.data(), id.sourcePos()))
-  //       .toImmutableSeq(),
-  //     type(node.child(TYPE)));
-  // }
+  public @NotNull Generalize generalize(@NotNull GenericNode<?> node) {
+    return new Generalize(sourcePosOf(node),
+      node.childrenOfType(GENERALIZE_PARAM_NAME)
+        .map(this::generalizeParamName)
+        .map(id -> new GeneralizedVar(id.data(), id.sourcePos()))
+        .toImmutableSeq(),
+      type(node.child(TYPE)));
+  }
 
   // public @NotNull Command.Import importCmd(@NotNull GenericNode<?> node) {
   //   var acc = node.peekChild(KW_PUBLIC);
