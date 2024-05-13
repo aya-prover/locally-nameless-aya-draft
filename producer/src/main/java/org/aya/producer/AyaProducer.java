@@ -286,7 +286,7 @@ public record AyaProducer(
 
     var fnMods = info.modifier().toFnModifiers();
     var tele = telescope(node.childrenOfType(TELE));
-    var dynamite = fnBody(tele.map(p -> p.ref()), fnBodyNode);
+    var dynamite = fnBody(tele.map(Expr.Param::ref), fnBodyNode);
     if (dynamite == null) return null;
     var inline = info.modifier.misc(ModifierParser.Modifier.Inline);
     var overlap = info.modifier.misc(ModifierParser.Modifier.Overlap);

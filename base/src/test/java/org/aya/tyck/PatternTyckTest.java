@@ -18,4 +18,14 @@ public class PatternTyckTest {
       """;
     var result = tyck(code);
   }
+
+  @Test
+  public void elim0() {
+    var result = tyck("""
+      data Nat | O | S Nat
+      def lind (a b : Nat) : Nat elim a
+      | Nat::O => b
+      | Nat::S a' => Nat::S (lind a' b)
+      """);
+  }
 }

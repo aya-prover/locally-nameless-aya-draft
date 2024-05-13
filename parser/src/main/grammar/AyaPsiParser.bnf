@@ -206,12 +206,12 @@ loosers ::= KW_LOOSER qualifiedId+
 
 fnDecl ::= declModifiers*
  KW_DEF declNameOrInfix
- tele* type? elims? fnBody bindBlock? { pin=2 }
-private elims ::= KW_ELIM weakId+ { pin=1 }
-
+ tele* type? fnBody bindBlock? { pin=2 }
 private simpleBody ::= IMPLIES expr { pin=1 }
 fnBody ::= simpleBody
-         | barredClause*
+         | elims? barredClause*
+
+private elims ::= KW_ELIM weakId+ { pin=1 }
 
 // turn the keyword into a psi node, so quick fix can easily delete it
 // see: BadCounterexampleInspection
