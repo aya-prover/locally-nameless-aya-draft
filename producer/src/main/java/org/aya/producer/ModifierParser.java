@@ -6,6 +6,7 @@ import com.intellij.psi.tree.IElementType;
 import kala.collection.Seq;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -35,7 +36,7 @@ public record ModifierParser(@NotNull Reporter reporter) {
     Alpha
   }
 
-  public enum Modifier {
+  public enum CModifier {
     // Common Modifiers
     Private(KW_PRIVATE, Accessibility, "private"),
 
@@ -54,11 +55,11 @@ public record ModifierParser(@NotNull Reporter reporter) {
     /**
      * {@code implies} will/should expand only once
      */
-    public final @NotNull Modifier[] implies;
+    public final @NotNull CModifier[] implies;
 
-    Modifier(
+    CModifier(
       @NotNull IElementType type, @NotNull ModifierGroup group,
-      @NotNull String keyword, @NotNull Modifier @NotNull ... implies
+      @NotNull String keyword, @NotNull CModifier @NotNull ... implies
     ) {
       this.type = type;
       this.group = group;
@@ -74,19 +75,19 @@ public record ModifierParser(@NotNull Reporter reporter) {
    */
   public record Filter(
     @NotNull Modifiers defaultMods,
-    @NotNull Predicate<Modifier> available
+    @NotNull Predicate<CModifier> available
   ) {
-    public @NotNull Filter and(@NotNull Predicate<Modifier> and) {
+    public @NotNull Filter and(@NotNull Predicate<CModifier> and) {
       return new Filter(defaultMods, available.and(and));
     }
 
     /**
-     * @param defaultAcc Default {@link org.aya.syntax.concrete.stmt.Stmt.Accessibility}
+     * @param defaultAcc Default {@link Stmt.Accessibility}
      * @param miscAvail  Available miscellaneous modifiers, see {@link DefaultModifiers#miscAvail}
      */
     public static @NotNull Filter create(
       @NotNull WithPos<Stmt.Accessibility> defaultAcc,
-      @NotNull EnumSet<Modifier> miscAvail
+      @NotNull EnumSet<CModifier> miscAvail
     ) {
       return new Filter(new DefaultModifiers(defaultAcc, miscAvail), mod -> switch (mod) {
         case Private -> true;
@@ -101,9 +102,9 @@ public record ModifierParser(@NotNull Reporter reporter) {
    */
   record DefaultModifiers(
     @NotNull WithPos<Stmt.Accessibility> accessibility,
-    @NotNull EnumSet<Modifier> miscAvail
+    @NotNull EnumSet<CModifier> miscAvail
   ) implements Modifiers {
-    @Override public @Nullable SourcePos misc(@NotNull Modifier key) {
+    @Override public @Nullable SourcePos misc(@NotNull ModifierParser.CModifier key) {
       // Do not throw anything here, even the modifier is not available.
       return null; // always not present, because miscAvail only says availability, not presence.
     }
@@ -112,54 +113,54 @@ public record ModifierParser(@NotNull Reporter reporter) {
   /** Only "open" is available to (data/struct) decls */
   public static final Filter DECL_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    EnumSet.of(Modifier.Open)
+    EnumSet.of(CModifier.Open)
   );
 
   /** "opaque", "inline" and "overlap" is available to functions. */
   public static final Filter FN_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    EnumSet.of(Modifier.Opaque, Modifier.Inline, Modifier.Overlap));
+    EnumSet.of(CModifier.Opaque, CModifier.Inline, CModifier.Overlap));
 
   /** nothing is available to sub-level decls (ctor/field). */
   public static final Filter SUBDECL_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    EnumSet.noneOf(Modifier.class)
+    EnumSet.noneOf(CModifier.class)
   ).and(_ -> false);
 
   /** All parsed modifiers */
   public interface Modifiers {
     @Contract(pure = true) @NotNull WithPos<Stmt.Accessibility> accessibility();
     /**
-     * Miscellaneous modifiers are function modifiers ({@link org.aya.generic.Modifier}) plus "open".
+     * Miscellaneous modifiers are function modifiers ({@link Modifier}) plus "open".
      *
      * @return non-null source position if the modifier is present.
      */
-    @Contract(pure = true) @Nullable SourcePos misc(@NotNull Modifier key);
-    default @NotNull EnumSet<org.aya.generic.Modifier> toFnModifiers() {
-      var fnMods = EnumSet.noneOf(org.aya.generic.Modifier.class);
-      if (misc(Modifier.Inline) != null) fnMods.add(org.aya.generic.Modifier.Inline);
-      if (misc(Modifier.Opaque) != null) fnMods.add(org.aya.generic.Modifier.Opaque);
-      if (misc(Modifier.Overlap) != null) fnMods.add(org.aya.generic.Modifier.Overlap);
+    @Contract(pure = true) @Nullable SourcePos misc(@NotNull ModifierParser.CModifier key);
+    default @NotNull EnumSet<Modifier> toFnModifiers() {
+      var fnMods = EnumSet.noneOf(Modifier.class);
+      if (misc(CModifier.Inline) != null) fnMods.add(Modifier.Inline);
+      if (misc(CModifier.Opaque) != null) fnMods.add(Modifier.Opaque);
+      if (misc(CModifier.Overlap) != null) fnMods.add(Modifier.Overlap);
       return fnMods;
     }
   }
 
   private record ModifierSet(
-    @NotNull ImmutableMap<Modifier, SourcePos> mods,
+    @NotNull ImmutableMap<CModifier, SourcePos> mods,
     @NotNull Modifiers parent
   ) implements Modifiers {
     @Override @Contract(pure = true) public @NotNull WithPos<Stmt.Accessibility> accessibility() {
-      return mods.getOption(Modifier.Private)
+      return mods.getOption(CModifier.Private)
         .map(pos -> new WithPos<>(pos, Stmt.Accessibility.Private))
         .getOrElse(parent::accessibility);
     }
 
-    @Override public @Nullable SourcePos misc(@NotNull Modifier key) {
+    @Override public @Nullable SourcePos misc(@NotNull ModifierParser.CModifier key) {
       return mods.getOrElse(key, () -> parent.misc(key));
     }
   }
 
-  private @NotNull ImmutableSeq<WithPos<Modifier>> implication(@NotNull ImmutableSeq<WithPos<Modifier>> modifiers) {
+  private @NotNull ImmutableSeq<WithPos<CModifier>> implication(@NotNull ImmutableSeq<WithPos<CModifier>> modifiers) {
     return modifiers.view()
       .flatMap(modi -> Seq.from(modi.data().implies).map(imply -> new WithPos<>(modi.sourcePos(), imply)))
       .collect(ImmutableMap.collector(WithPos::data, x -> x))
@@ -171,8 +172,8 @@ public record ModifierParser(@NotNull Reporter reporter) {
   /**
    * @param filter The filter also performs on the modifiers that expanded from input.
    */
-  public @NotNull Modifiers parse(@NotNull ImmutableSeq<WithPos<Modifier>> modifiers, @NotNull Filter filter) {
-    EnumMap<ModifierGroup, EnumMap<Modifier, SourcePos>> map = new EnumMap<>(ModifierGroup.class);
+  public @NotNull Modifiers parse(@NotNull ImmutableSeq<WithPos<CModifier>> modifiers, @NotNull Filter filter) {
+    EnumMap<ModifierGroup, EnumMap<CModifier, SourcePos>> map = new EnumMap<>(ModifierGroup.class);
 
     modifiers = implication(modifiers).concat(modifiers);
 
@@ -187,7 +188,7 @@ public record ModifierParser(@NotNull Reporter reporter) {
         continue;
       }
 
-      map.computeIfAbsent(modifier.group, _ -> new EnumMap<>(Modifier.class));
+      map.computeIfAbsent(modifier.group, _ -> new EnumMap<>(CModifier.class));
       var exists = map.get(modifier.group);
 
       if (exists.containsKey(modifier)) {
@@ -215,15 +216,15 @@ public record ModifierParser(@NotNull Reporter reporter) {
     ), filter.defaultMods);
   }
 
-  public void reportUnsuitableModifier(@NotNull WithPos<Modifier> data) {
+  public void reportUnsuitableModifier(@NotNull WithPos<CModifier> data) {
     reporter.report(new ModifierProblem(data.sourcePos(), data.data(), ModifierProblem.Reason.Inappropriate));
   }
 
-  public void reportDuplicatedModifier(@NotNull WithPos<Modifier> data) {
+  public void reportDuplicatedModifier(@NotNull WithPos<CModifier> data) {
     reporter.report(new ModifierProblem(data.sourcePos(), data.data(), ModifierProblem.Reason.Duplicative));
   }
 
-  public void reportContradictModifier(@NotNull WithPos<Modifier> current, @NotNull WithPos<Modifier> that) {
+  public void reportContradictModifier(@NotNull WithPos<CModifier> current, @NotNull WithPos<CModifier> that) {
     reporter.report(new ModifierProblem(current.sourcePos(), current.data(), ModifierProblem.Reason.Contradictory));
   }
 }

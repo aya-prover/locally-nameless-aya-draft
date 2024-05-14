@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public record ModifierProblem(
   @NotNull SourcePos sourcePos,
-  @NotNull ModifierParser.Modifier modifier,
+  @NotNull ModifierParser.CModifier modifier,
   @NotNull Reason reason
 ) implements Problem {
   enum Reason {

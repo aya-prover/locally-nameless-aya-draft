@@ -3,6 +3,7 @@
 package org.aya.syntax.ref;
 
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +18,10 @@ public record ModulePath(@NotNull ImmutableSeq<String> module) {
     return module.sameElements(other.module);
   }
 
+  public @NotNull ModuleName.Qualified asName() {
+    return ModuleName.qualified(module);
+  }
+
   public @NotNull ModulePath derive(@NotNull String modName) {
     return new ModulePath(module.appended(modName));
   }
@@ -25,8 +30,5 @@ public record ModulePath(@NotNull ImmutableSeq<String> module) {
     return new ModulePath(module.concat(modName));
   }
 
-  @Override
-  public String toString() {
-    return QualifiedID.join(module);
-  }
+  @Override public String toString() { return QualifiedID.join(module); }
 }

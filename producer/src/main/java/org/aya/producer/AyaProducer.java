@@ -89,9 +89,9 @@ public record AyaProducer(
   }
 
   public @NotNull ImmutableSeq<Stmt> stmt(@NotNull GenericNode<?> node) {
-    // if (node.is(IMPORT_CMD)) return ImmutableSeq.of(importCmd(node));
-    // if (node.is(MODULE)) return ImmutableSeq.of(module(node));
-    // if (node.is(OPEN_CMD)) return openCmd(node);
+    if (node.is(IMPORT_CMD)) return ImmutableSeq.of(importCmd(node));
+    if (node.is(MODULE)) return ImmutableSeq.of(module(node));
+    if (node.is(OPEN_CMD)) return openCmd(node);
     if (node.is(DECL)) {
       var stmts = MutableList.<Stmt>create();
       var result = decl(node, stmts);
@@ -111,39 +111,39 @@ public record AyaProducer(
       type(node.child(TYPE)));
   }
 
-  // public @NotNull Command.Import importCmd(@NotNull GenericNode<?> node) {
-  //   var acc = node.peekChild(KW_PUBLIC);
-  //   var asId = node.peekChild(WEAK_ID);
-  //   var importMod = node.child(QUALIFIED_ID);
-  //   return new Command.Import(
-  //     sourcePosOf(importMod),
-  //     modulePath(importMod),
-  //     asId == null ? null : weakId(asId).data(),
-  //     acc == null ? Stmt.Accessibility.Private : Stmt.Accessibility.Public
-  //   );
-  // }
+  public @NotNull Command.Import importCmd(@NotNull GenericNode<?> node) {
+    var acc = node.peekChild(KW_PUBLIC);
+    var asId = node.peekChild(WEAK_ID);
+    var importMod = node.child(QUALIFIED_ID);
+    return new Command.Import(
+      sourcePosOf(importMod),
+      modulePath(importMod),
+      asId == null ? null : weakId(asId).data(),
+      acc == null ? Stmt.Accessibility.Private : Stmt.Accessibility.Public
+    );
+  }
 
-  // public @NotNull ImmutableSeq<Stmt> openCmd(@NotNull GenericNode<?> node) {
-  //   var accessibility = node.peekChild(KW_PUBLIC) == null
-  //     ? Stmt.Accessibility.Private
-  //     : Stmt.Accessibility.Public;
-  //   var useHide = node.peekChild(USE_HIDE);
-  //   var modNameNode = node.child(QUALIFIED_ID);
-  //   var namePos = sourcePosOf(modNameNode);
-  //   var modName = modulePath(modNameNode);
-  //   var openImport = node.peekChild(KW_IMPORT) != null;
-  //   var open = new Command.Open(
-  //     namePos,
-  //     accessibility,
-  //     modName.asName(),
-  //     useHide != null ? useHide(useHide) : UseHide.EMPTY,
-  //     false,
-  //     openImport
-  //   );
-  //   return openImport
-  //     ? ImmutableSeq.of(new Command.Import(namePos, modName, null, accessibility), open)
-  //     : ImmutableSeq.of(open);
-  // }
+  public @NotNull ImmutableSeq<Stmt> openCmd(@NotNull GenericNode<?> node) {
+    var accessibility = node.peekChild(KW_PUBLIC) == null
+      ? Stmt.Accessibility.Private
+      : Stmt.Accessibility.Public;
+    var useHide = node.peekChild(USE_HIDE);
+    var modNameNode = node.child(QUALIFIED_ID);
+    var namePos = sourcePosOf(modNameNode);
+    var modName = modulePath(modNameNode);
+    var openImport = node.peekChild(KW_IMPORT) != null;
+    var open = new Command.Open(
+      namePos,
+      accessibility,
+      modName.asName(),
+      useHide != null ? useHide(useHide) : UseHide.EMPTY,
+      false,
+      openImport
+    );
+    return openImport
+      ? ImmutableSeq.of(new Command.Import(namePos, modName, null, accessibility), open)
+      : ImmutableSeq.of(open);
+  }
 
   public UseHide hideList(SeqView<? extends GenericNode<?>> hideLists, UseHide.Strategy strategy) {
     return new UseHide(hideLists
@@ -201,22 +201,22 @@ public record AyaProducer(
     return c.childrenOfType(QUALIFIED_ID).map(this::qualifiedId);
   }
 
-  // public @NotNull UseHide useHide(@NotNull GenericNode<?> node) {
-  //   if (node.peekChild(KW_HIDING) != null) return hideList(
-  //     node.childrenOfType(HIDE_LIST),
-  //     UseHide.Strategy.Hiding);
-  //   if (node.peekChild(KW_USING) != null) return useList(
-  //     node.childrenOfType(USE_LIST),
-  //     UseHide.Strategy.Using);
-  //   return unreachable(node);
-  // }
+  public @NotNull UseHide useHide(@NotNull GenericNode<?> node) {
+    if (node.peekChild(KW_HIDING) != null) return hideList(
+      node.childrenOfType(HIDE_LIST),
+      UseHide.Strategy.Hiding);
+    if (node.peekChild(KW_USING) != null) return useList(
+      node.childrenOfType(USE_LIST),
+      UseHide.Strategy.Using);
+    return unreachable(node);
+  }
 
-  // public @NotNull Command.Module module(@NotNull GenericNode<?> node) {
-  //   var modName = weakId(node.child(WEAK_ID));
-  //   return new Command.Module(
-  //     modName.sourcePos(), sourcePosOf(node), modName.data(),
-  //     node.childrenOfType(STMT).flatMap(this::stmt).toImmutableSeq());
-  // }
+  public @NotNull Command.Module module(@NotNull GenericNode<?> node) {
+    var modName = weakId(node.child(WEAK_ID));
+    return new Command.Module(
+      modName.sourcePos(), sourcePosOf(node), modName.data(),
+      node.childrenOfType(STMT).flatMap(this::stmt).toImmutableSeq());
+  }
 
   public @Nullable Decl decl(@NotNull GenericNode<?> node, @NotNull MutableList<Stmt> additional) {
     if (node.is(FN_DECL)) return fnDecl(node);
@@ -236,8 +236,8 @@ public record AyaProducer(
   ) {
     var modifiers = node.childrenOfType(DECL_MODIFIERS).map(x -> {
       var pos = sourcePosOf(x);
-      ModifierParser.Modifier modifier = null;
-      for (var mod : ModifierParser.Modifier.values())
+      ModifierParser.CModifier modifier = null;
+      for (var mod : ModifierParser.CModifier.values())
         if (x.peekChild(mod.type) != null) modifier = mod;
       if (modifier == null) unreachable(x);
 
@@ -288,13 +288,13 @@ public record AyaProducer(
     var tele = telescope(node.childrenOfType(TELE));
     var dynamite = fnBody(tele.map(Expr.Param::ref), fnBodyNode);
     if (dynamite == null) return null;
-    var inline = info.modifier.misc(ModifierParser.Modifier.Inline);
-    var overlap = info.modifier.misc(ModifierParser.Modifier.Overlap);
+    var inline = info.modifier.misc(ModifierParser.CModifier.Inline);
+    var overlap = info.modifier.misc(ModifierParser.CModifier.Overlap);
     if (dynamite instanceof TeleDecl.BlockBody && inline != null) {
       reporter.report(new BadModifierWarn(inline, Modifier.Inline));
     }
     if (dynamite instanceof TeleDecl.ExprBody && overlap != null) {
-      reporter.report(new ModifierProblem(overlap, ModifierParser.Modifier.Overlap, ModifierProblem.Reason.Duplicative));
+      reporter.report(new ModifierProblem(overlap, ModifierParser.CModifier.Overlap, ModifierProblem.Reason.Duplicative));
     }
 
     var ty = typeOrNull(node.peekChild(TYPE));
@@ -317,16 +317,17 @@ public record AyaProducer(
   }
 
   private void giveMeOpen(@NotNull ModifierParser.Modifiers modiSet, @NotNull Decl decl, @NotNull MutableList<Stmt> additional) {
-    // var keyword = modiSet.misc(ModifierParser.Modifier.Open);
-    // if (keyword == null) return;
-    //
-    // additional.append(new Command.Open(
-    //   keyword,
-    //   modiSet.accessibility().data(),
-    //   new ModuleName.Qualified(decl.ref().name()),
-    //   UseHide.EMPTY,
-    //   true
-    // ));
+    var keyword = modiSet.misc(ModifierParser.CModifier.Open);
+    if (keyword == null) return;
+
+    additional.append(new Command.Open(
+      keyword,
+      modiSet.accessibility().data(),
+      new ModuleName.Qualified(decl.ref().name()),
+      UseHide.EMPTY,
+      false, // modiSet.personality().data() == DeclInfo.Personality.EXAMPLE,
+      true
+    ));
   }
 
   public @Nullable TeleDecl.DataDecl dataDecl(GenericNode<?> node, @NotNull MutableList<Stmt> additional) {
@@ -444,7 +445,7 @@ public record AyaProducer(
 
   public @NotNull ImmutableSeq<Expr.Param> lambdaTele(@NotNull GenericNode<?> node) {
     var teleParamName = node.peekChild(TELE_PARAM_NAME);
-    if (teleParamName != null) return lambdaTeleLit(teleParamName, true, sourcePosOf(node));
+    if (teleParamName != null) return lambdaTeleLit(teleParamName, sourcePosOf(node));
     return licit(node.child(LICIT), LAMBDA_TELE_BINDER, this::lambdaTeleBinder);
   }
 
@@ -471,9 +472,9 @@ public record AyaProducer(
       .toImmutableSeq();
   }
 
-  private @NotNull ImmutableSeq<Expr.Param> lambdaTeleLit(GenericNode<?> node, boolean explicit, SourcePos pos) {
+  private @NotNull ImmutableSeq<Expr.Param> lambdaTeleLit(GenericNode<?> node, SourcePos pos) {
     return ImmutableSeq.of(new Expr.Param(pos,
-      LocalVar.from(teleParamName(node)), typeOrHole(null, pos), explicit));
+      LocalVar.from(teleParamName(node)), typeOrHole(null, pos), true));
   }
 
   private record DeclNameOrInfix(@NotNull WithPos<String> name, @Nullable OpDecl.OpInfo infix) {

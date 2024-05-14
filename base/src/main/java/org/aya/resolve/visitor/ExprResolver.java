@@ -53,10 +53,6 @@ public record ExprResolver(
   public static final @NotNull Options RESTRICTIVE = new Options(false);
   public static final @NotNull Options LAX = new Options(true);
 
-  // @NotNull Expr.PartEl partial(@NotNull Context ctx, Expr.PartEl el) {
-  //   return el.descent(enter(ctx));
-  // }
-
   public void enterHead() {
     where.push(Where.Head);
     reference.clear();
