@@ -28,9 +28,8 @@ public record MetaVar(
   @NotNull SourcePos pos,
   int ctxSize, @NotNull Requirement req
 ) implements AnyVar {
-  @Override public boolean equals(@Nullable Object o) {return this == o;}
-
-  @Override public int hashCode() {return System.identityHashCode(this);}
+  @Override public boolean equals(@Nullable Object o) { return this == o; }
+  @Override public int hashCode() { return System.identityHashCode(this); }
 
   public @NotNull MetaCall asPiDom(@NotNull SortTerm sort, @NotNull ImmutableSeq<Term> args) {
     assert req == Misc.IsType;
@@ -51,9 +50,7 @@ public record MetaVar(
         case IsType -> Doc.sep(Doc.plain("_"), Doc.symbols(":", "?"));
       };
     }
-    @Override public Misc bind(SeqView<LocalVar> vars) {
-      return this;
-    }
+    @Override public Misc bind(SeqView<LocalVar> vars) { return this; }
   }
   /**
    * @param type hopefully in the closed context.
@@ -71,9 +68,7 @@ public record MetaVar(
    * The meta variable is the domain of a pi type which is of a known type.
    */
   public record PiDom(@NotNull SortTerm sort) implements Requirement {
-    @Override public PiDom bind(SeqView<LocalVar> vars) {
-      return this;
-    }
+    @Override public PiDom bind(SeqView<LocalVar> vars) { return this; }
     @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
       return Doc.sep(Doc.symbols("?", "->", "_", ":"), sort.toDoc(options));
     }
