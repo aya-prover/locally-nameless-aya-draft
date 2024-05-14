@@ -21,14 +21,13 @@ public interface TestUtil {
   Reporter THROWING = new ThrowingReporter(AyaPrettierOptions.debug());
 
   static @NotNull TermComparator conversion() {
-    return new Unifier(emptyState(), makeLocalCtx(),
+    return new Unifier(emptyState(), makeLocalCtx(), makeLocalSubst(),
       IgnoringReporter.INSTANCE, SourcePos.NONE, Ordering.Eq, true);
   }
 
   static @NotNull TyckState emptyState() {
     return new TyckState(new PrimFactory());
   }
-
   static @NotNull LocalCtx makeLocalCtx() {
     return new LocalCtx();
   }

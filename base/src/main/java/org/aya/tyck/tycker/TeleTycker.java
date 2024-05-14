@@ -15,6 +15,7 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.UnifyError;
 import org.aya.unify.Synthesizer;
 import org.aya.util.error.WithPos;
@@ -106,20 +107,23 @@ public sealed interface TeleTycker extends Contextful {
     });
   }
 
-  record Default(@NotNull ExprTycker tycker) implements TeleTycker {
-    @Override
-    public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
+  sealed interface Impl extends TeleTycker {
+    @NotNull ExprTycker tycker();
+    @Override default void solveMetas() { tycker().solveMetas(); }
+    @Override default @NotNull Term freeze(@NotNull Term term) { return tycker().freezeHoles(term); }
+    @Override default @NotNull LocalCtx localCtx() { return tycker().localCtx(); }
+    @Override default @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) { return tycker().setLocalCtx(ctx); }
+    @Override default @NotNull LocalLet localLet() { return tycker().localLet(); }
+    @Override default @NotNull LocalLet setLocalLet(@NotNull LocalLet let) { return tycker().setLocalLet(let); }
+  }
+
+  record Default(@Override @NotNull ExprTycker tycker) implements Impl {
+    @Override public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
       return tycker.ty(typeExpr);
-    }
-    @Override public void solveMetas() { tycker.solveMetas(); }
-    @Override public @NotNull Term freeze(@NotNull Term term) { return tycker.freezeHoles(term); }
-    @Override public @NotNull LocalCtx localCtx() { return tycker.localCtx(); }
-    @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
-      return tycker.setLocalCtx(ctx);
     }
   }
 
-  record Con(@NotNull ExprTycker tycker, @NotNull SortTerm dataResult) implements TeleTycker {
+  record Con(@NotNull ExprTycker tycker, @NotNull SortTerm dataResult) implements Impl {
     @Override
     public @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr) {
       var result = tycker.ty(typeExpr);
@@ -127,12 +131,6 @@ public sealed interface TeleTycker extends Contextful {
         tycker.fail(new UnifyError.PiDom(typeExpr.data(), typeExpr.sourcePos(), result, dataResult));
       }
       return result;
-    }
-    @Override public void solveMetas() { tycker.solveMetas(); }
-    @Override public @NotNull Term freeze(@NotNull Term term) { return tycker.freezeHoles(term); }
-    @Override public @NotNull LocalCtx localCtx() { return tycker.localCtx(); }
-    @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
-      return tycker.setLocalCtx(ctx);
     }
   }
 }

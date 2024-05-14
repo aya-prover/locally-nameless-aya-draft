@@ -11,6 +11,7 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.HoleProblem;
 import org.aya.util.Ordering;
 import org.aya.util.error.SourcePos;
@@ -21,23 +22,20 @@ import org.jetbrains.annotations.Nullable;
 public final class Unifier extends TermComparator {
   private final boolean allowDelay;
   public Unifier(
-    @NotNull TyckState state,
-    @NotNull LocalCtx ctx,
-    @NotNull Reporter reporter,
-    @NotNull SourcePos pos,
-    @NotNull Ordering cmp,
+    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull LocalLet let,
+    @NotNull Reporter reporter, @NotNull SourcePos pos, @NotNull Ordering cmp,
     boolean allowDelay
   ) {
-    super(state, ctx, reporter, pos, cmp);
+    super(state, ctx, let, reporter, pos, cmp);
     this.allowDelay = allowDelay;
   }
 
   public @NotNull TyckState.Eqn createEqn(@NotNull Term lhs, @NotNull Term rhs) {
-    return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx());
+    return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx(), localLet());
   }
 
   public @NotNull Unifier derive(@NotNull SourcePos pos, Ordering ordering) {
-    return new Unifier(state, localCtx().derive(), reporter, pos, ordering, allowDelay);
+    return new Unifier(state, localCtx().derive(), localLet().derive(), reporter, pos, ordering, allowDelay);
   }
 
   @Override protected @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {

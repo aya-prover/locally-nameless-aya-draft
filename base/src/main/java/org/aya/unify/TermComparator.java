@@ -18,6 +18,7 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.LevelError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.Contextful;
@@ -33,7 +34,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
-// TODO: make unification TermComparator
 public abstract sealed class TermComparator extends AbstractTycker permits Unifier {
   protected final @NotNull SourcePos pos;
   protected final @NotNull Ordering cmp;
@@ -43,10 +43,10 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   private final @NotNull NameGenerator nameGen = new NameGenerator();
 
   public TermComparator(
-    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull Reporter reporter,
-    @NotNull SourcePos pos, @NotNull Ordering cmp
+    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull LocalLet let,
+    @NotNull Reporter reporter, @NotNull SourcePos pos, @NotNull Ordering cmp
   ) {
-    super(state, ctx, reporter);
+    super(state, ctx, reporter, let);
     this.pos = pos;
     this.cmp = cmp;
   }
@@ -397,8 +397,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   public @NotNull FailureData getFailure() {
     var failure = this.failure;
     assert failure != null;
-    // TODO: Ice Spell 「 Perfect Freeze 」
-    return failure;
+    return failure.map(this::freezeHoles);
   }
 
   public record FailureData(@NotNull Term lhs, @NotNull Term rhs) {

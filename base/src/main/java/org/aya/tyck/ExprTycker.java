@@ -34,7 +34,6 @@ import java.util.function.Function;
 public final class ExprTycker extends AbstractTycker implements Unifiable {
   public final @NotNull MutableTreeSet<WithPos<Expr.WithTerm>> withTerms =
     MutableTreeSet.create(Comparator.comparing(SourceNode::sourcePos));
-  private @NotNull LocalLet localDefinitions;
 
   public void addWithTerm(@NotNull Expr.WithTerm with, @NotNull SourcePos pos, @NotNull Term type) {
     withTerms.add(new WithPos<>(pos, with));
@@ -44,11 +43,10 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   public ExprTycker(
     @NotNull TyckState state,
     @NotNull LocalCtx ctx,
-    @NotNull LocalLet localDefinitions,
+    @NotNull LocalLet localLet,
     @NotNull Reporter reporter
   ) {
-    super(state, ctx, reporter);
-    this.localDefinitions = localDefinitions;
+    super(state, ctx, reporter, localLet);
   }
 
   public void solveMetas() {
@@ -118,7 +116,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());
       case Expr.Pi(var param, var last) -> {
         var wellParam = ty(param.typeExpr());
-        addWithTerm(param, param.sourcePos(),  wellParam);
+        addWithTerm(param, param.sourcePos(), wellParam);
         yield subscoped(() -> {
           localCtx().put(param.ref(), wellParam);
           var wellLast = ty(last).bind(param.ref());
@@ -179,8 +177,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
       case Expr.Ref(var ref) -> {
-        if (ref instanceof LocalVar localRef && localDefinitions.contains(localRef)) {
-          yield localDefinitions.get(localRef);
+        if (ref instanceof LocalVar localRef && localLet().contains(localRef)) {
+          yield localLet().get(localRef);
         }
 
         yield checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
@@ -198,8 +196,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       }
       case Expr.Let let -> checkLet(let, this::synthesize);
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
-      case Expr.Unresolved _ -> throw new UnsupportedOperationException("?");
       case Expr.Error error -> throw new Panic("Expr.Error");
+      case Expr.Unresolved _ -> Panic.unreachable();
       default -> fail(expr.data(), new NoRuleError(expr.data(), expr.sourcePos(), null));
     };
   }
@@ -305,31 +303,19 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     var definedAsResult = inherit(definedAsExpr, type);
 
     return subscoped(() -> {
-      localDefinitions.put(let.bind().bindName(), definedAsResult);
+      localLet().put(let.bind().bindName(), definedAsResult);
       return checker.apply(let.body());
     });
   }
 
   /// region Overrides
-
   @Override public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
-    return new Unifier(state(), localCtx(), reporter(), pos, order, true);
-    // TODO: allowDelay?
+    return new Unifier(state(), localCtx(), localLet(), reporter(), pos, order, true);
   }
-
-  @Override public @NotNull LocalLet localLet() { return localDefinitions; }
-
-  @Override public @NotNull LocalLet setLocalLet(@NotNull LocalLet let) {
-    var old = localDefinitions;
-    this.localDefinitions = let;
-    return old;
-  }
-
   /// endregion Overrides
 
   protected static final class NotPi extends Exception {
     public final @NotNull Term actual;
-
     public NotPi(@NotNull Term actual) { this.actual = actual; }
   }
 }
