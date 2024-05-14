@@ -116,32 +116,6 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
   }
 
   public @NotNull Term ty(@NotNull WithPos<Expr> expr) {
-    return doTy(expr);
-  }
-
-  public @NotNull Jdg.Sort sort(@NotNull WithPos<Expr> expr) {
-    return new Jdg.Sort(sort(expr, ty(expr)));
-  }
-
-  private @NotNull SortTerm sort(@NotNull WithPos<Expr> errorMsg, @NotNull Term term) {
-    return switch (whnf(term)) {
-      case SortTerm u -> u;
-      case MetaCall hole -> {
-        unifyTyReported(hole, SortTerm.Type0, errorMsg);
-        yield SortTerm.Type0;
-      }
-      default -> {
-        fail(BadTypeError.univ(state, errorMsg, term));
-        yield SortTerm.Type0;
-      }
-    };
-  }
-
-  /**
-   * Make sure you handle all possible types, that is, if you call {@link #ty(WithPos)} in {@link #synthesize(WithPos)}
-   * with some condition {@code C}, then you have to handle {@code C} in this method.
-   */
-  private @NotNull Term doTy(@NotNull WithPos<Expr> expr) {
     return switch (expr.data()) {
       case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());
       case Expr.Pi(var param, var last) -> {
@@ -165,6 +139,24 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
       });
       case Expr.Let let -> checkLet(let, e -> lazyJdg(ty(e))).wellTyped();
       default -> synthesize(expr).wellTyped();
+    };
+  }
+
+  public @NotNull Jdg.Sort sort(@NotNull WithPos<Expr> expr) {
+    return new Jdg.Sort(sort(expr, ty(expr)));
+  }
+
+  private @NotNull SortTerm sort(@NotNull WithPos<Expr> errorMsg, @NotNull Term term) {
+    return switch (whnf(term)) {
+      case SortTerm u -> u;
+      case MetaCall hole -> {
+        unifyTyReported(hole, SortTerm.Type0, errorMsg);
+        yield SortTerm.Type0;
+      }
+      default -> {
+        fail(BadTypeError.univ(state, errorMsg, term));
+        yield SortTerm.Type0;
+      }
     };
   }
 
@@ -196,7 +188,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
         yield checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       }
       case Expr.Sigma _, Expr.Pi _ -> lazyJdg(ty(expr));
-      case Expr.Sort sort -> sort(expr);
+      case Expr.Sort _ -> sort(expr);
       case Expr.Tuple(var items) -> {
         var results = items.map(this::synthesize);
         var wellTypeds = results.map(Jdg::wellTyped);
