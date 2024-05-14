@@ -17,7 +17,6 @@ import org.aya.tyck.ctx.LocalSubstitution;
 import org.aya.tyck.error.*;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
-import org.aya.tyck.tycker.LocalDeful;
 import org.aya.tyck.tycker.Unifiable;
 import org.aya.unify.TermComparator;
 import org.aya.unify.Unifier;
@@ -31,9 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-public final class ExprTycker extends AbstractTycker implements Unifiable, LocalDeful {
+public final class ExprTycker extends AbstractTycker implements Unifiable {
   public final @NotNull MutableTreeSet<WithPos<Expr.WithTerm>> withTerms =
     MutableTreeSet.create(Comparator.comparing(SourceNode::sourcePos));
   private @NotNull LocalSubstitution localDefinitions;
@@ -75,7 +73,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
         case EqTerm eq -> {
           var core = subscoped(() -> {
             localCtx().put(ref, DimTyTerm.INSTANCE);
-            var coreBody = inherit(body, eq.b()).bind(ref);
+            var coreBody = inherit(body, eq.A()).bind(ref);
             // TODO: check boundaries
             return coreBody.wellTyped();
           });
@@ -325,10 +323,6 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
     var old = localDefinitions;
     this.localDefinitions = newOne;
     return old;
-  }
-
-  @Override public <R> R subscoped(@NotNull Supplier<R> action) {
-    return super.subscoped(() -> LocalDeful.super.subscoped(action));
   }
 
   /// endregion Overrides
