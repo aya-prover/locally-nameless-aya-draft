@@ -43,14 +43,14 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
       case Decl decl -> resolveDecl(decl, context);
       case Command.Module mod -> {
         var wholeModeName = context.modulePath().derive(mod.name());
-        throw new UnsupportedOperationException("TODO");
         // Is there a file level module with path {context.moduleName}::{mod.name} ?
         // if (loader.existsFileLevelModule(wholeModeName.path())) {
         //   context.reportAndThrow(new NameProblem.ClashModNameError(wholeModeName.path(), mod.sourcePos()));
         // }
-        // var newCtx = context.derive(mod.name());
-        // resolveStmt(mod.contents(), newCtx);
-        // context.importModule(ModuleName.This.resolve(mod.name()), newCtx, mod.accessibility(), mod.sourcePos());
+        var newCtx = context.derive(mod.name());
+        var children = resolveStmt(mod.contents(), newCtx);
+        context.importModule(ModuleName.This.resolve(mod.name()), newCtx, mod.accessibility(), mod.sourcePos());
+        yield new ResolvingStmt.ModStmt(mod, children);
       }
       case Command.Import cmd -> {
         var modulePath = cmd.path();
