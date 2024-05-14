@@ -212,10 +212,6 @@ fnBody ::= simpleBody
 
 private elims ::= KW_ELIM weakId+ { pin=1 }
 
-// turn the keyword into a psi node, so quick fix can easily delete it
-// see: BadCounterexampleInspection
-openKw ::= KW_OPEN
-
 // primName should not be mixed-in with NamedWeakId -- the primDecl already is a named element.
 // This rule is used for convenience in semantic highlight.
 // see: SemanticHighlight, AyaGenericDeclImpl, AyaRunLineMarkerContributor
@@ -228,7 +224,7 @@ declModifiers ::= KW_PRIVATE
                 | KW_OPAQUE
                 | KW_INLINE
                 | KW_OVERLAP
-                | openKw
+                | KW_OPEN
 
 classDecl
   ::= declModifiers*

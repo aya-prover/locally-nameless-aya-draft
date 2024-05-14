@@ -12,30 +12,26 @@ sealed public interface ParamShape {
     INSTANCE;
   }
 
-  record Licit(
+  record Impl(
     @NotNull CodeShape.LocalId name,
-    @NotNull TermShape type,
-    Licit.Kind kind
+    @NotNull TermShape type
   ) implements ParamShape, CodeShape.Moment {
-    enum Kind {
-      Any, Ex, Im
-    }
   }
 
-  static @NotNull ParamShape explicit(@NotNull TermShape type) {
-    return explicit(CodeShape.LocalId.IGNORED, type);
+  static @NotNull ParamShape ty(@NotNull TermShape type) {
+    return named(CodeShape.LocalId.IGNORED, type);
   }
 
-  static @NotNull ParamShape explicit(@NotNull CodeShape.LocalId name, @NotNull TermShape type) {
-    return new Licit(name, type, Licit.Kind.Ex);
+  static @NotNull ParamShape named(@NotNull CodeShape.LocalId name, @NotNull TermShape type) {
+    return new Impl(name, type);
   }
 
   static @NotNull ParamShape implicit(@NotNull TermShape type) {
-    return new Licit(CodeShape.LocalId.IGNORED, type, Licit.Kind.Im);
+    return new Impl(CodeShape.LocalId.IGNORED, type);
   }
 
   static @NotNull ParamShape anyLicit(@NotNull CodeShape.LocalId name, @NotNull TermShape type) {
-    return new Licit(name, type, Licit.Kind.Any);
+    return new Impl(name, type);
   }
 
   static @NotNull ParamShape anyLicit(@NotNull TermShape type) {
@@ -43,7 +39,7 @@ sealed public interface ParamShape {
   }
 
   static @NotNull ParamShape anyEx() {
-    return explicit(TermShape.Any.INSTANCE);
+    return ty(TermShape.Any.INSTANCE);
   }
 
   static @NotNull ParamShape anyIm() {

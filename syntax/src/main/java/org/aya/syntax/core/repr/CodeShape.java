@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 public sealed interface CodeShape {
   /** A capture group, see {@link CodeShape.CtorShape} and {@link ShapeMatcher#captures()} */
-  sealed interface Moment permits CtorShape, DataShape, FnShape, ParamShape.Licit, PatShape.Bind, TermShape.ShapeCall {
+  sealed interface Moment permits CtorShape, DataShape, FnShape, ParamShape.Impl, PatShape.Bind, TermShape.ShapeCall {
     @NotNull MomentId name();
   }
 
