@@ -325,7 +325,7 @@ public record AyaProducer(
       modiSet.accessibility().data(),
       new ModuleName.Qualified(decl.ref().name()),
       UseHide.EMPTY,
-      false, // modiSet.personality().data() == DeclInfo.Personality.EXAMPLE,
+      modiSet.isExample(),
       true
     ));
   }

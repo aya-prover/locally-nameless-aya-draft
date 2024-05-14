@@ -41,7 +41,8 @@ public record ModifierParser(@NotNull Reporter reporter) {
     Private(KW_PRIVATE, Accessibility, "private"),
 
     // ModuleLike Modifiers
-    Open(OPEN_KW, None, "open"),
+    Open(KW_OPEN, None, "open"),
+    Example(KW_EXAMPLE, None, "example"),
 
     // Function Modifiers
     Opaque(KW_OPAQUE, Alpha, "opaque"),
@@ -91,7 +92,7 @@ public record ModifierParser(@NotNull Reporter reporter) {
     ) {
       return new Filter(new DefaultModifiers(defaultAcc, miscAvail), mod -> switch (mod) {
         case Private -> true;
-        case Open, Opaque, Inline, Overlap -> miscAvail.contains(mod);
+        case Open, Opaque, Inline, Overlap, Example -> miscAvail.contains(mod);
       });
     }
   }
@@ -104,6 +105,7 @@ public record ModifierParser(@NotNull Reporter reporter) {
     @NotNull WithPos<Stmt.Accessibility> accessibility,
     @NotNull EnumSet<CModifier> miscAvail
   ) implements Modifiers {
+    @Override public boolean isExample() { return false; }
     @Override public @Nullable SourcePos misc(@NotNull ModifierParser.CModifier key) {
       // Do not throw anything here, even the modifier is not available.
       return null; // always not present, because miscAvail only says availability, not presence.
@@ -113,13 +115,13 @@ public record ModifierParser(@NotNull Reporter reporter) {
   /** Only "open" is available to (data/struct) decls */
   public static final Filter DECL_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    EnumSet.of(CModifier.Open)
+    EnumSet.of(CModifier.Open, CModifier.Example)
   );
 
   /** "opaque", "inline" and "overlap" is available to functions. */
   public static final Filter FN_FILTER = Filter.create(
     new WithPos<>(SourcePos.NONE, Stmt.Accessibility.Public),
-    EnumSet.of(CModifier.Opaque, CModifier.Inline, CModifier.Overlap));
+    EnumSet.of(CModifier.Opaque, CModifier.Inline, CModifier.Overlap, CModifier.Example));
 
   /** nothing is available to sub-level decls (ctor/field). */
   public static final Filter SUBDECL_FILTER = Filter.create(
@@ -130,6 +132,7 @@ public record ModifierParser(@NotNull Reporter reporter) {
   /** All parsed modifiers */
   public interface Modifiers {
     @Contract(pure = true) @NotNull WithPos<Stmt.Accessibility> accessibility();
+    @Contract(pure = true) boolean isExample();
     /**
      * Miscellaneous modifiers are function modifiers ({@link Modifier}) plus "open".
      *
@@ -153,6 +156,9 @@ public record ModifierParser(@NotNull Reporter reporter) {
       return mods.getOption(CModifier.Private)
         .map(pos -> new WithPos<>(pos, Stmt.Accessibility.Private))
         .getOrElse(parent::accessibility);
+    }
+    @Override public boolean isExample() {
+      return mods.containsKey(CModifier.Example) || parent.isExample();
     }
 
     @Override public @Nullable SourcePos misc(@NotNull ModifierParser.CModifier key) {

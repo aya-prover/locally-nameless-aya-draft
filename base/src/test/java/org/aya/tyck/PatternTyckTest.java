@@ -9,15 +9,14 @@ import static org.aya.tyck.TyckTest.tyck;
 
 public class PatternTyckTest {
   @Test public void test0() {
-    @Language("Aya") String code = """
+    var result = tyck("""
       open data Nat | O | S Nat
 
       def infix + (a b: Nat): Nat
       | O, b => b
       | S a', b => S (a' + b)
-      """;
-    var result = tyck(code);
-    System.out.println(result);
+      """);
+    assert result.isNotEmpty();
   }
 
   @Test
@@ -28,5 +27,6 @@ public class PatternTyckTest {
       | O => b
       | S a' => S (lind a' b)
       """);
+    assert result.isNotEmpty();
   }
 }

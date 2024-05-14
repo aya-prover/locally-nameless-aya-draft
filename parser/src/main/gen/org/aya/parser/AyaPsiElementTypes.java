@@ -1,6 +1,3 @@
-// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
-// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-
 // This is a generated file. Not intended for manual editing.
 package org.aya.parser;
 
@@ -131,7 +128,6 @@ public interface AyaPsiElementTypes {
   IElementType KW_CODATA = new AyaPsiTokenType("codata");
   IElementType KW_COERCE = new AyaPsiTokenType("coerce");
   IElementType KW_COMPLETED = new AyaPsiTokenType("completed");
-  IElementType KW_COUNTEREXAMPLE = new AyaPsiTokenType("counterexample");
   IElementType KW_DATA = new AyaPsiTokenType("data");
   IElementType KW_DEF = new AyaPsiTokenType("def");
   IElementType KW_DO = new AyaPsiTokenType("do");

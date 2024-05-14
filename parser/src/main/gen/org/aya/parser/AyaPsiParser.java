@@ -1,6 +1,3 @@
-// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
-// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-
 // This is a generated file. Not intended for manual editing.
 package org.aya.parser;
 
@@ -816,7 +813,6 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
   /* ********************************************************** */
   // KW_PRIVATE
   //                 | KW_EXAMPLE
-  //                 | KW_COUNTEREXAMPLE
   //                 | KW_OPAQUE
   //                 | KW_INLINE
   //                 | KW_OVERLAP
@@ -827,7 +823,6 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
     Marker m = enter_section_(b, l, _NONE_, DECL_MODIFIERS, "<decl modifiers>");
     r = consumeToken(b, KW_PRIVATE);
     if (!r) r = consumeToken(b, KW_EXAMPLE);
-    if (!r) r = consumeToken(b, KW_COUNTEREXAMPLE);
     if (!r) r = consumeToken(b, KW_OPAQUE);
     if (!r) r = consumeToken(b, KW_INLINE);
     if (!r) r = consumeToken(b, KW_OVERLAP);
@@ -1863,7 +1858,7 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // KW_PUBLIC | KW_PRIVATE | KW_OPEN | KW_IMPORT | KW_MODULE
-  //                      | KW_EXAMPLE | KW_COUNTEREXAMPLE | DOC_COMMENT
+  //                      | KW_EXAMPLE | DOC_COMMENT
   //                      | KW_DEF | KW_CLASS | KW_PRIM | KW_DATA | KW_VARIABLE
   //                      | KW_OPAQUE | KW_INLINE | KW_OVERLAP
   static boolean stmt_first(PsiBuilder b, int l) {
@@ -1875,7 +1870,6 @@ public class AyaPsiParser implements PsiParser, LightPsiParser {
     if (!r) r = consumeToken(b, KW_IMPORT);
     if (!r) r = consumeToken(b, KW_MODULE);
     if (!r) r = consumeToken(b, KW_EXAMPLE);
-    if (!r) r = consumeToken(b, KW_COUNTEREXAMPLE);
     if (!r) r = consumeToken(b, DOC_COMMENT);
     if (!r) r = consumeToken(b, KW_DEF);
     if (!r) r = consumeToken(b, KW_CLASS);
