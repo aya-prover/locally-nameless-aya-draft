@@ -40,4 +40,6 @@ public final class Tokens {
   public static final Doc KW_BIND = Doc.styled(KEYWORD, "bind");
   public static final Doc KW_ELIM = Doc.styled(KEYWORD, "elim");
   public static final Doc KW_PRIM = Doc.styled(KEYWORD, "prim");
+  public static final Doc KW_VARIABLES = Doc.styled(KEYWORD, "variables");
+  public static final Doc KW_IMPORT = Doc.styled(KEYWORD, "import");
 }

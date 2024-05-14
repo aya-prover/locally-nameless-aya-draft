@@ -15,10 +15,8 @@ import org.aya.generic.Nested;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.concrete.stmt.BindBlock;
-import org.aya.syntax.concrete.stmt.Generalize;
-import org.aya.syntax.concrete.stmt.QualifiedID;
-import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.syntax.concrete.stmt.*;
+import org.aya.syntax.concrete.stmt.Stmt.Accessibility;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.ref.DefVar;
@@ -30,6 +28,7 @@ import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Locale;
 import java.util.Objects;
 
 import static org.aya.prettier.Tokens.*;
@@ -38,10 +37,7 @@ import static org.aya.prettier.Tokens.*;
  * @author ice1000, kiva
  */
 public class ConcretePrettier extends BasePrettier<Expr> {
-
-  public ConcretePrettier(@NotNull PrettierOptions options) {
-    super(options);
-  }
+  public ConcretePrettier(@NotNull PrettierOptions options) { super(options); }
 
   public @NotNull Doc term(@NotNull Outer outer, @NotNull WithPos<Expr> expr) {
     return term(outer, expr.data());
@@ -169,16 +165,6 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         .from(IntRange.closed(1, expr.lift()).iterator()).view()
         .map(_ -> Doc.styled(KEYWORD, Doc.symbol("ulift")))
         .appended(term(Outer.Lifted, expr.expr())));
-      // case Expr.PartEl el -> Doc.sep(Doc.symbol("{|"),
-      //   partial(el),
-      //   Doc.symbol("|}"));
-      // case Expr.Path path -> Doc.sep(
-      //   Doc.symbol("[|"),
-      //   Doc.commaList(path.params().map(BasePrettier::linkDef)),
-      //   Doc.symbol("|]"),
-      //   path.type().toDoc(options),
-      //   path.partial().toDoc(options)
-      // );
       case Expr.Idiom idiom -> Doc.wrap(
         "(|", "|)",
         Doc.join(Doc.symbol("|"), idiom.barredApps().view()
@@ -287,10 +273,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         LIST_RIGHT
       );
       case Pattern.As as -> {
-        var asBind = Seq.of(
-          KW_AS,
-          linkDef(as.as())
-        );
+        var asBind = Seq.of(KW_AS, linkDef(as.as()));
 
         if (outer == Outer.AppSpine) {
           // {pattern as bind}
@@ -309,51 +292,47 @@ public class ConcretePrettier extends BasePrettier<Expr> {
     return Doc.join(delim, patterns.view().map(p -> pattern(p.map(WithPos::data), outer)));
   }
 
-  public Doc matchy(Pattern.@NotNull Clause match) {
+  public Doc matchy(@NotNull Pattern.Clause match) {
     var doc = visitMaybeCtorPatterns(match.patterns, Outer.Free, Doc.plain(", "));
     return match.expr.map(e -> Doc.sep(doc, FN_DEFINED_AS, term(Outer.Free, e))).getOrDefault(doc);
   }
 
-  private Doc visitAccess(Stmt.@NotNull Accessibility accessibility) {
-    if (accessibility == Stmt.Accessibility.Public) return Doc.empty();
-    else return Doc.styled(KEYWORD, accessibility.keyword);
+  private Doc visitAccess(@NotNull Accessibility acc, @Nullable Accessibility theDefault) {
+    if (acc == theDefault) return Doc.empty();
+    else return Doc.styled(KEYWORD, acc.keyword);
   }
 
   public @NotNull Doc stmt(@NotNull Stmt prestmt) {
     return switch (prestmt) {
       case Decl decl -> decl(decl);
-      case Generalize variables -> Doc.sep(Doc.styled(KEYWORD, "variables"), visitTele(variables.toExpr()));
-      /*
+      case Generalize variables -> Doc.sep(KW_VARIABLES, visitTele(variables.toExpr()));
       case Command.Import cmd -> {
-        var prelude = MutableList.of(Doc.styled(KEYWORD, "import"), Doc.symbol(cmd.path().toString()));
+        var prelude = MutableList.of(KW_IMPORT, Doc.symbol(cmd.path().toString()));
         if (cmd.asName() != null) {
-          prelude.append(Doc.styled(KEYWORD, "as"));
+          prelude.append(KW_AS);
           prelude.append(Doc.plain(cmd.asName()));
         }
         yield Doc.sep(prelude);
       }
       case Command.Open cmd -> Doc.sepNonEmpty(
-        visitAccess(cmd.accessibility(), Stmt.Accessibility.Private),
+        visitAccess(cmd.accessibility(), Accessibility.Private),
         Doc.styled(KEYWORD, "open"),
         Doc.plain(cmd.path().toString()),
-        Doc.styled(KEYWORD, switch (cmd.useHide().strategy()) {
-          case Using -> "using";
-          case Hiding -> "hiding";
-        }),
+        Doc.styled(KEYWORD, cmd.useHide().strategy().name().toLowerCase(Locale.ROOT)),
         Doc.parened(Doc.commaList(cmd.useHide().list().view()
           .map(name -> name.asName().isEmpty()
             || name.id().component() == ModuleName.This && name.asName().get().equals(name.id().name())
             ? Doc.plain(name.id().name())
-            : Doc.sep(Doc.plain(name.id().join()), Doc.styled(KEYWORD, "as"), Doc.plain(name.asName().get())))))
+            : Doc.sep(Doc.plain(name.id().join()), KW_AS, Doc.plain(name.asName().get())))))
       );
       case Command.Module mod -> Doc.vcat(
-        Doc.sep(visitAccess(mod.accessibility(), Stmt.Accessibility.Public),
+        Doc.sep(visitAccess(mod.accessibility(), Accessibility.Public),
           Doc.styled(KEYWORD, "module"),
           Doc.plain(mod.name()),
           Doc.symbol("{")),
         Doc.nest(2, Doc.vcat(mod.contents().view().map(this::stmt))),
         Doc.symbol("}")
-      );*/
+      );
     };
   }
 
@@ -428,7 +407,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
   }
 
   private @NotNull MutableList<Doc> declPrelude(@NotNull Decl decl) {
-    return MutableList.of(visitAccess(decl.accessibility()));
+    return MutableList.of(visitAccess(decl.accessibility(), Accessibility.Public));
   }
 
   /**
@@ -437,18 +416,14 @@ public class ConcretePrettier extends BasePrettier<Expr> {
   public @NotNull Doc visitDoBinding(@NotNull Expr.DoBind doBind) {
     return doBind.var() == LocalVar.IGNORED
       ? term(Outer.Free, doBind.expr())
-      : Doc.sep(
-        varDoc(doBind.var()),
-        LARROW,
-        term(Outer.Free, doBind.expr()));
+      : Doc.sep(varDoc(doBind.var()), LARROW, term(Outer.Free, doBind.expr()));
   }
 
   private Doc visitClauses(@NotNull ImmutableSeq<Pattern.Clause> clauses) {
     if (clauses.isEmpty()) return Doc.empty();
-    return Doc.vcat(
-      clauses.view()
-        .map(this::matchy)
-        .map(doc -> Doc.sep(BAR, doc)));
+    return Doc.vcat(clauses.view()
+      .map(this::matchy)
+      .map(doc -> Doc.sep(BAR, doc)));
   }
 
   private void appendResult(MutableList<Doc> prelude, @Nullable WithPos<Expr> result) {
@@ -477,9 +452,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
 
   private @NotNull Doc visitLetBind(@NotNull Expr.LetBind letBind) {
     // f : G := g
-    var prelude = MutableList.of(
-      varDoc(letBind.bindName())
-    );
+    var prelude = MutableList.of(varDoc(letBind.bindName()));
 
     if (letBind.telescope().isNotEmpty()) {
       prelude.append(visitTele(letBind.telescope()));
