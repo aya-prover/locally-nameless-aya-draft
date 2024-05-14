@@ -29,10 +29,10 @@ public class TyckTest {
   }
 
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
-    var decls = SyntaxTestUtil.parse(code)
-      .map(stmt -> stmt instanceof Decl decl ? decl : Panic.unreachable());
-
-    SyntaxTestUtil.resolve(ImmutableSeq.narrow(decls));
+    var stmts = SyntaxTestUtil.parse(code);
+    SyntaxTestUtil.resolve(ImmutableSeq.narrow(stmts));
+    var decls = stmts.mapNotNull(stmt -> stmt instanceof Decl decl ? decl : null);
+    decls.forEach(decl -> System.out.println("Checking " + decl.ref().name()));
     return SillyTycker.tyck(decls, TestUtil.THROWING);
   }
 }

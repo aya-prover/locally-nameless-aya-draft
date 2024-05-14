@@ -10,22 +10,23 @@ import static org.aya.tyck.TyckTest.tyck;
 public class PatternTyckTest {
   @Test public void test0() {
     @Language("Aya") String code = """
-      data Nat | O | S Nat
+      open data Nat | O | S Nat
 
       def infix + (a b: Nat): Nat
-      | Nat::O, b => b
-      | Nat::S a', b => Nat::S (a' + b)
+      | O, b => b
+      | S a', b => S (a' + b)
       """;
     var result = tyck(code);
+    System.out.println(result);
   }
 
   @Test
   public void elim0() {
     var result = tyck("""
-      data Nat | O | S Nat
+      open data Nat | O | S Nat
       def lind (a b : Nat) : Nat elim a
-      | Nat::O => b
-      | Nat::S a' => Nat::S (lind a' b)
+      | O => b
+      | S a' => S (lind a' b)
       """);
   }
 }
