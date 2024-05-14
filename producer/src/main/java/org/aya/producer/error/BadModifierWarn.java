@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.producer;
+package org.aya.producer.error;
 
 import org.aya.generic.Modifier;
 import org.aya.prettier.BasePrettier;
@@ -15,7 +15,5 @@ public record BadModifierWarn(@Override @NotNull SourcePos sourcePos, @NotNull M
     return Doc.sep(Doc.plain("Ignoring"), Doc.styled(BasePrettier.KEYWORD, modifier.keyword));
   }
 
-  @Override public @NotNull Severity level() {
-    return Severity.WARN;
-  }
+  @Override public @NotNull Severity level() { return Severity.WARN; }
 }

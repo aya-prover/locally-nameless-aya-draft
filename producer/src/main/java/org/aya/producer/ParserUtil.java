@@ -8,6 +8,7 @@ import com.intellij.psi.builder.FleetPsiBuilder;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.aya.intellij.GenericNode;
+import org.aya.producer.error.ParseError;
 import org.aya.util.error.SourceFile;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;

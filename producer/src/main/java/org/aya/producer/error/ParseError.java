@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.producer;
+package org.aya.producer.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.util.error.SourcePos;
@@ -13,7 +13,5 @@ public record ParseError(@Override @NotNull SourcePos sourcePos, @NotNull String
     return Doc.english(message);
   }
 
-  @Override public @NotNull Severity level() {
-    return Severity.ERROR;
-  }
+  @Override public @NotNull Severity level() { return Severity.ERROR; }
 }

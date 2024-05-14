@@ -1,9 +1,10 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.producer;
+package org.aya.producer.error;
 
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
+import org.aya.producer.ModifierParser;
 import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Problem;
@@ -14,7 +15,7 @@ public record ModifierProblem(
   @NotNull ModifierParser.CModifier modifier,
   @NotNull Reason reason
 ) implements Problem {
-  enum Reason {
+  public enum Reason {
     Inappropriate,
     Contradictory,
     Duplicative

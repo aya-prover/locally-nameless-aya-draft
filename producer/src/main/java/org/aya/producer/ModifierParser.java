@@ -7,6 +7,7 @@ import kala.collection.Seq;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.Modifier;
+import org.aya.producer.error.ModifierProblem;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
