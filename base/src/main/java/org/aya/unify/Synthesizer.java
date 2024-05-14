@@ -10,6 +10,7 @@ import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -113,6 +114,7 @@ public record Synthesizer(
           // the type of projOf.{index - 1} may refer to the previous parameters
           .instantiateTele(ProjTerm.projSubst(of, index).view());
       }
+      case IntegerTerm(_, _, var ty) -> ty;
       case Callable.Tele teleCall -> TeleDef.defResult(teleCall.ref())
         .instantiateTele(teleCall.args().view())
         .elevate(teleCall.ulift());
