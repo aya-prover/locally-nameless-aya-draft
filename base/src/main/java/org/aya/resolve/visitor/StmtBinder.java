@@ -10,7 +10,6 @@ import org.aya.resolve.error.NameProblem;
 import org.aya.resolve.error.OperatorError;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.BindBlock;
-import org.aya.syntax.concrete.stmt.Command;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.ref.DefVar;
@@ -77,10 +76,8 @@ public interface StmtBinder {
       case ResolvingStmt.GenStmt _ -> { }
       case ResolvingStmt.MiscDecl(TeleDecl.DataCon ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
       case ResolvingStmt.MiscDecl _ -> Panic.unreachable();
-      case ResolvingStmt.CmdStmt(Command.Module mod) ->
-        // resolveBind(mod.contents(), info);
-        throw new UnsupportedOperationException();
-      case ResolvingStmt.CmdStmt(_) -> { }
+      case ResolvingStmt.ModStmt(_, var stmts) ->
+        resolveBind(stmts, info);
       // case TeleDecl.ClassMember field -> visitBind(field.ref, field.bindBlock(), info);
       // case ClassDecl decl -> {
       //   decl.members.forEach(field -> resolveBind(field, info));

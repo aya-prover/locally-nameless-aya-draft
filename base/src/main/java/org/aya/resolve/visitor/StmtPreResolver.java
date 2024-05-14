@@ -17,6 +17,7 @@ import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -31,14 +32,13 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
   /**
    * Resolve {@link Stmt}s under {@param context}.
    *
-   * @return the context of the body of each {@link Stmt}.
-   * @proof return.size() == stmts.size()
+   * @return the context of the body of each {@link Stmt}, where imports and opens are stripped.
    */
   public ImmutableSeq<ResolvingStmt> resolveStmt(@NotNull ImmutableSeq<Stmt> stmts, ModuleContext context) {
-    return stmts.map(stmt -> resolveStmt(stmt, context));
+    return stmts.mapNotNull(stmt -> resolveStmt(stmt, context));
   }
 
-  public @NotNull ResolvingStmt resolveStmt(@NotNull Stmt stmt, @NotNull ModuleContext context) {
+  public @Nullable ResolvingStmt resolveStmt(@NotNull Stmt stmt, @NotNull ModuleContext context) {
     return switch (stmt) {
       case Decl decl -> resolveDecl(decl, context);
       case Command.Module mod -> {
@@ -92,7 +92,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
           }
           resolveInfo.renameOp(symbol.get(), renamedOpDecl, bind, true);
         });
-        yield new ResolvingStmt.CmdStmt(cmd);
+        yield null;
       }
       case Generalize variables -> {
         for (var variable : variables.variables)

@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve;
 
+import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.stmt.Command;
 import org.aya.syntax.concrete.stmt.Generalize;
@@ -45,5 +46,8 @@ public sealed interface ResolvingStmt {
   record TopDecl(@Override @NotNull TeleDecl<?> stmt, @NotNull Context innerCtx) implements ResolvingDecl { }
   record MiscDecl(@Override @NotNull Decl stmt) implements ResolvingDecl { }
   record GenStmt(@Override @NotNull Generalize stmt) implements ResolvingStmt { }
-  record CmdStmt(@Override @NotNull Command stmt) implements ResolvingStmt { }
+  record ModStmt(
+    @Override @NotNull Command.Module stmt,
+    @NotNull ImmutableSeq<@NotNull ResolvingStmt> resolved
+  ) implements ResolvingStmt { }
 }
