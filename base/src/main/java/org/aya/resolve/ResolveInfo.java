@@ -13,6 +13,7 @@ import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.UseHide;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.binop.OpDecl;
+import org.aya.util.error.SourcePos;
 import org.aya.util.terck.MutableGraph;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
@@ -33,22 +34,34 @@ public record ResolveInfo(
       MutableMap.create(), MutableMap.create(), MutableMap.create(), MutableGraph.create());
   }
 
-  public record ImportInfo(@NotNull ResolveInfo resolveInfo, boolean reExport) {
-  }
-
-  public record OpRenameInfo(@NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean reExport) {
-  }
+  public record ImportInfo(@NotNull ResolveInfo resolveInfo, boolean reExport) { }
+  public record OpRenameInfo(@NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean reExport) { }
 
   /**
    * @param definedHere Is this operator renamed in this module, or publicly renamed by upstream?
-   * @see #open(ResolveInfo, org.aya.util.error.SourcePos, Stmt.Accessibility)
+   * @see #open(ResolveInfo, SourcePos, Stmt.Accessibility)
    */
   public void renameOp(@NotNull DefVar<?, ?> defVar, @NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean definedHere) {
     defVar.addOpDeclRename(thisModule.modulePath(), renamed);
     opRename.put(defVar, new OpRenameInfo(renamed, bind, definedHere));
   }
 
-  @Debug.Renderer(text = "opInfo.name()")
-  public record RenamedOpDecl(@NotNull OpInfo opInfo) implements OpDecl {
+  public void open(@NotNull ResolveInfo other, @NotNull SourcePos sourcePos, @NotNull Stmt.Accessibility acc) {
+    // open defined operator and their bindings
+    opSet().importBind(other.opSet(), sourcePos);
+    // open discovered shapes as well
+    // shapeFactory().importAll(other.shapeFactory());
+    // open renamed operators and their bindings
+    other.opRename().forEach((defVar, tuple) -> {
+      if (acc == Stmt.Accessibility.Public) {
+        // if it is `public open`, make renamed operators transitively accessible by storing
+        // them in my `opRename` bc "my importers" cannot access `other.opRename`.
+        // see: https://github.com/aya-prover/aya-dev/issues/519
+        renameOp(defVar, tuple.renamed, tuple.bind, false);
+      } else defVar.addOpDeclRename(thisModule().modulePath(), tuple.renamed);
+    });
   }
+
+  @Debug.Renderer(text = "opInfo.name()")
+  public record RenamedOpDecl(@NotNull OpInfo opInfo) implements OpDecl { }
 }

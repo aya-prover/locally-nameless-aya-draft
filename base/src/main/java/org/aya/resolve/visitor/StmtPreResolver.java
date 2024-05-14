@@ -9,12 +9,12 @@ import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.PhysicalModuleContext;
 import org.aya.resolve.error.PrimResolveError;
-import org.aya.syntax.concrete.stmt.Generalize;
-import org.aya.syntax.concrete.stmt.ModuleName;
-import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.syntax.concrete.stmt.*;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.PrimDef;
+import org.aya.util.binop.Assoc;
+import org.aya.util.binop.OpDecl;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,51 +41,59 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
   public @NotNull ResolvingStmt resolveStmt(@NotNull Stmt stmt, @NotNull ModuleContext context) {
     return switch (stmt) {
       case Decl decl -> resolveDecl(decl, context);
-      // case Command.Module mod -> {
-      //   var wholeModeName = context.modulePath().derive(mod.name());
-      //   // Is there a file level module with path {context.moduleName}::{mod.name} ?
-      //   if (loader.existsFileLevelModule(wholeModeName.path())) {
-      //     context.reportAndThrow(new NameProblem.ClashModNameError(wholeModeName.path(), mod.sourcePos()));
-      //   }
-      //   var newCtx = context.derive(mod.name());
-      //   resolveStmt(mod.contents(), newCtx);
-      //   context.importModule(ModuleName.This.resolve(mod.name()), newCtx, mod.accessibility(), mod.sourcePos());
-      // }
-      // case Command.Import cmd -> {
-      //   var modulePath = cmd.path();
-      //   var success = loader.load(modulePath.path());
-      //   if (success == null)
-      //     context.reportAndThrow(new NameProblem.ModNotFoundError(modulePath, cmd.sourcePos()));
-      //   var mod = success.thisModule();
-      //   var as = cmd.asName();
-      //   var importedName = as != null ? ModuleName.This.resolve(as) : modulePath.asName();
-      //   context.importModule(importedName, mod, cmd.accessibility(), cmd.sourcePos());
-      //   resolveInfo.imports().put(importedName, Tuple.of(success, cmd.accessibility() == Stmt.Accessibility.Public));
-      // }
-      // case Command.Open cmd -> {
-      //   var mod = cmd.path();
-      //   var acc = cmd.accessibility();
-      //   var useHide = cmd.useHide();
-      //   var ctx = cmd.openExample() ? exampleContext(context) : context;
-      //   ctx.openModule(mod, acc, cmd.sourcePos(), useHide);
-      //   // open necessities from imported modules (not submodules)
-      //   // because the module itself and its submodules share the same ResolveInfo
-      //   resolveInfo.imports().getOption(mod).ifDefined(modResolveInfo -> {
-      //     if (acc == Stmt.Accessibility.Public) resolveInfo.reExports().put(mod, useHide);
-      //     resolveInfo.open(modResolveInfo.component1(), cmd.sourcePos(), acc);
-      //   });
-      //   // renaming as infix
-      //   if (useHide.strategy() == UseHide.Strategy.Using) useHide.list().forEach(use -> {
-      //     if (use.asAssoc() == Assoc.Invalid) return;
-      //     var symbol = ctx.modules().get(mod).symbols().getMaybe(use.id().component(), use.id().name());
-      //     assert symbol.isOk();   // checked in openModule
-      //     var asName = use.asName().getOrDefault(use.id().name());
-      //     var renamedOpDecl = new ResolveInfo.RenamedOpDecl(new OpDecl.OpInfo(asName, use.asAssoc()));
-      //     var bind = use.asBind();
-      //     if (bind != BindBlock.EMPTY) bind.context().set(ctx);
-      //     resolveInfo.renameOp(symbol.get(), renamedOpDecl, bind, true);
-      //   });
-      // }
+      case Command.Module mod -> {
+        var wholeModeName = context.modulePath().derive(mod.name());
+        throw new UnsupportedOperationException("TODO");
+        // Is there a file level module with path {context.moduleName}::{mod.name} ?
+        // if (loader.existsFileLevelModule(wholeModeName.path())) {
+        //   context.reportAndThrow(new NameProblem.ClashModNameError(wholeModeName.path(), mod.sourcePos()));
+        // }
+        // var newCtx = context.derive(mod.name());
+        // resolveStmt(mod.contents(), newCtx);
+        // context.importModule(ModuleName.This.resolve(mod.name()), newCtx, mod.accessibility(), mod.sourcePos());
+      }
+      case Command.Import cmd -> {
+        var modulePath = cmd.path();
+        throw new UnsupportedOperationException("TODO");
+        // var success = loader.load(modulePath.path());
+        // if (success == null)
+        //   context.reportAndThrow(new NameProblem.ModNotFoundError(modulePath, cmd.sourcePos()));
+        // var mod = success.thisModule();
+        // var as = cmd.asName();
+        // var importedName = as != null ? ModuleName.This.resolve(as) : modulePath.asName();
+        // context.importModule(importedName, mod, cmd.accessibility(), cmd.sourcePos());
+        // resolveInfo.imports().put(importedName, Tuple.of(success, cmd.accessibility() == Stmt.Accessibility.Public));
+      }
+      case Command.Open cmd -> {
+        var mod = cmd.path();
+        var acc = cmd.accessibility();
+        var useHide = cmd.useHide();
+        var ctx = /*cmd.openExample() ? exampleContext(context) :*/ context;
+        // TODO: exampleContext
+        ctx.openModule(mod, acc, cmd.sourcePos(), useHide);
+        // open necessities from imported modules (not submodules)
+        // because the module itself and its submodules share the same ResolveInfo
+        resolveInfo.imports().getOption(mod).ifDefined(modResolveInfo -> {
+          if (acc == Stmt.Accessibility.Public) resolveInfo.reExports().put(mod, useHide);
+          resolveInfo.open(modResolveInfo.resolveInfo(), cmd.sourcePos(), acc);
+        });
+        // renaming as infix
+        if (useHide.strategy() == UseHide.Strategy.Using) useHide.list().forEach(use -> {
+          if (use.asAssoc() == Assoc.Invalid) return;
+          var symbol = ctx.modules().get(mod).symbols().getMaybe(use.id().component(), use.id().name());
+          assert symbol.isOk(); // checked in openModule
+          var asName = use.asName().getOrDefault(use.id().name());
+          var renamedOpDecl = new ResolveInfo.RenamedOpDecl(new OpDecl.OpInfo(asName, use.asAssoc()));
+          var bind = use.asBind();
+          if (bind != BindBlock.EMPTY) {
+            // bind.context().set(ctx);
+            // TODO[ice]: is this a no-op?
+            throw new UnsupportedOperationException("TODO");
+          }
+          resolveInfo.renameOp(symbol.get(), renamedOpDecl, bind, true);
+        });
+        yield new ResolvingStmt.CmdStmt(cmd);
+      }
       case Generalize variables -> {
         for (var variable : variables.variables)
           context.defineSymbol(variable, Stmt.Accessibility.Private, variable.sourcePos);

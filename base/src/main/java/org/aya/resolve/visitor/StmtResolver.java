@@ -10,6 +10,7 @@ import org.aya.generic.TyckUnit;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
+import org.aya.syntax.concrete.stmt.Command;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
@@ -34,8 +35,10 @@ public interface StmtResolver {
   static void resolveStmt(@NotNull ResolvingStmt stmt, @NotNull ResolveInfo info) {
     switch (stmt) {
       case ResolvingStmt.ResolvingDecl decl -> resolveDecl(decl, info);
-      // case Command.Module mod -> resolveStmt(mod.contents(), info);
-      // case Command cmd -> {}
+      case ResolvingStmt.CmdStmt(Command.Module mod) ->
+        // resolveStmt(mod.contents().map(ResolvingStmt.CmdStmt::new), info);
+        throw new UnsupportedOperationException("TODO: shall we preprocess modules?");
+      case ResolvingStmt.CmdStmt(_) -> { }
       case ResolvingStmt.GenStmt(var variables) -> {
         var resolver = new ExprResolver(info.thisModule(), ExprResolver.RESTRICTIVE);
         resolver.enterBody();
