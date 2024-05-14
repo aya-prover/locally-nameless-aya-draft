@@ -6,7 +6,6 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableTreeSet;
 import org.aya.generic.Constants;
-import org.aya.generic.SortKind;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.MetaCall;
@@ -164,11 +163,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
           return boundResult;
         }));
       });
-      case Expr.Let let -> checkLet(let, e -> {
-        ty(e);
-        // TODO: we need a Result!!
-        throw new UnsupportedOperationException("TODO");
-      }).wellTyped();
+      case Expr.Let let -> checkLet(let, e -> lazyJdg(ty(e))).wellTyped();
       default -> synthesize(expr).wellTyped();
     };
   }
@@ -200,16 +195,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
 
         yield checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       }
-      case Expr.Sigma _ -> {
-        var ty = ty(expr);
-        // TODO: type level
-        yield new Jdg.Default(ty, new SortTerm(SortKind.Type, 0));
-      }
-      case Expr.Pi _ -> {
-        var ty = ty(expr);
-        // TODO: type level
-        yield new Jdg.Default(ty, new SortTerm(SortKind.Type, 0));
-      }
+      case Expr.Sigma _, Expr.Pi _ -> lazyJdg(ty(expr));
       case Expr.Sort sort -> sort(expr);
       case Expr.Tuple(var items) -> {
         var results = items.map(this::synthesize);
@@ -336,25 +322,20 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
 
   /// region Overrides
 
-  @Override
-  public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
-    return new Unifier(state(), localCtx(), reporter(), pos, order, true);    // TODO: allowDelay?
+  @Override public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
+    return new Unifier(state(), localCtx(), reporter(), pos, order, true);
+    // TODO: allowDelay?
   }
 
-  @Override
-  public @NotNull LocalSubstitution localDefinition() {
-    return localDefinitions;
-  }
+  @Override public @NotNull LocalSubstitution localDefinition() { return localDefinitions; }
 
-  @Override
-  public @NotNull LocalSubstitution setLocalDefinition(@NotNull LocalSubstitution newOne) {
+  @Override public @NotNull LocalSubstitution setLocalDefinition(@NotNull LocalSubstitution newOne) {
     var old = localDefinitions;
     this.localDefinitions = newOne;
     return old;
   }
 
-  @Override
-  public <R> R subscoped(@NotNull Supplier<R> action) {
+  @Override public <R> R subscoped(@NotNull Supplier<R> action) {
     return super.subscoped(() -> LocalDeful.super.subscoped(action));
   }
 
@@ -363,9 +344,6 @@ public final class ExprTycker extends AbstractTycker implements Unifiable, Local
   protected static final class NotPi extends Exception {
     public final @NotNull Term actual;
 
-    public NotPi(@NotNull Term actual) {
-      this.actual = actual;
-    }
+    public NotPi(@NotNull Term actual) { this.actual = actual; }
   }
-
 }

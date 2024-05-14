@@ -204,21 +204,22 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   private static @NotNull Term inlineTerm(@NotNull Term term) {
     return TermInline.apply(term);
   }
-  private static @NotNull Jdg inlineTerm(@NotNull Jdg r) {
+  private @NotNull Jdg inlineTerm(@NotNull Jdg r) {
     return switch (r) {
       case Jdg.Default(var term, var type) -> new Jdg.Default(inlineTerm(term), inlineTerm(type));
       case Jdg.Sort sort -> sort;
+      case Jdg.Lazy lazy -> exprTycker.lazyJdg(inlineTerm(lazy.wellTyped()));
     };
   }
 
   /**
    * Inline terms in {@param result}, please do this after inline all patterns
    */
-  private static @NotNull PatternTycker.TyckResult inline(@NotNull PatternTycker.TyckResult result, @NotNull LocalCtx ctx) {
+  private @NotNull PatternTycker.TyckResult inline(@NotNull PatternTycker.TyckResult result, @NotNull LocalCtx ctx) {
     // inline {Pat.Meta} before inline {MetaPatTerm}s
     var wellTyped = result.wellTyped().map(x -> x.inline(ctx));
     // so that {MetaPatTerm}s can be inlined safely
-    var paramSubst = result.paramSubst().map(ClauseTycker::inlineTerm);
+    var paramSubst = result.paramSubst().map(this::inlineTerm);
 
     // map in place 😱😱😱😱
     result.asSubst().subst().replaceAll((_, t) -> inlineTerm(t));

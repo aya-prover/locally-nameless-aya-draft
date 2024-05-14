@@ -2,12 +2,15 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
+import kala.value.LazyValue;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
+import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
+import org.aya.unify.Synthesizer;
 import org.aya.unify.TermComparator;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +35,11 @@ public sealed abstract class AbstractTycker implements Stateful, Contextful, Pro
   @Override public @NotNull LocalCtx localCtx() { return localCtx; }
   @Override public @NotNull TyckState state() { return state; }
   @Override public @NotNull Reporter reporter() { return reporter; }
+
+  public @NotNull Jdg.Lazy lazyJdg(@NotNull Term wellTyped) {
+    return new Jdg.Lazy(wellTyped, LazyValue.of(() ->
+      new Synthesizer(this).synthDontNormalize(wellTyped)));
+  }
 
   public @NotNull LocalVar putIndex(@NotNull NameGenerator nameGen, @NotNull Term type) {
     var var = nameGen.nextVar(whnf(type));

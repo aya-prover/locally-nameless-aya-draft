@@ -47,8 +47,8 @@ public interface Unifiable extends Problematic, Stateful {
   ) {
     var result = unifyTy(upper, lower, pos);
     if (result != null) {
-      // TODO: Ice Spell 「 Perfect Freeze 」 on [lower] and [upper]
-      fail(pc.apply(new UnifyInfo.Comparison(lower, upper, result)));
+      fail(pc.apply(new UnifyInfo.Comparison(
+        freezeHoles(lower), freezeHoles(upper), result)));
     }
 
     return result == null;
