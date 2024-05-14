@@ -51,7 +51,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         case Either.Left(var body) -> body.instantiateTele(args.view());
         case Either.Right(var clauses) -> throw new UnsupportedOperationException("TODO");
       };
-      case PrimCall prim -> state.factory().unfold(prim, state);
+      case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
       // TODO: handle other cases

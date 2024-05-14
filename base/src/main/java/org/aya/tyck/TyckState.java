@@ -8,6 +8,7 @@ import org.aya.generic.AyaDocile;
 import org.aya.normalize.PrimFactory;
 import org.aya.prettier.FindUsage;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
@@ -30,10 +31,11 @@ public record TyckState(
   @NotNull MutableList<Eqn> eqns,
   @NotNull MutableList<WithPos<MetaVar>> activeMetas,
   @NotNull MutableMap<MetaVar, Term> solutions,
-  @NotNull PrimFactory factory
+  @NotNull AyaShape.Factory shapeFactory,
+  @NotNull PrimFactory primFactory
 ) {
-  public TyckState(@NotNull PrimFactory factory) {
-    this(MutableList.create(), MutableList.create(), MutableMap.create(), factory);
+  public TyckState(@NotNull AyaShape.Factory shapeFactory, @NotNull PrimFactory primFactory) {
+    this(MutableList.create(), MutableList.create(), MutableMap.create(), shapeFactory, primFactory);
   }
   @ApiStatus.Internal
   public void solve(MetaVar meta, Term candidate) {

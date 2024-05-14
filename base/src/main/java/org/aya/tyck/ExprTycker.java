@@ -7,8 +7,12 @@ import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableTreeSet;
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
@@ -174,15 +178,22 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
       case Expr.Lambda lam -> inherit(expr, generatePi(lam, expr.sourcePos()));
-      case Expr.LitInt litInt -> throw new UnsupportedOperationException("TODO");
-      case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref(var ref) -> {
-        if (ref instanceof LocalVar localRef && localLet().contains(localRef)) {
-          yield localLet().get(localRef);
+      case Expr.LitInt(var integer) -> {
+        // TODO[literal]: int literals. Currently the parser does not allow negative literals.
+        var defs = state.shapeFactory().findImpl(AyaShape.NAT_SHAPE);
+        if (defs.isEmpty()) yield fail(expr.data(), new NoRuleError(expr, null));
+        if (defs.sizeGreaterThan(1)) {
+          throw new UnsupportedOperationException("TODO");
+          // var type = ctx.freshTyHole(STR."_ty\{lit.integer()}'", lit.sourcePos());
+          // yield new Result.Default(new MetaLitTerm(lit.sourcePos(), lit.integer(), defs, type.component1()), type.component1());
         }
-
-        yield checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
+        var match = defs.getFirst();
+        var type = new DataCall(((DataDef) match.component1()).ref, 0, ImmutableSeq.empty());
+        yield new Jdg.Default(new IntegerTerm(integer, match.component2(), type), type);
       }
+      case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
+      case Expr.Ref(LocalVar ref) when localLet().contains(ref) -> localLet().get(ref);
+      case Expr.Ref(var ref) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       case Expr.Sigma _, Expr.Pi _ -> lazyJdg(ty(expr));
       case Expr.Sort _ -> sort(expr);
       case Expr.Tuple(var items) -> {

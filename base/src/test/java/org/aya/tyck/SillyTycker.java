@@ -21,7 +21,7 @@ public class SillyTycker {
     var wellTyped = MutableList.<Def>create();
 
     for (var decl : decls) {
-      wellTyped.append(new StmtTycker(reporter, pf.factory()).check(decl));
+      wellTyped.append(new StmtTycker(reporter, pf.shapeFactory(), pf.primFactory()).check(decl));
     }
 
     return wellTyped.toImmutableSeq();

@@ -11,6 +11,7 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DefVar;
@@ -236,6 +237,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       case FreeTerm(var lvar) -> rhs instanceof FreeTerm(var rvar) && lvar == rvar ? localCtx().get(lvar) : null;
       case DimTerm l -> rhs instanceof DimTerm r && l == r ? l : null;
       case MetaCall mCall -> solveMeta(mCall, rhs, null);
+      // By typing invariant, they should have the same type, so no need to check for repr equality.
+      case IntegerTerm(var lepr, _, var ty) -> rhs instanceof IntegerTerm(var repr, _, _) && lepr == repr ? ty : null;
       // We already compare arguments in compareApprox, if we arrive here,
       // it means their arguments don't match (even the ref don't match),
       // so we are unable to do more if we can't normalize them.

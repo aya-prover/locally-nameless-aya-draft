@@ -9,6 +9,7 @@ import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
@@ -30,9 +31,13 @@ import java.util.Objects;
 
 import static org.aya.tyck.tycker.TeleTycker.loadTele;
 
-public record StmtTycker(@NotNull Reporter reporter, @NotNull PrimFactory primFactory) implements Problematic {
+public record StmtTycker(
+  @NotNull Reporter reporter,
+  @NotNull AyaShape.Factory shapeFactory,
+  @NotNull PrimFactory primFactory
+) implements Problematic {
   private @NotNull ExprTycker mkTycker() {
-    return new ExprTycker(new TyckState(primFactory), new LocalCtx(), new LocalLet(), reporter);
+    return new ExprTycker(new TyckState(shapeFactory, primFactory), new LocalCtx(), new LocalLet(), reporter);
   }
   public @NotNull Def check(Decl predecl) {
     ExprTycker tycker = null;

@@ -4,6 +4,7 @@ package org.aya;
 
 import org.aya.normalize.PrimFactory;
 import org.aya.prettier.AyaPrettierOptions;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.ctx.LocalLet;
@@ -26,7 +27,7 @@ public interface TestUtil {
   }
 
   static @NotNull TyckState emptyState() {
-    return new TyckState(new PrimFactory());
+    return new TyckState(new AyaShape.Factory(), new PrimFactory());
   }
   static @NotNull LocalCtx makeLocalCtx() {
     return new LocalCtx();

@@ -3,6 +3,12 @@
 package org.aya.syntax.core.repr;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableLinkedHashMap;
+import kala.collection.mutable.MutableMap;
+import kala.control.Option;
+import kala.tuple.Tuple;
+import kala.tuple.Tuple2;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.CodeShape.CtorShape;
 import org.aya.syntax.core.repr.CodeShape.DataShape;
 import org.aya.syntax.core.repr.CodeShape.GlobalId;
@@ -25,8 +31,8 @@ public sealed interface AyaShape {
 /*
   @NotNull AyaShape PLUS_LEFT_SHAPE = AyaPlusFnLeftShape.INSTANCE;
   @NotNull AyaShape PLUS_RIGHT_SHAPE = AyaPlusFnShape.INSTANCE;
-  @NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(NAT_SHAPE, LIST_SHAPE, PLUS_RIGHT_SHAPE);
 */
+@NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(NAT_SHAPE, LIST_SHAPE/*, PLUS_RIGHT_SHAPE*/);
 
   enum AyaIntShape implements AyaShape {
     INSTANCE;
@@ -126,35 +132,36 @@ public sealed interface AyaShape {
     public @NotNull CodeShape codeShape() {
       return FN_PLUS;
     }
-  }
+  }*/
 
   class Factory {
-    public @NotNull MutableMap<GenericDef, ShapeRecognition> discovered = MutableLinkedHashMap.of();
+    public @NotNull MutableMap<Def, ShapeRecognition> discovered = MutableLinkedHashMap.of();
 
-    public @NotNull ImmutableSeq<Tuple2<GenericDef, ShapeRecognition>> findImpl(@NotNull AyaShape shape) {
+    public @NotNull ImmutableSeq<Tuple2<Def, ShapeRecognition>> findImpl(@NotNull AyaShape shape) {
       return discovered.view().map(Tuple::of)
         .filter(t -> t.component2().shape() == shape)
         .toImmutableSeq();
     }
 
-    public @NotNull Option<ShapeRecognition> find(@NotNull GenericDef def) {
+    public @NotNull Option<ShapeRecognition> find(@NotNull Def def) {
       return discovered.getOption(def);
     }
 
-    public void bonjour(@NotNull GenericDef def, @NotNull ShapeRecognition shape) {
+    public void bonjour(@NotNull Def def, @NotNull ShapeRecognition shape) {
       // TODO[literal]: what if a def has multiple shapes?
       discovered.put(def, shape);
     }
 
-    *//** Discovery of shaped literals *//*
-    public void bonjour(@NotNull GenericDef def) {
-      AyaShape.LITERAL_SHAPES.view()
-        .flatMap(shape -> new ShapeMatcher().match(shape, def))
-        .forEach(shape -> bonjour(def, shape));
+    /** Discovery of shaped literals */
+    public void bonjour(@NotNull Def def) {
+      throw new UnsupportedOperationException("TODO");
+      // AyaShape.LITERAL_SHAPES.view()
+      //   .flatMap(shape -> new ShapeMatcher().match(shape, def))
+      //   .forEach(shape -> bonjour(def, shape));
     }
 
     public void importAll(@NotNull Factory other) {
       discovered.putAll(other.discovered);
     }
-  }*/
+  }
 }
