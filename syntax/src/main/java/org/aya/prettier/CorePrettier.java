@@ -13,8 +13,10 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
+import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GenerateKind;
@@ -58,9 +60,9 @@ public class CorePrettier extends BasePrettier<Term> {
       // case MetaLitTerm lit ->
       //   lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
       case TupTerm(var items) -> Doc.parened(argsDoc(options, items.map(Arg::ofExplicitly)));
-      // case IntegerTerm shaped -> shaped.repr() == 0
-      //   ? linkLit(0, shaped.ctorRef(CodeShape.GlobalId.ZERO), CON)
-      //   : linkLit(shaped.repr(), shaped.ctorRef(CodeShape.GlobalId.SUC), CON);
+      case IntegerTerm shaped -> shaped.repr() == 0
+        ? linkLit(0, shaped.ctorRef(CodeShape.GlobalId.ZERO), CON)
+        : linkLit(shaped.repr(), shaped.ctorRef(CodeShape.GlobalId.SUC), CON);
       case ConCallLike conCall -> visitCoreCalls(conCall.ref(), conCall.conArgs(), outer, optionImplicit());
       case FnCall fnCall -> visitCoreCalls(fnCall.ref(), fnCall.args(), outer, optionImplicit());
       case SigmaTerm(var params) -> {

@@ -8,6 +8,7 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>Of course, {@link ConCall} behaves like a {@link ConCall}</li>
  * </ul>
  */
-public sealed interface ConCallLike extends Callable.Tele permits ConCall {
+public sealed interface ConCallLike extends Callable.Tele permits ConCall, IntegerTerm {
   /**
    * @param dataArgs the arguments to the data type, NOT the constructor patterns!!
    *                 They need to be turned implicit when used as arguments.

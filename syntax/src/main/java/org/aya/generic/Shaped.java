@@ -11,7 +11,6 @@ import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.Arg;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,8 +20,8 @@ import java.util.function.IntUnaryOperator;
 /**
  * <h2> What should I do after I creating a new Shape? </h2>
  * <ul>
- *   <li>impl your Shape, see {@link IntegerTerm},
- *   and do everything you should after you creating a {@link Term}/{@link Pat}.</l1>
+ *   <li>impl your Shape, see {@link org.aya.syntax.core.term.repr.IntegerTerm},
+ *   and do everything you should after you creating a {@link Term}/{@link org.aya.syntax.core.pat.Pat}.</l1>
  *   <li>impl TermComparator, see {@link TermComparator#doCompareUntyped(Term, Term)}</li>
  *   <li>impl PatMatcher, see {@link org.aya.core.pat.PatMatcher#match(Pat, Term)}</li>
  *   <li>impl PatUnifier, see {@link org.aya.core.pat.PatUnify#unify(Pat, Pat)}</li>
@@ -51,7 +50,7 @@ public interface Shaped<T> {
 
   non-sealed interface Nat<T extends AyaDocile> extends Inductive<T> {
     @NotNull T makeZero(@NotNull ConDef zero);
-    @NotNull T makeSuc(@NotNull ConDef suc, @NotNull Arg<T> t);
+    @NotNull T makeSuc(@NotNull ConDef suc, @NotNull T t);
     @NotNull T destruct(int repr);
     int repr();
 
@@ -65,7 +64,7 @@ public interface Shaped<T> {
       var zero = ctorRef(CodeShape.GlobalId.ZERO);
       var suc = ctorRef(CodeShape.GlobalId.SUC);
       if (repr == 0) return makeZero(zero.core);
-      return makeSuc(suc.core, new Arg<>(destruct(repr - 1), true));
+      return makeSuc(suc.core, destruct(repr - 1));
     }
 
     @NotNull Shaped.Nat<T> map(@NotNull IntUnaryOperator f);
@@ -121,6 +120,6 @@ public interface Shaped<T> {
      * @param args arguments
      * @return null if failed
      */
-    @Nullable T apply(@NotNull ImmutableSeq<Arg<T>> args);
+    @Nullable T apply(@NotNull ImmutableSeq<T> args);
   }
 }
