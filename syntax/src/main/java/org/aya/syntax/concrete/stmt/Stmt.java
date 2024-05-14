@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author kiva
  */
-public sealed interface Stmt extends TyckUnit permits Generalize, Decl {
+public sealed interface Stmt extends TyckUnit permits Command, Generalize, Decl {
   /** @apiNote the \import stmts do not have a meaningful accessibility, do not refer to this in those cases */
   @Contract(pure = true) @NotNull Accessibility accessibility();
 
