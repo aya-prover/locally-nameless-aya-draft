@@ -10,6 +10,8 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.unify.Synthesizer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.UnaryOperator;
+
 public sealed interface Jdg {
   @NotNull Term wellTyped();
   @NotNull Term type();
@@ -35,5 +37,8 @@ public sealed interface Jdg {
 
   record Lazy(@Override @NotNull Term wellTyped, @NotNull LazyValue<Term> lazyType) implements Jdg {
     @Override public @NotNull Term type() { return lazyType.get(); }
+    public @NotNull Lazy map(@NotNull UnaryOperator<Term> f) {
+      return new Lazy(f.apply(wellTyped), lazyType.map(f));
+    }
   }
 }

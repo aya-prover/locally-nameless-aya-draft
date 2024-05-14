@@ -53,15 +53,14 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims
   ) {
-    var indices = elims.map(i -> vars.indexOf(i.data())).collect(ImmutableIntSeq.factory());
-    var lhsResult = checkAllLhs(indices.isEmpty() ? null : indices, signature, clauses.view());
+    var indices = elims.isEmpty() ? null : elims.map(i ->
+      vars.indexOf(i.data())).collect(ImmutableIntSeq.factory());
+    var lhsResult = checkAllLhs(indices, signature, clauses.view());
     return checkAllRhs(vars, lhsResult);
   }
 
   public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
-    @Nullable ImmutableIntSeq indices,
-    @NotNull Signature<?> signature,
-    @NotNull SeqView<Pattern.Clause> clauses
+    @Nullable ImmutableIntSeq indices, @NotNull Signature<?> signature, @NotNull SeqView<Pattern.Clause> clauses
   ) {
     return clauses.map(c -> checkLhs(signature, indices, c)).toImmutableSeq();
   }
@@ -204,22 +203,22 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   private static @NotNull Term inlineTerm(@NotNull Term term) {
     return TermInline.apply(term);
   }
-  private @NotNull Jdg inlineTerm(@NotNull Jdg r) {
+  private static @NotNull Jdg inlineTerm(@NotNull Jdg r) {
     return switch (r) {
       case Jdg.Default(var term, var type) -> new Jdg.Default(inlineTerm(term), inlineTerm(type));
       case Jdg.Sort sort -> sort;
-      case Jdg.Lazy lazy -> exprTycker.lazyJdg(inlineTerm(lazy.wellTyped()));
+      case Jdg.Lazy lazy -> lazy.map(ClauseTycker::inlineTerm);
     };
   }
 
   /**
    * Inline terms in {@param result}, please do this after inline all patterns
    */
-  private @NotNull PatternTycker.TyckResult inline(@NotNull PatternTycker.TyckResult result, @NotNull LocalCtx ctx) {
+  private static @NotNull PatternTycker.TyckResult inline(@NotNull PatternTycker.TyckResult result, @NotNull LocalCtx ctx) {
     // inline {Pat.Meta} before inline {MetaPatTerm}s
     var wellTyped = result.wellTyped().map(x -> x.inline(ctx));
     // so that {MetaPatTerm}s can be inlined safely
-    var paramSubst = result.paramSubst().map(this::inlineTerm);
+    var paramSubst = result.paramSubst().map(ClauseTycker::inlineTerm);
 
     // map in place 😱😱😱😱
     result.asSubst().subst().replaceAll((_, t) -> inlineTerm(t));

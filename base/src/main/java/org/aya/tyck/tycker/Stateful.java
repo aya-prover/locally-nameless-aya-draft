@@ -37,6 +37,7 @@ public interface Stateful {
     return switch (r) {
       case Jdg.Default(var term, var type) -> new Jdg.Default(freezeHoles(term), freezeHoles(type));
       case Jdg.Sort sort -> sort;
+      case Jdg.Lazy lazy -> lazy.map(this::freezeHoles);
     };
   }
 }
