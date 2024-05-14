@@ -116,7 +116,6 @@ BLOCK_COMMENT_END   = "*/"
   "tighter"             { return KW_TIGHTER; }
   "looser"              { return KW_LOOSER; }
   "example"             { return KW_EXAMPLE; }
-  "counterexample"      { return KW_COUNTEREXAMPLE; }
   "Type"                { return KW_TYPE; }
   "Set"                 { return KW_SET; }
   "ISet"                { return KW_ISET; }

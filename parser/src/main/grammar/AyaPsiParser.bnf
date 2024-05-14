@@ -43,7 +43,6 @@
 
     // samples
     KW_EXAMPLE = 'example'
-    KW_COUNTEREXAMPLE = 'counterexample'
 
     // universe
     // KW_ULIFT = 'regexp:ulift|\u2191'
@@ -163,7 +162,7 @@ private stmt_with_recover ::= !(<<eof>>) stmt {
 }
 private stmt_recover ::= !(stmt_first)
 private stmt_first ::= KW_PUBLIC | KW_PRIVATE | KW_OPEN | KW_IMPORT | KW_MODULE
-                     | KW_EXAMPLE | KW_COUNTEREXAMPLE | DOC_COMMENT
+                     | KW_EXAMPLE | DOC_COMMENT
                      | KW_DEF | KW_CLASS | KW_PRIM | KW_DATA | KW_VARIABLE
                      | KW_OPAQUE | KW_INLINE | KW_OVERLAP
 
@@ -226,7 +225,6 @@ primDecl ::= KW_PRIM primName tele* type? { pin=1 }
 // IMPORTANT NOTE: Adding all of these to stmt_first or you will get parser errors!
 declModifiers ::= KW_PRIVATE
                 | KW_EXAMPLE
-                | KW_COUNTEREXAMPLE
                 | KW_OPAQUE
                 | KW_INLINE
                 | KW_OVERLAP
