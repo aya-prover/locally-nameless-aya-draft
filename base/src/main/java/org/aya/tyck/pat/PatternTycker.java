@@ -25,7 +25,7 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.ctx.LocalSubstitution;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.PatternProblem;
 import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
@@ -60,7 +60,7 @@ public class PatternTycker implements Problematic, Stateful {
   /**
    * Substitution for `as` pattern
    */
-  private final @NotNull LocalSubstitution asSubst;
+  private final @NotNull LocalLet asSubst;
 
   private @UnknownNullability Param currentParam = null;
   private boolean hasError = false;
@@ -68,14 +68,14 @@ public class PatternTycker implements Problematic, Stateful {
   /**
    * @see #tyckInner(SeqView, SeqView, WithPos)
    */
-  public PatternTycker(@NotNull ExprTycker tycker, @NotNull SeqView<Param> tele, @NotNull LocalSubstitution sub) {
+  public PatternTycker(@NotNull ExprTycker tycker, @NotNull SeqView<Param> tele, @NotNull LocalLet sub) {
     this(tycker, tele, sub, true);
   }
 
   public PatternTycker(
     @NotNull ExprTycker exprTycker,
     @NotNull SeqView<Param> telescope,
-    @NotNull LocalSubstitution asSubst,
+    @NotNull LocalLet asSubst,
     boolean allowImplicit
   ) {
     this.exprTycker = exprTycker;
@@ -88,7 +88,7 @@ public class PatternTycker implements Problematic, Stateful {
   public record TyckResult(
     @NotNull ImmutableSeq<Pat> wellTyped,
     @NotNull ImmutableSeq<Jdg> paramSubst,
-    @NotNull LocalSubstitution asSubst,
+    @NotNull LocalLet asSubst,
     @Nullable WithPos<Expr> newBody,
     boolean hasError
   ) {

@@ -6,7 +6,7 @@ import org.aya.normalize.PrimFactory;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.ctx.LocalSubstitution;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.unify.TermComparator;
 import org.aya.unify.Unifier;
 import org.aya.util.Ordering;
@@ -32,7 +32,7 @@ public interface TestUtil {
   static @NotNull LocalCtx makeLocalCtx() {
     return new LocalCtx();
   }
-  static @NotNull LocalSubstitution makeLocalSubst() {
-    return new LocalSubstitution();
+  static @NotNull LocalLet makeLocalSubst() {
+    return new LocalLet();
   }
 }

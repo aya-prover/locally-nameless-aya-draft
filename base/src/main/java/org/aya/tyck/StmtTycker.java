@@ -15,7 +15,7 @@ import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.LocalCtx;
-import org.aya.tyck.ctx.LocalSubstitution;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
 import org.aya.tyck.pat.ClauseTycker;
@@ -32,7 +32,7 @@ import static org.aya.tyck.tycker.TeleTycker.loadTele;
 
 public record StmtTycker(@NotNull Reporter reporter, @NotNull PrimFactory primFactory) implements Problematic {
   private @NotNull ExprTycker mkTycker() {
-    return new ExprTycker(new TyckState(primFactory), new LocalCtx(), new LocalSubstitution(), reporter);
+    return new ExprTycker(new TyckState(primFactory), new LocalCtx(), new LocalLet(), reporter);
   }
   public @NotNull Def check(Decl predecl) {
     ExprTycker tycker = null;

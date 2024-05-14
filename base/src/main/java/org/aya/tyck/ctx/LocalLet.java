@@ -16,15 +16,15 @@ import org.jetbrains.annotations.Nullable;
  * Every substitution should be well-scoped, i.e.,
  * {@link Jdg} can only refer to some free variable or elder lazy substitution.
  */
-public record LocalSubstitution(
-  @Override @Nullable LocalSubstitution parent,
+public record LocalLet(
+  @Override @Nullable LocalLet parent,
   @NotNull MutableLinkedHashMap<LocalVar, Jdg> subst
-) implements Scoped<LocalVar, Jdg, LocalSubstitution> {
-  public LocalSubstitution() { this(null, MutableLinkedHashMap.of()); }
-  @Override public @NotNull LocalSubstitution self() { return this; }
+) implements Scoped<LocalVar, Jdg, LocalLet> {
+  public LocalLet() { this(null, MutableLinkedHashMap.of()); }
+  @Override public @NotNull LocalLet self() { return this; }
 
-  @Override public @NotNull LocalSubstitution derive() {
-    return new LocalSubstitution(this, MutableLinkedHashMap.of());
+  @Override public @NotNull LocalLet derive() {
+    return new LocalLet(this, MutableLinkedHashMap.of());
   }
 
   @Override public @NotNull Option<Jdg> getLocal(@NotNull LocalVar key) {

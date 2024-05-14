@@ -13,7 +13,7 @@ import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.*;
-import org.aya.tyck.ctx.LocalSubstitution;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.*;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.AppTycker;
@@ -34,7 +34,7 @@ import java.util.function.Function;
 public final class ExprTycker extends AbstractTycker implements Unifiable {
   public final @NotNull MutableTreeSet<WithPos<Expr.WithTerm>> withTerms =
     MutableTreeSet.create(Comparator.comparing(SourceNode::sourcePos));
-  private @NotNull LocalSubstitution localDefinitions;
+  private @NotNull LocalLet localDefinitions;
 
   public void addWithTerm(@NotNull Expr.WithTerm with, @NotNull SourcePos pos, @NotNull Term type) {
     withTerms.add(new WithPos<>(pos, with));
@@ -44,7 +44,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   public ExprTycker(
     @NotNull TyckState state,
     @NotNull LocalCtx ctx,
-    @NotNull LocalSubstitution localDefinitions,
+    @NotNull LocalLet localDefinitions,
     @NotNull Reporter reporter
   ) {
     super(state, ctx, reporter);
@@ -317,11 +317,11 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     // TODO: allowDelay?
   }
 
-  @Override public @NotNull LocalSubstitution localDefinition() { return localDefinitions; }
+  @Override public @NotNull LocalLet localLet() { return localDefinitions; }
 
-  @Override public @NotNull LocalSubstitution setLocalDefinition(@NotNull LocalSubstitution newOne) {
+  @Override public @NotNull LocalLet setLocalLet(@NotNull LocalLet let) {
     var old = localDefinitions;
-    this.localDefinitions = newOne;
+    this.localDefinitions = let;
     return old;
   }
 

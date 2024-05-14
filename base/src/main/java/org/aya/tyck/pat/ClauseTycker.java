@@ -20,7 +20,7 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.ctx.LocalSubstitution;
+import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
@@ -42,7 +42,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull LocalCtx localCtx,
     @NotNull Term type,
     @NotNull ImmutableSeq<Jdg> paramSubst,
-    @NotNull LocalSubstitution asSubst,
+    @NotNull LocalLet asSubst,
     @NotNull Pat.Preclause<Expr> clause,
     boolean hasError
   ) { }
@@ -97,7 +97,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
       ? telescope.mapIndexed((idx, p) -> indices.contains(idx) ? p.explicitize() : p.implicitize())
       : telescope;
 
-    return new PatternTycker(exprTycker, telescope, new LocalSubstitution(), indices == null);
+    return new PatternTycker(exprTycker, telescope, new LocalLet(), indices == null);
   }
 
   private @NotNull LhsResult checkLhs(
@@ -152,9 +152,9 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         // the localCtx will be restored after exiting [subscoped]
         exprTycker.setLocalCtx(result.localCtx);
 
-        teleBinds.forEachWith(result.paramSubst, exprTycker.localDefinition()::put);
+        teleBinds.forEachWith(result.paramSubst, exprTycker.localLet()::put);
 
-        exprTycker.setLocalDefinition(new LocalSubstitution(exprTycker.localDefinition(), result.asSubst.subst()));
+        exprTycker.setLocalLet(new LocalLet(exprTycker.localLet(), result.asSubst.subst()));
         // now exprTycker has all substitutions that PatternTycker introduced.
 
         wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
