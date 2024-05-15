@@ -11,6 +11,9 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @param conArgs the arguments to the constructor, see {@link ConDef#selfTele}
+ */
 public record ConCall(
   @Override @NotNull ConCall.Head head,
   @Override @NotNull ImmutableSeq<Term> conArgs

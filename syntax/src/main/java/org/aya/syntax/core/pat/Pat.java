@@ -40,6 +40,9 @@ import java.util.function.UnaryOperator;
 public sealed interface Pat extends AyaDocile {
   @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp);
 
+  /**
+   * The order of bindings should be postorder, that is, {@code (Con0 a (Con1 b)) as c} should be {@code [a , b , c]}
+   */
   void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer);
 
   default ImmutableSeq<Tuple2<LocalVar, Term>> collectBindings() {

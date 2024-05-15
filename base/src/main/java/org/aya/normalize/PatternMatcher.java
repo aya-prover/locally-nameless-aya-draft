@@ -29,7 +29,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
    */
   public @NotNull Result<ImmutableSeq<Term>, Boolean> match(@NotNull Pat pat, @NotNull Term term) {
     return switch (pat) {
-      case Pat.Absurd _ -> throw new Panic("unreachable");
+      case Pat.Absurd _ -> Panic.unreachable();
       case Pat.Bind _ -> Result.ok(ImmutableSeq.of(term));
       case Pat.Con con -> {
         term = pre.apply(term);
@@ -48,10 +48,14 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
           default -> Result.err(true);
         };
       }
+      // You can't match with a tycking pattern!
       case Pat.Meta meta -> throw new Panic("Illegal pattern: Pat.Meta");
     };
   }
 
+  /**
+   * @see #match(Pat, Term)
+   */
   public @NotNull Result<ImmutableSeq<Term>, Boolean> matchMany(
     @NotNull ImmutableSeq<Pat> pats,
     @NotNull ImmutableSeq<Term> terms

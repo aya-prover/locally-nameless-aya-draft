@@ -6,12 +6,15 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.ImmutableSet;
 import kala.control.Either;
 import kala.control.Option;
+import org.aya.generic.Modifier;
+import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.AnyVar;
+import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -47,16 +50,33 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         var result = proj.make();
         yield result == proj ? result : whnf(result);
       }
-      case FnCall(var ref, int ulift, var args) when ref.core != null -> switch (ref.core.body) {
-        case Either.Left(var body) -> body.instantiateTele(args.view());
-        case Either.Right(var clauses) -> throw new UnsupportedOperationException("TODO");
+      case FnCall(var ref, int ulift, var args)
+        when ref.core != null && !isOpaque(ref) -> switch (ref.core.body) {
+        case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
+        case Either.Right(var clauses) -> {
+          var result = tryUnfoldClauses(clauses, args, ulift, ref.core.is(Modifier.Overlap));
+          // It is possible that fail to unfold !!
+          if (result.isEmpty()) yield Panic.unreachable();
+          yield whnf(result.get());
+        }
       };
       case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
       // TODO: handle other cases
-      default -> term;
+      default -> postTerm;
     };
+  }
+
+  private boolean isOpaque(@NotNull AnyVar var) {
+    // I don't use `||` and `&&` here because that make a expression too long.
+    if (opaque.contains(var)) return true;
+
+    if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof FnDef fnDef) {
+      return fnDef.is(Modifier.Opaque);
+    }
+
+    return false;
   }
 
   public @NotNull Option<Term> tryUnfoldClauses(
@@ -67,8 +87,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       var matcher = new PatternMatcher(false, this);
       var subst = matcher.matchMany(matchy.patterns(), args);
       if (subst.isOk()) {
-        throw new UnsupportedOperationException("TODO");
-        // return Option.some(matchy.body().rename().lift(ulift).subst(subst.get()));
+        return Option.some(matchy.body().elevate(ulift).instantiateTele(subst.get().view()));
       } else if (!orderIndependent && subst.getErr()) return Option.none();
     }
     return Option.none();

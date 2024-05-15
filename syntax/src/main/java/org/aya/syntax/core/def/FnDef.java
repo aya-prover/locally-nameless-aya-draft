@@ -40,6 +40,10 @@ public final class FnDef extends TopLevelDef<Term> {
     return function;
   }
 
+  public boolean is(@NotNull Modifier mod) {
+    return modifiers.contains(mod);
+  }
+
   public @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref() {
     return ref;
   }

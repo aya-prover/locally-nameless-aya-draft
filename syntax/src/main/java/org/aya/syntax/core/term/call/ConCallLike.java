@@ -24,7 +24,6 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall, Integ
   /**
    * @param dataArgs the arguments to the data type, NOT the constructor patterns!!
    *                 They need to be turned implicit when used as arguments.
-   * @see org.aya.tyck.pat.PatternTycker#mischa
    */
   record Head(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef,

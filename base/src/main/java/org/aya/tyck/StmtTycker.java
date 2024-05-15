@@ -125,6 +125,8 @@ public record StmtTycker(
 
   /**
    * Kitsune says kon!
+   *
+   * @apiNote invoke this method after loading the telescope of data!
    */
   private void checkKitsune(@NotNull TeleDecl.DataCon dataCon, @NotNull ExprTycker exprTycker) {
     var ref = dataCon.ref;
