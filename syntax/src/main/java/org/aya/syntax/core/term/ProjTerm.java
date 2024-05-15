@@ -6,7 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.jetbrains.annotations.NotNull;
 
-public record ProjTerm(@NotNull Term of, int index) implements Term {
+public record ProjTerm(@NotNull Term of, int index) implements BetaRedex {
   public @NotNull ProjTerm update(@NotNull Term of, int index) {
     return this.of == of && this.index == index ? this : new ProjTerm(of, index);
   }
@@ -21,7 +21,7 @@ public record ProjTerm(@NotNull Term of, int index) implements Term {
   }
 
   /** Unwrap the {@param material} if possible. */
-  public @NotNull Term make() {
+  @Override public @NotNull Term make() {
     return switch (of) {
       case TupTerm(var elems) -> elems.get(index);
       default -> this;

@@ -3,11 +3,12 @@
 package org.aya.syntax.core.term.xtt;
 
 import kala.function.IndexedFunction;
+import org.aya.syntax.core.term.BetaRedex;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) implements Term {
+public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) implements BetaRedex {
   public @NotNull PAppTerm update(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) {
     if (this.fun == fun && this.arg == arg && this.a == a && this.b == b) return this;
     return new PAppTerm(fun, arg, a, b);
@@ -22,7 +23,7 @@ public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @N
     );
   }
 
-  public @NotNull Term make() {
+  @Override public @NotNull Term make() {
     if (fun instanceof LamTerm(var body)) return body.instantiate(arg);
     if (arg instanceof DimTerm dim) return switch (dim) {
       case I0 -> a;

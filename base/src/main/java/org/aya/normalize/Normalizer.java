@@ -8,11 +8,13 @@ import kala.control.Either;
 import kala.control.Option;
 import org.aya.generic.Modifier;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.BetaRedex;
+import org.aya.syntax.core.term.MetaPatTerm;
+import org.aya.syntax.core.term.StableWHNF;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.call.PrimCall;
-import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
@@ -38,17 +40,9 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
 
     return switch (postTerm) {
       case StableWHNF _ -> Panic.unreachable();
-      case AppTerm app -> {
+      case BetaRedex app -> {
         var result = app.make();
         yield result == app ? result : whnf(result);
-      }
-      case PAppTerm app -> {
-        var result = app.make();
-        yield result == app ? result : whnf(result);
-      }
-      case ProjTerm proj -> {
-        var result = proj.make();
-        yield result == proj ? result : whnf(result);
       }
       case FnCall(var ref, int ulift, var args)
         when ref.core != null && !isOpaque(ref) -> switch (ref.core.body) {

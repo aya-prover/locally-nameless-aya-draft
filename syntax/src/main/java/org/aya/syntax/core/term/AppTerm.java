@@ -9,13 +9,12 @@ import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.jetbrains.annotations.NotNull;
 
-public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
+public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements BetaRedex {
   public @NotNull AppTerm update(@NotNull Term fun, @NotNull Term arg) {
     return fun == this.fun && arg == this.arg ? this : new AppTerm(fun, arg);
   }
 
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(f.apply(0, fun), f.apply(0, arg));
   }
 
@@ -27,7 +26,7 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
     return f;
   }
 
-  public @NotNull Term make() {
+  @Override public @NotNull Term make() {
     return switch (fun) {
       case LamTerm(var body) -> body.instantiate(arg);
       case MetaCall(var ref, var args) -> new MetaCall(ref, args.appended(arg));
@@ -35,14 +34,13 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements Term {
     };
   }
 
-  public record UnApp(@NotNull ImmutableSeq<Term> args, @NotNull Term fun) {}
+  public record UnApp(@NotNull ImmutableSeq<Term> args, @NotNull Term fun) { }
   public static @NotNull UnApp unapp(@NotNull Term maybeApp) {
     var args = MutableList.<Term>create();
     while (maybeApp instanceof AppTerm(var f, var a)) {
       maybeApp = f;
       args.append(a);
     }
-
     return new UnApp(args.reversed(), maybeApp);
   }
 }

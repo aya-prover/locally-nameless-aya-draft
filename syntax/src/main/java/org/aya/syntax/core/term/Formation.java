@@ -8,7 +8,7 @@ import org.aya.syntax.core.term.xtt.EqTerm;
 
 /**
  * Term formers, definitely.
- * Note that {@link PrimCall} may also be term formers, but not necessarily.
+ * Note that {@link org.aya.syntax.core.term.call.PrimCall} may also be term formers, but not necessarily.
  */
 public sealed interface Formation extends Term
   permits PiTerm, SigmaTerm, SortTerm, DataCall, DimTyTerm, EqTerm {
