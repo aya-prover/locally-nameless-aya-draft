@@ -47,6 +47,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
             yield matchMany(con.args(), kon.conArgs());
             // ^ arguments for data should not be matched
           }
+          case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
           default -> throw new Failure(true);
         };
       }
@@ -54,6 +55,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
         term = pre.apply(term);
         yield switch (term) {
           case TupTerm tup -> matchMany(tuple.elements(), tup.items());
+          case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
           default -> throw new Failure(true);
         };
       }
@@ -90,6 +92,8 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
   private @NotNull ImmutableSeq<Term> solve(@NotNull Pat pat, @NotNull MetaPatTerm term) throws Failure {
     var meta = term.meta();
     return meta.mapChecked(p -> match(pat, PatToTerm.visit(p)), () -> {
+      if (!inferMeta) throw new Failure(true);
+
       // No solution, set the current pattern as solution,
       // also replace the bindings in pat as sub-meta,
       // so that we can solve this meta more.
