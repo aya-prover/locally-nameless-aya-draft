@@ -55,8 +55,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
         case Either.Right(var clauses) -> {
           var result = tryUnfoldClauses(clauses, args, ulift, ref.core.is(Modifier.Overlap));
-          // It is possible that fail to unfold !!
-          if (result.isEmpty()) yield Panic.unreachable();
+          // we may stuck
+          if (result.isEmpty()) yield term;
           yield whnf(result.get());
         }
       };
