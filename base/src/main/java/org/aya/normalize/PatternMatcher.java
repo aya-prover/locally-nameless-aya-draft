@@ -39,26 +39,20 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
     return switch (pat) {
       case Pat.Absurd _ -> Panic.unreachable();
       case Pat.Bind _ -> ImmutableSeq.of(term);
-      case Pat.Con con -> {
-        term = pre.apply(term);
-        yield switch (term) {
-          case ConCallLike kon -> {
-            if (con.ref() != kon.ref()) throw new Failure(false);
-            yield matchMany(con.args(), kon.conArgs());
-            // ^ arguments for data should not be matched
-          }
-          case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
-          default -> throw new Failure(true);
-        };
-      }
-      case Pat.Tuple tuple -> {
-        term = pre.apply(term);
-        yield switch (term) {
-          case TupTerm tup -> matchMany(tuple.elements(), tup.items());
-          case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
-          default -> throw new Failure(true);
-        };
-      }
+      case Pat.Con con -> switch (pre.apply(term)) {
+        case ConCallLike kon -> {
+          if (con.ref() != kon.ref()) throw new Failure(false);
+          yield matchMany(con.args(), kon.conArgs());
+          // ^ arguments for data should not be matched
+        }
+        case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
+        default -> throw new Failure(true);
+      };
+      case Pat.Tuple tuple -> switch (pre.apply(term)) {
+        case TupTerm tup -> matchMany(tuple.elements(), tup.items());
+        case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
+        default -> throw new Failure(true);
+      };
       // You can't match with a tycking pattern!
       case Pat.Meta meta -> throw new Panic("Illegal pattern: Pat.Meta");
     };
@@ -75,9 +69,9 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
     }
   }
 
-    /**
-     * @see #match(Pat, Term)
-     */
+  /**
+   * @see #match(Pat, Term)
+   */
   private @NotNull ImmutableSeq<Term> matchMany(
     @NotNull ImmutableSeq<Pat> pats,
     @NotNull ImmutableSeq<Term> terms

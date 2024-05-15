@@ -21,6 +21,7 @@ import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
@@ -148,7 +149,6 @@ public sealed interface Pat extends AyaDocile {
    */
   record Meta(
     @NotNull MutableValue<Pat> solution,
-    // TODO: do we really need this?
     @NotNull String fakeBind,
     @NotNull Term type,
     @NotNull SourcePos errorReport
@@ -163,12 +163,9 @@ public sealed interface Pat extends AyaDocile {
       return solution == null ? update(null, g.apply(type)) : update(f.apply(solution), g.apply(type));
     }
 
-    @Override
-    public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
-      // TODO: reconsider this, I don't fully understand the comment
-      // Do nothing
-      // This is safe because storeBindings is called only in extractTele which is
-      // only used for constructor ownerTele extraction for simpler indexed types
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+      // We should call storeBindings after inline
+      Panic.unreachable();
     }
 
     @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {

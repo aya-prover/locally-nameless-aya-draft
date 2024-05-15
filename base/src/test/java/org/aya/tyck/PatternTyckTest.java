@@ -2,14 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
-import kala.collection.immutable.ImmutableSeq;
 import org.aya.TestUtil;
-import org.aya.normalize.Normalizer;
-import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.call.ConCall;
-import org.aya.syntax.core.term.call.FnCall;
-import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 import static org.aya.tyck.TyckTest.tyck;
@@ -29,7 +24,8 @@ public class PatternTyckTest {
 
     var foo = (FnDef) result.get(2);
     // It is correct that [nf] is [S (O + (S O))], since this is a WH-Normalizer!!
-    var nf = new Normalizer(TestUtil.emptyState()).apply(new FnCall(foo.ref, 0, ImmutableSeq.empty()));
+    var nf = TestUtil.sillyNormalizer().apply(TestUtil.emptyCall(foo));
+    assert nf instanceof ConCall;
   }
 
   @Test
