@@ -16,7 +16,6 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.Contextful;
 import org.aya.tyck.tycker.Stateful;
@@ -142,6 +141,4 @@ public record Synthesizer(
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
     return tycker.setLocalCtx(ctx);
   }
-  @Override public @NotNull LocalLet localLet() { return tycker.localLet(); }
-  @Override public @NotNull LocalLet setLocalLet(@NotNull LocalLet let) { return tycker.setLocalLet(let); }
 }

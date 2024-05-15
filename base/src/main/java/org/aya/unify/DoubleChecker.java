@@ -8,7 +8,6 @@ import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.BadExprError;
 import org.aya.tyck.tycker.Contextful;
 import org.aya.tyck.tycker.Problematic;
@@ -77,8 +76,6 @@ public record DoubleChecker(
 
   @Override public @NotNull LocalCtx localCtx() { return unifier.localCtx(); }
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) { return unifier.setLocalCtx(ctx); }
-  @Override public @NotNull LocalLet localLet() { return unifier.localLet(); }
-  @Override public @NotNull LocalLet setLocalLet(@NotNull LocalLet let) { return unifier.setLocalLet(let); }
   @Override public @NotNull TyckState state() { return unifier.state(); }
   @Override public @NotNull Reporter reporter() { return unifier.reporter(); }
   public @NotNull LocalVar putIndex(@NotNull Term type) { return unifier.putIndex(type); }

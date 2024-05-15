@@ -30,14 +30,17 @@ import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public final class ExprTycker extends AbstractTycker implements Unifiable {
   public final @NotNull MutableTreeSet<WithPos<Expr.WithTerm>> withTerms =
     MutableTreeSet.create(Comparator.comparing(SourceNode::sourcePos));
+  private @NotNull LocalLet localLet;
 
   public void addWithTerm(@NotNull Expr.WithTerm with, @NotNull SourcePos pos, @NotNull Term type) {
     withTerms.add(new WithPos<>(pos, with));
@@ -50,7 +53,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     @NotNull LocalLet localLet,
     @NotNull Reporter reporter
   ) {
-    super(state, ctx, reporter, localLet);
+    super(state, ctx, reporter);
+    this.localLet = localLet;
   }
 
   public void solveMetas() {
@@ -192,7 +196,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         yield new Jdg.Default(new IntegerTerm(integer, match.component2(), type), type);
       }
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref(LocalVar ref) when localLet().contains(ref) -> localLet().get(ref);
+      case Expr.Ref(LocalVar ref) when localLet.contains(ref) -> localLet.get(ref);
       case Expr.Ref(var ref) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       case Expr.Sigma _, Expr.Pi _ -> lazyJdg(ty(expr));
       case Expr.Sort _ -> sort(expr);
@@ -314,16 +318,31 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     var definedAsResult = inherit(definedAsExpr, type);
 
     return subscoped(() -> {
-      localLet().put(let.bind().bindName(), definedAsResult);
+      localLet.put(let.bind().bindName(), definedAsResult);
       return checker.apply(let.body());
     });
   }
 
-  /// region Overrides
+  /// region Overrides and public APIs
   @Override public @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order) {
-    return new Unifier(state(), localCtx(), localLet(), reporter(), pos, order, true);
+    return new Unifier(state(), localCtx(), reporter(), pos, order, true);
   }
-  /// endregion Overrides
+  @Override @Contract(mutates = "this")
+  public <R> R subscoped(@NotNull Supplier<R> action) {
+    var parentCtx = setLocalCtx(localCtx().derive());
+    var parentDef = setLocalLet(localLet.derive());
+    var result = action.get();
+    setLocalCtx(parentCtx);
+    setLocalLet(parentDef);
+    return result;
+  }
+  public @NotNull LocalLet localLet() { return localLet; }
+  public @NotNull LocalLet setLocalLet(@NotNull LocalLet let) {
+    var old = localLet;
+    this.localLet = let;
+    return old;
+  }
+  /// endregion Overrides and public APIs
 
   protected static final class NotPi extends Exception {
     public final @NotNull Term actual;

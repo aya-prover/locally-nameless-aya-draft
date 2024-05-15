@@ -15,7 +15,6 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
-import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.UnifyError;
 import org.aya.unify.Synthesizer;
 import org.aya.util.error.WithPos;
@@ -113,8 +112,6 @@ public sealed interface TeleTycker extends Contextful {
     @Override default @NotNull Term freeze(@NotNull Term term) { return tycker().freezeHoles(term); }
     @Override default @NotNull LocalCtx localCtx() { return tycker().localCtx(); }
     @Override default @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) { return tycker().setLocalCtx(ctx); }
-    @Override default @NotNull LocalLet localLet() { return tycker().localLet(); }
-    @Override default @NotNull LocalLet setLocalLet(@NotNull LocalLet let) { return tycker().setLocalLet(let); }
   }
 
   record Default(@Override @NotNull ExprTycker tycker) implements Impl {

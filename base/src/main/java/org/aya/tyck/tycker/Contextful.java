@@ -12,7 +12,6 @@ import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
-import org.aya.tyck.ctx.LocalLet;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -42,19 +41,11 @@ public interface Contextful {
   @Contract(mutates = "this")
   @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx);
 
-  @NotNull LocalLet localLet();
-
-  @ApiStatus.Internal
-  @Contract(mutates = "this")
-  @NotNull LocalLet setLocalLet(@NotNull LocalLet let);
-
   @Contract(mutates = "this")
   default <R> R subscoped(@NotNull Supplier<R> action) {
     var parentCtx = setLocalCtx(localCtx().derive());
-    var parentDef = setLocalLet(localLet().derive());
     var result = action.get();
     setLocalCtx(parentCtx);
-    setLocalLet(parentDef);
     return result;
   }
 

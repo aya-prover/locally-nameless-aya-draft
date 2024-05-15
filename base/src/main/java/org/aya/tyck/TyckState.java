@@ -13,7 +13,6 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.MetaVar;
-import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.HoleProblem;
 import org.aya.unify.Unifier;
 import org.aya.util.Ordering;
@@ -46,7 +45,7 @@ public record TyckState(
     @NotNull Reporter reporter,
     @NotNull Eqn eqn, boolean allowDelay
   ) {
-    new Unifier(this, eqn.localCtx, eqn.let, reporter, eqn.pos, eqn.cmp, allowDelay).checkEqn(eqn);
+    new Unifier(this, eqn.localCtx, reporter, eqn.pos, eqn.cmp, allowDelay).checkEqn(eqn);
   }
 
   public void solveMetas(@NotNull Reporter reporter) {
@@ -108,7 +107,7 @@ public record TyckState(
   public record Eqn(
     @NotNull Term lhs, @NotNull Term rhs,
     @NotNull Ordering cmp, @NotNull SourcePos pos,
-    @NotNull LocalCtx localCtx, @NotNull LocalLet let
+    @NotNull LocalCtx localCtx
   ) implements AyaDocile {
     public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
       return Doc.stickySep(lhs.toDoc(options), Doc.symbol(cmp.symbol), rhs.toDoc(options));

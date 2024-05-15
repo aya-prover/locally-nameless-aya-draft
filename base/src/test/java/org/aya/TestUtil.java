@@ -22,7 +22,7 @@ public interface TestUtil {
   Reporter THROWING = new ThrowingReporter(AyaPrettierOptions.debug());
 
   static @NotNull TermComparator conversion() {
-    return new Unifier(emptyState(), makeLocalCtx(), makeLocalSubst(),
+    return new Unifier(emptyState(), makeLocalCtx(),
       IgnoringReporter.INSTANCE, SourcePos.NONE, Ordering.Eq, true);
   }
 

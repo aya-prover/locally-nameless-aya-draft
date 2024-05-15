@@ -22,20 +22,20 @@ import org.jetbrains.annotations.Nullable;
 public final class Unifier extends TermComparator {
   private final boolean allowDelay;
   public Unifier(
-    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull LocalLet let,
+    @NotNull TyckState state, @NotNull LocalCtx ctx,
     @NotNull Reporter reporter, @NotNull SourcePos pos, @NotNull Ordering cmp,
     boolean allowDelay
   ) {
-    super(state, ctx, let, reporter, pos, cmp);
+    super(state, ctx, reporter, pos, cmp);
     this.allowDelay = allowDelay;
   }
 
   public @NotNull TyckState.Eqn createEqn(@NotNull Term lhs, @NotNull Term rhs) {
-    return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx(), localLet());
+    return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx());
   }
 
   public @NotNull Unifier derive(@NotNull SourcePos pos, Ordering ordering) {
-    return new Unifier(state, localCtx().derive(), localLet().derive(), reporter, pos, ordering, allowDelay);
+    return new Unifier(state, localCtx().derive(), reporter, pos, ordering, allowDelay);
   }
 
   @Override protected @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {

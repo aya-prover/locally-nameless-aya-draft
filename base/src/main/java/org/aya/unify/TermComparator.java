@@ -19,7 +19,6 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.LevelError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.Contextful;
@@ -44,10 +43,10 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   private final @NotNull NameGenerator nameGen = new NameGenerator();
 
   public TermComparator(
-    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull LocalLet let,
+    @NotNull TyckState state, @NotNull LocalCtx ctx,
     @NotNull Reporter reporter, @NotNull SourcePos pos, @NotNull Ordering cmp
   ) {
-    super(state, ctx, reporter, let);
+    super(state, ctx, reporter);
     this.pos = pos;
     this.cmp = cmp;
   }
