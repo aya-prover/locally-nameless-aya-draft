@@ -83,14 +83,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
     assert pats.sizeEquals(terms) : "List size mismatch 😱";
 
     var subst = MutableList.<Term>create();
-
-    for (var p : pats.zipView(terms)) {
-      var pat = p.component1();
-      var term = p.component2();
-      var result = match(pat, term);
-      subst.appendAll(result);
-    }
-
+    pats.forEachWithChecked(terms, (pat, term) -> subst.appendAll(match(pat, term)));
     return subst.toImmutableSeq();
   }
 

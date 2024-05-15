@@ -8,7 +8,5 @@ import org.aya.generic.InterruptException;
  * @author kiva
  */
 public class ParsingInterruptedException extends InterruptException {
-  @Override public InterruptStage stage() {
-    return InterruptStage.Parsing;
-  }
+  @Override public InterruptStage stage() { return InterruptStage.Parsing; }
 }
