@@ -69,7 +69,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
   }
 
   private boolean isOpaque(@NotNull AnyVar var) {
-    // I don't use `||` and `&&` here because that make a expression too long.
+    // I don't use `||` and `&&` here because that make the expression too long.
     if (opaque.contains(var)) return true;
 
     if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof FnDef fnDef) {
@@ -85,7 +85,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
   ) {
     for (var matchy : clauses) {
       var matcher = new PatternMatcher(false, this);
-      var subst = matcher.matchMany(matchy.patterns(), args);
+      var subst = matcher.apply(matchy.patterns(), args);
       if (subst.isOk()) {
         return Option.some(matchy.body().elevate(ulift).instantiateTele(subst.get().view()));
       } else if (!orderIndependent && subst.getErr()) return Option.none();

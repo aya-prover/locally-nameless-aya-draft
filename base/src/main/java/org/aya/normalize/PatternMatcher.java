@@ -21,31 +21,40 @@ import java.util.function.UnaryOperator;
  * @param inferMeta whether infer the PatMetaTerm
  */
 public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
+  private static class Failure extends Throwable {
+    public final boolean reason;
+    private Failure(boolean reason) {
+      super(null, null, false, false);
+      this.reason = reason;
+    }
+  }
+
   /**
    * Match {@param term} against to {@param pat}
    *
    * @return a substitution of corresponding bindings of {@param pat} if success
    * @apiNote The binding order is the same as {@link Pat#consumeBindings(java.util.function.BiConsumer)}
    */
-  public @NotNull Result<ImmutableSeq<Term>, Boolean> match(@NotNull Pat pat, @NotNull Term term) {
+  private @NotNull ImmutableSeq<Term> match(@NotNull Pat pat, @NotNull Term term) throws Failure {
     return switch (pat) {
       case Pat.Absurd _ -> Panic.unreachable();
-      case Pat.Bind _ -> Result.ok(ImmutableSeq.of(term));
+      case Pat.Bind _ -> ImmutableSeq.of(term);
       case Pat.Con con -> {
         term = pre.apply(term);
         yield switch (term) {
           case ConCallLike kon -> {
-            if (con.ref() != kon.ref()) yield Result.err(false);
-            yield matchMany(con.args(), kon.conArgs());    // arguments for data should not be matched, they are annoying
+            if (con.ref() != kon.ref()) throw new Failure(false);
+            yield matchMany(con.args(), kon.conArgs());
+            // ^ arguments for data should not be matched
           }
-          default -> Result.err(true);
+          default -> throw new Failure(true);
         };
       }
       case Pat.Tuple tuple -> {
         term = pre.apply(term);
         yield switch (term) {
           case TupTerm tup -> matchMany(tuple.elements(), tup.items());
-          default -> Result.err(true);
+          default -> throw new Failure(true);
         };
       }
       // You can't match with a tycking pattern!
@@ -53,13 +62,24 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
     };
   }
 
-  /**
-   * @see #match(Pat, Term)
-   */
-  public @NotNull Result<ImmutableSeq<Term>, Boolean> matchMany(
+  public @NotNull Result<ImmutableSeq<Term>, Boolean> apply(
     @NotNull ImmutableSeq<Pat> pats,
     @NotNull ImmutableSeq<Term> terms
   ) {
+    try {
+      return Result.ok(matchMany(pats, terms));
+    } catch (Failure e) {
+      return Result.err(e.reason);
+    }
+  }
+
+    /**
+     * @see #match(Pat, Term)
+     */
+  private @NotNull ImmutableSeq<Term> matchMany(
+    @NotNull ImmutableSeq<Pat> pats,
+    @NotNull ImmutableSeq<Term> terms
+  ) throws Failure {
     assert pats.sizeEquals(terms) : "List size mismatch 😱";
 
     var subst = MutableList.<Term>create();
@@ -68,17 +88,15 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
       var pat = p.component1();
       var term = p.component2();
       var result = match(pat, term);
-
-      if (result.isErr()) return result;
-      subst.appendAll(result.get());
+      subst.appendAll(result);
     }
 
-    return Result.ok(subst.toImmutableSeq());
+    return subst.toImmutableSeq();
   }
 
-  private @NotNull Result<ImmutableSeq<Term>, Boolean> solve(@NotNull Pat pat, @NotNull MetaPatTerm term) {
+  private @NotNull ImmutableSeq<Term> solve(@NotNull Pat pat, @NotNull MetaPatTerm term) throws Failure {
     var meta = term.meta();
-    return meta.map(p -> match(pat, PatToTerm.visit(p)), () -> {
+    return meta.mapChecked(p -> match(pat, PatToTerm.visit(p)), () -> {
       // No solution, set the current pattern as solution,
       // also replace the bindings in pat as sub-meta,
       // so that we can solve this meta more.
@@ -87,7 +105,7 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
       var boroboroPat = eater.apply(pat);   // It looks boroboro, there are holes on it.
       meta.solution().set(boroboroPat);
 
-      return Result.ok(eater.mouth().toImmutableSeq());
+      return eater.mouth().toImmutableSeq();
     });
   }
 }

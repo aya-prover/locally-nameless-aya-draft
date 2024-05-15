@@ -4,6 +4,8 @@ package org.aya.syntax.core.pat;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import kala.function.CheckedFunction;
+import kala.function.CheckedSupplier;
 import kala.tuple.Tuple2;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
@@ -186,6 +188,15 @@ public sealed interface Pat extends AyaDocile {
       var solution = solution().get();
       if (solution == null) return aDefaults.get();
       return mapper.apply(solution);
+    }
+
+    public <R, Ex extends Throwable> @NotNull R mapChecked(
+      @NotNull CheckedFunction<Pat, R, Ex> mapper,
+      @NotNull CheckedSupplier<R, Ex> aDefaults
+    ) throws Ex {
+      var solution = solution().get();
+      if (solution == null) return aDefaults.getChecked();
+      return mapper.applyChecked(solution);
     }
   }
 
