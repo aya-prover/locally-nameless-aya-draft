@@ -64,7 +64,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
       // TODO: handle other cases
-      default -> postTerm;
+      default -> term;
     };
   }
 

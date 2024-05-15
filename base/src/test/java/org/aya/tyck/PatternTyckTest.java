@@ -22,12 +22,13 @@ public class PatternTyckTest {
       def infix + (a b: Nat): Nat
       | O, b => b
       | S a', b => S (a' + b)
-            
+      
       def foo : Nat => (S O) + (S (S O))
       """);
     assert result.isNotEmpty();
 
     var foo = (FnDef) result.get(2);
+    // It is correct that [nf] is [S (O + (S O))], since this is a WH-Normalizer!!
     var nf = new Normalizer(TestUtil.emptyState()).apply(new FnCall(foo.ref, 0, ImmutableSeq.empty()));
   }
 
