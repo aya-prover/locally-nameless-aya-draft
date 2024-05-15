@@ -37,7 +37,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     var postTerm = term.descent(this);
 
     return switch (postTerm) {
-      case StableWHNF whnf -> Panic.unreachable();
+      case StableWHNF _ -> Panic.unreachable();
       case AppTerm app -> {
         var result = app.make();
         yield result == app ? result : whnf(result);
@@ -55,7 +55,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
         case Either.Right(var clauses) -> {
           var result = tryUnfoldClauses(clauses, args, ulift, ref.core.is(Modifier.Overlap));
-          // we may stuck
+          // we may get stuck
           if (result.isEmpty()) yield term;
           yield whnf(result.get());
         }
@@ -64,6 +64,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
       // TODO: handle other cases
+      // ice: what are the other cases?
       default -> term;
     };
   }

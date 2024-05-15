@@ -33,11 +33,12 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
    * Match {@param term} against to {@param pat}
    *
    * @return a substitution of corresponding bindings of {@param pat} if success
-   * @apiNote The binding order is the same as {@link Pat#consumeBindings(java.util.function.BiConsumer)}
    */
   private @NotNull ImmutableSeq<Term> match(@NotNull Pat pat, @NotNull Term term) throws Failure {
     return switch (pat) {
-      case Pat.Absurd _ -> Panic.unreachable();
+      // We stuck on absurd patterns, as if this is reached, the term must have an empty type,
+      // which we should be expecting to refute, not to compute on it.
+      case Pat.Absurd _ -> throw new Failure(true);
       case Pat.Bind _ -> ImmutableSeq.of(term);
       case Pat.Con con -> switch (pre.apply(term)) {
         case ConCallLike kon -> {
@@ -58,6 +59,12 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
     };
   }
 
+  /**
+   * @return a substitution of corresponding bindings of {@param pats} if success,
+   * true if stuck (like trying to split a non-constructor),
+   * false if it does not match (like trying to match zero with suc).
+   * @apiNote The binding order is the same as {@link Pat#consumeBindings(java.util.function.BiConsumer)}
+   */
   public @NotNull Result<ImmutableSeq<Term>, Boolean> apply(
     @NotNull ImmutableSeq<Pat> pats,
     @NotNull ImmutableSeq<Term> terms
