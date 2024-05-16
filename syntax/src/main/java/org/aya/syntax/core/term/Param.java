@@ -7,6 +7,7 @@ import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.prettier.PrettierOptions;
@@ -26,17 +27,10 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
     return name.equals(otherName);
   }
 
-  public @NotNull Arg<Term> toArg() {
-    return new Arg<>(type, explicit);
-  }
-
-  public @NotNull Param implicitize() {
-    return new Param(name, type, false);
-  }
-
-  public @NotNull Param explicitize() {
-    return new Param(name, type, true);
-  }
+  public @NotNull Arg<Term> toArg() { return new Arg<>(type, explicit); }
+  public @NotNull Pat toFreshPat() { return new Pat.Bind(new LocalVar(name), type); }
+  public @NotNull Param implicitize() { return new Param(name, type, false); }
+  public @NotNull Param explicitize() { return new Param(name, type, true); }
 
   public @NotNull Param bindAt(LocalVar ref, int i) {
     return this.descent(t -> t.bindAt(ref, i));

@@ -2,14 +2,12 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.pat;
 
-import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.SigmaTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
-import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.tycker.Stateful;
 import org.aya.util.tyck.pat.ClassifierUtil;
@@ -46,8 +44,7 @@ public record PatClassifier(@NotNull Stateful delegate) implements
           var matches = clauses.mapIndexedNotNull((i, subPat) ->
             switch (subPat.pat()) {
               case Pat.Tuple tuple -> new Indexed<>(tuple.elements().view(), i);
-              case Pat.Bind _ -> new Indexed<SeqView<Pat>>(namedParams.view().map(p ->
-                new Pat.Bind(new LocalVar(p.name()), p.type())), i);
+              case Pat.Bind _ -> new Indexed<>(namedParams.view().map(Param::toFreshPat), i);
               default -> null;
             });
           var classes = classifyN(subst, namedParams.view(), matches, fuel);
