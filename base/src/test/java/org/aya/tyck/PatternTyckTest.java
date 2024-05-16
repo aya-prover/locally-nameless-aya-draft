@@ -19,7 +19,7 @@ public class PatternTyckTest {
       def infix + (a b: Nat): Nat
       | O, b => b
       | S a', b => S (a' + b)
-            
+
       def foo : Nat => (S O) + (S (S O))
       """);
     assert result.isNotEmpty();
@@ -50,6 +50,9 @@ public class PatternTyckTest {
       def length (A : Type) (n : Nat) (v : Vec n A) : Nat elim v
       | vnil => O
       | vcons _ xs => S (length _ _ xs)
+
+      def head (A : Type) (n : Nat) (v : Vec (S n) A) : A elim v
+      | vcons x _ => x
       """);
 
     assertTrue(result.isNotEmpty());
