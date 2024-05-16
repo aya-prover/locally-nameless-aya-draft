@@ -7,6 +7,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.ModuleContext;
+import org.aya.resolve.context.NoExportContext;
 import org.aya.resolve.context.PhysicalModuleContext;
 import org.aya.resolve.error.PrimResolveError;
 import org.aya.syntax.concrete.stmt.*;
@@ -68,8 +69,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
         var mod = cmd.path();
         var acc = cmd.accessibility();
         var useHide = cmd.useHide();
-        var ctx = /*cmd.openExample() ? exampleContext(context) :*/ context;
-        // TODO: exampleContext
+        var ctx = cmd.openExample() ? exampleContext(context) : context;
         ctx.openModule(mod, acc, cmd.sourcePos(), useHide);
         // open necessities from imported modules (not submodules)
         // because the module itself and its submodules share the same ResolveInfo
@@ -146,7 +146,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
         resolveOpInfo(decl);
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
-      default -> throw new Panic("🪲");
+      default -> Panic.unreachable();
     };
   }
 
@@ -173,6 +173,10 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
       var ref = decl.ref();
       ref.opDecl = decl;
     }
+  }
+
+  private @NotNull NoExportContext exampleContext(@NotNull ModuleContext context) {
+    return context instanceof PhysicalModuleContext physical ? physical.exampleContext() : Panic.unreachable();
   }
 
   private <D extends Decl> @NotNull ModuleContext

@@ -11,7 +11,6 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
 import org.aya.tyck.TyckState;
-import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.HoleProblem;
 import org.aya.util.Ordering;
 import org.aya.util.error.SourcePos;
@@ -133,8 +132,7 @@ public final class Unifier extends TermComparator {
           reportIllTyped(meta, rhs);
           return null;
         }
-        // TODO: Ice Spell 「 Perfect Freeze 」
-        returnType = target;
+        returnType = freezeHoles(target);
       }
       case MetaVar.PiDom(var sort) -> {
         if (!checker.synthesizer().inheritPiDom(rhs, sort)) reportIllTyped(meta, rhs);

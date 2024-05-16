@@ -35,9 +35,9 @@ public class TyckTest {
       prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
       prim coe (r s : I) (A : I -> Type) : A r -> A s
 
-      def transp  (A : I -> Type) (a : A 0) : A 1 => coe 0 1 A a
-      def transpInv  (A : I -> Type) (a : A 1) : A 0 => coe 1 0 A a
-      def coeFill0  (A : I -> Type) (u : A 0) : Path A u (transp A u) => \\i => coe 0 i A u
+      def transp (A : I -> Type) (a : A 0) : A 1 => coe 0 1 A a
+      def transpInv (A : I -> Type) (a : A 1) : A 0 => coe 1 0 A a
+      def coeFill0 (A : I -> Type) (u : A 0) : Path A u (transp A u) => \\i => coe 0 i A u
       """);
     assertTrue(result.isNotEmpty());
   }

@@ -22,10 +22,7 @@ public non-sealed class PhysicalModuleContext implements ModuleContext {
   public final @NotNull ModuleSymbol<AnyVar> symbols = new ModuleSymbol<>();
   public final @NotNull MutableMap<ModuleName.Qualified, ModuleExport> modules = MutableHashMap.create();
   private final @NotNull ModulePath modulePath;
-
-  @Override public @NotNull ModulePath modulePath() {
-    return modulePath;
-  }
+  @Override public @NotNull ModulePath modulePath() { return modulePath; }
 
   private @Nullable NoExportContext exampleContext;
 
@@ -55,19 +52,8 @@ public non-sealed class PhysicalModuleContext implements ModuleContext {
     return exampleContext;
   }
 
-  @Override public @NotNull Context parent() {
-    return parent;
-  }
-
-  @Override public @NotNull ModuleSymbol<AnyVar> symbols() {
-    return symbols;
-  }
-
-  @Override public @NotNull MutableMap<ModuleName.Qualified, ModuleExport> modules() {
-    return modules;
-  }
-
-  @Override public @NotNull ModuleExport exports() {
-    return exports;
-  }
+  @Override public @NotNull Context parent() { return parent; }
+  @Override public @NotNull ModuleSymbol<AnyVar> symbols() { return symbols; }
+  @Override public @NotNull MutableMap<ModuleName.Qualified, ModuleExport> modules() { return modules; }
+  @Override public @NotNull ModuleExport exports() { return exports; }
 }
