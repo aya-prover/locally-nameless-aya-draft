@@ -4,7 +4,6 @@ package org.aya.util.tyck.pat;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.util.Arg;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
@@ -15,12 +14,12 @@ public interface ClassifierUtil<Subst, Term, Param, Pat> {
   Param subst(Subst subst, Param param);
   Pat normalize(Pat pat);
   Subst add(Subst subst, Term term);
-  @NotNull ImmutableSeq<PatClass<Arg<Term>>> classify1(
+  @NotNull ImmutableSeq<PatClass<Term>> classify1(
     @NotNull Subst subst, @NotNull Param param,
     @NotNull ImmutableSeq<Indexed<Pat>> clauses, int fuel
   );
 
-  default @NotNull ImmutableSeq<PatClass<ImmutableSeq<Arg<Term>>>>
+  default @NotNull ImmutableSeq<PatClass<ImmutableSeq<Term>>>
   classifyN(
     @NotNull Subst subst, @NotNull SeqView<Param> params,
     @NotNull ImmutableSeq<Indexed<SeqView<Pat>>> clauses, int fuel
@@ -31,7 +30,7 @@ public interface ClassifierUtil<Subst, Term, Param, Pat> {
     var cls = classify1(subst, subst(subst, first),
       clauses.mapIndexed((ix, it) -> new Indexed<>(normalize(it.pat().getFirst()), ix)), fuel);
     return cls.flatMap(subclauses ->
-      classifyN(add(subst, subclauses.term().term()),
+      classifyN(add(subst, subclauses.term()),
         // Drop heads of both
         params.drop(1),
         subclauses.extract(clauses.map(it ->
