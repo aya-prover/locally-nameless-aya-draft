@@ -75,7 +75,7 @@ public final class PrimFactory {
     // (A : I -> Type) (a : A 0) (b : A 1) : Type
     var paramA = new Param("A", intervalToType(), true);
     var paramLeft = new Param("a", AppTerm.make(new LocalTerm(0), DimTerm.I0), true);
-    var paramRight = new Param("b", AppTerm.make(new LocalTerm(0), DimTerm.I1), true);
+    var paramRight = new Param("b", AppTerm.make(new LocalTerm(1), DimTerm.I1), true);
     return new PrimDef(ref, ImmutableSeq.of(paramA, paramLeft, paramRight), Type0, ID.PATH);
   }, ImmutableSeq.of(ID.I));
 

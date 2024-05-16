@@ -202,6 +202,6 @@ public record StmtTycker(
         new Expr.Error(BasePrettier.defVar(prim.ref))));
     prim.signature = tele;
     tycker.solveMetas();
-    assert tycker.localCtx().isEmpty() : "If this fails, replace it with tycker.setLocalCtx(new LocalCtx());";
+    tycker.setLocalCtx(new LocalCtx());
   }
 }
