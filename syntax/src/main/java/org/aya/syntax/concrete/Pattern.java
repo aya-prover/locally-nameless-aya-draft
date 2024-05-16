@@ -80,8 +80,6 @@ public sealed interface Pattern extends AyaDocile {
     @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
-  // TODO: QualifiedRef here
-
   record Con(
     @NotNull WithPos<@NotNull DefVar<?, ?>> resolved,
     @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params

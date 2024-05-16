@@ -8,6 +8,7 @@ import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
+import org.aya.generic.NameGenerator;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.ConDef;
@@ -65,25 +66,33 @@ public class PatternTycker implements Problematic, Stateful {
 
   private @UnknownNullability Param currentParam = null;
   private boolean hasError = false;
+  private final @NotNull NameGenerator nameGen;
 
   /**
    * @see #tyckInner(SeqView, SeqView, WithPos)
    */
-  public PatternTycker(@NotNull ExprTycker tycker, @NotNull SeqView<Param> tele, @NotNull LocalLet sub) {
-    this(tycker, tele, sub, true);
+  private PatternTycker(
+    @NotNull ExprTycker tycker,
+    @NotNull SeqView<Param> tele,
+    @NotNull LocalLet sub,
+    @NotNull NameGenerator nameGen
+  ) {
+    this(tycker, tele, sub, true, nameGen);
   }
 
   public PatternTycker(
     @NotNull ExprTycker exprTycker,
     @NotNull SeqView<Param> telescope,
     @NotNull LocalLet asSubst,
-    boolean allowImplicit
+    boolean allowImplicit,
+    @NotNull NameGenerator nameGen
   ) {
     this.exprTycker = exprTycker;
     this.telescope = telescope;
     this.paramSubst = MutableList.create();
     this.asSubst = asSubst;
     this.allowImplicit = allowImplicit;
+    this.nameGen = nameGen;
   }
 
   public record TyckResult(
@@ -376,7 +385,7 @@ public class PatternTycker implements Problematic, Stateful {
     @NotNull WithPos<Pattern> outerPattern
   ) {
     //noinspection ViewSize
-    var sub = new PatternTycker(exprTycker, telescope, asSubst);
+    var sub = new PatternTycker(exprTycker, telescope, asSubst, nameGen);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 
     hasError = hasError || sub.hasError;
@@ -475,11 +484,9 @@ public class PatternTycker implements Problematic, Stateful {
   /**
    * Generate names for core telescope
    */
-  private static @NotNull SeqView<Param> generateNames(@NotNull ImmutableSeq<Term> telescope) {
-    return telescope.view().mapIndexed((i, t) -> {
-      // TODO: add type to generated name
-      return new Param(STR."\{Constants.ANONYMOUS_PREFIX}\{i}", t, true);
-    });
+  private @NotNull SeqView<Param> generateNames(@NotNull ImmutableSeq<Term> telescope) {
+    return telescope.view().mapIndexed((_, t) ->
+      new Param(nameGen.next(exprTycker.whnf(t)), t, true));
   }
 
   /// endregion Helper

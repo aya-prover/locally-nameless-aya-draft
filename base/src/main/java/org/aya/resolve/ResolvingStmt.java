@@ -34,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
  *   ResolvingStmt = Σ[ s ∈ Stmt ] ExtInfo s
  * </pre>
  * <p>
- * FIXME: I agree, we can use {@code Option<Context>} for now.
  */
 public sealed interface ResolvingStmt {
   @NotNull Stmt stmt();

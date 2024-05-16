@@ -6,6 +6,7 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
 import kala.tuple.Tuple2;
+import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
@@ -96,7 +97,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
       ? telescope.mapIndexed((idx, p) -> indices.contains(idx) ? p.explicitize() : p.implicitize())
       : telescope;
 
-    return new PatternTycker(exprTycker, telescope, new LocalLet(), indices == null);
+    return new PatternTycker(exprTycker, telescope, new LocalLet(), indices == null,
+      new NameGenerator());
   }
 
   private @NotNull LhsResult checkLhs(

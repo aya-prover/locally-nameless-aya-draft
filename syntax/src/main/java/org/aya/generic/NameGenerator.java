@@ -26,7 +26,6 @@ public class NameGenerator {
     return whty == null ? nextName(null) : nextName(nameOf(whty));
   }
 
-  // TODO: replace all usage of next with nextVar except this
   public @NotNull LocalVar nextVar(@Nullable Term whty) {
     return new LocalVar(next(whty), SourcePos.SER, GenerateKind.Basic.Tyck);
   }

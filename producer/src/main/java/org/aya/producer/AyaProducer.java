@@ -749,10 +749,14 @@ public record AyaProducer(
         pat = newBinOPScope(patterns.getFirst().term(), explicit);
       } else {
         // avoiding ({a}, b, {c})
-        if (patterns.anyMatch(x -> !x.explicit())) {
-          // TODO: report
-          throw new UnsupportedOperationException("TODO");
-        }
+        var implicitTupElem = patterns.filterNot(Arg::explicit);
+
+        // This won't report error if implicitTupTerm.isEmpty
+        implicitTupElem.forEach(p -> {
+          var pos = p.term().sourcePos();
+          reporter.report(new ParseError(pos, "Implicit pattern is not allowed here."));
+        });
+
         pat = new Pattern.Tuple(patterns.map(Arg::term));
       }
 
