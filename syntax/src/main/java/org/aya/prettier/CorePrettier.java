@@ -55,7 +55,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var inner = Doc.cat(Doc.plain("?"), varDoc(name));
         Function<Outer, Doc> factory = o -> visitCoreApp(null, inner, term.args().view(), o, optionImplicit());
         if (options.map.get(AyaPrettierOptions.Key.InlineMetas)) yield factory.apply(outer);
-        yield Doc.wrap("{?", "?}", factory.apply(Outer.Free));
+        yield Doc.wrap(HOLE_LEFT, HOLE_RIGHT, factory.apply(Outer.Free));
       }
       // case MetaLitTerm lit ->
       //   lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
@@ -71,7 +71,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var doc = Doc.sep(
           KW_SIGMA,
           visitTele(tele, last, FindUsage::free),
-          Doc.symbol("**"),
+          SIGMA_RESULT,
           justType(Arg.ofExplicitly(last), Outer.Codomain)
         );
         // Same as Pi
@@ -117,7 +117,7 @@ public class CorePrettier extends BasePrettier<Term> {
           optionImplicit()
         );
       }
-      case DimTyTerm _ -> Doc.styled(PRIM, "I");
+      case DimTyTerm _ -> KW_INTERVAL;
       // case NewTerm(var inner) -> visitCalls(null, Doc.styled(KEYWORD, "new"), (nest, t) -> t.toDoc(options), outer,
       //   SeqView.of(new Arg<>(o -> term(Outer.AppSpine, inner), true)),
       //   options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs)
@@ -126,7 +126,7 @@ public class CorePrettier extends BasePrettier<Term> {
       //   options.map.get(AyaPrettierOptions.Key.ShowImplicitArgs));
       case MetaPatTerm(var ref) -> {
         if (ref.solution().get() == null) yield varDoc(generateName(null));
-        yield Doc.wrap("<", ">", pat(ref, true, outer));
+        yield Doc.wrap(META_LEFT, META_RIGHT, pat(ref, true, outer));
       }
       case ErrorTerm(var desc) -> {
         var doc = desc.toDoc(options);
@@ -146,8 +146,7 @@ public class CorePrettier extends BasePrettier<Term> {
       }
       case PrimCall prim -> visitCoreCalls(prim.ref(), prim.args(), outer, optionImplicit());
       // case RefTerm.Field term -> linkRef(term.ref(), MEMBER);
-      case ProjTerm(var of, var ix) ->
-        Doc.cat(term(Outer.ProjHead, of), Doc.symbol("."), Doc.plain(String.valueOf(ix)));
+      case ProjTerm(var of, var ix) -> Doc.cat(term(Outer.ProjHead, of), PROJ, Doc.plain(String.valueOf(ix)));
       // case MatchTerm match -> Doc.cblock(Doc.sep(Doc.styled(KEYWORD, "match"),
       //     Doc.commaList(match.discriminant().map(t -> term(Outer.Free, t)))), 2,
       //   Doc.vcat(match.clauses().view()
@@ -190,7 +189,7 @@ public class CorePrettier extends BasePrettier<Term> {
       case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.fun()),
         SeqView.of(new Arg<>(app.arg(), true)), outer, optionImplicit());
       case CoeTerm(var ty, var r, var s) -> visitCalls(null,
-        Doc.styled(KEYWORD, "coe"),
+        KW_COE,
         ImmutableSeq.of(r, s, ty).view().map(t -> new Arg<>(t, true)),
         outer, true);
       // case HCompTerm hComp -> throw new InternalException("TODO");
@@ -200,7 +199,7 @@ public class CorePrettier extends BasePrettier<Term> {
       });
       // TODO: in case we want to show implicits, display the type
       case EqTerm(var _, var a, var b) -> {
-        var doc = Doc.sep(term(Outer.BinOp, a), Doc.symbol("="), term(Outer.BinOp, b));
+        var doc = Doc.sep(term(Outer.BinOp, a), EQ, term(Outer.BinOp, b));
         yield checkParen(outer, doc, Outer.BinOp);
       }
     };
@@ -244,7 +243,7 @@ public class CorePrettier extends BasePrettier<Term> {
           optionImplicit());
         yield ctorDoc(outer, licit, ctorDoc, con.args().isEmpty());
       }
-      case Pat.Absurd _ -> Doc.bracedUnless(Doc.styled(KEYWORD, "()"), licit);
+      case Pat.Absurd _ -> Doc.bracedUnless(PAT_ABSURD, licit);
       case Pat.Tuple tuple -> Doc.licit(licit,
         Doc.commaList(tuple.elements().view().map(sub -> pat(sub, true, Outer.Free))));
       // case Pat.ShapedInt lit -> Doc.bracedUnless(lit.repr() == 0
@@ -305,7 +304,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var line1 = MutableList.of(KW_DATA,
           defVar(def.ref()),
           visitTele(richDataTele),
-          Doc.symbol(":"),
+          HAS_TYPE,
           term(Outer.Free, def.result));
         var ctors = def.body.view().map(ctor ->
           // we need to instantiate the tele of ctor, but we can't modify the CtorDef

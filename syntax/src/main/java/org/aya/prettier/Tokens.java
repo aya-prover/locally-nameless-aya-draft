@@ -19,12 +19,15 @@ public final class Tokens {
   public static final Doc HOLE = Doc.symbol("{??}");
   public static final Doc HOLE_LEFT = Doc.symbol("{?");
   public static final Doc HOLE_RIGHT = Doc.symbol("?}");
+  public static final Doc META_LEFT = Doc.symbol("<");
+  public static final Doc META_RIGHT = Doc.symbol(">");
   public static final Doc BAR = Doc.symbol("|");
   public static final Doc HAS_TYPE = Doc.symbol(":");
   public static final Doc PROJ = Doc.symbol(".");
   public static final Doc SIGMA_RESULT = Doc.styled(KEYWORD, "**");
   public static final Doc LIST_LEFT = Doc.symbol("[");
   public static final Doc LIST_RIGHT = Doc.symbol("]");
+  public static final Doc EQ = Doc.symbol("=");
 
   public static final Doc KW_DO = Doc.styled(KEYWORD, "do");
   public static final Doc KW_AS = Doc.styled(KEYWORD, "as");
@@ -42,4 +45,6 @@ public final class Tokens {
   public static final Doc KW_PRIM = Doc.styled(KEYWORD, "prim");
   public static final Doc KW_VARIABLES = Doc.styled(KEYWORD, "variables");
   public static final Doc KW_IMPORT = Doc.styled(KEYWORD, "import");
+  public static final Doc KW_INTERVAL = Doc.styled(PRIM, "I");
+  public static final Doc KW_COE = Doc.styled(KEYWORD, "coe");
 }
