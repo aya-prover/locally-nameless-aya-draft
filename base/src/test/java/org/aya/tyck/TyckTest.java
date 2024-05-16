@@ -7,10 +7,11 @@ import org.aya.TestUtil;
 import org.aya.syntax.SyntaxTestUtil;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.Def;
-import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TyckTest {
   @Test public void test0() {
@@ -26,6 +27,22 @@ public class TyckTest {
       """;
 
     var result = tyck(code);
+    assertTrue(result.isNotEmpty());
+  }
+
+  @Test public void path0() {
+    @Language("Aya") String code = """
+      data Nat | O | S Nat
+      prim I : ISet
+      prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
+      prim coe (r s : I) (A : I -> Type) : A r -> A s
+
+      def transp  (A : I -> Type) (a : A 0) : A 1 => coe 0 1 A a
+      def transpInv  (A : I -> Type) (a : A 1) : A 0 => coe 1 0 A a
+      """;
+
+    var result = tyck(code);
+    assertTrue(result.isNotEmpty());
   }
 
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {

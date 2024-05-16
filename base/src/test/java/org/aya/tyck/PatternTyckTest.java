@@ -8,6 +8,8 @@ import org.aya.syntax.core.term.call.ConCall;
 import org.junit.jupiter.api.Test;
 
 import static org.aya.tyck.TyckTest.tyck;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PatternTyckTest {
   @Test public void test0() {
@@ -25,17 +27,16 @@ public class PatternTyckTest {
     var foo = (FnDef) result.get(2);
     // It is correct that [nf] is [S (O + (S O))], since this is a WH-Normalizer!!
     var nf = TestUtil.sillyNormalizer().apply(TestUtil.emptyCall(foo));
-    assert nf instanceof ConCall;
+    var conCall = assertInstanceOf(ConCall.class, nf);
   }
 
-  @Test
-  public void elim0() {
+  @Test public void elim0() {
     var result = tyck("""
       open data Nat | O | S Nat
       def lind (a b : Nat) : Nat elim a
       | O => b
       | S a' => S (lind a' b)
       """);
-    assert result.isNotEmpty();
+    assertTrue(result.isNotEmpty());
   }
 }

@@ -5,6 +5,7 @@ package org.aya.syntax.core.term;
 import kala.function.IndexedFunction;
 import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
+import org.aya.pretty.doc.Doc;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,8 +19,10 @@ public record ErrorTerm(AyaDocile description) implements StableWHNF {
     return typeOf((AyaDocile) origin);
   }
 
-  public static @NotNull ErrorTerm typeOf(@NotNull AyaDocile doc) {
-    throw new UnsupportedOperationException("TODO");  // TODO
+  public static @NotNull ErrorTerm typeOf(@NotNull AyaDocile origin) {
+    return new ErrorTerm(options -> Doc.sep(
+      Doc.plain("type of"),
+      Doc.code(origin.toDoc(options))));
   }
 
   @Override

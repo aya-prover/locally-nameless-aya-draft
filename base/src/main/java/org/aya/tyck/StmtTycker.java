@@ -5,6 +5,7 @@ package org.aya.tyck;
 import kala.control.Either;
 import org.aya.generic.Modifier;
 import org.aya.normalize.PrimFactory;
+import org.aya.prettier.BasePrettier;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -195,7 +196,8 @@ public record StmtTycker(
     tycker.unifyTyReported(
       PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
       PiTerm.make(core.telescope.view().map(Param::type), core.result),
-      prim.result);
+      new WithPos<>(prim.entireSourcePos(),
+        new Expr.Error(BasePrettier.defVar(prim.ref))));
     prim.signature = tele;
     tycker.solveMetas();
     assert tycker.localCtx().isEmpty() : "If this fails, replace it with tycker.setLocalCtx(new LocalCtx());";
