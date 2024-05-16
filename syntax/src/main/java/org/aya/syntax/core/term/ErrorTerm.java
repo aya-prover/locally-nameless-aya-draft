@@ -14,7 +14,9 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  * @see org.aya.prettier.CorePrettier#term(BasePrettier.Outer, Term) (ErrorTerm case)
  */
-public record ErrorTerm(AyaDocile description) implements StableWHNF {
+public record ErrorTerm(AyaDocile description, boolean isReallyError) implements StableWHNF {
+  public ErrorTerm(Doc doc, boolean isReallyError) { this(_ -> doc, isReallyError); }
+  public ErrorTerm(AyaDocile desc) { this(desc, true); }
   public static @NotNull ErrorTerm typeOf(@NotNull Term origin) {
     return typeOf((AyaDocile) origin);
   }
@@ -22,11 +24,8 @@ public record ErrorTerm(AyaDocile description) implements StableWHNF {
   public static @NotNull ErrorTerm typeOf(@NotNull AyaDocile origin) {
     return new ErrorTerm(options -> Doc.sep(
       Doc.plain("type of"),
-      Doc.code(origin.toDoc(options))));
+      Doc.code(origin.toDoc(options))), true);
   }
 
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return this;
-  }
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) { return this; }
 }

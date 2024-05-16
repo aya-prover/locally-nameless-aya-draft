@@ -77,10 +77,6 @@ public sealed interface ClausesProblem extends Problem {
       return info.describeUnify(options, comparison, line, Doc.plain("and"));
     }
 
-    @Override public @NotNull Severity level() {
-      return ClausesProblem.super.level();
-    }
-
     @Override public @NotNull SeqView<WithPos<Doc>> inlineHints(@NotNull PrettierOptions options) {
       return Seq.of(
         new WithPos<>(iPos, termToHint(comparison.expected(), options)),
@@ -130,9 +126,7 @@ public sealed interface ClausesProblem extends Problem {
       );
     }
 
-    @Override public @NotNull Severity level() {
-      return Severity.WARN;
-    }
+    @Override public @NotNull Severity level() { return Severity.WARN; }
   }
 
   record FMDomination(int sub, @Override @NotNull SourcePos sourcePos) implements ClausesProblem {
@@ -143,8 +137,6 @@ public sealed interface ClausesProblem extends Problem {
       );
     }
 
-    @Override public @NotNull Severity level() {
-      return Severity.WARN;
-    }
+    @Override public @NotNull Severity level() { return Severity.WARN; }
   }
 }

@@ -4,15 +4,18 @@ package org.aya.tyck.pat;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.immutable.primitive.ImmutableIntSeq;
+import kala.collection.mutable.MutableList;
+import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.def.ConDef;
+import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
-import org.aya.syntax.core.term.Param;
-import org.aya.syntax.core.term.SigmaTerm;
-import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.TupTerm;
+import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.ClausesProblem;
+import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.SourcePos;
@@ -61,9 +64,81 @@ public record PatClassifier<T extends Stateful & Problematic>(
           return classes.map(args -> new PatClass<>(new TupTerm(args.term()), args.cls()));
         }
       }
+      // THE BIG GAME
+      case DataCall dataCall -> {
+        // In case clauses are empty, we're just making sure that the type is uninhabited,
+        // so proceed as if we have valid patterns
+        if (clauses.isNotEmpty() &&
+          // there are no clauses starting with a constructor pattern -- we don't need a split!
+          clauses.noneMatch(subPat -> subPat.pat() instanceof Pat.Con/* || subPat.pat() instanceof Pat.ShapedInt*/)
+        ) break;
+        var data = dataCall.ref();
+        var body = TeleDef.dataBody(data);
+        if (data.core == null) throw TyckOrderError.notYetTycked(data);
+
+        // Special optimization for literals
+        // var lits = clauses.mapNotNull(cl -> cl.pat() instanceof Pat.ShapedInt i ?
+        //   new Indexed<>(i, cl.ix()) : null);
+        // var binds = Indexed.indices(clauses.filter(cl -> cl.pat() instanceof Pat.Bind));
+        // if (clauses.isNotEmpty() && lits.size() + binds.size() == clauses.size()) {
+        //   // There is only literals and bind patterns, no constructor patterns
+        //   var classes = Seq.from(lits.collect(
+        //       Collectors.groupingBy(i -> i.pat().repr())).values())
+        //     .map(i -> new PatClass<>(new Arg<>(i.get(0).pat().toTerm(), explicit),
+        //       Indexed.indices(Seq.wrapJava(i)).concat(binds)));
+        //   var ml = MutableArrayList.<PatClass<Arg<Term>>>create(classes.size() + 1);
+        //   ml.appendAll(classes);
+        //   ml.append(new PatClass<>(new Arg<>(new RefTerm(param.ref()), explicit), binds));
+        //   return ml.toImmutableSeq();
+        // }
+
+        var buffer = MutableList.<PatClass<Term>>create();
+        // For all constructors,
+        for (var con : body) {
+          var fuel1 = fuel;
+          var conTele = conTele(clauses, dataCall, con);
+          if (conTele == null) continue;
+          // Find all patterns that are either catchall or splitting on this constructor,
+          // e.g. for `suc`, `suc (suc a)` will be picked
+          var matches = clauses.mapIndexedNotNull((ix, subPat) ->
+            // Convert to constructor form
+            matches(conTele, con, ix, subPat));
+          var conHead = dataCall.conHead(con.ref);
+          // The only matching cases are catch-all cases, and we skip these
+          if (matches.isEmpty()) {
+            fuel1--;
+            // In this case we give up and do not split on this constructor
+            if (conTele.isEmpty() || fuel1 <= 0) {
+              var err = new ErrorTerm(Doc.plain("..."), false);
+              buffer.append(new PatClass<>(new ConCall(conHead,
+                conTele.isEmpty() ? ImmutableSeq.empty() : ImmutableSeq.of(err)),
+                ImmutableIntSeq.empty()));
+              continue;
+            }
+          }
+          var classes = classifyN(subst, conTele.view(), matches, fuel1);
+          buffer.appendAll(classes.map(args -> new PatClass<>(
+            new ConCall(conHead, args.term()),
+            args.cls())));
+        }
+        return buffer.toImmutableSeq();
+      }
       default -> { }
     }
     return ImmutableSeq.of(new PatClass<>(param.type(), Indexed.indices(clauses)));
+  }
+
+
+  private static @Nullable Indexed<SeqView<Pat>> matches(
+    SeqView<Param> conTele, ConDef ctor, int ix, Indexed<Pat> subPat
+  ) {
+    return switch (/*subPat.pat() instanceof Pat.ShapedInt i
+      ? i.constructorForm()
+      : */subPat.pat()) {
+      case Pat.Con c when c.ref() == ctor.ref() -> new Indexed<>(c.args().view(), ix);
+      case Pat.Bind b -> new Indexed<>(conTele.map(Param::toFreshPat), ix);
+      default -> null;
+    };
   }
 
   private @Nullable SeqView<Param>
