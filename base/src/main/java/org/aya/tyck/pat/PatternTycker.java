@@ -136,9 +136,8 @@ public class PatternTycker implements Problematic, Stateful {
         var patterns = tyckInner(conCore.selfTele.view(), con.params().view(), pattern);
 
         // check if this Con is a ShapedCon
-        // var typeRecog = exprTycker.shapeFacony.find(conRef.core.dataRef.core).getOrNull();
-
-        yield new Pat.Con(realCon.conHead.ref(), patterns, /* typeRecog */ realCon.data());
+        var typeRecog = state().shapeFactory().find(conRef.core.dataRef.core).getOrNull();
+        yield new Pat.Con(realCon.conHead.ref(), patterns, typeRecog, realCon.data());
       }
       case Pattern.Bind(var bind, var tyRef) -> {
         exprTycker.localCtx().put(bind, type);

@@ -5,6 +5,7 @@ package org.aya.tyck;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableTreeSet;
+import kala.control.Result;
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.DataDef;
@@ -93,21 +94,16 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         yield new Jdg.Default(freshHole, type);
       }
       case Expr.Tuple(var elems) when type instanceof SigmaTerm sigmaTerm -> {
-        var result = sigmaTerm.check(elems, (elem, ty) -> inherit(elem, ty).wellTyped());
-        Term wellTyped;
-
-        if (result.isErr()) {
-          switch (result.getErr()) {
-            case TooManyElement, TooManyParameter ->
+        Term wellTyped = switch (sigmaTerm.check(elems, (elem, ty) -> inherit(elem, ty).wellTyped())) {
+          case Result.Ok(var v) -> new TupTerm(v);
+          case Result.Err(var e) -> switch (e) {
+            case TooManyElement, TooManyParameter -> {
               fail(new TupleError.ElemMismatchError(expr.sourcePos(), sigmaTerm.params().size(), elems.size()));
+              yield new ErrorTerm(expr.data());
+            }
             case CheckFailed -> Panic.unreachable();
-          }
-
-          wellTyped = new ErrorTerm(expr.data());
-        } else {
-          wellTyped = new TupTerm(result.get());
-        }
-
+          };
+        };
         yield new Jdg.Default(wellTyped, sigmaTerm);
       }
       case Expr.Let let -> checkLet(let, e -> inherit(e, type));
