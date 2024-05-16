@@ -8,10 +8,12 @@ import org.aya.generic.NameGenerator;
 import org.aya.generic.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DefVar;
@@ -222,6 +224,13 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         if (!(fTy instanceof PiTerm pi)) yield null;
         if (!compare(a, b, pi.param())) yield null;
         yield pi.body().instantiate(a);
+      }
+      case CoeTerm coe -> {
+        if (!(rhs instanceof CoeTerm(var rType, var rR, var rS))) yield null;
+        if (!compare(coe.r(), rR, DimTyTerm.INSTANCE)) yield null;
+        if (!compare(coe.s(), rS, DimTyTerm.INSTANCE)) yield null;
+        yield compare(coe.type(), rType, PrimDef.intervalToType) ?
+          coe.family() : null;
       }
       case ProjTerm(var lof, var ldx) -> {
         // Since {lhs} and {rhs} are whnf, at this point, {lof} is unable to evaluate.

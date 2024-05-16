@@ -5,7 +5,6 @@ package org.aya.tyck;
 import kala.control.Either;
 import org.aya.generic.Modifier;
 import org.aya.normalize.PrimFactory;
-import org.aya.prettier.BasePrettier;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -20,6 +19,7 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
+import org.aya.tyck.error.UnifyInfo;
 import org.aya.tyck.pat.ClauseTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.TeleTycker;
@@ -193,13 +193,12 @@ public record StmtTycker(
     }
     assert prim.result != null;
     var tele = teleTycker.checkSignature(prim.telescope, prim.result);
-    // TODO: create dedicated error class and use unifyTermReported
-    tycker.unifyTyReported(
+    tycker.unifyTermReported(
       PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
       // No checks, slightly faster than TeleDef.defType
       PiTerm.make(core.telescope.view().map(Param::type), core.result),
-      new WithPos<>(prim.entireSourcePos(),
-        new Expr.Error(BasePrettier.defVar(prim.ref))));
+      prim.entireSourcePos(),
+      msg -> new PrimError.BadSignature(prim, msg, new UnifyInfo(tycker.state)));
     prim.signature = tele;
     tycker.solveMetas();
     tycker.setLocalCtx(new LocalCtx());

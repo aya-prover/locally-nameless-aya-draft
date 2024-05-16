@@ -16,6 +16,7 @@ import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.util.ForLSP;
 import org.jetbrains.annotations.NotNull;
@@ -60,12 +61,17 @@ public final class PrimFactory {
     return new CoeTerm(args.get(2), args.get(0), args.get(1));
   }, ref -> {
     // coe (r s : I) (A : I -> Type) : A r -> A s
-    var r = DimTyTerm.param("r");
-    var s = DimTyTerm.param("s");
-    var paramA = new Param("A", intervalToType(), true);
-    var result = familyI2J(new LocalTerm(0), new LocalTerm(2), new LocalTerm(1));
+    var telescope = ImmutableSeq.of(
+      DimTyTerm.param("r"),
+      DimTyTerm.param("s"),
+      new Param("A", intervalToType, true));
+    var r = new LocalVar("r");
+    var s = new LocalVar("s");
+    var A = new LocalVar("A");
+    var result = familyI2J(new FreeTerm(A), new FreeTerm(r), new FreeTerm(s))
+      .bindTele(ImmutableSeq.of(r, s, A).view());
 
-    return new PrimDef(ref, ImmutableSeq.of(r, s, paramA), result, ID.COE);
+    return new PrimDef(ref, telescope, result, ID.COE);
   }, ImmutableSeq.of(ID.I));
 
   final @NotNull PrimSeed pathType = new PrimSeed(ID.PATH, (prim, _) -> {
@@ -73,7 +79,7 @@ public final class PrimFactory {
     return new EqTerm(args.get(0), args.get(1), args.get(2));
   }, ref -> {
     // (A : I -> Type) (a : A 0) (b : A 1) : Type
-    var paramA = new Param("A", intervalToType(), true);
+    var paramA = new Param("A", intervalToType, true);
     var paramLeft = new Param("a", AppTerm.make(new LocalTerm(0), DimTerm.I0), true);
     var paramRight = new Param("b", AppTerm.make(new LocalTerm(1), DimTerm.I1), true);
     return new PrimDef(ref, ImmutableSeq.of(paramA, paramLeft, paramRight), Type0, ID.PATH);

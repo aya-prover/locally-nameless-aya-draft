@@ -31,6 +31,7 @@ import org.aya.util.error.Panic;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
+import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -74,22 +75,17 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           // unifyTyReported(param, dom, expr);
           var core = subscoped(() -> {
             localCtx().put(ref, dom);
-            return inherit(body, cod.instantiate(new FreeTerm(ref)))
-              .wellTyped().bind(ref);
-          });
+            return inherit(body, cod.instantiate(new FreeTerm(ref))).wellTyped();
+          }).bind(ref);
           yield new Jdg.Default(new LamTerm(core), type);
         }
         case EqTerm eq -> {
           var core = subscoped(() -> {
             localCtx().put(ref, DimTyTerm.INSTANCE);
-            var coreBody = inherit(body, eq.A()).wellTyped().bind(ref);
-            // TODO: make this code more "DRY"
-            unifyTermReported(coreBody.instantiate(DimTerm.I0), eq.a(), expr.sourcePos(),
-              msg -> new CubicalError.BoundaryDisagree(expr, msg, new UnifyInfo(state)));
-            unifyTermReported(coreBody.instantiate(DimTerm.I1), eq.b(), expr.sourcePos(),
-              msg -> new CubicalError.BoundaryDisagree(expr, msg, new UnifyInfo(state)));
-            return coreBody;
-          });
+            return inherit(body, AppTerm.make(eq.A(), new FreeTerm(ref))).wellTyped();
+          }).bind(ref);
+          checkBoundaries(eq, core, body.sourcePos(), msg ->
+            new CubicalError.BoundaryDisagree(expr, msg, new UnifyInfo(state)));
           yield new Jdg.Default(new LamTerm(core), eq);
         }
         default -> fail(expr.data(), type, BadTypeError.pi(state, expr, type));
@@ -123,6 +119,13 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       case Expr.Let let -> checkLet(let, e -> inherit(e, type));
       default -> inheritFallbackUnify(type, synthesize(expr), expr);
     };
+  }
+  private void checkBoundaries(
+    EqTerm eq, Term core, @NotNull SourcePos pos,
+    @NotNull Function<UnifyInfo.Comparison, Problem> report
+  ) {
+    unifyTermReported(core.instantiate(DimTerm.I0), eq.a(), pos, report);
+    unifyTermReported(core.instantiate(DimTerm.I1), eq.b(), pos, report);
   }
 
   // TODO: coercive subtyping if needed

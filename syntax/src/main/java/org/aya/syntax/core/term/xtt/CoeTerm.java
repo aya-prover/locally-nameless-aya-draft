@@ -13,7 +13,7 @@ public record CoeTerm(@NotNull Term type, @NotNull Term r, @NotNull Term s) impl
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(type.descent(f), r.descent(f), s.descent(f));
+    return update(f.apply(0, type), f.apply(0, r), f.apply(0, s));
   }
 
   public @NotNull CoeTerm inverse(Term newTy) {
@@ -23,8 +23,5 @@ public record CoeTerm(@NotNull Term type, @NotNull Term r, @NotNull Term s) impl
   public @NotNull CoeTerm recoe(Term cover) {
     return new CoeTerm(cover, r, s);
   }
-
-  public @NotNull Term family() {
-    return PrimDef.familyI2J(type, r, s);
-  }
+  public @NotNull Term family() { return PrimDef.familyI2J(type, r, s); }
 }

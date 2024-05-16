@@ -8,13 +8,12 @@ import kala.control.Either;
 import kala.control.Option;
 import org.aya.generic.Modifier;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.term.BetaRedex;
-import org.aya.syntax.core.term.MetaPatTerm;
-import org.aya.syntax.core.term.StableWHNF;
-import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.xtt.CoeTerm;
+import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
@@ -57,6 +56,12 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
+      case CoeTerm(var type, var r, var s) -> {
+        if (r instanceof DimTerm || r instanceof FreeTerm) {
+          if (r.equals(s)) yield new LamTerm(new LocalTerm(0));
+        }
+        yield term;
+      }
       // TODO: handle other cases
       // ice: what are the other cases?
       default -> term;

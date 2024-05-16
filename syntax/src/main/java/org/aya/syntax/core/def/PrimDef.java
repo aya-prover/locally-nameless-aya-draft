@@ -56,20 +56,17 @@ public final class PrimDef extends TopLevelDef<Term> {
   }
 
   /** <code>I -> Type</code> */
-  public static @NotNull Term intervalToType() {
-    return new PiTerm(DimTyTerm.INSTANCE, Type0);
-  }
+  public static final @NotNull Term intervalToType = new PiTerm(DimTyTerm.INSTANCE, Type0);
 
   /** Let A be argument, then <code>A i -> A j</code>. Handles index shifting. */
   public static @NotNull PiTerm familyI2J(Term term, Term i, Term j) {
-    return new PiTerm(AppTerm.make(term, i), AppTerm.make(term, j).elevate(1));
+    return new PiTerm(AppTerm.make(term, i), AppTerm.make(term, j));
   }
 
   public enum ID {
     STRING("String"),
     STRCONCAT("strcat"),
     I("I"),
-    PARTIAL("Partial"),
     PATH("Path"),
     COE("coe"),
     HCOMP("hcomp");
