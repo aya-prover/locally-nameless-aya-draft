@@ -19,40 +19,22 @@ public sealed interface ModuleName extends Serializable {
   enum ThisRef implements ModuleName {
     Obj;
 
-    @Override public int size() {
-      return 0;
-    }
-
-    @Override public @NotNull ImmutableSeq<String> ids() {
-      return ImmutableSeq.empty();
-    }
-
+    @Override public int size() { return 0; }
+    @Override public @NotNull ImmutableSeq<String> ids() { return ImmutableSeq.empty(); }
     @Override public @NotNull Qualified resolve(@NotNull String name) {
       return new Qualified(ImmutableSeq.of(name));
     }
-
-    @Override public @NotNull ModuleName concat(@NotNull ModuleName path) {
-      return path;
-    }
-
-    @Override public @NotNull String toString() {
-      return "";
-    }
+    @Override public @NotNull ModuleName concat(@NotNull ModuleName path) { return path; }
+    @Override public @NotNull String toString() { return ""; }
   }
 
   record Qualified(@NotNull ImmutableSeq<String> ids) implements ModuleName {
-    public Qualified(String @NotNull ... ids) {
-      this(ImmutableSeq.of(ids));
-    }
-
+    public Qualified(String @NotNull ... ids) { this(ImmutableSeq.of(ids)); }
     public Qualified {
       assert ids.isNotEmpty() : "Otherwise please use `This`";
     }
 
-    @Override public int size() {
-      return ids.size();
-    }
-
+    @Override public int size() { return ids.size(); }
     @Override public @NotNull Qualified resolve(@NotNull String name) {
       return new Qualified(ids.appended(name));
     }
@@ -60,10 +42,7 @@ public sealed interface ModuleName extends Serializable {
     @Override public @NotNull Qualified concat(@NotNull ModuleName path) {
       return new Qualified(ids.concat(path.ids()));
     }
-
-    @Override public @NotNull String toString() {
-      return QualifiedID.join(ids);
-    }
+    @Override public @NotNull String toString() { return QualifiedID.join(ids); }
   }
 
   @NotNull ImmutableSeq<String> ids();

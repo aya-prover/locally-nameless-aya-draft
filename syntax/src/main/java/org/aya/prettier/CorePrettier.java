@@ -235,9 +235,8 @@ public class CorePrettier extends BasePrettier<Term> {
     return switch (pat) {
       case Pat.Meta meta -> {
         var sol = meta.solution().get();
-        yield sol != null
-          ? pat(sol, licit, outer)
-          : Doc.bracedUnless(linkDef(generateName(null)), licit);   // TODO: supply type name
+        yield sol != null ? pat(sol, licit, outer)
+          : Doc.bracedUnless(linkDef(generateName(meta.type())), licit);
       }
       case Pat.Bind bind -> Doc.bracedUnless(linkDef(bind.bind()), licit);
       case Pat.Con con -> {

@@ -29,14 +29,8 @@ public record QualifiedID(
     return component().ids().appended(name);
   }
 
-  public boolean isUnqualified() {
-    return component() == ModuleName.This;
-  }
-
-  public @NotNull String join() {
-    return join(ids());
-  }
-
+  public boolean isUnqualified() { return component() == ModuleName.This; }
+  public @NotNull String join() { return join(ids()); }
   public static @NotNull String join(@NotNull Seq<@NotNull String> ids) {
     return ids.joinToString(Constants.SCOPE_SEPARATOR);
   }

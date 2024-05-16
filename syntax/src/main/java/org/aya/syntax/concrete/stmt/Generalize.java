@@ -42,7 +42,5 @@ public final class Generalize implements Stmt {
     return variables.map(one -> toExpr(true, one.toLocal()));
   }
 
-  public @NotNull SourcePos sourcePos() {
-    return sourcePos;
-  }
+  public @NotNull SourcePos sourcePos() { return sourcePos; }
 }
