@@ -155,14 +155,14 @@ public class CorePrettier extends BasePrettier<Term> {
       //       Doc.commaList(clause.patterns().map(p -> pat(p, Outer.Free))),
       //       Doc.symbol("=>"), term(Outer.Free, clause.body())))
       //     .toImmutableSeq()));
-      case PiTerm(var params0, var body0) -> {
+      case PiTerm piTerm -> {
         // Try to omit the Pi keyword
-        if (FindUsage.bound(body0, 0) == 0) yield checkParen(outer, Doc.sep(
-          justType(Arg.ofExplicitly(params0), Outer.BinOp),
+        if (FindUsage.bound(piTerm.body(), 0) == 0) yield checkParen(outer, Doc.sep(
+          justType(Arg.ofExplicitly(piTerm.param()), Outer.BinOp),
           Tokens.ARROW,
-          term(Outer.Codomain, body0)
+          term(Outer.Codomain, piTerm.body())
         ), Outer.BinOp);
-        var pair = PiTerm.unpi(body0, UnaryOperator.identity());
+        var pair = PiTerm.unpi(piTerm, UnaryOperator.identity());
         var params = generateNames(pair.params());
         var body = pair.body().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));
         var doc = Doc.sep(

@@ -18,6 +18,6 @@ public record EqTerm(Term A, Term a, Term b) implements Formation, StableWHNF {
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(A.descent(f), a.descent(f), b.descent(f));
+    return update(f.apply(0, A), f.apply(0, a), f.apply(0, b));
   }
 }
