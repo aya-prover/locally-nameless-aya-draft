@@ -4,17 +4,12 @@ package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
-import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface LicitError extends TyckError {
+public sealed interface LicitError extends TyckError, SourceNodeProblem {
   record BadImplicitArg(@Override @NotNull Expr.NamedArg expr) implements LicitError {
-    @Override public @NotNull SourcePos sourcePos() {
-      return expr.sourcePos();
-    }
-
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.sep(Doc.english("Unexpected implicit argument"),
         Doc.code(expr.toDoc(options)));
@@ -22,10 +17,6 @@ public sealed interface LicitError extends TyckError {
   }
 
   record BadNamedArg(@Override @NotNull Expr.NamedArg expr) implements LicitError {
-    @Override public @NotNull SourcePos sourcePos() {
-      return expr.sourcePos();
-    }
-
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.sep(Doc.english("Named argument unwanted here:"),
@@ -34,11 +25,7 @@ public sealed interface LicitError extends TyckError {
     }
   }
 
-  record ImplicitLam(WithPos<Expr> data) implements LicitError {
-    @Override public @NotNull SourcePos sourcePos() {
-      return data.sourcePos();
-    }
-
+  record ImplicitLam(@Override @NotNull WithPos<Expr> expr) implements LicitError {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.sep(Doc.english("Implicit lambda is not allowed in Aya"));
     }

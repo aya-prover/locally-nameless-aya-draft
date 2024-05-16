@@ -27,6 +27,7 @@ import org.aya.util.Pair;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.reporter.Reporter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -408,6 +409,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     }
   }
 
+  /** Maybe you're looking for {@link #compare} instead. */
+  @ApiStatus.Internal
   public boolean checkEqn(@NotNull TyckState.Eqn eqn) {
     return compare(eqn.lhs(), eqn.rhs(), null);
   }

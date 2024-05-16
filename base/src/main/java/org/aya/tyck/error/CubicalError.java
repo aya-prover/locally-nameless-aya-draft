@@ -5,16 +5,16 @@ package org.aya.tyck.error;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface CubicalError extends TyckError {
   record BoundaryDisagree(
-    @Override @NotNull Expr expr,
-    @Override @NotNull SourcePos sourcePos,
+    @Override @NotNull WithPos<Expr> expr,
     @NotNull UnifyInfo.Comparison comparison,
     @NotNull UnifyInfo info
-  ) implements CubicalError {
+  ) implements CubicalError, SourceNodeProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return info.describeUnify(options, comparison, Doc.english("The boundary"),
         Doc.english("disagrees with"));

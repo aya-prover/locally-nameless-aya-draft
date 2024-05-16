@@ -34,17 +34,13 @@ public record TyckState(
   @NotNull PrimFactory primFactory
 ) {
   public TyckState(@NotNull AyaShape.Factory shapeFactory, @NotNull PrimFactory primFactory) {
-    this(MutableList.create(), MutableList.create(), MutableMap.create(), shapeFactory, primFactory);
+    this(MutableList.create(), MutableList.create(), MutableMap.create(),
+      shapeFactory, primFactory);
   }
   @ApiStatus.Internal
-  public void solve(MetaVar meta, Term candidate) {
-    solutions.put(meta, candidate);
-  }
+  public void solve(MetaVar meta, Term candidate) { solutions.put(meta, candidate); }
 
-  private void solveEqn(
-    @NotNull Reporter reporter,
-    @NotNull Eqn eqn, boolean allowDelay
-  ) {
+  private void solveEqn(@NotNull Reporter reporter, @NotNull Eqn eqn, boolean allowDelay) {
     new Unifier(this, eqn.localCtx, reporter, eqn.pos, eqn.cmp, allowDelay).checkEqn(eqn);
   }
 

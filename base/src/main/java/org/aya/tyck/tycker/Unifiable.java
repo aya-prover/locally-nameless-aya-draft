@@ -20,16 +20,15 @@ public interface Unifiable extends Problematic, Stateful {
   @NotNull TermComparator unifier(@NotNull SourcePos pos, @NotNull Ordering order);
 
   /**
-   * Check whether {@param lower} is a subtype of {@param upper}
+   * Check whether {@param lower} is a subtype of {@param upper} if {@param ordering} is {@link Ordering#Lt}.
    *
+   * @param ordering by default should be {@link Ordering#Lt}, or {@link Ordering#Eq}
    * @return failure data, null if success
    */
-  default @Nullable TermComparator.FailureData unifyTy(
-    @NotNull Term upper,
-    @NotNull Term lower,
-    @NotNull SourcePos pos
+  default @Nullable TermComparator.FailureData unifyTerm(
+    @NotNull Term upper, @NotNull Term lower, @NotNull SourcePos pos, Ordering ordering
   ) {
-    var unifier = unifier(pos, Ordering.Lt);
+    var unifier = unifier(pos, ordering);
     var result = unifier.compare(lower, upper, null);
     if (!result) return unifier.getFailure();
     return null;
@@ -37,27 +36,30 @@ public interface Unifiable extends Problematic, Stateful {
 
   /**
    * @param pc a problem constructor
-   * @see Unifiable#unifyTy(Term, Term, SourcePos)
+   * @see Unifiable#unifyTerm
    */
   default boolean unifyTyReported(
-    @NotNull Term upper,
-    @NotNull Term lower,
-    @NotNull SourcePos pos,
+    @NotNull Term upper, @NotNull Term lower, @NotNull SourcePos pos,
     @NotNull Function<UnifyInfo.Comparison, Problem> pc
   ) {
-    var result = unifyTy(upper, lower, pos);
-    if (result != null) {
-      fail(pc.apply(new UnifyInfo.Comparison(
-        freezeHoles(lower), freezeHoles(upper), result)));
-    }
+    var result = unifyTerm(upper, lower, pos, Ordering.Lt);
+    if (result != null) fail(pc.apply(new UnifyInfo.Comparison(
+      freezeHoles(lower), freezeHoles(upper), result)));
+    return result == null;
+  }
 
+ default boolean unifyTermReported(
+    @NotNull Term lhs, @NotNull Term rhs, @NotNull SourcePos pos,
+    @NotNull Function<UnifyInfo.Comparison, Problem> pc
+  ) {
+    var result = unifyTerm(lhs, rhs, pos, Ordering.Eq);
+    if (result != null) fail(pc.apply(new UnifyInfo.Comparison(
+      freezeHoles(rhs), freezeHoles(lhs), result)));
     return result == null;
   }
 
   default boolean unifyTyReported(
-    @NotNull Term upper,
-    @NotNull Term lower,
-    @NotNull WithPos<Expr> expr
+    @NotNull Term upper, @NotNull Term lower, @NotNull WithPos<Expr> expr
   ) {
     return unifyTyReported(upper, lower, expr.sourcePos(),
       cp -> new UnifyError.Type(expr.data(), expr.sourcePos(), cp, new UnifyInfo(state())));

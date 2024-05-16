@@ -14,6 +14,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
@@ -73,16 +74,21 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           // unifyTyReported(param, dom, expr);
           var core = subscoped(() -> {
             localCtx().put(ref, dom);
-            return inherit(body, cod.instantiate(new FreeTerm(ref))).bind(ref);
+            return inherit(body, cod.instantiate(new FreeTerm(ref)))
+              .wellTyped().bind(ref);
           });
-          yield new Jdg.Default(new LamTerm(core.wellTyped()), type);
+          yield new Jdg.Default(new LamTerm(core), type);
         }
         case EqTerm eq -> {
           var core = subscoped(() -> {
             localCtx().put(ref, DimTyTerm.INSTANCE);
-            var coreBody = inherit(body, eq.A()).bind(ref);
-            // TODO: check boundaries
-            return coreBody.wellTyped();
+            var coreBody = inherit(body, eq.A()).wellTyped().bind(ref);
+            // TODO: make this code more "DRY"
+            unifyTermReported(coreBody.instantiate(DimTerm.I0), eq.a(), expr.sourcePos(),
+              msg -> new CubicalError.BoundaryDisagree(expr, msg, new UnifyInfo(state)));
+            unifyTermReported(coreBody.instantiate(DimTerm.I1), eq.b(), expr.sourcePos(),
+              msg -> new CubicalError.BoundaryDisagree(expr, msg, new UnifyInfo(state)));
+            return coreBody;
           });
           yield new Jdg.Default(new LamTerm(core), eq);
         }
