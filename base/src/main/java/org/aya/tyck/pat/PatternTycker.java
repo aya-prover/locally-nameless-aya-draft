@@ -14,6 +14,7 @@ import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.SigmaTerm;
@@ -148,31 +149,29 @@ public class PatternTycker implements Problematic, Stateful {
         new Pat.Meta(MutableValue.create(), Constants.ANONYMOUS_PREFIX, type, pattern.sourcePos());
       case Pattern.Number(var number) -> {
         var ty = whnf(type);
-        throw new UnsupportedOperationException("TODO");
-        // if (ty instanceof DataCall dataCall) {
-        //   var data = dataCall.ref().core;
-        //   var shape = exprTycker.shapeFacony.find(data);
-        //   if (shape.isDefined() && shape.get().shape() == AyaShape.NAT_SHAPE)
-        //     yield new Pat.ShapedInt(number, shape.get(), dataCall);
-        // }
-        // yield withError(new PatternProblem.BadLitPattern(pattern, term), term);
+        if (ty instanceof DataCall dataCall) {
+          var data = dataCall.ref().core;
+          var shape = state().shapeFactory().find(data);
+          if (shape.isDefined() && shape.get().shape() == AyaShape.NAT_SHAPE)
+            // yield new Pat.ShapedInt(number, shape.get(), dataCall);
+            throw new UnsupportedOperationException("TODO");
+        }
+        yield withError(new PatternProblem.BadLitPattern(pattern, ty), ty);
       }
       case Pattern.List(var el) -> {
         // desugar `Pattern.List` to `Pattern.Con` here, but use `CodeShape` !
         // Note: this is a special case (maybe), If there is another similar requirement,
         //       a PatternDesugarer is recommended.
-
-        throw new UnsupportedOperationException("TODO");
-
-        // var ty = term.normalize(exprTycker.state, NormalizeMode.WHNF);
-        // if (ty instanceof DataCall dataCall) {
-        //   var data = dataCall.ref().core;
-        //   var shape = exprTycker.shapeFacony.find(data);
-        //   if (shape.isDefined() && shape.get().shape() == AyaShape.LIST_SHAPE)
-        //     yield doTyck(new Pattern.FakeShapedList(pos, el, shape.get(), dataCall)
-        //       .constructorForm(), term);
-        // }
-        // yield withError(new PatternProblem.BadLitPattern(pattern, term), term);
+        var ty = whnf(type);
+        if (ty instanceof DataCall dataCall) {
+          var data = dataCall.ref().core;
+          var shape = state().shapeFactory().find(data);
+          if (shape.isDefined() && shape.get().shape() == AyaShape.LIST_SHAPE)
+            // yield doTyck(new Pattern.FakeShapedList(pos, el, shape.get(), dataCall)
+            //   .constructorForm(), term);
+            throw new UnsupportedOperationException("TODO");
+        }
+        yield withError(new PatternProblem.BadLitPattern(pattern, ty), ty);
       }
       case Pattern.As(var inner, var as, var typeRef) -> {
         var innerPat = doTyck(inner, type);

@@ -5,6 +5,7 @@ package org.aya.resolve.visitor;
 import kala.collection.SeqLike;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
+import org.aya.resolve.ResolvingStmt.TopDecl;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.error.NameProblem;
 import org.aya.resolve.error.OperatorError;
@@ -16,6 +17,8 @@ import org.aya.syntax.ref.DefVar;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
+
+import static org.aya.resolve.ResolvingStmt.*;
 
 public interface StmtBinder {
   static void visitBind(@NotNull Context ctx, @NotNull DefVar<?, ?> selfDef, @NotNull BindBlock bind, @NotNull ResolveInfo info) {
@@ -66,18 +69,15 @@ public interface StmtBinder {
    */
   static void resolveBind(@NotNull Context ctx, @NotNull ResolvingStmt stmt, @NotNull ResolveInfo info) {
     switch (stmt) {
-      case ResolvingStmt.TopDecl(TeleDecl.DataDecl decl, var innerCtx) -> {
-        decl.body.forEach(ctor -> resolveBind(innerCtx, new ResolvingStmt.MiscDecl(ctor), info));
+      case TopDecl(TeleDecl.DataDecl decl, var innerCtx) -> {
+        decl.body.forEach(ctor -> resolveBind(innerCtx, new MiscDecl(ctor), info));
         visitBind(ctx, decl.ref, decl.bindBlock(), info);
       }
-      case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, _) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
-      case ResolvingStmt.TopDecl(TeleDecl.PrimDecl _, _) -> { }
-      case ResolvingStmt.TopDecl _ -> Panic.unreachable();
-      case ResolvingStmt.GenStmt _ -> { }
-      case ResolvingStmt.MiscDecl(TeleDecl.DataCon ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
-      case ResolvingStmt.MiscDecl _ -> Panic.unreachable();
-      case ResolvingStmt.ModStmt(_, var stmts) ->
-        resolveBind(stmts, info);
+      case TopDecl(TeleDecl.FnDecl decl, _) -> visitBind(ctx, decl.ref, decl.bindBlock(), info);
+      case MiscDecl(TeleDecl.DataCon ctor) -> visitBind(ctx, ctor.ref, ctor.bindBlock(), info);
+      case TopDecl(TeleDecl.PrimDecl _, _), GenStmt _ -> { }
+      case TopDecl _, MiscDecl _ -> Panic.unreachable();
+      case ModStmt(_, var stmts) -> resolveBind(stmts, info);
       // case TeleDecl.ClassMember field -> visitBind(field.ref, field.bindBlock(), info);
       // case ClassDecl decl -> {
       //   decl.members.forEach(field -> resolveBind(field, info));

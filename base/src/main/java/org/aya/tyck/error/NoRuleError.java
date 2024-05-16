@@ -11,22 +11,15 @@ import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public record NoRuleError(
-  @NotNull Expr expr,
-  @Override @NotNull SourcePos sourcePos,
-  @Nullable Term term
-) implements TyckError {
-  public NoRuleError(@NotNull WithPos<@NotNull Expr> expr, @Nullable Term term) {
-    this(expr.data(), expr.sourcePos(), term);
-  }
+public record NoRuleError(@NotNull WithPos<@NotNull Expr> expr, @Nullable Term term) implements TyckError {
+  @Override public @NotNull SourcePos sourcePos() { return expr.sourcePos(); }
 
   @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
-    if (term != null)
-      return Doc.sep(Doc.english("No rule for checking the expression"),
-        expr.toDoc(options),
-        Doc.english("against the type"),
-        term.toDoc(options));
-    else
-      return Doc.sep(Doc.english("No rule inferring the type of"), expr.toDoc(options));
+    if (term != null) return Doc.sep(
+      Doc.english("No rule for checking the expression"),
+      expr.data().toDoc(options),
+      Doc.english("against the type"),
+      term.toDoc(options));
+    return Doc.sep(Doc.english("No rule inferring the type of"), expr.data().toDoc(options));
   }
 }

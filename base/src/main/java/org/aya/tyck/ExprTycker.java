@@ -211,9 +211,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       }
       case Expr.Let let -> checkLet(let, this::synthesize);
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
-      case Expr.Error error -> throw new Panic("Expr.Error");
-      case Expr.Unresolved _ -> Panic.unreachable();
-      default -> fail(expr.data(), new NoRuleError(expr.data(), expr.sourcePos(), null));
+      case Expr.Unresolved _, Expr.Error _ -> Panic.unreachable();
+      default -> fail(expr.data(), new NoRuleError(expr, null));
     };
   }
 
