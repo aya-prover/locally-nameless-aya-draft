@@ -375,8 +375,11 @@ public sealed interface Expr extends AyaDocile {
     }
   }
 
+  /**
+   * @param bindName guess: we don't need the source pos of it
+   */
   record Do(
-    @NotNull Expr bindName,   // TODO: perhaps we don't need the source pos of (>>=)
+    @NotNull Expr bindName,
     @NotNull ImmutableSeq<DoBind> binds
   ) implements Expr, Sugar {
     public @NotNull Do update(@NotNull Expr bindName, @NotNull ImmutableSeq<DoBind> binds) {

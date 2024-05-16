@@ -5,8 +5,6 @@ package org.aya.syntax.core.repr;
 import kala.collection.immutable.ImmutableSeq;
 import org.jetbrains.annotations.NotNull;
 
-// TODO[h]: Licit, we can use generalized ParamShape
-
 /**
  * @author kiva
  */

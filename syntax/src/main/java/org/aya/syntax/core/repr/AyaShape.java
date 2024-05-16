@@ -90,7 +90,7 @@ public sealed interface AyaShape {
         new ClauseShape(ImmutableSeq.of(
           new PatShape.Bind(LHS), new PatShape.ShapedCtor(TYPE, SUC, ImmutableSeq.of(new PatShape.Bind(RHS)))
         ), new TermShape.CtorCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
-          TermShape.NameCall.of(LHS),    // TODO: licit
+          TermShape.NameCall.of(LHS),
           TermShape.NameCall.of(RHS)
         )))))
       ))

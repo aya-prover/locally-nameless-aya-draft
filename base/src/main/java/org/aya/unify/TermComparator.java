@@ -124,15 +124,11 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    */
   public boolean compare(@NotNull Term preLhs, @NotNull Term preRhs, @Nullable Term type) {
     if (preLhs == preRhs) return true;
-    if (compareApprox(preLhs, preRhs) != null) {
-      // TODO: unify the result of {compareApprox} and {type}
-      //       Same for below
-      return true;
-    }
+    if (checkApproxResult(type, compareApprox(preLhs, preRhs))) return true;
 
     var lhs = whnf(preLhs);
     var rhs = whnf(preRhs);
-    if ((!(lhs == preLhs && rhs == preRhs)) && compareApprox(lhs, rhs) != null) return true;
+    if ((!(lhs == preLhs && rhs == preRhs)) && checkApproxResult(type, compareApprox(lhs, rhs))) return true;
 
     if (rhs instanceof MetaCall rMeta) {
       // In case we're comparing two metas with one IsType and the other has OfType,
@@ -151,6 +147,13 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     var result = doCompareTyped(preLhs, preRhs, type);
     if (!result) fail(lhs, rhs);
     return result;
+  }
+  private boolean checkApproxResult(@Nullable Term type, Term approxResult) {
+    if (approxResult != null) {
+      if (type != null) compare(approxResult, type, null);
+      return true;
+    }
+    return false;
   }
 
   /**
