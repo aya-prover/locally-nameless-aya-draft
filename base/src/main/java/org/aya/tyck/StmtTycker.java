@@ -5,6 +5,7 @@ package org.aya.tyck;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import kala.control.Option;
+import kala.tuple.Tuple2;
 import org.aya.generic.Modifier;
 import org.aya.normalize.PrimFactory;
 import org.aya.syntax.concrete.Expr;
@@ -13,6 +14,7 @@ import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
@@ -142,12 +144,11 @@ public record StmtTycker(
     assert dataDecl != null && conDecl != null : "no concrete";
     var dataSig = dataDecl.signature;
     assert dataSig != null : "the header of data should be tycked";
-    // TODO: update this if there are patterns
     var ownerTele = dataSig.param().map(x -> x.descent((_, p) -> p.implicitize()));
-    var dataTele = dataDecl.telescope.map(Expr.Param::ref);
+    var ownerBinds = dataDecl.telescope.map(Expr.Param::ref);
     // dataTele already in localCtx
     // The result that a ctor should be, unless... TODO: it is a Path result
-    var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
+    var freeDataCall = new DataCall(dataRef, 0, ownerBinds.map(FreeTerm::new));
 
     var wellPats = ImmutableSeq.<Pat>empty();
     if (dataCon.patterns.isNotEmpty()) {
@@ -156,7 +157,13 @@ public record StmtTycker(
         new Pattern.Clause(dataCon.entireSourcePos(), dataCon.patterns, Option.none()));
       wellPats = lhsResult.clause().pats();
       exprTycker.setLocalCtx(lhsResult.localCtx());
-      lhsResult.addLocalLet(dataTele, exprTycker);
+      lhsResult.addLocalLet(ownerBinds, exprTycker);
+      freeDataCall = new DataCall(dataRef, 0, wellPats.map(PatToTerm::visit));
+
+      var allBinds = Pat.collectBindings(wellPats.view()).view();
+      ownerTele = dataCon.patterns.zip(allBinds, (concrete, core) ->
+        concrete.term().replace(new Param(core.component1().name(), core.component2(), concrete.explicit())));
+      ownerBinds = allBinds.map(Tuple2::component1).toImmutableSeq();
     }
 
     // TODO: check patterns if there are
@@ -168,23 +175,23 @@ public record StmtTycker(
     }
 
     var teleTycker = new TeleTycker.Con(exprTycker, dataSig.result());
-    var wellTele = teleTycker.checkTele(conDecl.telescope);
+    var selfTele = teleTycker.checkTele(conDecl.telescope);
     // the result will NEVER refer to the telescope of ctor, unless... TODO: it is a Path result
-    var halfSig = new Signature<>(wellTele, freeDataCall)
-      .bindTele(dataTele.view());     // TODO: bind pattern bindings if indexed data
+    var selfSig = new Signature<>(selfTele, freeDataCall)
+      .bindTele(ownerBinds.view());
 
-    if (!(halfSig.result() instanceof DataCall dataResult)) {
+    if (!(selfSig.result() instanceof DataCall dataResult)) {
       Panic.unreachable();
       return;
     }
 
     // The signature of con should be full (the same as [konCore.telescope()])
-    conDecl.signature = new Signature<>(ownerTele.concat(halfSig.param()), dataResult);
+    conDecl.signature = new Signature<>(ownerTele.concat(selfSig.param()), dataResult);
 
-    // TODO: handle ownerTele and coerce
     var konCore = new ConDef(dataRef, ref,
+      wellPats,
       ownerTele.map(WithPos::data),
-      halfSig.rawParams(),
+      selfSig.rawParams(),
       dataResult, false);
     ref.core = konCore;
   }

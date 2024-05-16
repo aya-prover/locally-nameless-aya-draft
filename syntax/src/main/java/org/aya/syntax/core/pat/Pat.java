@@ -2,6 +2,8 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.pat;
 
+import kala.collection.SeqLike;
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.function.CheckedFunction;
@@ -11,6 +13,7 @@ import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
+import org.aya.prettier.Tokens;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
@@ -53,6 +56,10 @@ public sealed interface Pat extends AyaDocile {
     var buffer = MutableList.<Tuple2<LocalVar, Term>>create();
     consumeBindings((var, type) -> buffer.append(kala.tuple.Tuple.of(var, type)));
     return buffer.toImmutableSeq();
+  }
+
+  static @NotNull ImmutableSeq<Tuple2<LocalVar, Term>> collectBindings(@NotNull SeqView<Pat> pats) {
+    return pats.flatMap(Pat::collectBindings).toImmutableSeq();
   }
 
   /**
@@ -210,7 +217,7 @@ public sealed interface Pat extends AyaDocile {
       var prettier = new CorePrettier(options);
       var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
         pats.view().map(p -> prettier.pat(Arg.ofExplicitly(p), BasePrettier.Outer.Free)))));
-      return expr == null ? doc : Doc.sep(doc, Doc.symbol("=>"), expr.data().toDoc(options));
+      return expr == null ? doc : Doc.sep(doc, Tokens.FN_DEFINED_AS, expr.data().toDoc(options));
     }
 
     public static @NotNull Preclause<Term> weaken(@NotNull Term.Matching clause) {
