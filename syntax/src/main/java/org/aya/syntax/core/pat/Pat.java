@@ -67,13 +67,12 @@ public sealed interface Pat extends AyaDocile {
       return this;
     }
 
-    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {}
-    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {return this;}
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) { }
+    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) { return this; }
   }
 
-  @Override
-  default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
-    throw new UnsupportedOperationException("TODO");
+  @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+    return new CorePrettier(options).pat(this, true, BasePrettier.Outer.Free);
   }
 
   record Bind(
@@ -93,9 +92,7 @@ public sealed interface Pat extends AyaDocile {
       consumer.accept(bind, type);
     }
 
-    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
-      return this;
-    }
+    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) { return this; }
   }
 
   record Tuple(@NotNull ImmutableSeq<Pat> elements) implements Pat {
@@ -198,7 +195,6 @@ public sealed interface Pat extends AyaDocile {
       return mapper.applyChecked(solution);
     }
   }
-
 
   /**
    * It's 'pre' because there are also impossible clauses, which are removed after tycking.

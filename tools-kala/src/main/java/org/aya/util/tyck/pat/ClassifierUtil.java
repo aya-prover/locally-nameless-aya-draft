@@ -11,11 +11,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.ObjIntConsumer;
 
-public interface ClassifierUtil<Subst, Term, Param, Pat, Var> {
+public interface ClassifierUtil<Subst, Term, Param, Pat> {
   Param subst(Subst subst, Param param);
   Pat normalize(Pat pat);
-  Subst add(Subst subst, Var var, Term term);
-  Var ref(Param param);
+  Subst add(Subst subst, Term term);
   @NotNull ImmutableSeq<PatClass<Arg<Term>>> classify1(
     @NotNull Subst subst, @NotNull Param param,
     @NotNull ImmutableSeq<Indexed<Pat>> clauses, int fuel
@@ -32,7 +31,7 @@ public interface ClassifierUtil<Subst, Term, Param, Pat, Var> {
     var cls = classify1(subst, subst(subst, first),
       clauses.mapIndexed((ix, it) -> new Indexed<>(normalize(it.pat().getFirst()), ix)), fuel);
     return cls.flatMap(subclauses ->
-      classifyN(add(subst, ref(first), subclauses.term().term()),
+      classifyN(add(subst, subclauses.term().term()),
         // Drop heads of both
         params.drop(1),
         subclauses.extract(clauses.map(it ->
