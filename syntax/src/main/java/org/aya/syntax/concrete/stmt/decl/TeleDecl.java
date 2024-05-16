@@ -15,6 +15,7 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.Arg;
 import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -71,15 +72,18 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   public static final class DataCon extends TeleDecl<DataCall> {
     public final @NotNull DefVar<ConDef, DataCon> ref;
     public DefVar<DataDef, DataDecl> dataRef;
+    public @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns;
     public final boolean coerce;
 
     public DataCon(
       @NotNull DeclInfo info,
       @NotNull String name,
+      @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns,
       @NotNull ImmutableSeq<Expr.Param> telescope,
       boolean coerce, @Nullable WithPos<Expr> result
     ) {
       super(info, telescope, result);
+      this.patterns = patterns;
       this.coerce = coerce;
       this.ref = DefVar.concrete(this, name);
       this.telescope = telescope;

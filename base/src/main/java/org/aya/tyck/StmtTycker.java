@@ -2,13 +2,17 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
+import kala.control.Option;
 import org.aya.generic.Modifier;
 import org.aya.normalize.PrimFactory;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
+import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
@@ -144,6 +148,17 @@ public record StmtTycker(
     // dataTele already in localCtx
     // The result that a ctor should be, unless... TODO: it is a Path result
     var freeDataCall = new DataCall(dataRef, 0, dataTele.map(FreeTerm::new));
+
+    var wellPats = ImmutableSeq.<Pat>empty();
+    if (dataCon.patterns.isNotEmpty()) {
+      // do not do coverage check
+      var lhsResult = new ClauseTycker(exprTycker = mkTycker()).checkLhs(dataSig, null,
+        new Pattern.Clause(dataCon.entireSourcePos(), dataCon.patterns, Option.none()));
+      wellPats = lhsResult.clause().pats();
+      exprTycker.setLocalCtx(lhsResult.localCtx());
+      lhsResult.addLocalLet(dataTele, exprTycker);
+    }
+
     // TODO: check patterns if there are
     var ctorTy = conDecl.result;
     if (ctorTy != null) {

@@ -27,6 +27,7 @@ import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +47,13 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull LocalLet asSubst,
     @NotNull Pat.Preclause<Expr> clause,
     boolean hasError
-  ) { }
+  ) {
+    @Contract(mutates = "param2")
+    public void addLocalLet(@NotNull ImmutableSeq<LocalVar> teleBinds, @NotNull ExprTycker exprTycker) {
+      teleBinds.forEachWith(paramSubst, exprTycker.localLet()::put);
+      exprTycker.setLocalLet(new LocalLet(exprTycker.localLet(), asSubst.subst()));
+    }
+  }
 
   public @NotNull TyckResult check(
     @NotNull ImmutableSeq<LocalVar> vars,
@@ -101,7 +108,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
       new NameGenerator());
   }
 
-  private @NotNull LhsResult checkLhs(
+  public @NotNull LhsResult checkLhs(
     @NotNull Signature<? extends Term> signature,
     @Nullable ImmutableIntSeq indices,
     @NotNull Pattern.Clause clause

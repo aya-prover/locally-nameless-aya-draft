@@ -405,7 +405,7 @@ public record AyaProducer(
     var ty = node.peekChild(TYPE);
     // var par = partial(partial, partial != null ? sourcePosOf(partial) : info.info.sourcePos());
     var coe = node.peekChild(KW_COERCE) != null;
-    return new TeleDecl.DataCon(info.info, name, tele, coe, ty == null ? null : type(ty));
+    return new TeleDecl.DataCon(info.info, name, patterns, tele, coe, ty == null ? null : type(ty));
   }
 
   public @NotNull ImmutableSeq<Expr.Param> telescope(SeqView<? extends GenericNode<?>> telescope) {
