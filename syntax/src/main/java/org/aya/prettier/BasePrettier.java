@@ -39,12 +39,12 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return BasePrettier.arg((_, d) -> d.toDoc(options), self, Outer.Free);
   }
 
-  public static @NotNull Doc argsDoc(@NotNull PrettierOptions options, @NotNull SeqLike<Arg<? extends AyaDocile>> self) {
-    return Doc.commaList(self.view().map(t -> argDoc(options, t)));
+  public static @NotNull Doc argsDoc(@NotNull PrettierOptions options, @NotNull SeqView<Arg<? extends AyaDocile>> self) {
+    return Doc.commaList(self.map(t -> argDoc(options, t)));
   }
 
-  public static @NotNull Doc coreArgsDoc(@NotNull PrettierOptions options, @NotNull SeqLike<? extends AyaDocile> self) {
-    return Doc.commaList(self.view().map(t -> t.toDoc(options)));
+  public static @NotNull Doc coreArgsDoc(@NotNull PrettierOptions options, @NotNull SeqView<? extends AyaDocile> self) {
+    return Doc.commaList(self.map(t -> t.toDoc(options)));
   }
 
   @FunctionalInterface

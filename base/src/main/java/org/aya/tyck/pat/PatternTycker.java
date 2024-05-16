@@ -471,7 +471,7 @@ public class PatternTycker implements Problematic, Stateful {
   /**
    * Check whether {@param con} is available under {@param type}
    */
-  private static @NotNull Result<ImmutableSeq<Term>, Boolean> isConAvailable(
+  public static @NotNull Result<ImmutableSeq<Term>, Boolean> isConAvailable(
     @NotNull DataCall type,
     @NotNull ConDef con,
     @NotNull TyckState state
@@ -485,7 +485,6 @@ public class PatternTycker implements Problematic, Stateful {
   }
 
   /// region Helper
-
   private @NotNull Pat randomPat(Term param) {
     return new Pat.Bind(new LocalVar("?"), param);
   }
