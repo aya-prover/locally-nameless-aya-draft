@@ -193,8 +193,10 @@ public record StmtTycker(
     }
     assert prim.result != null;
     var tele = teleTycker.checkSignature(prim.telescope, prim.result);
+    // TODO: create dedicated error class and use unifyTermReported
     tycker.unifyTyReported(
       PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
+      // No checks, slightly faster than TeleDef.defType
       PiTerm.make(core.telescope.view().map(Param::type), core.result),
       new WithPos<>(prim.entireSourcePos(),
         new Expr.Error(BasePrettier.defVar(prim.ref))));

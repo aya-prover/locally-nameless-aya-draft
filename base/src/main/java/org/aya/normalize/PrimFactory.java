@@ -76,8 +76,7 @@ public final class PrimFactory {
     var paramA = new Param("A", intervalToType(), true);
     var paramLeft = new Param("a", AppTerm.make(new LocalTerm(0), DimTerm.I0), true);
     var paramRight = new Param("b", AppTerm.make(new LocalTerm(0), DimTerm.I1), true);
-    var result = new EqTerm(new LocalTerm(2), new LocalTerm(1), new LocalTerm(0));
-    return new PrimDef(ref, ImmutableSeq.of(paramA, paramLeft, paramRight), result, ID.PATH);
+    return new PrimDef(ref, ImmutableSeq.of(paramA, paramLeft, paramRight), Type0, ID.PATH);
   }, ImmutableSeq.of(ID.I));
 
   final @NotNull PrimSeed stringType =

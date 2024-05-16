@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TyckTest {
   @Test public void test0() {
-    @Language("Aya") String code = """
+    var result = tyck("""
       data Nat | O | S Nat
       data FreeMonoid (A : Type) | e | cons A (FreeMonoid A)
 
@@ -24,14 +24,12 @@ public class TyckTest {
       def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a)
         : Sig (a : A) ** B a => (id a, id (b a))
       def letExample (A : Type) (B : A -> Type) (f : Fn (a : A) -> B a) (a : A) : B a => let b : B a := f a in b
-      """;
-
-    var result = tyck(code);
+      """);
     assertTrue(result.isNotEmpty());
   }
 
   @Test public void path0() {
-    @Language("Aya") String code = """
+    var result = tyck("""
       data Nat | O | S Nat
       prim I : ISet
       prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
@@ -40,9 +38,7 @@ public class TyckTest {
       def transp  (A : I -> Type) (a : A 0) : A 1 => coe 0 1 A a
       def transpInv  (A : I -> Type) (a : A 1) : A 0 => coe 1 0 A a
       def coeFill0  (A : I -> Type) (u : A 0) : Path A u (transp A u) => \\i => coe 0 i A u
-      """;
-
-    var result = tyck(code);
+      """);
     assertTrue(result.isNotEmpty());
   }
 
