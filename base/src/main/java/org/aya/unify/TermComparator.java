@@ -98,23 +98,22 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   ) {
     if (lhs.ref() != rhs.ref()) return null;
 
-    var retTy = new ErrorTerm(null);   // TODO: Synthesizer
     var argsTy = TeleDef.defTele(typeProvider).map(Param::type);
 
-    if (compareMany(lhs.args(), rhs.args(), argsTy)) return retTy;
+    if (compareMany(lhs.args(), rhs.args(), argsTy))
+      return new Synthesizer(this).synthDontNormalize(lhs);
     return null;
   }
 
   private @Nullable Term compareConApprox(@NotNull ConCallLike lhs, @NotNull ConCallLike rhs) {
     if (lhs.ref() != rhs.ref()) return null;
 
-    var retTy = TeleDef.defResult(lhs.ref());   // TODO: use synthesizer instead
     var dataArgsTy = TeleDef.defTele(lhs.head().dataRef()).map(Param::type);
     var conArgsTy = lhs.ref().core.selfTele.map(Param::type);
     // compare data args first
     if (!compareMany(lhs.head().dataArgs(), rhs.head().dataArgs(), dataArgsTy)) return null;
     if (!compareMany(lhs.conArgs(), rhs.conArgs(), conArgsTy)) return null;
-    return retTy;
+    return new Synthesizer(this).synthDontNormalize(lhs);
   }
 
   /**
@@ -216,8 +215,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   }
 
   private @Nullable Term doCompareUntyped(@NotNull Term lhs, @NotNull Term rhs) {
-    // TODO: return correct type level
-    if (lhs instanceof Formation form) return doCompareType(form, rhs) ? SortTerm.Set0 : null;
+    if (lhs instanceof Formation form)
+      return doCompareType(form, rhs) ? new Synthesizer(this).synthDontNormalize(form) : null;
     return switch (lhs) {
       case AppTerm(var f, var a) -> {
         if (!(rhs instanceof AppTerm(var g, var b))) yield null;
