@@ -169,9 +169,7 @@ public final class PrimFactory {
   }
 
   /** whether redefinition should be treated as error */
-  @ForLSP public boolean suppressRedefinition() {
-    return false;
-  }
+  @ForLSP public boolean suppressRedefinition() { return false; }
 
   public @NotNull PrimDef getOrCreate(@NotNull ID name, @NotNull DefVar<PrimDef, TeleDecl.PrimDecl> ref) {
     return getOption(name).getOrElse(() -> factory(name, ref));
@@ -186,11 +184,6 @@ public final class PrimFactory {
     return seeds.get(id).unfold.apply(primCall, state);
   }
 
-  public void clear() {
-    defs.clear();
-  }
-
-  public void clear(@NotNull ID name) {
-    defs.remove(name);
-  }
+  public void clear() { defs.clear(); }
+  public void clear(@NotNull ID name) { defs.remove(name); }
 }

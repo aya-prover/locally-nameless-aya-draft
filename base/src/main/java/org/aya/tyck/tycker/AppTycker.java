@@ -12,8 +12,10 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.Jdg;
+import org.aya.tyck.TyckState;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +30,7 @@ public interface AppTycker {
   @SuppressWarnings("unchecked")
   static <Ex extends Exception> @NotNull Jdg checkDefApplication(
     @NotNull DefVar<? extends Def, ? extends Decl> defVar,
-    Factory<Ex> makeArgs
+    @NotNull TyckState state, @NotNull Factory<Ex> makeArgs
   ) throws Ex {
     var core = defVar.core;
     var concrete = defVar.concrete;
@@ -44,6 +46,12 @@ public interface AppTycker {
       return makeArgs.applyChecked(TeleDef.defTele(dataVar), args -> new Jdg.Default(
         new DataCall(dataVar, 0, args),
         TeleDef.defResult(dataVar).instantiateTele(args.view())
+      ));
+    } else if (core instanceof PrimDef || concrete instanceof TeleDecl.PrimDecl) {
+      var primVar = (DefVar<PrimDef, TeleDecl.PrimDecl>) defVar;
+      return makeArgs.applyChecked(TeleDef.defTele(primVar), args -> new Jdg.Default(
+        state.primFactory().unfold(new PrimCall(primVar, 0, args), state),
+        TeleDef.defResult(primVar).instantiateTele(args.view())
       ));
     } else if (core instanceof ConDef || concrete instanceof TeleDecl.DataCon) {
       var conVar = (DefVar<ConDef, TeleDecl.DataCon>) defVar;

@@ -99,6 +99,14 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         if (hole.explicit()) reporter.report(new Goal(state, freshHole, hole.accessibleLocal().get()));
         yield new Jdg.Default(freshHole, type);
       }
+      case Expr.LitInt(var end) -> {
+        var ty = whnf(type);
+        if (ty == DimTyTerm.INSTANCE) {
+          if (end == 0 || end == 1) yield new Jdg.Default(end == 0 ? DimTerm.I0 : DimTerm.I1, ty);
+          else yield fail(expr.data(), new PrimError.BadInterval(expr.sourcePos(), end));
+        }
+        yield inheritFallbackUnify(ty, synthesize(expr), expr);
+      }
       case Expr.Tuple(var elems) when type instanceof SigmaTerm sigmaTerm -> {
         Term wellTyped = switch (sigmaTerm.check(elems, (elem, ty) -> inherit(elem, ty).wellTyped())) {
           case Result.Ok(var v) -> new TupTerm(v);
@@ -113,12 +121,14 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         yield new Jdg.Default(wellTyped, sigmaTerm);
       }
       case Expr.Let let -> checkLet(let, e -> inherit(e, type));
-      default -> {
-        var syn = synthesize(expr);
-        unifyTyReported(type, syn.type(), expr);
-        yield syn;
-      }
+      default -> inheritFallbackUnify(type, synthesize(expr), expr);
     };
+  }
+
+  // TODO: coercive subtyping if needed
+  private @NotNull Jdg inheritFallbackUnify(@NotNull Term type, @NotNull Jdg result, @NotNull WithPos<Expr> expr) {
+    unifyTyReported(type, result.type(), expr);
+    return result;
   }
 
   public @NotNull Term ty(@NotNull WithPos<Expr> expr) {
@@ -236,7 +246,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     return switch (f) {
       case LocalVar lVar -> generateApplication(args,
         new Jdg.Default(new FreeTerm(lVar), localCtx().get(lVar)));
-      case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, (params, k) -> {
+      case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, state, (params, k) -> {
         int argIx = 0, paramIx = 0;
         var result = MutableList.<Term>create();
         while (argIx < args.size() && paramIx < params.size()) {
