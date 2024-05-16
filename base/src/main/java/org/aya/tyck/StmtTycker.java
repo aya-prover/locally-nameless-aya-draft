@@ -161,7 +161,6 @@ public record StmtTycker(
       freeDataCall = new DataCall(dataRef, 0, wellPats.map(PatToTerm::visit));
 
       var allBinds = Pat.collectBindings(wellPats.view()).view();
-      // dataCon.patterns has the same length as allBinds
       ownerTele = allBinds
         .map(x -> new WithPos<>(x.component1().definition(),
           new Param(x.component1().name(), x.component2(), false)))
