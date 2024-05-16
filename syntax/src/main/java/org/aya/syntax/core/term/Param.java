@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
+import kala.collection.SeqView;
 import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
@@ -39,6 +40,10 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
 
   public @NotNull Param bindAt(LocalVar ref, int i) {
     return this.descent(t -> t.bindAt(ref, i));
+  }
+
+  public Param instTele(SeqView<Term> terms) {
+    return update(type.instantiateTele(terms));
   }
 
   public @NotNull Param update(@NotNull Term type) {

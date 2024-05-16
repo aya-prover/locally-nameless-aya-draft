@@ -58,7 +58,7 @@ public sealed interface Pat extends AyaDocile {
   /**
    * Replace {@link Pat.Meta} with {@link Pat.Meta#solution} (if there is) or {@link Pat.Bind}
    */
-  @NotNull Pat inline(@NotNull LocalCtx ctx);
+  @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind);
 
   enum Absurd implements Pat {
     INSTANCE;
@@ -68,7 +68,7 @@ public sealed interface Pat extends AyaDocile {
     }
 
     @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) { }
-    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) { return this; }
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) { return this; }
   }
 
   @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
@@ -92,7 +92,7 @@ public sealed interface Pat extends AyaDocile {
       consumer.accept(bind, type);
     }
 
-    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) { return this; }
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) { return this; }
   }
 
   record Tuple(@NotNull ImmutableSeq<Pat> elements) implements Pat {
@@ -109,8 +109,8 @@ public sealed interface Pat extends AyaDocile {
       elements.forEach(e -> e.consumeBindings(consumer));
     }
 
-    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
-      return update(elements.map(x -> x.inline(ctx)));
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
+      return update(elements.map(x -> x.inline(bind)));
     }
   }
 
@@ -132,8 +132,8 @@ public sealed interface Pat extends AyaDocile {
       args.forEach(arg -> arg.consumeBindings(consumer));
     }
 
-    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
-      return update(args.map(x -> x.inline(ctx)));
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
+      return update(args.map(x -> x.inline(bind)));
     }
   }
 
@@ -167,11 +167,11 @@ public sealed interface Pat extends AyaDocile {
       Panic.unreachable();
     }
 
-    @Override public @NotNull Pat inline(@NotNull LocalCtx ctx) {
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
       var solution = this.solution.get();
       if (solution == null) {
         var name = new LocalVar(fakeBind, errorReport, GenerateKind.Basic.Anonymous);
-        ctx.put(name, type);
+        bind.accept(name, type);
         solution = new Bind(name, type);
         // We need to set solution if no solution
         this.solution.set(solution);

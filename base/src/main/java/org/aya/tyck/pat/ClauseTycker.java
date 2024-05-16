@@ -218,7 +218,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
    */
   private static @NotNull PatternTycker.TyckResult inline(@NotNull PatternTycker.TyckResult result, @NotNull LocalCtx ctx) {
     // inline {Pat.Meta} before inline {MetaPatTerm}s
-    var wellTyped = result.wellTyped().map(x -> x.inline(ctx));
+    var wellTyped = result.wellTyped().map(x -> x.inline(ctx::put));
     // so that {MetaPatTerm}s can be inlined safely
     var paramSubst = result.paramSubst().map(ClauseTycker::inlineTerm);
 
