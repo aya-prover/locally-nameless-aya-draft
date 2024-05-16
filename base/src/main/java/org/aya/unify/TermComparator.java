@@ -162,9 +162,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   private boolean doCompareTyped(@NotNull Term lhs, @NotNull Term rhs, @NotNull Term type) {
     return switch (type) {
       // TODO: ClassCall
-      case LamTerm _ -> throw new Panic("LamTerm is never type");
-      case ConCallLike _ -> throw new Panic("ConCall is never type");
-      case TupTerm _ -> throw new Panic("TupTerm is never type");
+      case LamTerm _, ConCallLike _, TupTerm _ -> Panic.unreachable();
       case ErrorTerm _ -> true;
       case PiTerm pi -> switch (new Pair<>(lhs, rhs)) {
         case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> subscoped(() -> {
@@ -177,7 +175,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         });
         case Pair(LamTerm lambda, _) -> compareLambda(lambda, rhs, pi);
         case Pair(_, LamTerm rambda) -> compareLambda(rambda, lhs, pi);
-        default -> false;
+        default -> compare(lhs, rhs, null);
       };
       case SigmaTerm(var paramSeq) -> {
         var size = paramSeq.size();
