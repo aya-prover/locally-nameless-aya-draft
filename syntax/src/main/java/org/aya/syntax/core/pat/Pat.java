@@ -2,13 +2,11 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.pat;
 
-import kala.collection.SeqLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.function.CheckedFunction;
 import kala.function.CheckedSupplier;
-import kala.tuple.Tuple2;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
@@ -52,14 +50,18 @@ public sealed interface Pat extends AyaDocile {
    */
   void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer);
 
-  default ImmutableSeq<Tuple2<LocalVar, Term>> collectBindings() {
-    var buffer = MutableList.<Tuple2<LocalVar, Term>>create();
-    consumeBindings((var, type) -> buffer.append(kala.tuple.Tuple.of(var, type)));
+  record CollectBind(LocalVar var, Term type) { }
+  default ImmutableSeq<CollectBind> collectBindings() {
+    var buffer = MutableList.<CollectBind>create();
+    consumeBindings((var, type) -> buffer.append(new CollectBind(var, type)));
     return buffer.toImmutableSeq();
   }
 
-  static @NotNull ImmutableSeq<Tuple2<LocalVar, Term>> collectBindings(@NotNull SeqView<Pat> pats) {
-    return pats.flatMap(Pat::collectBindings).toImmutableSeq();
+  static @NotNull ImmutableSeq<CollectBind> collectBindings(@NotNull SeqView<Pat> pats) {
+    var buffer = MutableList.<CollectBind>create();
+    pats.forEach(p -> p.consumeBindings((var, type) ->
+      buffer.append(new CollectBind(var, type))));
+    return buffer.toImmutableSeq();
   }
 
   /**

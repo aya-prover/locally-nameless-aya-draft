@@ -5,7 +5,6 @@ package org.aya.tyck.pat;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
-import kala.tuple.Tuple2;
 import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
@@ -164,7 +163,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
 
         // bind all pat bindings
-        var patBindTele = result.clause.pats().view().flatMap(Pat::collectBindings).map(Tuple2::component1);
+        var patBindTele = result.clause.pats().view().flatMap(Pat::collectBindings).map(Pat.CollectBind::var);
         wellBody = wellBody.bindTele(patBindTele);
       }
 

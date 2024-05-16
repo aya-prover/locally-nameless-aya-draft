@@ -5,7 +5,6 @@ package org.aya.tyck;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import kala.control.Option;
-import kala.tuple.Tuple2;
 import org.aya.generic.Modifier;
 import org.aya.normalize.PrimFactory;
 import org.aya.syntax.concrete.Expr;
@@ -160,15 +159,13 @@ public record StmtTycker(
       lhsResult.addLocalLet(ownerBinds, exprTycker);
       freeDataCall = new DataCall(dataRef, 0, wellPats.map(PatToTerm::visit));
 
-      var allBinds = Pat.collectBindings(wellPats.view()).view();
+      var allBinds = Pat.collectBindings(wellPats.view());
       ownerTele = allBinds
-        .map(x -> new WithPos<>(x.component1().definition(),
-          new Param(x.component1().name(), x.component2(), false)))
-        .toImmutableSeq();
-      ownerBinds = allBinds.map(Tuple2::component1).toImmutableSeq();
+        .map(x -> new WithPos<>(x.var().definition(),
+          new Param(x.var().name(), x.type(), false)));
+      ownerBinds = allBinds.map(Pat.CollectBind::var);
     }
 
-    // TODO: check patterns if there are
     var ctorTy = conDecl.result;
     if (ctorTy != null) {
       // TODO: handle Path result
