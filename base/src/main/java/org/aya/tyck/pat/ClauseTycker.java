@@ -157,14 +157,10 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         // not be added to the localCtx of tycker, causing assertion errors
         wellBody = new ErrorTerm(result.clause.expr().data());
       } else {
-        // the localCtx will be restored after exiting [subscoped]
+        // the localCtx will be restored after exiting [subscoped]e
         exprTycker.setLocalCtx(result.localCtx);
-
-        teleBinds.forEachWith(result.paramSubst, exprTycker.localLet()::put);
-
-        exprTycker.setLocalLet(new LocalLet(exprTycker.localLet(), result.asSubst.subst()));
+        result.addLocalLet(teleBinds, exprTycker);
         // now exprTycker has all substitutions that PatternTycker introduced.
-
         wellBody = exprTycker.inherit(bodyExpr, result.type).wellTyped();
 
         // bind all pat bindings
