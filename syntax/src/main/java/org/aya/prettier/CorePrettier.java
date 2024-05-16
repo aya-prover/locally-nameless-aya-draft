@@ -59,7 +59,7 @@ public class CorePrettier extends BasePrettier<Term> {
       }
       // case MetaLitTerm lit ->
       //   lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
-      case TupTerm(var items) -> Doc.parened(argsDoc(options, items.map(Arg::ofExplicitly)));
+      case TupTerm(var items) -> Doc.parened(argsDoc(options, items.view().map(Arg::ofExplicitly)));
       case IntegerTerm shaped -> shaped.repr() == 0
         ? linkLit(0, shaped.ctorRef(CodeShape.GlobalId.ZERO), CON)
         : linkLit(shaped.repr(), shaped.ctorRef(CodeShape.GlobalId.SUC), CON);
@@ -128,9 +128,9 @@ public class CorePrettier extends BasePrettier<Term> {
         if (ref.solution().get() == null) yield varDoc(generateName(null));
         yield Doc.wrap(META_LEFT, META_RIGHT, pat(ref, true, outer));
       }
-      case ErrorTerm(var desc) -> {
+      case ErrorTerm(var desc, var isReallyError) -> {
         var doc = desc.toDoc(options);
-        yield Doc.angled(doc);
+        yield isReallyError ? Doc.angled(doc) : doc;
       }
       case AppTerm app -> {
         var pair = AppTerm.unapp(app);

@@ -31,7 +31,7 @@ public sealed interface HoleProblem extends Problem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.english("The following spine is not in pattern fragment:"),
-        BasePrettier.coreArgsDoc(options, term.args())
+        BasePrettier.coreArgsDoc(options, term.args().view())
       );
     }
   }
@@ -82,9 +82,7 @@ public sealed interface HoleProblem extends Problem {
   record CannotFindGeneralSolution(
     @NotNull ImmutableSeq<TyckState.Eqn> eqns
   ) implements Problem {
-    @Override public @NotNull SourcePos sourcePos() {
-      return eqns.getLast().pos();
-    }
+    @Override public @NotNull SourcePos sourcePos() { return eqns.getLast().pos(); }
 
     @Override public @NotNull SeqView<WithPos<Doc>> inlineHints(@NotNull PrettierOptions options) {
       return eqns.view().map(eqn -> new WithPos<>(eqn.pos(), eqn.toDoc(options)));
