@@ -102,6 +102,14 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   /**
+   * @see #replaceAllFrom(int, ImmutableSeq)
+   * @see #instantiateTele(SeqView)
+   */
+  default @NotNull Term replaceTeleFrom(int from, @NotNull SeqView<Term> tele) {
+    return replaceAllFrom(from, tele.reversed().toImmutableSeq());
+  }
+
+  /**
    * Corresponds to <emph>instantiate</emph> operator in [MM 2004].
    * Could be called <code>apply</code> similar to Mini-TT.
    */

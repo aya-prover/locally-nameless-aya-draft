@@ -89,6 +89,12 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       this.telescope = telescope;
     }
 
+    @Override
+    public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
+      super.descentInPlace(f, p);
+      // descent patterns
+      patterns = patterns.map(x -> x.descent(wp -> wp.descent(p)));
+    }
     @Override public @NotNull DefVar<ConDef, DataCon> ref() { return ref; }
   }
 

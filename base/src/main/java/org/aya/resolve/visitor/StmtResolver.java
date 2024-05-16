@@ -80,7 +80,7 @@ public interface StmtResolver {
         decl.body.forEach(ctor -> {
           var bodyResolver = resolver.member(decl, ExprResolver.Where.Head);
           var mCtx = MutableValue.create(resolver.ctx());
-          // ctor.patterns = ctor.patterns.map(pat -> pat.descent(pattern -> bodyResolver.bind(pattern, mCtx)));
+          ctor.patterns = ctor.patterns.map(pat -> pat.descent(pattern -> bodyResolver.resolvePattern(pattern, mCtx)));
           resolveMemberSignature(ctor, bodyResolver, mCtx);
           // ctor.clauses = bodyResolver.partial(mCtx.get(), ctor.clauses);
           var head = new TyckOrder.Head(ctor);

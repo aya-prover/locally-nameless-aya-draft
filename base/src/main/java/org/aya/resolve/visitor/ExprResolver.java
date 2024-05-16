@@ -236,7 +236,7 @@ public record ExprResolver(
     return clause.update(pats, clause.expr.map(x -> x.descent(enter(mCtx.get()))));
   }
 
-  private @NotNull WithPos<Pattern> resolvePattern(@NotNull WithPos<Pattern> pattern, MutableValue<Context> ctx) {
+  public @NotNull WithPos<Pattern> resolvePattern(@NotNull WithPos<Pattern> pattern, MutableValue<Context> ctx) {
     var resolver = new PatternResolver(ctx.get(), this::addReference);
     var result = resolver.apply(pattern);
     ctx.set(resolver.context());

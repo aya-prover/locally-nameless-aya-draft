@@ -182,9 +182,10 @@ public sealed interface Pat extends AyaDocile {
         solution = new Bind(name, type);
         // We need to set solution if no solution
         this.solution.set(solution);
+        return solution;
+      } else {
+        return solution.inline(bind);
       }
-
-      return solution;
     }
 
     public <R> @NotNull R map(@NotNull Function<Pat, R> mapper, @NotNull Supplier<R> aDefaults) {

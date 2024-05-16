@@ -9,6 +9,8 @@ import kala.control.Result;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.generic.NameGenerator;
+import org.aya.normalize.Normalizer;
+import org.aya.normalize.PatternMatcher;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.ConDef;
@@ -142,7 +144,10 @@ public class PatternTycker implements Problematic, Stateful {
         var conCore = conRef.core;
 
         // It is possible that `con.params()` is empty.
-        var patterns = tyckInner(conCore.selfTele.view(), con.params().view(), pattern);
+        var patterns = tyckInner(
+          conCore.selfTele.view().mapIndexed((idx, p) -> p.descent(ty -> ty.replaceTeleFrom(idx, realCon.args.view()))),
+          con.params().view(),
+          pattern);
 
         // check if this Con is a ShapedCon
         var typeRecog = state().shapeFactory().find(conRef.core.dataRef.core).getOrNull();
@@ -471,7 +476,11 @@ public class PatternTycker implements Problematic, Stateful {
     @NotNull ConDef con,
     @NotNull TyckState state
   ) {
-    // TODO: con pattern
+    if (con.pats.isNotEmpty()) {
+      var matcher = new PatternMatcher(true, new Normalizer(state));
+      return matcher.apply(con.pats, type.args());
+    }
+
     return Result.ok(type.args());
   }
 
