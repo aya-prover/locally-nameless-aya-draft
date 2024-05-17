@@ -265,17 +265,12 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
               result.append(mockTerm(param, arg.sourcePos()));
               paramIx++;
               continue;
-            } else {
-              while (paramIx < params.size() && !param.nameEq(arg.name())) {
-                result.append(mockTerm(param, arg.sourcePos()));
-                paramIx++;
-              }
-              // ^ insert implicits before the named argument
-              if (paramIx == params.size()) {
-                fail(new LicitError.BadImplicitArg(arg));
-                break;
-              }
             }
+          }
+          if (arg.name() != null && !param.nameEq(arg.name())) {
+            result.append(mockTerm(param, arg.sourcePos()));
+            paramIx++;
+            continue;
           }
           result.append(inherit(arg.arg(), param.type()).wellTyped());
           argIx++;
