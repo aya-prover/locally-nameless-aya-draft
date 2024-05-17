@@ -24,6 +24,7 @@ import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
+import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
@@ -56,13 +57,23 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
 
   public @NotNull TyckResult check(
     @NotNull ImmutableSeq<LocalVar> vars,
-    @NotNull Signature<?> signature,
+    @NotNull Signature<?> signature, SourcePos overallPos,
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims
   ) {
     var indices = elims.isEmpty() ? null : elims.map(i ->
       vars.indexOf(i.data())).collect(ImmutableIntSeq.factory());
     var lhsResult = checkAllLhs(indices, signature, clauses.view());
+
+    if (lhsResult.noneMatch(r -> r.hasError)) {
+      var classes = PatClassifier.classify(lhsResult.view().map(LhsResult::clause),
+        signature.param().view().map(WithPos::data), exprTycker, overallPos);
+      if (clauses.isNotEmpty()) {
+        var usages = PatClassifier.firstMatchDomination(clauses, exprTycker.reporter, classes);
+        // refinePatterns(lhsResults, usages, classes);
+      }
+    }
+
     return checkAllRhs(vars, lhsResult);
   }
 

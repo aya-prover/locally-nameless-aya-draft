@@ -84,7 +84,7 @@ public record StmtTycker(
             if (orderIndependent) {
               throw new UnsupportedOperationException("Dame Desu!");
             } else {
-              var patResult = clauseTycker.check(teleVars, signature, clauses, elims);
+              var patResult = clauseTycker.check(teleVars, signature, fnDecl.entireSourcePos(), clauses, elims);
               yield factory.apply(signature.result(), Either.right(patResult.wellTyped()));
             }
           }

@@ -19,6 +19,7 @@ import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
+import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.reporter.Reporter;
 import org.aya.util.tyck.pat.ClassifierUtil;
@@ -42,11 +43,11 @@ public record PatClassifier(
 
   public static @NotNull ImmutableSeq<PatClass<ImmutableSeq<Term>>> classify(
     @NotNull SeqView<? extends Pat.@NotNull Preclause<?>> clauses,
-    @NotNull ImmutableSeq<Param> telescope, @NotNull AbstractTycker tycker,
+    @NotNull SeqView<Param> telescope, @NotNull AbstractTycker tycker,
     @NotNull SourcePos pos
   ) {
     var classifier = new PatClassifier(tycker, pos);
-    var cl = classifier.classifyN(ImmutableSeq.empty(), telescope.view(), clauses
+    var cl = classifier.classifyN(ImmutableSeq.empty(), telescope, clauses
       .mapIndexed((i, clause) -> new Indexed<>(clause.pats().view(), i))
       .toImmutableSeq(), 2);
     var p = cl.partition(c -> c.cls().isEmpty());
@@ -144,7 +145,6 @@ public record PatClassifier(
     return ImmutableSeq.of(new PatClass<>(param.type(), Indexed.indices(clauses)));
   }
 
-
   private static @Nullable Indexed<SeqView<Pat>> matches(
     SeqView<Param> conTele, ConDef ctor, int ix, Indexed<Pat> subPat
   ) {
@@ -152,9 +152,17 @@ public record PatClassifier(
       ? i.constructorForm()
       : */subPat.pat()) {
       case Pat.Con c when c.ref() == ctor.ref() -> new Indexed<>(c.args().view(), ix);
-      case Pat.Bind b -> new Indexed<>(conTele.map(Param::toFreshPat), ix);
+      case Pat.Bind _ -> new Indexed<>(conTele.map(Param::toFreshPat), ix);
       default -> null;
     };
+  }
+
+  public static int[] firstMatchDomination(
+    @NotNull ImmutableSeq<? extends SourceNode> clauses,
+    @NotNull Reporter reporter, @NotNull ImmutableSeq<? extends PatClass<?>> classes
+  ) {
+    return ClassifierUtil.firstMatchDomination(clauses, (pos, i) -> reporter.report(
+      new ClausesProblem.FMDomination(i, pos)), classes);
   }
 
   private @Nullable SeqView<Param>
