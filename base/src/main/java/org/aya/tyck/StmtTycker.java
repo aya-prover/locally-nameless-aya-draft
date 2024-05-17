@@ -15,13 +15,12 @@ import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.repr.AyaShape;
-import org.aya.syntax.core.term.FreeTerm;
-import org.aya.syntax.core.term.Param;
-import org.aya.syntax.core.term.PiTerm;
-import org.aya.syntax.core.term.SortTerm;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
@@ -171,15 +170,21 @@ public record StmtTycker(
       ownerBinds = allBinds.map(Pat.CollectBind::var);
     }
 
+    var teleTycker = new TeleTycker.Con(tycker, dataSig.result());
+    var selfTele = teleTycker.checkTele(conDecl.telescope);
+
     var conTy = conDecl.result;
+    EqTerm boundaries = null;
     if (conTy != null) {
       var tyResult = tycker.whnf(tycker.ty(conTy));
       if (tyResult instanceof EqTerm eq) {
         var state = tycker.state;
-        tycker.unifyTermReported(eq.A(), freeDataCall, conTy.sourcePos(), cmp ->
-          new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
-        // TODO: handle Path result
-        throw new UnsupportedOperationException("TODO");
+        tycker.unifyTermReported(AppTerm.make(eq.A(), new FreeTerm("i")), freeDataCall, conTy.sourcePos(),
+          cmp -> new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
+
+        selfTele = selfTele.appended(new WithPos<>(conTy.sourcePos(),
+          new Param("i", DimTyTerm.INSTANCE, true)));
+        boundaries = eq;
       } else {
         var state = tycker.state;
         tycker.unifyTermReported(tyResult, freeDataCall, conTy.sourcePos(), cmp ->
@@ -187,17 +192,16 @@ public record StmtTycker(
       }
     }
 
-    var teleTycker = new TeleTycker.Con(tycker, dataSig.result());
-    var selfTele = teleTycker.checkTele(conDecl.telescope);
     // the result will NEVER refer to the telescope of con, unless it is a Path result
     // so we still need to bind it
     var selfSig = new Signature<>(selfTele, freeDataCall).bindTele(ownerBinds.view());
+    // TODO: bind freeDataCall & boundaries properly
 
     if (!(selfSig.result() instanceof DataCall dataResult)) throw new Panic();
 
     // The signature of con should be full (the same as [konCore.telescope()])
     conDecl.signature = new Signature<>(ownerTele.concat(selfSig.param()), dataResult);
-    ref.core = new ConDef(dataRef, ref, wellPats,
+    ref.core = new ConDef(dataRef, ref, wellPats, boundaries,
       ownerTele.map(WithPos::data),
       selfSig.rawParams(),
       dataResult, false);

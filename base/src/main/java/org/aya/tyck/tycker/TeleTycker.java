@@ -55,8 +55,7 @@ public sealed interface TeleTycker extends Contextful {
     var tele = checkTeleFree(cTele);
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
     bindTele(locals, tele);
-    return tele.zipView(cTele)
-      .map(p -> new WithPos<>(p.component2().sourcePos(), p.component1()))
+    return tele.zip(cTele, (param, sp) -> new WithPos<>(sp.sourcePos(), param))
       .toImmutableSeq();
   }
 

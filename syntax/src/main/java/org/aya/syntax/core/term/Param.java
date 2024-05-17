@@ -30,7 +30,7 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
   public boolean nameEq(@Nullable String otherName) { return name.equals(otherName); }
   public @NotNull Arg<Term> toArg() { return new Arg<>(type, explicit); }
   public @NotNull Pat toFreshPat() { return new Pat.Bind(new LocalVar(name), type); }
-  public @NotNull FreeTerm toFreshTerm() { return new FreeTerm(new LocalVar(name)); }
+  public @NotNull FreeTerm toFreshTerm() { return new FreeTerm(name); }
   public @NotNull Param implicitize() { return new Param(name, type, false); }
   public @NotNull Param explicitize() { return new Param(name, type, true); }
 

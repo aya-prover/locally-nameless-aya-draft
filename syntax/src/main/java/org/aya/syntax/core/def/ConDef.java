@@ -7,8 +7,10 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author ice1000, kiva
@@ -17,6 +19,7 @@ public final class ConDef extends SubLevelDef {
   public final @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef;
   public final @NotNull DefVar<ConDef, TeleDecl.DataCon> ref;
   public final @NotNull ImmutableSeq<Pat> pats;
+  public final @Nullable EqTerm equality;
 
   /**
    * @param ownerTele See "/note/glossary.md"
@@ -24,21 +27,18 @@ public final class ConDef extends SubLevelDef {
    */
   public ConDef(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef, @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
-    @NotNull ImmutableSeq<Pat> pats,
-    @NotNull ImmutableSeq<Param> ownerTele, @NotNull ImmutableSeq<Param> selfTele,
-    @NotNull Term result, boolean coerce
+    @NotNull ImmutableSeq<Pat> pats, @Nullable EqTerm equality, @NotNull ImmutableSeq<Param> ownerTele,
+    @NotNull ImmutableSeq<Param> selfTele, @NotNull Term result, boolean coerce
   ) {
     super(ownerTele, selfTele, result, coerce);
     this.pats = pats;
+    this.equality = equality;
     ref.core = this;
     this.dataRef = dataRef;
     this.ref = ref;
   }
 
-  public @NotNull DefVar<ConDef, TeleDecl.DataCon> ref() {
-    return ref;
-  }
-
+  public @NotNull DefVar<ConDef, TeleDecl.DataCon> ref() { return ref; }
   @Override public @NotNull ImmutableSeq<Param> telescope() {
     return fullTelescope().toImmutableSeq();
   }

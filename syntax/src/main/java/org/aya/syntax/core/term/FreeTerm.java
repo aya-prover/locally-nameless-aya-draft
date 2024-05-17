@@ -7,6 +7,9 @@ import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
 public record FreeTerm(@NotNull LocalVar name) implements InternalState {
+  public FreeTerm(@NotNull String name) {
+    this(new LocalVar(name));
+  }
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) { return this; }
   @Override public @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
     if (name == var) return new LocalTerm(depth);
