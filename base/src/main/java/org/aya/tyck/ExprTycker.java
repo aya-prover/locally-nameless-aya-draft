@@ -202,9 +202,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         var defs = state.shapeFactory().findImpl(AyaShape.NAT_SHAPE);
         if (defs.isEmpty()) yield fail(expr.data(), new NoRuleError(expr, null));
         if (defs.sizeGreaterThan(1)) {
-          throw new UnsupportedOperationException("TODO");
-          // var type = ctx.freshTyHole(STR."_ty\{lit.integer()}'", lit.sourcePos());
-          // yield new Result.Default(new MetaLitTerm(lit.sourcePos(), lit.integer(), defs, type.component1()), type.component1());
+          var type = freshMeta(STR."_ty\{integer}'", expr.sourcePos(), MetaVar.Misc.IsType);
+          yield new Jdg.Default(new MetaLitTerm(expr.sourcePos(), integer, defs, type), type);
         }
         var match = defs.getFirst();
         var type = new DataCall(((DataDef) match.component1()).ref, 0, ImmutableSeq.empty());

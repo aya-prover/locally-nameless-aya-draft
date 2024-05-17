@@ -39,7 +39,7 @@ import java.util.function.UnaryOperator;
 
 public abstract sealed class TermComparator extends AbstractTycker permits Unifier {
   protected final @NotNull SourcePos pos;
-  protected final @NotNull Ordering cmp;
+  protected @NotNull Ordering cmp;
   // If false, we refrain from solving meta, and return false if we encounter a non-identical meta.
   private boolean solveMeta = true;
   private @Nullable FailureData failure = null;
@@ -116,6 +116,13 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return new Synthesizer(this).synthDontNormalize(lhs);
   }
 
+  private <R> R swapped(@NotNull Supplier<R> callback) {
+    cmp = cmp.invert();
+    var result = callback.get();
+    cmp = cmp.invert();
+    return result;
+  }
+
   /**
    * Compare two terms with the given {@param type} (if not null)
    *
@@ -134,7 +141,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       // prefer solving the IsType one as the OfType one.
       if (lhs instanceof MetaCall lMeta && lMeta.ref().req() == MetaVar.Misc.IsType)
         return solveMeta(lMeta, rMeta, type) != null;
-      return solveMeta(rMeta, lhs, type) != null;
+      return swapped(() -> solveMeta(rMeta, lhs, type)) != null;
     }
     // ^ Beware of the order!!
     if (lhs instanceof MetaCall lMeta) {
@@ -208,7 +215,10 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       if (result != null) return result;
     }
 
-    var result = doCompareUntyped(lhs, rhs);
+    Term result;
+    if (rhs instanceof MetaCall || rhs instanceof MetaLitTerm)
+      result = swapped(() -> doCompareUntyped(rhs, lhs));
+    else result = doCompareUntyped(lhs, rhs);
     if (result != null) return whnf(result);
     fail(lhs, rhs);
     return null;

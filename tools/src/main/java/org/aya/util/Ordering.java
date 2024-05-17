@@ -15,4 +15,12 @@ public enum Ordering {
   Ordering(@NotNull String symbol) {
     this.symbol = symbol;
   }
+
+  public @NotNull Ordering invert() {
+    return switch (this) {
+      case Gt -> Lt;
+      case Eq -> Eq;
+      case Lt -> Gt;
+    };
+  }
 }

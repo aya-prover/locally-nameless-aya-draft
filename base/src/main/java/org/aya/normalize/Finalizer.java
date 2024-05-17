@@ -3,7 +3,9 @@
 package org.aya.normalize;
 
 import kala.collection.mutable.MutableSinglyLinkedList;
+import org.aya.normalize.error.UnsolvedLit;
 import org.aya.normalize.error.UnsolvedMeta;
+import org.aya.syntax.core.term.MetaLitTerm;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
@@ -19,7 +21,7 @@ public interface Finalizer {
     return switch (term) {
       case MetaCall meta -> state().computeSolution(meta, this::doZonk);
       case MetaPatTerm meta -> meta.inline(this::doZonk);
-      // case MetaLitTerm meta -> whnf(meta);
+      case MetaLitTerm meta -> meta.inline();
       default -> term.descent(this::zonk);
     };
   }
@@ -39,13 +41,15 @@ public interface Finalizer {
       stack.push(term);
       var result = doZonk(term);
       // result shall not be MetaPatTerm
-      if (result instanceof MetaCall meta) {
-        fail(new UnsolvedMeta(stack.view()
+      switch (result) {
+        case MetaCall meta -> fail(new UnsolvedMeta(stack.view()
           .drop(1)
           .map(this::freezeHoles)
           .toImmutableSeq(), meta.ref().pos(), meta.ref().name()));
+        case MetaLitTerm mlt -> fail(new UnsolvedLit(mlt));
+        default -> {
+        }
       }
-      // TODO: MetaLitTerm
       stack.pop();
       return result;
     }
