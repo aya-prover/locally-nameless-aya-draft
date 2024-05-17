@@ -4,6 +4,7 @@ package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.SourcePos;
@@ -26,25 +27,24 @@ public sealed interface UnifyError extends TyckError {
     }
   }
 
-/*
+
   record ConReturn(
-    @NotNull TeleDecl.DataCon ctor,
+    @NotNull TeleDecl.DataCon con,
     @NotNull UnifyInfo.Comparison comparison,
     @NotNull UnifyInfo info
   ) implements UnifyError {
     @Override public @NotNull SourcePos sourcePos() {
-      return ctor.sourcePos();
+      return con.sourcePos();
     }
 
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       var prologue = Doc.vcat(
         Doc.english("Cannot make sense of the return type of the constructor"),
-        Doc.par(1, ctor.toDoc(options)),
+        Doc.par(1, con.toDoc(options)),
         Doc.english("which eventually returns"));
       return info.describeUnify(options, comparison, prologue, Doc.english("while it should return"));
     }
   }
-*/
 
   record PiDom(
     @Override @NotNull Expr expr,

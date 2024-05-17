@@ -20,10 +20,12 @@ import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
+import org.aya.tyck.error.UnifyError;
 import org.aya.tyck.error.UnifyInfo;
 import org.aya.tyck.pat.ClauseTycker;
 import org.aya.tyck.tycker.Problematic;
@@ -151,7 +153,7 @@ public record StmtTycker(
     var ownerTele = dataSig.param().map(x -> x.descent((_, p) -> p.implicitize()));
     var ownerBinds = dataDecl.telescope.map(Expr.Param::ref);
     // dataTele already in localCtx
-    // The result that a ctor should be, unless... TODO: it is a Path result
+    // The result that a con should be, unless... TODO: it is a Path result
     var freeDataCall = new DataCall(dataRef, 0, ownerBinds.map(FreeTerm::new));
 
     var wellPats = ImmutableSeq.<Pat>empty();
@@ -171,16 +173,22 @@ public record StmtTycker(
       ownerBinds = allBinds.map(Pat.CollectBind::var);
     }
 
-    var ctorTy = conDecl.result;
-    if (ctorTy != null) {
-      // TODO: handle Path result
-      // TODO: unify ctorTy and freeDataCall
-      throw new UnsupportedOperationException("TODO");
+    var conTy = conDecl.result;
+    if (conTy != null) {
+      var tyResult = exprTycker.ty(conTy);
+      if (exprTycker.whnf(tyResult) instanceof EqTerm eq) {
+        // TODO: handle Path result
+        throw new UnsupportedOperationException("TODO");
+      } else {
+        var state = exprTycker.state;
+        exprTycker.unifyTermReported(tyResult, freeDataCall, conTy.sourcePos(), cmp ->
+          new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
+      }
     }
 
     var teleTycker = new TeleTycker.Con(exprTycker, dataSig.result());
     var selfTele = teleTycker.checkTele(conDecl.telescope);
-    // the result will NEVER refer to the telescope of ctor, unless... TODO: it is a Path result
+    // the result will NEVER refer to the telescope of con, unless... TODO: it is a Path result
     var selfSig = new Signature<>(selfTele, freeDataCall)
       .bindTele(ownerBinds.view());
 
