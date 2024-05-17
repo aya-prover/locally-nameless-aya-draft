@@ -75,13 +75,11 @@ public record StmtTycker(
               tycker = mkTycker();
               loadTele(fnDecl.teleVars(), fnDecl.signature, tycker);
             }
-            var result = tycker.inherit(expr, signature.result().instantiateTeleVar(teleVars.view()));
-            var wellBody = result.wellTyped();
-            var wellTy = result.type();
-            wellBody = tycker.freezeHoles(wellBody.bindTele(teleVars.view()));
-            // we still need to bind [wellTy] in case it was a hole
-            wellTy = tycker.freezeHoles(wellTy.bindTele(teleVars.view()));
-            yield factory.apply(wellTy, Either.left(wellBody));
+            var result = tycker.inherit(expr, signature.result().instantiateTeleVar(teleVars.view()))
+              // we still need to bind [result.type()] in case it was a hole
+              .bindTele(teleVars.view());
+            result = tycker.freezeHoles(result);
+            yield factory.apply(result.type(), Either.left(result.wellTyped()));
           }
           case TeleDecl.BlockBody(var clauses, var elims) -> {
             // we do not load signature here, so we need a fresh ExprTycker
@@ -141,7 +139,7 @@ public record StmtTycker(
    *
    * @apiNote invoke this method after loading the telescope of data!
    */
-  private void checkKitsune(@NotNull TeleDecl.DataCon dataCon, @NotNull ExprTycker exprTycker) {
+  private void checkKitsune(@NotNull TeleDecl.DataCon dataCon, @NotNull ExprTycker tycker) {
     var ref = dataCon.ref;
     if (ref.core != null) return;
     var conDecl = ref.concrete;
@@ -159,11 +157,11 @@ public record StmtTycker(
     var wellPats = ImmutableSeq.<Pat>empty();
     if (dataCon.patterns.isNotEmpty()) {
       // do not do coverage check
-      var lhsResult = new ClauseTycker(exprTycker = mkTycker()).checkLhs(dataSig, null,
+      var lhsResult = new ClauseTycker(tycker = mkTycker()).checkLhs(dataSig, null,
         new Pattern.Clause(dataCon.entireSourcePos(), dataCon.patterns, Option.none()));
       wellPats = lhsResult.clause().pats();
-      exprTycker.setLocalCtx(lhsResult.localCtx());
-      lhsResult.addLocalLet(ownerBinds, exprTycker);
+      tycker.setLocalCtx(lhsResult.localCtx());
+      lhsResult.addLocalLet(ownerBinds, tycker);
       freeDataCall = new DataCall(dataRef, 0, wellPats.map(PatToTerm::visit));
 
       var allBinds = Pat.collectBindings(wellPats.view());
@@ -175,36 +173,31 @@ public record StmtTycker(
 
     var conTy = conDecl.result;
     if (conTy != null) {
-      var tyResult = exprTycker.whnf(exprTycker.ty(conTy));
+      var tyResult = tycker.whnf(tycker.ty(conTy));
       if (tyResult instanceof EqTerm eq) {
-        var state = exprTycker.state;
-        exprTycker.unifyTermReported(eq.A(), freeDataCall, conTy.sourcePos(), cmp ->
+        var state = tycker.state;
+        tycker.unifyTermReported(eq.A(), freeDataCall, conTy.sourcePos(), cmp ->
           new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
         // TODO: handle Path result
         throw new UnsupportedOperationException("TODO");
       } else {
-        var state = exprTycker.state;
-        exprTycker.unifyTermReported(tyResult, freeDataCall, conTy.sourcePos(), cmp ->
+        var state = tycker.state;
+        tycker.unifyTermReported(tyResult, freeDataCall, conTy.sourcePos(), cmp ->
           new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
       }
     }
 
-    var teleTycker = new TeleTycker.Con(exprTycker, dataSig.result());
+    var teleTycker = new TeleTycker.Con(tycker, dataSig.result());
     var selfTele = teleTycker.checkTele(conDecl.telescope);
-    // the result will NEVER refer to the telescope of con, unless... TODO: it is a Path result
-    var selfSig = new Signature<>(selfTele, freeDataCall)
-      .bindTele(ownerBinds.view());
+    // the result will NEVER refer to the telescope of con, unless it is a Path result
+    // so we still need to bind it
+    var selfSig = new Signature<>(selfTele, freeDataCall).bindTele(ownerBinds.view());
 
-    if (!(selfSig.result() instanceof DataCall dataResult)) {
-      Panic.unreachable();
-      return;
-    }
+    if (!(selfSig.result() instanceof DataCall dataResult)) throw new Panic();
 
     // The signature of con should be full (the same as [konCore.telescope()])
     conDecl.signature = new Signature<>(ownerTele.concat(selfSig.param()), dataResult);
-
-    ref.core = new ConDef(dataRef, ref,
-      wellPats,
+    ref.core = new ConDef(dataRef, ref, wellPats,
       ownerTele.map(WithPos::data),
       selfSig.rawParams(),
       dataResult, false);
