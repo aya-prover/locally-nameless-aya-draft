@@ -5,7 +5,7 @@ package org.aya.normalize;
 import kala.collection.mutable.MutableSinglyLinkedList;
 import org.aya.normalize.error.UnsolvedLit;
 import org.aya.normalize.error.UnsolvedMeta;
-import org.aya.syntax.core.term.MetaLitTerm;
+import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;

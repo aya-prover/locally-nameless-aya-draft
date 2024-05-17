@@ -3,7 +3,7 @@
 package org.aya.normalize.error;
 
 import org.aya.pretty.doc.Doc;
-import org.aya.syntax.core.term.MetaLitTerm;
+import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Problem;

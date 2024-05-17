@@ -5,6 +5,7 @@ package org.aya.generic;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
+import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;

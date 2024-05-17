@@ -14,6 +14,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;

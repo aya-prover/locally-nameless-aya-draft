@@ -12,10 +12,8 @@ import java.util.function.UnaryOperator;
 /**
  * A meta-like term, but it will be solved while pattern tyck
  */
-public record MetaPatTerm(@NotNull Pat.Meta meta) implements Term {
-  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return this;
-  }
+public record MetaPatTerm(@NotNull Pat.Meta meta) implements InternalState {
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) { return this; }
 
   public @NotNull Term inline(@NotNull UnaryOperator<Term> map) {
     var solution = meta.solution().get();

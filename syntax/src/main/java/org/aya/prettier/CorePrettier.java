@@ -18,6 +18,7 @@ import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GenerateKind;

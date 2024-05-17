@@ -4,10 +4,7 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.core.term.AppTerm;
-import org.aya.syntax.core.term.PiTerm;
-import org.aya.syntax.core.term.SortTerm;
-import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.ref.MetaVar;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 public record MetaCall(
   @Override @NotNull MetaVar ref,
   @Override @NotNull ImmutableSeq<Term> args
-) implements Callable {
+) implements Callable, InternalState {
   public static @NotNull Term app(MetaVar ref, Term rhs, ImmutableSeq<Term> args) {
     var directArgs = args.sliceView(0, ref.ctxSize());
     var restArgs = args.sliceView(ref.ctxSize(), args.size());
@@ -34,7 +31,7 @@ public record MetaCall(
   }
 
   public @NotNull Term update(@NotNull ImmutableSeq<Term> args) {
-    return new MetaCall(ref, args);
+    return args.sameElements(args(), true) ? this : new MetaCall(ref, args);
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {

@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.syntax.core.term;
+package org.aya.syntax.core.term.repr;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
@@ -9,8 +9,9 @@ import kala.tuple.Tuple2;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
+import org.aya.syntax.core.term.InternalState;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +20,7 @@ public record MetaLitTerm(
   @NotNull Object repr,
   @NotNull ImmutableSeq<Tuple2<Def, ShapeRecognition>> candidates,
   @NotNull Term type
-) implements Term {
+) implements InternalState {
   public @NotNull MetaLitTerm update(@NotNull Term type) {
     return type == type() ? this : new MetaLitTerm(sourcePos, repr, candidates, type);
   }

@@ -11,6 +11,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
