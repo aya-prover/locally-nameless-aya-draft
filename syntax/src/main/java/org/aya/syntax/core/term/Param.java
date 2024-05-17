@@ -22,6 +22,10 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
   public static @NotNull Param ofExplicit(@NotNull String name, @NotNull Term type) {
     return new Param(name, type, true);
   }
+  public static @NotNull SeqView<Param> substTele(SeqView<Param> tele, SeqView<Term> subst) {
+    return tele.mapIndexed((idx, p) ->
+      p.descent(ty -> ty.replaceTeleFrom(idx, subst)));
+  }
 
   public boolean nameEq(@Nullable String otherName) { return name.equals(otherName); }
   public @NotNull Arg<Term> toArg() { return new Arg<>(type, explicit); }

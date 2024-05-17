@@ -191,7 +191,7 @@ public record PatClassifier(
         } else yield null;
         // ^ If fails positively, this would be an impossible case
       }
-      case Result.Ok(var ok) -> conTele.map(param -> param.instTele(ok.view()));
+      case Result.Ok(var ok) -> Param.substTele(conTele, ok.view());
     };
   }
 }

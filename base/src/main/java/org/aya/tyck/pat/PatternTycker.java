@@ -145,7 +145,7 @@ public class PatternTycker implements Problematic, Stateful {
 
         // It is possible that `con.params()` is empty.
         var patterns = tyckInner(
-          conCore.selfTele.view().mapIndexed((idx, p) -> p.descent(ty -> ty.replaceTeleFrom(idx, realCon.args.view()))),
+          Param.substTele(conCore.selfTele.view(), realCon.args.view()),
           con.params().view(),
           pattern);
 
