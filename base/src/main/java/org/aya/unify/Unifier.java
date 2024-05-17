@@ -30,7 +30,7 @@ public final class Unifier extends TermComparator {
   }
 
   public @NotNull TyckState.Eqn createEqn(@NotNull Term lhs, @NotNull Term rhs) {
-    return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx());
+    return new TyckState.Eqn(lhs, rhs, cmp, pos, localCtx().clone());
   }
 
   public @NotNull Unifier derive(@NotNull SourcePos pos, Ordering ordering) {

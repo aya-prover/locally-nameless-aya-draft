@@ -62,4 +62,9 @@ public record LocalCtx(
     SeqView<LocalVar> parentView = parent == null ? SeqView.empty() : parent.extract();
     return parentView.concat(vars);
   }
+
+  @SuppressWarnings("MethodDoesntCallSuperMethod")
+  @Override public @NotNull LocalCtx clone() {
+    return new LocalCtx(binds.clone(), vars.clone(), parent != null ? parent.clone() : null);
+  }
 }

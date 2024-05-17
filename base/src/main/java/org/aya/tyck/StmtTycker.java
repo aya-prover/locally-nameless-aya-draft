@@ -175,8 +175,11 @@ public record StmtTycker(
 
     var conTy = conDecl.result;
     if (conTy != null) {
-      var tyResult = exprTycker.ty(conTy);
-      if (exprTycker.whnf(tyResult) instanceof EqTerm eq) {
+      var tyResult = exprTycker.whnf(exprTycker.ty(conTy));
+      if (tyResult instanceof EqTerm eq) {
+        var state = exprTycker.state;
+        exprTycker.unifyTermReported(eq.A(), freeDataCall, conTy.sourcePos(), cmp ->
+          new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
         // TODO: handle Path result
         throw new UnsupportedOperationException("TODO");
       } else {
