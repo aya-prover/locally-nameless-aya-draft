@@ -34,7 +34,7 @@ public interface StmtResolver {
   static void resolveStmt(@NotNull ResolvingStmt stmt, @NotNull ResolveInfo info) {
     switch (stmt) {
       case ResolvingStmt.ResolvingDecl decl -> resolveDecl(decl, info);
-      case ResolvingStmt.ModStmt(_, var stmts) -> resolveStmt(stmts, info);
+      case ResolvingStmt.ModStmt(var stmts) -> resolveStmt(stmts, info);
       case ResolvingStmt.GenStmt(var variables) -> {
         var resolver = new ExprResolver(info.thisModule(), ExprResolver.RESTRICTIVE);
         resolver.enterBody();

@@ -203,11 +203,11 @@ public record ExprResolver(
         );
       }
       // case Expr.LetOpen letOpen -> {
-      //   var innerCtx = new NoExportContext(ctx);
+      //   var context = new NoExportContext(ctx);
       //   // open module
-      //   innerCtx.openModule(letOpen.componentName(), Stmt.Accessibility.Private,
+      //   context.openModule(letOpen.componentName(), Stmt.Accessibility.Private,
       //           letOpen.sourcePos(), letOpen.useHide());
-      //   yield letOpen.update(enter(innerCtx).apply(letOpen.body()));
+      //   yield letOpen.update(enter(context).apply(letOpen.body()));
       // }
       default -> expr.descent(this);
     };

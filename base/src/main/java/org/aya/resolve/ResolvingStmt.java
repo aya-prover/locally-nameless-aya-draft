@@ -4,7 +4,7 @@ package org.aya.resolve;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.context.Context;
-import org.aya.syntax.concrete.stmt.Command;
+import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.Generalize;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
@@ -36,17 +36,10 @@ import org.jetbrains.annotations.NotNull;
  * <p>
  */
 public sealed interface ResolvingStmt {
-  @NotNull Stmt stmt();
+  sealed interface ResolvingDecl extends ResolvingStmt { }
 
-  sealed interface ResolvingDecl extends ResolvingStmt {
-    @Override @NotNull Decl stmt();
-  }
-
-  record TopDecl(@Override @NotNull TeleDecl<?> stmt, @NotNull Context innerCtx) implements ResolvingDecl { }
-  record MiscDecl(@Override @NotNull Decl stmt) implements ResolvingDecl { }
-  record GenStmt(@Override @NotNull Generalize stmt) implements ResolvingStmt { }
-  record ModStmt(
-    @Override @NotNull Command.Module stmt,
-    @NotNull ImmutableSeq<@NotNull ResolvingStmt> resolved
-  ) implements ResolvingStmt { }
+  record TopDecl(@NotNull TeleDecl<?> stmt, @NotNull Context context) implements ResolvingDecl { }
+  record MiscDecl(@NotNull Decl stmt) implements ResolvingDecl { }
+  record GenStmt(@NotNull Generalize stmt) implements ResolvingStmt { }
+  record ModStmt(@NotNull ImmutableSeq<@NotNull ResolvingStmt> resolved) implements ResolvingStmt { }
 }

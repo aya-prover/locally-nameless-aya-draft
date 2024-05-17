@@ -126,7 +126,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
 
     @Override public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
       super.descentInPlace(f, p);
-      body.forEach(ctors -> ctors.descentInPlace(f, p));
+      body.forEach(con -> con.descentInPlace(f, p));
     }
 
     @Override public @NotNull DefVar<DataDef, DataDecl> ref() { return ref; }

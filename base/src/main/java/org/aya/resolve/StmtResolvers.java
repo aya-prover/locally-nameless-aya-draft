@@ -25,6 +25,9 @@ public record StmtResolvers(@NotNull ResolveInfo info) {
 
   private void resolveBind(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
     StmtBinder.resolveBind(stmts, info);
+    info.opRename().forEach((var, rename) -> {
+      StmtBinder.bind(rename.bindCtx(), rename.bind(), info.opSet(), var.opDecl);
+    });
   }
 
   private void desugar(@NotNull ImmutableSeq<Stmt> stmts) {

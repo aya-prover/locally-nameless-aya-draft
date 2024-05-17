@@ -31,7 +31,8 @@ public class TyckTest {
   @Test public void test1() {
     var result = tyck("""
       open data Unit | unit
-      def foo {A : Type} {value : A} : A => value
+      variable A : Type
+      def foo {value : A} : A => value
       def what : Unit => foo {value := unit}
       """);
     assertTrue(result.isNotEmpty());

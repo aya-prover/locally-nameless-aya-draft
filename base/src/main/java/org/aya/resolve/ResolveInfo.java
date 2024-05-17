@@ -5,6 +5,7 @@ package org.aya.resolve;
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.TyckOrder;
 import org.aya.normalize.PrimFactory;
+import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.BindBlock;
@@ -35,15 +36,21 @@ public record ResolveInfo(
   }
 
   public record ImportInfo(@NotNull ResolveInfo resolveInfo, boolean reExport) { }
-  public record OpRenameInfo(@NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean reExport) { }
+  public record OpRenameInfo(
+    @NotNull Context bindCtx, @NotNull RenamedOpDecl renamed,
+    @NotNull BindBlock bind, boolean reExport
+  ) { }
 
   /**
    * @param definedHere Is this operator renamed in this module, or publicly renamed by upstream?
    * @see #open(ResolveInfo, SourcePos, Stmt.Accessibility)
    */
-  public void renameOp(@NotNull DefVar<?, ?> defVar, @NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean definedHere) {
+  public void renameOp(
+    @NotNull Context bindCtx, @NotNull DefVar<?, ?> defVar,
+    @NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean definedHere
+  ) {
     defVar.addOpDeclRename(thisModule.modulePath(), renamed);
-    opRename.put(defVar, new OpRenameInfo(renamed, bind, definedHere));
+    opRename.put(defVar, new OpRenameInfo(bindCtx, renamed, bind, definedHere));
   }
 
   public void open(@NotNull ResolveInfo other, @NotNull SourcePos sourcePos, @NotNull Stmt.Accessibility acc) {
@@ -57,7 +64,7 @@ public record ResolveInfo(
         // if it is `public open`, make renamed operators transitively accessible by storing
         // them in my `opRename` bc "my importers" cannot access `other.opRename`.
         // see: https://github.com/aya-prover/aya-dev/issues/519
-        renameOp(defVar, tuple.renamed, tuple.bind, false);
+        renameOp(thisModule(), defVar, tuple.renamed, tuple.bind, false);
       } else defVar.addOpDeclRename(thisModule().modulePath(), tuple.renamed);
     });
   }

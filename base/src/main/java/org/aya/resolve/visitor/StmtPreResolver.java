@@ -51,7 +51,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
         var newCtx = context.derive(mod.name());
         var children = resolveStmt(mod.contents(), newCtx);
         context.importModule(ModuleName.This.resolve(mod.name()), newCtx, mod.accessibility(), mod.sourcePos());
-        yield new ResolvingStmt.ModStmt(mod, children);
+        yield new ResolvingStmt.ModStmt(children);
       }
       case Command.Import cmd -> {
         var modulePath = cmd.path();
@@ -85,12 +85,12 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
           var asName = use.asName().getOrDefault(use.id().name());
           var renamedOpDecl = new ResolveInfo.RenamedOpDecl(new OpDecl.OpInfo(asName, use.asAssoc()));
           var bind = use.asBind();
-          if (bind != BindBlock.EMPTY) {
-            // bind.context().set(ctx);
-            // TODO[ice]: is this a no-op?
-            throw new UnsupportedOperationException("TODO");
-          }
-          resolveInfo.renameOp(symbol.get(), renamedOpDecl, bind, true);
+          // if (bind != BindBlock.EMPTY) {
+          //   // bind.context().set(ctx);
+          //   // TODO[ice]: is this a no-op?
+          //   throw new UnsupportedOperationException("TODO");
+          // }
+          resolveInfo.renameOp(ctx, symbol.get(), renamedOpDecl, bind, true);
         });
         yield null;
       }
@@ -175,7 +175,7 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
     }
   }
 
-  private @NotNull NoExportContext exampleContext(@NotNull ModuleContext context) {
+  public static @NotNull NoExportContext exampleContext(@NotNull ModuleContext context) {
     return context instanceof PhysicalModuleContext physical ? physical.exampleContext() : Panic.unreachable();
   }
 
