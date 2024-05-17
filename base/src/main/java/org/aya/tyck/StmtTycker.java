@@ -153,7 +153,7 @@ public record StmtTycker(
     var ownerTele = dataSig.param().map(x -> x.descent((_, p) -> p.implicitize()));
     var ownerBinds = dataDecl.telescope.map(Expr.Param::ref);
     // dataTele already in localCtx
-    // The result that a con should be, unless... TODO: it is a Path result
+    // The result that a con should be, unless it is a Path result
     var freeDataCall = new DataCall(dataRef, 0, ownerBinds.map(FreeTerm::new));
 
     var wellPats = ImmutableSeq.<Pat>empty();

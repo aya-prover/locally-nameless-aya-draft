@@ -40,7 +40,9 @@ public class TyckTest {
 
   @Test public void path0() {
     var result = tyck("""
-      data Nat | O | S Nat
+      data Nat
+      | O : Nat
+      | S (x : Nat) : Nat
       prim I : ISet
       prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
       prim coe (r s : I) (A : I -> Type) : A r -> A s
