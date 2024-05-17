@@ -97,9 +97,12 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   ) {
     var preargs = args.toImmutableSeq();
 
-    ImmutableSeq<Param> licit = (var.concrete instanceof TeleDecl<?> || var.core instanceof TeleDef)
-      ? TeleDef.defTele((DefVar<? extends TeleDef, ? extends TeleDecl<?>>) var)
-      : ImmutableSeq.empty();
+    ImmutableSeq<Param> licit =
+      // Because the signature of DataCon is selfTele, so we only need to deal with core con
+      (var.core instanceof ConDef con) ? con.selfTele
+        : (var.concrete instanceof TeleDecl<?> || var.core instanceof TeleDef)
+          ? TeleDef.defTele((DefVar<? extends TeleDef, ? extends TeleDecl<?>>) var)
+          : ImmutableSeq.empty();
 
     // licited args, note that this may not include all [var] args since [preargs.size()] may less than [licit.size()]
     // this is safe since the core call is always fully applied, that is, no missing implicit arguments.
@@ -377,10 +380,10 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   @FunctionalInterface
   public interface Usage<T, R> extends ToIntBiFunction<T, R> {
     sealed interface Ref {
-      record Free(@NotNull LocalVar var) implements Ref {}
-      record Meta(@NotNull MetaVar var) implements Ref {}
-      record Bound(int idx) implements Ref {}
-      enum AnyFree implements Ref {INSTANCE}
+      record Free(@NotNull LocalVar var) implements Ref { }
+      record Meta(@NotNull MetaVar var) implements Ref { }
+      record Bound(int idx) implements Ref { }
+      enum AnyFree implements Ref { INSTANCE }
     }
   }
 }

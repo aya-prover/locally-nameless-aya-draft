@@ -252,7 +252,7 @@ public sealed interface Pat extends AyaDocile {
     @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
       var prettier = new CorePrettier(options);
       var doc = Doc.emptyIf(pats.isEmpty(), () -> Doc.cat(Doc.ONE_WS, Doc.commaList(
-        pats.view().map(p -> prettier.pat(Arg.ofExplicitly(p), BasePrettier.Outer.Free)))));
+        pats.view().map(p -> prettier.pat(p, true, BasePrettier.Outer.Free)))));
       return expr == null ? doc : Doc.sep(doc, Tokens.FN_DEFINED_AS, expr.data().toDoc(options));
     }
 

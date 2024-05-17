@@ -239,9 +239,9 @@ public class CorePrettier extends BasePrettier<Term> {
       }
       case Pat.Bind bind -> Doc.bracedUnless(linkDef(bind.bind()), licit);
       case Pat.Con con -> {
-        var ctorDoc = visitCoreCalls(con.ref(), con.args().view().map(PatToTerm::visit), outer,
+        var conDoc = visitCoreCalls(con.ref(), con.args().view().map(PatToTerm::visit), outer,
           optionImplicit());
-        yield ctorDoc(outer, licit, ctorDoc, con.args().isEmpty());
+        yield ctorDoc(outer, licit, conDoc, con.args().isEmpty());
       }
       case Pat.Absurd _ -> Doc.bracedUnless(PAT_ABSURD, licit);
       case Pat.Tuple tuple -> Doc.licit(licit,
@@ -278,18 +278,18 @@ public class CorePrettier extends BasePrettier<Term> {
       //   visitTele(field.telescope),
       //   Doc.symbol(":"),
       //   term(Outer.Free, field.result));
-      case ConDef ctor -> {
-        var doc = Doc.sepNonEmpty(coe(ctor.coerce),
-          defVar(ctor.ref()),
-          visitTele(enrich(ctor.selfTele)));
+      case ConDef con -> {
+        var doc = Doc.sepNonEmpty(coe(con.coerce),
+          defVar(con.ref()),
+          visitTele(enrich(con.selfTele)));
         Doc line1;
-        // if (ctor.pats.isNotEmpty()) {
-        //   var pats = Doc.commaList(ctor.pats.view().map(pat -> pat(pat, Outer.Free)));
-        //   line1 = Doc.sep(Doc.symbol("|"), pats, Doc.symbol("=>"), doc);
-        // } else {
-        line1 = Doc.sep(Tokens.BAR, doc);
-        // }
-        yield Doc.cblock(line1, 2, Doc.empty() /*partial(options, ctor.clauses, false, Doc.empty(), Doc.empty())*/);
+        if (con.pats.isNotEmpty()) {
+          var pats = Doc.commaList(con.pats.view().map(pat -> pat(pat, true, Outer.Free)));
+          line1 = Doc.sep(Doc.symbol("|"), pats, Doc.symbol("=>"), doc);
+        } else {
+          line1 = Doc.sep(Tokens.BAR, doc);
+        }
+        yield Doc.cblock(line1, 2, Doc.empty() /*partial(options, con.clauses, false, Doc.empty(), Doc.empty())*/);
       }
       // case ClassDef def -> Doc.vcat(Doc.sepNonEmpty(Doc.styled(KEYWORD, "class"),
       //   linkDef(def.ref(), CLAZZ),
@@ -306,22 +306,22 @@ public class CorePrettier extends BasePrettier<Term> {
           visitTele(richDataTele),
           HAS_TYPE,
           term(Outer.Free, def.result));
-        var ctors = def.body.view().map(ctor ->
-          // we need to instantiate the tele of ctor, but we can't modify the CtorDef
-          visitCtor(ctor.ref, enrich(ctor.selfTele.mapIndexed((i, p) -> {
+        var cons = def.body.view().map(con ->
+          // we need to instantiate the tele of con, but we can't modify the CtorDef
+          visitCon(con.ref, enrich(con.selfTele.mapIndexed((i, p) -> {
             // i: nth param
             // p: the param
             // instantiate reference to data tele
             return p.descent(t -> t.replaceAllFrom(i, reversedRichDataTele));
-          })), ctor.coerce));
+          })), con.coerce));
 
         yield Doc.vcat(Doc.sepNonEmpty(line1),
-          Doc.nest(2, Doc.vcat(ctors)));
+          Doc.nest(2, Doc.vcat(cons)));
       }
     };
   }
 
-  private @NotNull Doc visitCtor(
+  private @NotNull Doc visitCon(
     @NotNull DefVar<? extends ConDef, ? extends TeleDecl.DataCon> ref,
     @NotNull ImmutableSeq<ParamLike<Term>> richSelfTele,
     boolean coerce
