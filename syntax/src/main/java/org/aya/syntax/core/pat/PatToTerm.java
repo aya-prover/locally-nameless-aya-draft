@@ -7,6 +7,7 @@ import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
 import org.aya.syntax.core.term.call.ConCall;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +20,7 @@ public final class PatToTerm {
         new ConCall(data.ref(), conRef, data.args(), 0, args.map(PatToTerm::visit));
       case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(PatToTerm::visit));
       case Pat.Meta meta -> new MetaPatTerm(meta);
+      case Pat.ShapedInt(var i, var recog, var data) -> new IntegerTerm(i, recog, data);
     };
   }
 }

@@ -9,6 +9,7 @@ import kala.function.CheckedFunction;
 import kala.function.CheckedSupplier;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
+import org.aya.generic.Shaped;
 import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.prettier.Tokens;
@@ -31,10 +32,7 @@ import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
+import java.util.function.*;
 
 /**
  * Patterns in the core syntax.
@@ -203,6 +201,41 @@ public sealed interface Pat extends AyaDocile {
       var solution = solution().get();
       if (solution == null) return aDefaults.getChecked();
       return mapper.applyChecked(solution);
+    }
+  }
+
+  record ShapedInt(
+    @Override int repr,
+    @Override @NotNull ShapeRecognition recognition,
+    @NotNull DataCall type
+  ) implements Pat, Shaped.Nat<Pat> {
+    public ShapedInt update(DataCall type) {
+      return type == type() ? this : new ShapedInt(repr, recognition, type);
+    }
+
+    @Override public @NotNull ShapedInt descent(@NotNull UnaryOperator<Pat> f, @NotNull UnaryOperator<Term> g) {
+      return update((DataCall) g.apply(type));
+    }
+
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
+      // We are no need to inline type here, because the type of Nat doesn't (mustn't) have any type parameter.
+      return this;
+    }
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) { }
+    @Override public @NotNull Pat makeZero(@NotNull ConDef zero) {
+      return new Pat.Con(zero.ref, ImmutableSeq.empty(), recognition, type);
+    }
+
+    @Override public @NotNull Pat makeSuc(@NotNull ConDef suc, @NotNull Pat pat) {
+      return new Pat.Con(suc.ref, ImmutableSeq.of(pat), recognition, type);
+    }
+
+    @Override public @NotNull Pat destruct(int repr) {
+      return new Pat.ShapedInt(repr, recognition, type);
+    }
+
+    @Override public @NotNull ShapedInt map(@NotNull IntUnaryOperator f) {
+      return new ShapedInt(f.applyAsInt(repr), recognition, type);
     }
   }
 

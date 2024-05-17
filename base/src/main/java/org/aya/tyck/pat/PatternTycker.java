@@ -10,7 +10,7 @@ import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.generic.NameGenerator;
 import org.aya.normalize.Normalizer;
-import org.aya.normalize.PatternMatcher;
+import org.aya.normalize.PatMatcher;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.ConDef;
@@ -476,7 +476,7 @@ public class PatternTycker implements Problematic, Stateful {
     @NotNull TyckState state
   ) {
     if (con.pats.isNotEmpty()) {
-      var matcher = new PatternMatcher(true, new Normalizer(state));
+      var matcher = new PatMatcher(true, new Normalizer(state));
       return matcher.apply(con.pats, type.args());
     }
 

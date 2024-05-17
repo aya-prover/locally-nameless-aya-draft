@@ -10,7 +10,9 @@ import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.TupTerm;
+import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.tyck.pat.BindEater;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +22,7 @@ import java.util.function.UnaryOperator;
 /**
  * @param inferMeta whether infer the PatMetaTerm
  */
-public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
+public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
   private static class Failure extends Throwable {
     public final boolean reason;
     private Failure(boolean reason) {
@@ -56,6 +58,17 @@ public record PatternMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre
       };
       // You can't match with a tycking pattern!
       case Pat.Meta meta -> throw new Panic("Illegal pattern: Pat.Meta");
+      case Pat.ShapedInt lit -> switch (pre.apply(term)) {
+         case IntegerTerm litTerm -> {
+           if (!lit.compareUntyped(litTerm)) throw new Failure(false);
+           yield ImmutableSeq.of(litTerm);
+         }
+         // TODO[literal]: We may convert constructor call to literals to avoid possible stack overflow?
+         case ConCall con -> match(lit.constructorForm(), con);
+         // we only need to handle matching both literals, otherwise we just rematch it
+         // with constructor form to reuse the code as much as possible (like solving MetaPats).
+         case Term t -> match(lit.constructorForm(), t);
+       };
     };
   }
 

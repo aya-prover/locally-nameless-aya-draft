@@ -84,7 +84,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     int ulift, boolean orderIndependent
   ) {
     for (var matchy : clauses) {
-      var matcher = new PatternMatcher(false, this);
+      var matcher = new PatMatcher(false, this);
       var subst = matcher.apply(matchy.patterns(), args);
       if (subst.isOk()) {
         return Option.some(matchy.body().elevate(ulift).instantiateTele(subst.get().view()));

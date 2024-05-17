@@ -246,10 +246,10 @@ public class CorePrettier extends BasePrettier<Term> {
       case Pat.Absurd _ -> Doc.bracedUnless(PAT_ABSURD, licit);
       case Pat.Tuple tuple -> Doc.licit(licit,
         Doc.commaList(tuple.elements().view().map(sub -> pat(sub, true, Outer.Free))));
-      // case Pat.ShapedInt lit -> Doc.bracedUnless(lit.repr() == 0
-      //     ? linkLit(0, lit.ctorRef(CodeShape.GlobalId.ZERO), CON)
-      //     : linkLit(lit.repr(), lit.ctorRef(CodeShape.GlobalId.SUC), CON),
-      //   licit);
+      case Pat.ShapedInt lit -> Doc.bracedUnless(lit.repr() == 0
+          ? linkLit(0, lit.ctorRef(CodeShape.GlobalId.ZERO), CON)
+          : linkLit(lit.repr(), lit.ctorRef(CodeShape.GlobalId.SUC), CON),
+        licit);
     };
   }
 
