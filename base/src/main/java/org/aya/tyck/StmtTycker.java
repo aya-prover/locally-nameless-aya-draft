@@ -72,7 +72,7 @@ public record StmtTycker(
               tycker = mkTycker();
               loadTele(fnDecl.teleVars(), fnDecl.signature, tycker);
             }
-            var result = tycker.inherit(expr, signature.result().instantiateTeleVar(teleVars.view()))
+            var result = tycker.inherit(expr, tycker.whnf(signature.result().instantiateTeleVar(teleVars.view())))
               // we still need to bind [result.type()] in case it was a hole
               .bindTele(teleVars.view());
             result = tycker.freezeHoles(result);
@@ -192,6 +192,7 @@ public record StmtTycker(
           new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
       }
     }
+    tycker.solveMetas();
 
     // the result will refer to the telescope of con if it has patterns,
     // the path result may also refer to it, so we need to bind both

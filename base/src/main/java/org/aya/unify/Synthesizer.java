@@ -118,8 +118,11 @@ public record Synthesizer(
         .instantiateTele(teleCall.args().view())
         .elevate(teleCall.ulift());
 
+      case MetaCall(var ref, var args) when ref.req() instanceof MetaVar.OfType(var type) ->
+        type.instantiateTele(args.view());
       case MetaCall _ -> throw new UnsupportedOperationException("TODO");
       case CoeTerm coe -> coe.family();
+      case EqTerm eq -> trySynth(AppTerm.make(eq.A(), DimTerm.I0));
       case PAppTerm papp -> {
         var fTy = trySynth(papp.fun());
         if (!(fTy instanceof EqTerm eq)) yield null;
@@ -129,7 +132,6 @@ public record Synthesizer(
       case SortTerm sort -> sort.succ();
       case DimTerm _ -> DimTyTerm.INSTANCE;
       case DimTyTerm _ -> SortTerm.ISet;
-      case EqTerm eq -> synthesize(eq.A());
       case MetaLitTerm mlt -> mlt.type();
     };
   }

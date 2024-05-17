@@ -17,6 +17,7 @@ import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -226,8 +227,11 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   }
 
   private @Nullable Term doCompareUntyped(@NotNull Term lhs, @NotNull Term rhs) {
+    // It's going to be used in the synthesizer, so we freeze it first
+    lhs = freezeHoles(lhs);
     if (lhs instanceof Formation form)
-      return doCompareType(form, rhs) ? new Synthesizer(this).synthDontNormalize(form) : null;
+      return doCompareType(form, rhs) ?
+        new Synthesizer(this).synthDontNormalize(form) : null;
     return switch (lhs) {
       case AppTerm(var f, var a) -> {
         if (!(rhs instanceof AppTerm(var g, var b))) yield null;
@@ -397,12 +401,21 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
           .map(x -> x.type().elevate(lhs.ulift())));
       }
       case Pair(DimTyTerm _, DimTyTerm _) -> true;
-      case Pair(PiTerm lhs, PiTerm rhs) -> compareTypeWith(lhs.param(), rhs.param(), () -> false, var ->
-        compare(lhs.body().instantiate(var),
-          rhs.body().instantiate(var),
-          null));
-      case Pair(SigmaTerm lhs, SigmaTerm rhs) -> compareTypesWith(lhs.params(), rhs.params(), () -> false, _ -> true);
+      case Pair(PiTerm(var lParam, var lBody), PiTerm(var rParam, var rBody)) -> compareTypeWith(lParam, rParam,
+        () -> false, var -> compare(lBody.instantiate(var), rBody.instantiate(var), null));
+      case Pair(SigmaTerm(var lParams), SigmaTerm(var rParams)) ->
+        compareTypesWith(lParams, rParams, () -> false, _ -> true);
       case Pair(SortTerm lhs, SortTerm rhs) -> compareSort(lhs, rhs);
+      case Pair(EqTerm(var A, var a0, var a1), EqTerm(var B, var b0, var b1)) -> {
+        var tyResult = subscoped(() -> {
+          var var = new FreeTerm(new LocalVar("j"));
+          localCtx().put(var.name(), DimTyTerm.INSTANCE);
+          return compare(AppTerm.make(A, var), AppTerm.make(B, var), null);
+        });
+        if (!tyResult) yield false;
+        yield compare(a0, b0, AppTerm.make(A, DimTerm.I0))
+          && compare(a1, b1, AppTerm.make(A, DimTerm.I1));
+      }
       default -> throw noRules(preLhs);
     };
   }

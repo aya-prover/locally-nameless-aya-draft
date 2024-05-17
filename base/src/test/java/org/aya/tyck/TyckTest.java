@@ -54,11 +54,28 @@ public class TyckTest {
     assertTrue(result.isNotEmpty());
   }
 
+  @Test public void path1() {
+    var result = tyck("""
+      data Nat | O | S Nat
+      prim I : ISet
+      prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
+      variable A : Type
+      def infix = (a b : A) : Type => Path (\\i => A) a b
+      def refl {a : A} : a = a => \\i => a
+      open data Int
+      | pos Nat | neg Nat
+      | zro : pos 0 = neg 0
+      example def testZro0 : zro 0 = pos 0 => refl
+      example def testZro1 : zro 1 = neg 0 => refl
+      """);
+    assertTrue(result.isNotEmpty());
+  }
+
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
     var stmts = SyntaxTestUtil.parse(code);
     var resolveInfo = SyntaxTestUtil.resolve(ImmutableSeq.narrow(stmts));
     var decls = stmts.filterIsInstance(Decl.class);
-    decls.forEach(decl -> System.out.println(STR."Checking \{decl.ref().name()}"));
+    decls.forEach(decl -> System.out.println(STR."Scanned \{decl.ref().name()}"));
     return SillyTycker.tyck(resolveInfo, decls, TestUtil.THROWING);
   }
 }

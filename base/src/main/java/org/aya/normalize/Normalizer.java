@@ -7,13 +7,16 @@ import kala.collection.immutable.ImmutableSet;
 import kala.control.Either;
 import kala.control.Option;
 import org.aya.generic.Modifier;
+import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
@@ -53,6 +56,16 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
           yield whnf(result.get());
         }
       };
+      case ConCall(var head, var args)
+        when head.ref().core instanceof ConDef con
+        && con.equality instanceof EqTerm eq
+        && args.getLast() instanceof DimTerm dim -> {
+        var boundary = switch (dim) {
+          case I0 -> eq.a();
+          case I1 -> eq.b();
+        };
+        yield boundary.instantiateTele(args.view());
+      }
       case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
