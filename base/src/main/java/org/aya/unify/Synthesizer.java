@@ -101,8 +101,7 @@ public record Synthesizer(
         // This is safe since a [SigmaTerm] has at least 2 parameters.
         yield pTys.reduce(SigmaTerm::lub);
       }
-      case TupTerm _ -> null;
-      case LamTerm _ -> null;
+      case TupTerm _, LamTerm _ -> null;
       case FreeTerm(var var) -> localCtx().get(var);
       case LocalTerm _ -> throw new Panic("LocalTerm");
       case MetaPatTerm meta -> meta.meta().type();

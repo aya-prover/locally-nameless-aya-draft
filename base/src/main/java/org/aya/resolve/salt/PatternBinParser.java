@@ -7,7 +7,6 @@ import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.error.OperatorError;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.error.PatternProblem;
 import org.aya.tyck.tycker.Problematic;
@@ -64,8 +63,8 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
   }
 
   @Override protected @Nullable OpDecl underlyingOpDecl(@NotNull Arg<WithPos<Pattern>> elem) {
-    return elem.term().data() instanceof Pattern.Con ref && ref.resolved().data() instanceof DefVar<?, ?> defVar
-      ? defVar.resolveOpDecl(resolveInfo.thisModule().modulePath())
+    return elem.term().data() instanceof Pattern.Con ref
+      ? ref.resolved().data().resolveOpDecl(resolveInfo.thisModule().modulePath())
       : null;
   }
 

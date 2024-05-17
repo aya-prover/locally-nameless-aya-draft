@@ -5,7 +5,6 @@ package org.aya.resolve.visitor;
 import kala.collection.SeqLike;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
-import org.aya.resolve.ResolvingStmt.TopDecl;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.error.NameProblem;
 import org.aya.resolve.error.OperatorError;

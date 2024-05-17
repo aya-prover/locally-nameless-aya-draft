@@ -358,7 +358,7 @@ public class CorePrettier extends BasePrettier<Term> {
     @Override @NotNull LocalVar ref,
     @Override @NotNull Term type
   ) implements ParamLike<Term> {
-    @Override public boolean explicit() {return true;}
+    @Override public boolean explicit() { return true; }
 
     @Override public @NotNull ParamLike<Term> map(@NotNull UnaryOperator<Term> mapper) {
       return new CoreParam(ref, mapper.apply(type));

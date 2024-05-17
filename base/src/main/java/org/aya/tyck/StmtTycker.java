@@ -78,7 +78,7 @@ public record StmtTycker(
           }
           case TeleDecl.BlockBody(var clauses, var elims) -> {
             // we do not load signature here, so we need a fresh ExprTycker
-            var clauseTycker = new ClauseTycker(tycker = mkTycker());
+            var clauseTycker = new ClauseTycker(mkTycker());
 
             var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
             if (orderIndependent) {
@@ -187,12 +187,11 @@ public record StmtTycker(
     // The signature of con should be full (the same as [konCore.telescope()])
     conDecl.signature = new Signature<>(ownerTele.concat(selfSig.param()), dataResult);
 
-    var konCore = new ConDef(dataRef, ref,
+    ref.core = new ConDef(dataRef, ref,
       wellPats,
       ownerTele.map(WithPos::data),
       selfSig.rawParams(),
       dataResult, false);
-    ref.core = konCore;
   }
 
   private void checkPrim(@NotNull ExprTycker tycker, TeleDecl.PrimDecl prim) {

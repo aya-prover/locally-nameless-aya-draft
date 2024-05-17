@@ -40,8 +40,7 @@ public record PatClassifier<T extends Stateful & Problematic>(
   }
   @Override public @NotNull ImmutableSeq<PatClass<Term>> classify1(
     @NotNull ImmutableSeq<Term> subst, @NotNull Param param,
-    @NotNull ImmutableSeq<Indexed<Pat>> clauses,
-    int fuel
+    @NotNull ImmutableSeq<Indexed<Pat>> clauses, int fuel
   ) {
     var whnfTy = whnf(param.type());
     switch (whnfTy) {
@@ -116,7 +115,7 @@ public record PatClassifier<T extends Stateful & Problematic>(
               continue;
             }
           }
-          var classes = classifyN(subst, conTele.view(), matches, fuel1);
+          var classes = classifyN(subst, conTele, matches, fuel1);
           buffer.appendAll(classes.map(args -> new PatClass<>(
             new ConCall(conHead, args.term()),
             args.cls())));

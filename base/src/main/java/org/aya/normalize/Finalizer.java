@@ -3,7 +3,6 @@
 package org.aya.normalize;
 
 import kala.collection.mutable.MutableSinglyLinkedList;
-import kala.collection.mutable.MutableStack;
 import org.aya.normalize.error.UnsolvedMeta;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;

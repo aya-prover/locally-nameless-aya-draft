@@ -389,7 +389,6 @@ public class PatternTycker implements Problematic, Stateful {
     @NotNull SeqView<Arg<WithPos<Pattern>>> patterns,
     @NotNull WithPos<Pattern> outerPattern
   ) {
-    //noinspection ViewSize
     var sub = new PatternTycker(exprTycker, telescope, asSubst, nameGen);
     var tyckResult = sub.tyck(patterns, outerPattern, null);
 
