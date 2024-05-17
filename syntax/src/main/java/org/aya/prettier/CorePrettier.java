@@ -6,6 +6,7 @@ import kala.collection.SeqLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import org.aya.generic.AyaDocile;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.ParamLike;
 import org.aya.pretty.doc.Doc;
@@ -57,8 +58,8 @@ public class CorePrettier extends BasePrettier<Term> {
         if (options.map.get(AyaPrettierOptions.Key.InlineMetas)) yield factory.apply(outer);
         yield Doc.wrap(HOLE_LEFT, HOLE_RIGHT, factory.apply(Outer.Free));
       }
-      // case MetaLitTerm lit ->
-      //   lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
+      case MetaLitTerm lit ->
+        lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
       case TupTerm(var items) -> Doc.parened(argsDoc(options, items.view().map(Arg::ofExplicitly)));
       case IntegerTerm shaped -> shaped.repr() == 0
         ? linkLit(0, shaped.ctorRef(CodeShape.GlobalId.ZERO), CON)

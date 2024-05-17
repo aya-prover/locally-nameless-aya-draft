@@ -129,6 +129,7 @@ public record Synthesizer(
       case DimTerm _ -> DimTyTerm.INSTANCE;
       case DimTyTerm _ -> SortTerm.ISet;
       case EqTerm eq -> synthesize(eq.A());
+      case MetaLitTerm mlt -> mlt.type();
     };
   }
 

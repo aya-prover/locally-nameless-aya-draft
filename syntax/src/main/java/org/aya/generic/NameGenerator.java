@@ -40,7 +40,7 @@ public class NameGenerator {
       case FreeTerm freeTerm -> freeTerm.name().name();
       case MetaPatTerm(var meta) -> {
         var solution = meta.solution().get();
-        if (solution == null) yield nextName(null);
+        if (solution == null) yield null;
         yield nameOf(PatToTerm.visit(solution));
       }
       case Callable data -> data.ref().name();
@@ -50,7 +50,7 @@ public class NameGenerator {
       case ProjTerm p -> nameOf(p.of());
       case AppTerm a -> nameOf(a.fun());
       case PAppTerm a -> nameOf(a.fun());
-      case DimTerm _, ErrorTerm _, LamTerm _, SortTerm _, TupTerm _, LocalTerm _ -> null;
+      case DimTerm _, ErrorTerm _, LamTerm _, SortTerm _, TupTerm _, LocalTerm _, MetaLitTerm _ -> null;
       case EqTerm _ -> "Eq";
       case CoeTerm _ -> "coe";
     };

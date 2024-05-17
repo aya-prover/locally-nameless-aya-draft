@@ -24,7 +24,7 @@ import java.io.Serializable;
 import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
-  permits BetaRedex, Formation, FreeTerm, LocalTerm, MetaPatTerm, StableWHNF, Callable, CoeTerm {
+  permits BetaRedex, Formation, FreeTerm, LocalTerm, MetaLitTerm, MetaPatTerm, StableWHNF, Callable, CoeTerm {
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
