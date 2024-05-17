@@ -166,8 +166,7 @@ public class PatternTycker implements Problematic, Stateful {
           var data = dataCall.ref().core;
           var shape = state().shapeFactory().find(data);
           if (shape.isDefined() && shape.get().shape() == AyaShape.NAT_SHAPE)
-            // yield new Pat.ShapedInt(number, shape.get(), dataCall);
-            throw new UnsupportedOperationException("TODO");
+            yield new Pat.ShapedInt(number, shape.get(), dataCall);
         }
         yield withError(new PatternProblem.BadLitPattern(pattern, ty), ty);
       }

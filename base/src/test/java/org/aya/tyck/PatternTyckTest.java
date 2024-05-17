@@ -17,7 +17,7 @@ public class PatternTyckTest {
       open data Nat | O | S Nat
 
       def infix + (a b: Nat): Nat
-      | O, b => b
+      | 0, b => b
       | S a', b => S (a' + b)
 
       def foo : Nat => (S O) + (S (S O))
@@ -44,14 +44,14 @@ public class PatternTyckTest {
     var result = tyck("""
       open data Nat | O | S Nat
       open data Vec Nat Type
-      | O, A => vnil
+      | 0, A => vnil
       | S n, A => vcons A (Vec n A)
 
       def length (A : Type) (n : Nat) (v : Vec n A) : Nat elim v
-      | vnil => O
+      | vnil => 0
       | vcons _ xs => S (length _ _ xs)
 
-      def head (A : Type) (n : Nat) (v : Vec (S n) A) : A elim v
+      def head (A : Type) (v : Vec 1 A) : A elim v
       | vcons x _ => x
       """);
 

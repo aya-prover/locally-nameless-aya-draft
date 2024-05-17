@@ -46,6 +46,11 @@ public record StmtTycker(
     return new ExprTycker(new TyckState(shapeFactory, primFactory), new LocalCtx(), new LocalLet(), reporter);
   }
   public @NotNull Def check(Decl predecl) {
+    var checked = doCheck(predecl);
+    shapeFactory.bonjour(checked);
+    return checked;
+  }
+  private @NotNull Def doCheck(Decl predecl) {
     ExprTycker tycker = null;
     if (predecl instanceof TeleDecl<?> decl) {
       if (decl.signature == null) checkHeader(decl, tycker = mkTycker());

@@ -19,9 +19,10 @@ public class SillyTycker {
   public static @NotNull ImmutableSeq<Def> tyck(@NotNull ImmutableSeq<Decl> decls, @NotNull Reporter reporter) {
     var pf = TestUtil.emptyState();
     var wellTyped = MutableList.<Def>create();
+    var stmtTycker = new StmtTycker(reporter, pf.shapeFactory(), pf.primFactory());
 
     for (var decl : decls) {
-      wellTyped.append(new StmtTycker(reporter, pf.shapeFactory(), pf.primFactory()).check(decl));
+      wellTyped.append(stmtTycker.check(decl));
     }
 
     return wellTyped.toImmutableSeq();

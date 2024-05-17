@@ -12,8 +12,8 @@ import java.io.Serializable;
  * @author kiva
  */
 public sealed interface CodeShape {
-  /** A capture group, see {@link CodeShape.CtorShape} and {@link ShapeMatcher#captures()} */
-  sealed interface Moment permits CtorShape, DataShape, FnShape, ParamShape.Impl, PatShape.Bind, TermShape.ShapeCall {
+  /** A capture group, see {@link ConShape} and {@link ShapeMatcher#captures()} */
+  sealed interface Moment permits ConShape, DataShape, FnShape, ParamShape.Impl, PatShape.Bind, TermShape.ShapeCall {
     @NotNull MomentId name();
   }
 
@@ -47,10 +47,10 @@ public sealed interface CodeShape {
   record DataShape(
     @NotNull MomentId name,
     @NotNull ImmutableSeq<ParamShape> tele,
-    @NotNull ImmutableSeq<CtorShape> ctors
+    @NotNull ImmutableSeq<ConShape> cons
   ) implements CodeShape, Moment {}
 
-  record CtorShape(
+  record ConShape(
     @NotNull GlobalId name,
     @NotNull ImmutableSeq<ParamShape> tele
   ) implements CodeShape, Moment {}

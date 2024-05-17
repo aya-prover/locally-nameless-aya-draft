@@ -11,8 +11,8 @@ import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
-public final class PatToTerm {
-  public static @NotNull Term visit(@NotNull Pat pat) {
+public interface PatToTerm {
+  static @NotNull Term visit(@NotNull Pat pat) {
     return switch (pat) {
       case Pat.Absurd _ -> Panic.unreachable();
       case Pat.Bind bind -> new FreeTerm(bind.bind());

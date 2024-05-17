@@ -4,6 +4,7 @@ package org.aya.syntax.core.repr;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.SortKind;
+import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,7 +23,7 @@ sealed public interface TermShape {
    * @param ulift the lower bound of the type level.
    * @author hoshino
    */
-  record Sort(@Nullable SortKind kind, int ulift) implements TermShape {}
+  record Sort(@Nullable SortKind kind, int ulift) implements TermShape { }
 
   sealed interface Callable extends TermShape {
     @NotNull ImmutableSeq<TermShape> args();
@@ -36,8 +37,8 @@ sealed public interface TermShape {
   }
 
   record ShapeCall(@NotNull CodeShape.MomentId name, @NotNull CodeShape shape,
-                   @Override @NotNull ImmutableSeq<TermShape> args) implements Callable, CodeShape.Moment {}
+                   @Override @NotNull ImmutableSeq<TermShape> args) implements Callable, CodeShape.Moment { }
 
-  record CtorCall(@NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId ctorId,
-                  @Override @NotNull ImmutableSeq<TermShape> args) implements Callable {}
+  record ConCall(@NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId,
+                 @Override @NotNull ImmutableSeq<TermShape> args) implements Callable { }
 }

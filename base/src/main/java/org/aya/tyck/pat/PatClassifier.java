@@ -2,17 +2,21 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.pat;
 
+import kala.collection.Seq;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
+import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.ClausesProblem;
 import org.aya.tyck.error.TyckOrderError;
@@ -27,6 +31,8 @@ import org.aya.util.tyck.pat.Indexed;
 import org.aya.util.tyck.pat.PatClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.stream.Collectors;
 
 public record PatClassifier(
   @NotNull AbstractTycker delegate, @NotNull SourcePos pos
@@ -87,27 +93,27 @@ public record PatClassifier(
         // so proceed as if we have valid patterns
         if (clauses.isNotEmpty() &&
           // there are no clauses starting with a constructor pattern -- we don't need a split!
-          clauses.noneMatch(subPat -> subPat.pat() instanceof Pat.Con/* || subPat.pat() instanceof Pat.ShapedInt*/)
+          clauses.noneMatch(subPat -> subPat.pat() instanceof Pat.Con || subPat.pat() instanceof Pat.ShapedInt)
         ) break;
         var data = dataCall.ref();
         var body = TeleDef.dataBody(data);
         if (data.core == null) throw TyckOrderError.notYetTycked(data);
 
         // Special optimization for literals
-        // var lits = clauses.mapNotNull(cl -> cl.pat() instanceof Pat.ShapedInt i ?
-        //   new Indexed<>(i, cl.ix()) : null);
-        // var binds = Indexed.indices(clauses.filter(cl -> cl.pat() instanceof Pat.Bind));
-        // if (clauses.isNotEmpty() && lits.size() + binds.size() == clauses.size()) {
-        //   // There is only literals and bind patterns, no constructor patterns
-        //   var classes = Seq.from(lits.collect(
-        //       Collectors.groupingBy(i -> i.pat().repr())).values())
-        //     .map(i -> new PatClass<>(new Arg<>(i.get(0).pat().toTerm(), explicit),
-        //       Indexed.indices(Seq.wrapJava(i)).concat(binds)));
-        //   var ml = MutableArrayList.<PatClass<Arg<Term>>>create(classes.size() + 1);
-        //   ml.appendAll(classes);
-        //   ml.append(new PatClass<>(new Arg<>(new RefTerm(param.ref()), explicit), binds));
-        //   return ml.toImmutableSeq();
-        // }
+        var lits = clauses.mapNotNull(cl -> cl.pat() instanceof Pat.ShapedInt i ?
+          new Indexed<>(i, cl.ix()) : null);
+        var binds = Indexed.indices(clauses.filter(cl -> cl.pat() instanceof Pat.Bind));
+        if (clauses.isNotEmpty() && lits.size() + binds.size() == clauses.size()) {
+          // There is only literals and bind patterns, no constructor patterns
+          var classes = ImmutableSeq.from(lits.collect(
+              Collectors.groupingBy(i -> i.pat().repr())).values())
+            .map(i -> new PatClass<>(PatToTerm.visit(i.getFirst().pat()),
+              Indexed.indices(Seq.wrapJava(i)).concat(binds)));
+          var ml = MutableArrayList.<PatClass<Term>>create(classes.size() + 1);
+          ml.appendAll(classes);
+          ml.append(new PatClass<>(param.toFreshTerm(), binds));
+          return ml.toImmutableSeq();
+        }
 
         var buffer = MutableList.<PatClass<Term>>create();
         // For all constructors,
@@ -142,15 +148,13 @@ public record PatClassifier(
       }
       default -> { }
     }
-    return ImmutableSeq.of(new PatClass<>(param.type(), Indexed.indices(clauses)));
+    return ImmutableSeq.of(new PatClass<>(param.toFreshTerm(), Indexed.indices(clauses)));
   }
 
   private static @Nullable Indexed<SeqView<Pat>> matches(
     SeqView<Param> conTele, ConDef ctor, int ix, Indexed<Pat> subPat
   ) {
-    return switch (/*subPat.pat() instanceof Pat.ShapedInt i
-      ? i.constructorForm()
-      : */subPat.pat()) {
+    return switch (subPat.pat() instanceof Pat.ShapedInt i ? i.constructorForm() : subPat.pat()) {
       case Pat.Con c when c.ref() == ctor.ref() -> new Indexed<>(c.args().view(), ix);
       case Pat.Bind _ -> new Indexed<>(conTele.map(Param::toFreshPat), ix);
       default -> null;

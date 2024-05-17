@@ -9,7 +9,7 @@ import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import org.aya.syntax.core.def.Def;
-import org.aya.syntax.core.repr.CodeShape.CtorShape;
+import org.aya.syntax.core.repr.CodeShape.ConShape;
 import org.aya.syntax.core.repr.CodeShape.DataShape;
 import org.aya.syntax.core.repr.CodeShape.GlobalId;
 import org.aya.syntax.core.repr.CodeShape.LocalId;
@@ -28,11 +28,11 @@ public sealed interface AyaShape {
 
   @NotNull AyaShape NAT_SHAPE = AyaIntShape.INSTANCE;
   @NotNull AyaShape LIST_SHAPE = AyaListShape.INSTANCE;
-/*
-  @NotNull AyaShape PLUS_LEFT_SHAPE = AyaPlusFnLeftShape.INSTANCE;
-  @NotNull AyaShape PLUS_RIGHT_SHAPE = AyaPlusFnShape.INSTANCE;
-*/
-@NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(NAT_SHAPE, LIST_SHAPE/*, PLUS_RIGHT_SHAPE*/);
+  /*
+    @NotNull AyaShape PLUS_LEFT_SHAPE = AyaPlusFnLeftShape.INSTANCE;
+    @NotNull AyaShape PLUS_RIGHT_SHAPE = AyaPlusFnShape.INSTANCE;
+  */
+  @NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(NAT_SHAPE, LIST_SHAPE/*, PLUS_RIGHT_SHAPE*/);
 
   enum AyaIntShape implements AyaShape {
     INSTANCE;
@@ -40,8 +40,8 @@ public sealed interface AyaShape {
     public static final @NotNull CodeShape DATA_NAT = new DataShape(
       DATA,
       ImmutableSeq.empty(), ImmutableSeq.of(
-      new CtorShape(ZERO, ImmutableSeq.empty()),
-      new CtorShape(SUC, ImmutableSeq.of(ParamShape.ty(TermShape.NameCall.of(DATA))))
+      new ConShape(ZERO, ImmutableSeq.empty()),
+      new ConShape(SUC, ImmutableSeq.of(ParamShape.ty(TermShape.NameCall.of(DATA))))
     ));
 
     @Override public @NotNull CodeShape codeShape() {
@@ -58,8 +58,8 @@ public sealed interface AyaShape {
       DATA,
       ImmutableSeq.of(named(A, new TermShape.Sort(null, 0))),
       ImmutableSeq.of(
-        new CtorShape(GlobalId.NIL, ImmutableSeq.empty()),
-        new CtorShape(GlobalId.CONS, ImmutableSeq.of(
+        new ConShape(GlobalId.NIL, ImmutableSeq.empty()),
+        new ConShape(GlobalId.CONS, ImmutableSeq.of(
           ParamShape.ty(TermShape.NameCall.of(A)),
           ParamShape.ty(new TermShape.NameCall(DATA, ImmutableSeq.of(TermShape.NameCall.of(A))))
         )) // List A
@@ -154,10 +154,9 @@ public sealed interface AyaShape {
 
     /** Discovery of shaped literals */
     public void bonjour(@NotNull Def def) {
-      throw new UnsupportedOperationException("TODO");
-      // AyaShape.LITERAL_SHAPES.view()
-      //   .flatMap(shape -> new ShapeMatcher().match(shape, def))
-      //   .forEach(shape -> bonjour(def, shape));
+      AyaShape.LITERAL_SHAPES.view()
+        .flatMap(shape -> new ShapeMatcher().match(shape, def))
+        .forEach(shape -> bonjour(def, shape));
     }
 
     public void importAll(@NotNull Factory other) {
