@@ -25,9 +25,10 @@ public final class SyntaxTestUtil {
     resolve(ImmutableSeq.of(decl));
   }
 
-  public static void resolve(@NotNull ImmutableSeq<Stmt> decls) {
+  public static ResolveInfo resolve(@NotNull ImmutableSeq<Stmt> decls) {
     var resolveInfo = nakedResolveInfo();
     new StmtResolvers(resolveInfo).resolve(decls, resolveInfo.thisModule());
+    return resolveInfo;
   }
 
   public static @NotNull ResolveInfo nakedResolveInfo() {

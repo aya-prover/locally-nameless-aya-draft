@@ -4,7 +4,7 @@ package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
-import org.aya.TestUtil;
+import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.Def;
 import org.aya.util.reporter.Reporter;
@@ -16,10 +16,9 @@ public class SillyTycker {
    *
    * @return well-typed decls
    */
-  public static @NotNull ImmutableSeq<Def> tyck(@NotNull ImmutableSeq<Decl> decls, @NotNull Reporter reporter) {
-    var pf = TestUtil.emptyState();
+  public static @NotNull ImmutableSeq<Def> tyck(ResolveInfo resolveInfo, @NotNull ImmutableSeq<Decl> decls, @NotNull Reporter reporter) {
     var wellTyped = MutableList.<Def>create();
-    var stmtTycker = new StmtTycker(reporter, pf.shapeFactory(), pf.primFactory());
+    var stmtTycker = new StmtTycker(reporter, resolveInfo.shapeFactory(), resolveInfo.primFactory());
 
     for (var decl : decls) {
       wellTyped.append(stmtTycker.check(decl));

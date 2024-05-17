@@ -12,6 +12,7 @@ import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.UseHide;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.SourcePos;
@@ -23,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public record ResolveInfo(
   @NotNull ModuleContext thisModule,
   @NotNull PrimFactory primFactory,
-  // @NotNull AyaShape.Factory shapeFactory,
+  @NotNull AyaShape.Factory shapeFactory,
   @NotNull AyaBinOpSet opSet,
   @NotNull MutableMap<DefVar<?, ?>, OpRenameInfo> opRename,
   @NotNull MutableMap<ModuleName.Qualified, ImportInfo> imports,
@@ -31,7 +32,7 @@ public record ResolveInfo(
   @NotNull MutableGraph<TyckOrder> depGraph
 ) {
   public ResolveInfo(@NotNull ModuleContext thisModule) {
-    this(thisModule, new PrimFactory(), new AyaBinOpSet(thisModule.reporter()),
+    this(thisModule, new PrimFactory(), new AyaShape.Factory(), new AyaBinOpSet(thisModule.reporter()),
       MutableMap.create(), MutableMap.create(), MutableMap.create(), MutableGraph.create());
   }
 
@@ -57,7 +58,7 @@ public record ResolveInfo(
     // open defined operator and their bindings
     opSet().importBind(other.opSet(), sourcePos);
     // open discovered shapes as well
-    // shapeFactory().importAll(other.shapeFactory());
+    shapeFactory().importAll(other.shapeFactory());
     // open renamed operators and their bindings
     other.opRename().forEach((defVar, tuple) -> {
       if (acc == Stmt.Accessibility.Public) {
