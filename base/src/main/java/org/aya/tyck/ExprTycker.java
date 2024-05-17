@@ -276,6 +276,14 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           argIx++;
           paramIx++;
         }
+        // Trailing implicits
+        while (paramIx < params.size()) {
+          var param = params.get(paramIx);
+          if (param.explicit()) break;
+          param = param.descent(t -> t.instantiateTele(result.view()));
+          result.append(mockTerm(param, SourcePos.NONE));
+          paramIx++;
+        }
         if (argIx < args.size()) {
           return generateApplication(args.drop(argIx), k.apply(result.toImmutableSeq()));
         } else if (paramIx < params.size()) {

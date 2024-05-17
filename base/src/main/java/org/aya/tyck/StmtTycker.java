@@ -20,7 +20,6 @@ import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
-import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.BadTypeError;
 import org.aya.tyck.error.PrimError;
@@ -29,7 +28,6 @@ import org.aya.tyck.error.UnifyInfo;
 import org.aya.tyck.pat.ClauseTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.TeleTycker;
-import org.aya.util.error.Panic;
 import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
@@ -172,6 +170,7 @@ public record StmtTycker(
 
     var teleTycker = new TeleTycker.Con(tycker, dataSig.result());
     var selfTele = teleTycker.checkTele(conDecl.telescope);
+    var selfTeleVars = conDecl.teleVars();
 
     var conTy = conDecl.result;
     EqTerm boundaries = null;
@@ -179,11 +178,13 @@ public record StmtTycker(
       var tyResult = tycker.whnf(tycker.ty(conTy));
       if (tyResult instanceof EqTerm eq) {
         var state = tycker.state;
-        tycker.unifyTermReported(AppTerm.make(eq.A(), new FreeTerm("i")), freeDataCall, conTy.sourcePos(),
+        var fresh = new FreeTerm("i");
+        tycker.unifyTermReported(AppTerm.make(eq.A(), fresh), freeDataCall, conTy.sourcePos(),
           cmp -> new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
 
         selfTele = selfTele.appended(new WithPos<>(conTy.sourcePos(),
           new Param("i", DimTyTerm.INSTANCE, true)));
+        selfTeleVars = selfTeleVars.appended(fresh.name());
         boundaries = eq;
       } else {
         var state = tycker.state;
@@ -192,19 +193,25 @@ public record StmtTycker(
       }
     }
 
-    // the result will NEVER refer to the telescope of con, unless it is a Path result
-    // so we still need to bind it
-    var selfSig = new Signature<>(selfTele, freeDataCall).bindTele(ownerBinds.view());
-    // TODO: bind freeDataCall & boundaries properly
-
-    if (!(selfSig.result() instanceof DataCall dataResult)) throw new Panic();
+    // the result will refer to the telescope of con if it has patterns,
+    // the path result may also refer to it, so we need to bind both
+    var boundDataCall = (DataCall) freeDataCall.bindTele(selfTeleVars);
+    if (boundaries != null) boundaries = (EqTerm) boundaries.bindTele(selfTeleVars);
+    var boundariesWithDummy = boundaries != null ? boundaries : SortTerm.Type0;
+    var selfSig = new Signature<>(selfTele, new TupTerm(
+      // This is a silly hack that allows two terms to appear in the result of a Signature
+      // I considered using `AppTerm` but that is more disgraceful
+      ImmutableSeq.of(boundDataCall, boundariesWithDummy))).bindTele(ownerBinds.view());
+    var selfSigResult = ((TupTerm) selfSig.result()).items();
+    boundDataCall = (DataCall) selfSigResult.get(0);
+    if (boundaries != null) boundaries = (EqTerm) selfSigResult.get(1);
 
     // The signature of con should be full (the same as [konCore.telescope()])
-    conDecl.signature = new Signature<>(ownerTele.concat(selfSig.param()), dataResult);
+    conDecl.signature = new Signature<>(ownerTele.concat(selfSig.param()), boundDataCall);
     ref.core = new ConDef(dataRef, ref, wellPats, boundaries,
       ownerTele.map(WithPos::data),
       selfSig.rawParams(),
-      dataResult, false);
+      boundDataCall, false);
   }
 
   private void checkPrim(@NotNull ExprTycker tycker, TeleDecl.PrimDecl prim) {

@@ -45,17 +45,20 @@ public class PatternTyckTest {
       open data Nat | O | S Nat
       open data Vec Nat Type
       | 0, A => vnil
-      | S n, A => vcons A (Vec n A)
+      | S n, A => infixr vcons A (Vec n A)
 
       def length (A : Type) (n : Nat) (v : Vec n A) : Nat elim v
       | vnil => 0
-      | vcons _ xs => S (length _ _ xs)
+      | _ vcons xs => S (length _ _ xs)
+
+      def threeTimesAhThreeTimes (A : Type) (a : A) : Vec 3 A =>
+        a vcons a vcons a vcons vnil
 
       def head (A : Type) (n : Nat) (v : Vec (S n) A) : A elim v
-      | vcons x _ => x
+      | x vcons _ => x
 
       def unwrap (A : Type) (v : Vec 1 A) : A elim v
-      | vcons x vnil => x
+      | x vcons vnil => x
       """);
 
     assertTrue(result.isNotEmpty());
