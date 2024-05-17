@@ -61,8 +61,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims
   ) {
-    var indices = elims.isEmpty() ? null : elims.map(i ->
-      vars.indexOf(i.data())).collect(ImmutableIntSeq.factory());
+    var indices = elims.isEmpty() ? null : elims.mapToInt(ImmutableIntSeq.factory(),
+      i -> vars.indexOf(i.data()));
     var lhsResult = checkAllLhs(indices, signature, clauses.view());
 
     if (lhsResult.noneMatch(r -> r.hasError)) {
