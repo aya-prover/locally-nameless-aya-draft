@@ -63,7 +63,6 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
            if (!lit.compareUntyped(litTerm)) throw new Failure(false);
            yield ImmutableSeq.of(litTerm);
          }
-         // TODO[literal]: We may convert constructor call to literals to avoid possible stack overflow?
          case ConCall con -> match(lit.constructorForm(), con);
          // we only need to handle matching both literals, otherwise we just rematch it
          // with constructor form to reuse the code as much as possible (like solving MetaPats).

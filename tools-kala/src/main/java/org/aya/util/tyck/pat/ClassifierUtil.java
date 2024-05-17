@@ -22,18 +22,18 @@ public interface ClassifierUtil<Subst, Term, Param, Pat> {
 
   @ApiStatus.Internal default @NotNull ImmutableSeq<PatClass<ImmutableSeq<Term>>>
   classifyN(
-    @NotNull Subst subst, @NotNull SeqView<Param> params,
+    @NotNull Subst subst, @NotNull SeqView<Param> telescope,
     @NotNull ImmutableSeq<Indexed<SeqView<Pat>>> clauses, int fuel
   ) {
-    if (params.isEmpty()) return ImmutableSeq.of(new PatClass<>(
+    if (telescope.isEmpty()) return ImmutableSeq.of(new PatClass<>(
       ImmutableSeq.empty(), Indexed.indices(clauses)));
-    var first = params.getFirst();
+    var first = telescope.getFirst();
     var cls = classify1(subst, subst(subst, first),
       clauses.mapIndexed((ix, it) -> new Indexed<>(normalize(it.pat().getFirst()), ix)), fuel);
     return cls.flatMap(subclauses ->
       classifyN(add(subst, subclauses.term()),
         // Drop heads of both
-        params.drop(1),
+        telescope.drop(1),
         subclauses.extract(clauses.map(it ->
           new Indexed<>(it.pat().drop(1), it.ix()))), fuel)
         .map(args -> args.map(ls -> ls.prepended(subclauses.term()))));

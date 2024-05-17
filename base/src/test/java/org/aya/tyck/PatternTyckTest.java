@@ -51,7 +51,7 @@ public class PatternTyckTest {
       | vnil => 0
       | vcons _ xs => S (length _ _ xs)
 
-      def head (A : Type) (v : Vec 1 A) : A elim v
+      def head (A : Type) (n : Nat) (v : Vec (S n) A) : A elim v
       | vcons x _ => x
       """);
 

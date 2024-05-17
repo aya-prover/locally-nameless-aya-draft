@@ -16,7 +16,6 @@ import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.ClausesProblem;
 import org.aya.tyck.error.TyckOrderError;
@@ -58,7 +57,8 @@ public record PatClassifier(
       .toImmutableSeq(), 2);
     var p = cl.partition(c -> c.cls().isEmpty());
     var missing = p.component1();
-    if (missing.isNotEmpty()) tycker.fail(new ClausesProblem.MissingCase(pos, missing));
+    if (missing.isNotEmpty()) tycker.fail(
+      new ClausesProblem.MissingCase(pos, missing));
     return p.component2();
   }
 
@@ -140,9 +140,8 @@ public record PatClassifier(
             }
           }
           var classes = classifyN(subst, conTele, matches, fuel1);
-          buffer.appendAll(classes.map(args -> new PatClass<>(
-            new ConCall(conHead, args.term()),
-            args.cls())));
+          buffer.appendAll(classes.map(args ->
+            new PatClass<>(new ConCall(conHead, args.term()), args.cls())));
         }
         return buffer.toImmutableSeq();
       }
