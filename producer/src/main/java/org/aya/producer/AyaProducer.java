@@ -301,7 +301,9 @@ public record AyaProducer(
     }
 
     var ty = typeOrNull(node.peekChild(TYPE));
-    return new TeleDecl.FnDecl(info.info, fnMods, name, tele, ty, dynamite);
+    var fnDecl = new TeleDecl.FnDecl(info.info, fnMods, name, tele, ty, dynamite);
+    if (info.modifier.isExample()) fnDecl.isExample = true;
+    return fnDecl;
   }
 
   public @Nullable TeleDecl.FnBody fnBody(@NotNull ImmutableSeq<LocalVar> vars, @NotNull GenericNode<?> node) {
@@ -341,6 +343,7 @@ public record AyaProducer(
     if (name == null) return null;
     var ty = typeOrNull(node.peekChild(TYPE));
     var decl = new TeleDecl.DataDecl(info.info, name, tele, ty, body);
+    if (info.modifier.isExample()) decl.isExample = true;
     giveMeOpen(info.modifier, decl, additional);
     return decl;
   }

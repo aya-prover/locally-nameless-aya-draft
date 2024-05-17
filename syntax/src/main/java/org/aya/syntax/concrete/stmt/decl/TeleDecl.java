@@ -38,6 +38,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   public @NotNull ImmutableSeq<Expr.Param> telescope;
   public @Nullable Signature<RetTy> signature;
   public @NotNull DeclInfo info;
+  public boolean isExample;
 
   protected TeleDecl(
     @NotNull DeclInfo info, @NotNull ImmutableSeq<Expr.Param> telescope,
@@ -120,7 +121,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
       super(info, telescope, result);
       this.body = body;
       this.ref = DefVar.concrete(this, name);
-      body.forEach(ctors -> ctors.dataRef = ref);
+      body.forEach(con -> con.dataRef = ref);
     }
 
     @Override public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {

@@ -34,7 +34,7 @@ public class PatternTyckTest {
     var result = tyck("""
       open data Nat | O | S Nat
       def lind (a b : Nat) : Nat elim a
-      | O => b
+      | 0 => b
       | S a' => S (lind a' b)
       """);
     assertTrue(result.isNotEmpty());
