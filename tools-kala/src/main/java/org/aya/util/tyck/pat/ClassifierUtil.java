@@ -6,6 +6,7 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.ObjIntConsumer;
@@ -14,12 +15,12 @@ public interface ClassifierUtil<Subst, Term, Param, Pat> {
   Param subst(Subst subst, Param param);
   Pat normalize(Pat pat);
   Subst add(Subst subst, Term term);
-  @NotNull ImmutableSeq<PatClass<Term>> classify1(
+  @ApiStatus.Internal @NotNull ImmutableSeq<PatClass<Term>> classify1(
     @NotNull Subst subst, @NotNull Param param,
     @NotNull ImmutableSeq<Indexed<Pat>> clauses, int fuel
   );
 
-  default @NotNull ImmutableSeq<PatClass<ImmutableSeq<Term>>>
+  @ApiStatus.Internal default @NotNull ImmutableSeq<PatClass<ImmutableSeq<Term>>>
   classifyN(
     @NotNull Subst subst, @NotNull SeqView<Param> params,
     @NotNull ImmutableSeq<Indexed<SeqView<Pat>>> clauses, int fuel
