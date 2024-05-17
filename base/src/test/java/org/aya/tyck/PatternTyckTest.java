@@ -53,6 +53,9 @@ public class PatternTyckTest {
 
       def head (A : Type) (n : Nat) (v : Vec (S n) A) : A elim v
       | vcons x _ => x
+
+      def unwrap (A : Type) (v : Vec 1 A) : A elim v
+      | vcons x vnil => x
       """);
 
     assertTrue(result.isNotEmpty());

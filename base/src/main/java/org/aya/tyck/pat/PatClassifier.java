@@ -8,6 +8,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
+import kala.control.Result;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.TeleDef;
@@ -172,24 +173,25 @@ public record PatClassifier(
   conTele(@NotNull ImmutableSeq<? extends Indexed<?>> clauses, DataCall dataCall, ConDef con) {
     var conTele = con.selfTele.view();
     // Check if this constructor is available by doing the obvious thing
-    var matchy = PatternTycker.isConAvailable(dataCall, con, state());
-    // If not, check the reason why: it may fail negatively or positively
-    if (matchy.isErr()) {
-      // Index unification fails negatively
-      if (matchy.getErr()) {
-        // If clauses is empty, we continue splitting to see
-        // if we can ensure that the other cases are impossible, it would be fine.
-        if (clauses.isNotEmpty() &&
-          // If clauses has catch-all pattern(s), it would also be fine.
-          clauses.noneMatch(seq -> seq.pat() instanceof Pat.Bind)
-        ) {
-          fail(new ClausesProblem.UnsureCase(pos, con, dataCall));
-          return null;
-        }
-      } else return null;
-      // ^ If fails positively, this would be an impossible case
-    } else conTele = conTele.map(param -> param.instTele(matchy.get().view()));
-    // Java wants a final local variable, let's alias it
-    return conTele;
+    return switch (PatternTycker.isConAvailable(dataCall, con, state())) {
+      // If not, check the reason why: it may fail negatively or positively
+      case Result.Err(var e) -> {
+        // Index unification fails negatively
+        if (e) {
+          // If clauses is empty, we continue splitting to see
+          // if we can ensure that the other cases are impossible, it would be fine.
+          if (clauses.isNotEmpty() &&
+            // If clauses has catch-all pattern(s), it would also be fine.
+            clauses.noneMatch(seq -> seq.pat() instanceof Pat.Bind)
+          ) {
+            fail(new ClausesProblem.UnsureCase(pos, con, dataCall));
+            yield null;
+          }
+          yield conTele;
+        } else yield null;
+        // ^ If fails positively, this would be an impossible case
+      }
+      case Result.Ok(var ok) -> conTele.map(param -> param.instTele(ok.view()));
+    };
   }
 }
