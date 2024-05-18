@@ -19,6 +19,7 @@ import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalCtx;
@@ -230,6 +231,7 @@ public sealed interface Pat extends AyaDocile {
       return new Pat.ShapedInt(repr, recognition, type);
     }
 
+    public @NotNull Term toTerm() { return new IntegerTerm(repr, recognition, type); }
     @Override public @NotNull ShapedInt map(@NotNull IntUnaryOperator f) {
       return new ShapedInt(f.applyAsInt(repr), recognition, type);
     }

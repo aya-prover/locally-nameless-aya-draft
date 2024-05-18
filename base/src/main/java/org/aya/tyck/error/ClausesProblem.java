@@ -22,14 +22,14 @@ public sealed interface ClausesProblem extends Problem {
   @Override default @NotNull Severity level() { return Severity.ERROR; }
 
   private static @NotNull Doc termToHint(@Nullable Term term, @NotNull PrettierOptions options) {
-    return term == null ? Doc.empty() : Doc.sep(Doc.english("(confluence check: this clause is substituted to)"),
+    return term == null ? Doc.empty() : Doc.sep(Doc.english("confluence: this clause is substituted to"),
       Doc.code(term.toDoc(options)));
   }
 
   record Conditions(
     @Override @NotNull SourcePos sourcePos,
     @NotNull SourcePos iPos,
-    int i, int j,
+    int i,
     @NotNull ImmutableSeq<Term> args,
     @NotNull UnifyInfo info,
     @NotNull UnifyInfo.Comparison comparison
@@ -38,9 +38,7 @@ public sealed interface ClausesProblem extends Problem {
       var begin = Doc.sep(
         Doc.plain("The"),
         Doc.ordinal(i),
-        Doc.english("clause matches on a constructor with condition(s). When checking the"),
-        Doc.ordinal(j),
-        Doc.english("condition, we failed to unify")
+        Doc.english("clause matches on a path constructor. We failed to unify")
       );
       var end = Doc.vcat(Doc.english("for the arguments:"),
         Doc.par(1, BasePrettier.coreArgsDoc(options, args.view())),

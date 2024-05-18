@@ -67,7 +67,7 @@ public class PatternTyckTest {
   @Test public void test2() {
     var result = tyck("""
       open data Nat | O | S Nat
-      
+
       prim I : ISet
       prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
       variable A B : Type
@@ -81,7 +81,7 @@ public class PatternTyckTest {
       | S a, b => S (a + b)
       | a, S b => S (a + b)
       tighter =
-      
+
       overlap def +-comm (a b: Nat): a + b = b + a
       | 0, _ => refl
       | _, 0 => refl

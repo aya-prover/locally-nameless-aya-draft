@@ -26,6 +26,7 @@ import org.aya.tyck.error.PrimError;
 import org.aya.tyck.error.UnifyError;
 import org.aya.tyck.error.UnifyInfo;
 import org.aya.tyck.pat.ClauseTycker;
+import org.aya.tyck.pat.IApplyConfl;
 import org.aya.tyck.pat.PatClassifier;
 import org.aya.tyck.pat.YouTrack;
 import org.aya.tyck.tycker.Problematic;
@@ -87,21 +88,22 @@ public record StmtTycker(
 
             var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
             FnDef def;
+            ClauseTycker.TyckResult patResult;
             if (orderIndependent) {
               // Order-independent.
-              var result = clauseTycker.checkNoClassify();
-              def = factory.apply(signature.result(), Either.right(result.wellTyped()));
-              if (!result.hasLhsError()) {
+              patResult = clauseTycker.checkNoClassify();
+              def = factory.apply(signature.result(), Either.right(patResult.wellTyped()));
+              if (!patResult.hasLhsError()) {
                 var rawParams = signature.rawParams();
                 var confluence = new YouTrack(rawParams, tycker, fnDecl.sourcePos());
-                confluence.check(result, signature.result(),
-                  PatClassifier.classify(result.clauses().view(), rawParams.view(), tycker, fnDecl.sourcePos()));
+                confluence.check(patResult, signature.result(),
+                  PatClassifier.classify(patResult.clauses().view(), rawParams.view(), tycker, fnDecl.sourcePos()));
               }
             } else {
-              var patResult = clauseTycker.check(fnDecl.entireSourcePos());
+              patResult = clauseTycker.check(fnDecl.entireSourcePos());
               def = factory.apply(signature.result(), Either.right(patResult.wellTyped()));
             }
-            // TODO: IApplyConfluence
+            if (!patResult.hasLhsError()) new IApplyConfl(def, tycker, fnDecl.sourcePos()).check();
             yield def;
           }
         };
