@@ -179,7 +179,7 @@ public record StmtTycker(
       if (tyResult instanceof EqTerm eq) {
         var state = tycker.state;
         var fresh = new FreeTerm("i");
-        tycker.unifyTermReported(eq.appA(fresh), freeDataCall, conTy.sourcePos(),
+        tycker.unifyTermReported(eq.appA(fresh), freeDataCall, null, conTy.sourcePos(),
           cmp -> new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
 
         selfTele = selfTele.appended(new WithPos<>(conTy.sourcePos(),
@@ -188,7 +188,7 @@ public record StmtTycker(
         boundaries = eq;
       } else {
         var state = tycker.state;
-        tycker.unifyTermReported(tyResult, freeDataCall, conTy.sourcePos(), cmp ->
+        tycker.unifyTermReported(tyResult, freeDataCall, null, conTy.sourcePos(), cmp ->
           new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
       }
     }
@@ -238,7 +238,7 @@ public record StmtTycker(
       PiTerm.make(tele.param().view().map(p -> p.data().type()), tele.result()),
       // No checks, slightly faster than TeleDef.defType
       PiTerm.make(core.telescope.view().map(Param::type), core.result),
-      prim.entireSourcePos(),
+      null, prim.entireSourcePos(),
       msg -> new PrimError.BadSignature(prim, msg, new UnifyInfo(tycker.state)));
     prim.signature = tele;
     tycker.solveMetas();

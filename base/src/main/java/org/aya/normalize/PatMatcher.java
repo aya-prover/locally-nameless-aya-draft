@@ -88,6 +88,17 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
     }
   }
 
+  public @NotNull Result<Term, Boolean> apply(
+    @NotNull Term.Matching matching,
+    @NotNull ImmutableSeq<Term> terms
+  ) {
+    try {
+      return Result.ok(matching.body().instantiateTele(matchMany(matching.patterns(), terms).view()));
+    } catch (Failure e) {
+      return Result.err(e.reason);
+    }
+  }
+
   /**
    * @see #match(Pat, Term)
    */
