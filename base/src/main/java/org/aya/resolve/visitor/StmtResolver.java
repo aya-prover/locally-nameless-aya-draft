@@ -119,11 +119,11 @@ public interface StmtResolver {
     }
   }
   private static <T extends TeleDecl<?> & TyckUnit>
-  void resolveMemberSignature(T ctor, ExprResolver bodyResolver, MutableValue<@NotNull Context> mCtx) {
-    ctor.modifyTelescope(t -> t.map(param -> bodyResolver.bind(param, mCtx)));
+  void resolveMemberSignature(T con, ExprResolver bodyResolver, MutableValue<@NotNull Context> mCtx) {
+    con.telescope = con.telescope.map(param -> bodyResolver.bind(param, mCtx));
     // If changed to method reference, `bodyResolver.enter(mCtx.get())` will be evaluated eagerly
     //  so please don't
-    ctor.modifyResult((pos, t) -> bodyResolver.enter(mCtx.get()).apply(pos, t));
+    con.modifyResult((pos, t) -> bodyResolver.enter(mCtx.get()).apply(pos, t));
   }
 
   private static void addReferences(@NotNull ResolveInfo info, TyckOrder decl, SeqView<TyckOrder> refs) {

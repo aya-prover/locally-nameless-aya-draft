@@ -53,13 +53,8 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     if (result != null) result = result.descent(f);
   }
 
-  public void modifyTelescope(@NotNull UnaryOperator<ImmutableSeq<Expr.Param>> f) {
-    telescope = f.apply(telescope);
-  }
-
-  @Override
-  public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
-    modifyTelescope(xs -> xs.map(param -> param.descent(f)));
+  @Override public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
+    telescope = telescope.map(param -> param.descent(f));
     modifyResult(f);
   }
 
