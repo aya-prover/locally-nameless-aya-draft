@@ -243,11 +243,10 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   }
 
   private @Nullable Term doCompareUntyped(@NotNull Term lhs, @NotNull Term rhs) {
-    // It's going to be used in the synthesizer, so we freeze it first
-    lhs = freezeHoles(lhs);
     if (lhs instanceof Formation form)
       return doCompareType(form, rhs) ?
-        new Synthesizer(this).synthDontNormalize(form) : null;
+        // It's going to be used in the synthesizer, so we freeze it first
+        new Synthesizer(this).synthDontNormalize(freezeHoles(form)) : null;
     return switch (lhs) {
       case AppTerm(var f, var a) -> {
         if (!(rhs instanceof AppTerm(var g, var b))) yield null;
