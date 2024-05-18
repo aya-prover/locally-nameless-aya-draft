@@ -26,6 +26,8 @@ import org.aya.tyck.error.PrimError;
 import org.aya.tyck.error.UnifyError;
 import org.aya.tyck.error.UnifyInfo;
 import org.aya.tyck.pat.ClauseTycker;
+import org.aya.tyck.pat.PatClassifier;
+import org.aya.tyck.pat.YouTrack;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.TeleTycker;
 import org.aya.util.error.WithPos;
@@ -80,15 +82,27 @@ public record StmtTycker(
           }
           case TeleDecl.BlockBody(var clauses, var elims) -> {
             // we do not load signature here, so we need a fresh ExprTycker
-            var clauseTycker = new ClauseTycker(mkTycker());
+            var clauseTycker = new ClauseTycker.Worker(new ClauseTycker(tycker = mkTycker()),
+              teleVars, signature, clauses, elims);
 
             var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
+            FnDef def;
             if (orderIndependent) {
-              throw new UnsupportedOperationException("Dame Desu!");
+              // Order-independent.
+              var result = clauseTycker.checkNoClassify();
+              def = factory.apply(signature.result(), Either.right(result.wellTyped()));
+              if (!result.hasLhsError()) {
+                var rawParams = signature.rawParams();
+                var confluence = new YouTrack(rawParams, tycker, fnDecl.sourcePos());
+                confluence.check(result, signature.result(),
+                  PatClassifier.classify(result.clauses().view(), rawParams.view(), tycker, fnDecl.sourcePos()));
+              }
             } else {
-              var patResult = clauseTycker.check(teleVars, signature, fnDecl.entireSourcePos(), clauses, elims);
-              yield factory.apply(signature.result(), Either.right(patResult.wellTyped()));
+              var patResult = clauseTycker.check(fnDecl.entireSourcePos());
+              def = factory.apply(signature.result(), Either.right(patResult.wellTyped()));
             }
+            // TODO: IApplyConfluence
+            yield def;
           }
         };
       }

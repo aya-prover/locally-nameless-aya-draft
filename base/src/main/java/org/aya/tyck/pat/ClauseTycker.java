@@ -55,26 +55,34 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     }
   }
 
-  public @NotNull TyckResult check(
+  public record Worker(
+    @NotNull ClauseTycker parent,
     @NotNull ImmutableSeq<LocalVar> vars,
-    @NotNull Signature<?> signature, SourcePos overallPos,
+    @NotNull Signature<?> signature,
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims
   ) {
-    var indices = elims.isEmpty() ? null : elims.mapToInt(ImmutableIntSeq.factory(),
-      i -> vars.indexOf(i.data()));
-    var lhsResult = checkAllLhs(indices, signature, clauses.view());
+    public @NotNull TyckResult check(@NotNull SourcePos overallPos) {
+      var lhsResult = parent.checkAllLhs(computeIndices(), signature, clauses.view());
 
-    if (lhsResult.noneMatch(r -> r.hasError)) {
-      var classes = PatClassifier.classify(lhsResult.view().map(LhsResult::clause),
-        signature.param().view().map(WithPos::data), exprTycker, overallPos);
-      if (clauses.isNotEmpty()) {
-        var usages = PatClassifier.firstMatchDomination(clauses, exprTycker.reporter, classes);
-        // refinePatterns(lhsResults, usages, classes);
+      if (lhsResult.noneMatch(r -> r.hasError)) {
+        var classes = PatClassifier.classify(lhsResult.view().map(LhsResult::clause),
+          signature.param().view().map(WithPos::data), parent.exprTycker, overallPos);
+        if (clauses.isNotEmpty()) {
+          var usages = PatClassifier.firstMatchDomination(clauses, parent.reporter(), classes);
+          // refinePatterns(lhsResults, usages, classes);
+        }
       }
-    }
 
-    return checkAllRhs(vars, lhsResult);
+      return parent.checkAllRhs(vars, lhsResult);
+    }
+    private @Nullable ImmutableIntSeq computeIndices() {
+      return elims.isEmpty() ? null : elims.mapToInt(ImmutableIntSeq.factory(),
+        i -> vars.indexOf(i.data()));
+    }
+    public @NotNull TyckResult checkNoClassify() {
+      return parent.checkAllRhs(vars, parent.checkAllLhs(computeIndices(), signature, clauses.view()));
+    }
   }
 
   public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
