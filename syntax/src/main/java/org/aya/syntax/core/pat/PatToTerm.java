@@ -27,7 +27,10 @@ public interface PatToTerm {
     @Override public Term apply(Pat pat) {
       return switch (pat) {
         case Pat.Absurd _ -> Panic.unreachable();
-        case Pat.Bind bind -> new FreeTerm(bind.bind());
+        case Pat.Bind bind -> {
+          freshCallback.accept(bind);
+          yield new FreeTerm(bind.bind());
+        }
         case Pat.Con con -> new ConCall(conHead(con), con.args().map(this));
         case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(this));
         case Pat.Meta meta -> new MetaPatTerm(meta);

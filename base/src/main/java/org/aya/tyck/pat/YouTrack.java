@@ -6,7 +6,6 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableLinkedSet;
 import kala.collection.mutable.MutableSet;
 import kala.control.Option;
-import kala.tuple.primitive.IntObjTuple2;
 import org.aya.normalize.PatMatcher;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
@@ -33,20 +32,19 @@ public record YouTrack(
   @NotNull ImmutableSeq<Param> telescope,
   @NotNull ExprTycker tycker, @NotNull SourcePos pos
 ) {
+  private record Info(int ix, @NotNull Term.Matching matching) { }
   private void unifyClauses(
-    Term result,
-    PatMatcher prebuiltMatcher,
-    IntObjTuple2<Term.Matching> lhsInfo,
-    IntObjTuple2<Term.Matching> rhsInfo,
+    Term result, PatMatcher prebuiltMatcher,
+    Info lhsInfo, Info rhsInfo,
     MutableSet<ClausesProblem.Domination> doms
   ) {
     var ctx = tycker.localCtx().derive();
     var args = new PatToTerm.Binary(ctx).list(
-      lhsInfo.component2().patterns(), rhsInfo.component2().patterns());
-    domination(ctx, args, lhsInfo.component1(), rhsInfo.component1(), rhsInfo.component2(), doms);
-    domination(ctx, args, rhsInfo.component1(), lhsInfo.component1(), lhsInfo.component2(), doms);
-    var lhsTerm = prebuiltMatcher.apply(lhsInfo.component2(), args).get();
-    var rhsTerm = prebuiltMatcher.apply(rhsInfo.component2(), args).get();
+      lhsInfo.matching.patterns(), rhsInfo.matching.patterns());
+    domination(ctx, args, lhsInfo.ix, rhsInfo.ix, rhsInfo.matching, doms);
+    domination(ctx, args, rhsInfo.ix, lhsInfo.ix, lhsInfo.matching, doms);
+    var lhsTerm = prebuiltMatcher.apply(lhsInfo.matching, args).get();
+    var rhsTerm = prebuiltMatcher.apply(rhsInfo.matching, args).get();
     // // TODO: Currently all holes at this point are in an ErrorTerm
     // if (lhsTerm instanceof ErrorTerm error && error.description() instanceof MetaCall hole) {
     //   hole.ref().conditions.append(Tuple.of(lhsSubst, rhsTerm));
@@ -57,8 +55,8 @@ public record YouTrack(
     result = result.instantiateTele(args.view());
     var old = tycker.setLocalCtx(ctx);
     tycker.unifyTermReported(lhsTerm, rhsTerm, result, pos, comparison ->
-      new ClausesProblem.Confluence(pos, rhsInfo.component1() + 1, lhsInfo.component1() + 1,
-        comparison, new UnifyInfo(tycker.state), rhsInfo.component2().sourcePos(), lhsInfo.component2().sourcePos()));
+      new ClausesProblem.Confluence(pos, rhsInfo.ix + 1, lhsInfo.ix + 1,
+        comparison, new UnifyInfo(tycker.state), rhsInfo.matching.sourcePos(), lhsInfo.matching.sourcePos()));
     tycker.setLocalCtx(old);
   }
 
@@ -80,7 +78,7 @@ public record YouTrack(
     mct.forEach(results -> {
       var contents = results.cls()
         .flatMapToObj(i -> Option.ofNullable(Pat.Preclause.lift(clauses.clauses().get(i)))
-          .map(matching -> IntObjTuple2.of(i, matching)));
+          .map(matching -> new Info(i, matching)));
       for (int i = 1, size = contents.size(); i < size; i++)
         unifyClauses(type, prebuildMatcher, contents.get(i - 1), contents.get(i), doms);
     });
