@@ -94,11 +94,9 @@ public final class PrimDef extends TopLevelDef<Term> {
     public Factory() {
       var init = new Initializer();
       seeds = ImmutableMap.from(ImmutableSeq.of(
-        init.stringType,
         init.stringConcat,
         init.intervalType,
         init.partialType,
-        init.coe,
         init.hcomp
       ).map(seed -> Tuple.of(seed.name, seed)));
     }

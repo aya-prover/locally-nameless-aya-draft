@@ -256,7 +256,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         var name = refVar(con.resolved().data());
         var ctorDoc = con.params().isEmpty()
           ? name
-          : Doc.sep(name, visitMaybeCtorPatterns(con.params(), Outer.AppSpine, Doc.ALT_WS));
+          : Doc.sep(name, visitMaybeConPatterns(con.params(), Outer.AppSpine, Doc.ALT_WS));
         yield ctorDoc(outer, licit, ctorDoc, con.params().isEmpty());
       }
       case Pattern.QualifiedRef qref -> Doc.bracedUnless(Doc.plain(qref.qualifiedID().join()), licit);
@@ -264,7 +264,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         if (param.sizeEquals(1)) {
           yield pattern(param.getFirst().map(WithPos::data), outer);
         }
-        var ctorDoc = visitMaybeCtorPatterns(param.view(), Outer.AppSpine, Doc.ALT_WS);
+        var ctorDoc = visitMaybeConPatterns(param.view(), Outer.AppSpine, Doc.ALT_WS);
         yield ctorDoc(outer, licit, ctorDoc, param.sizeLessThanOrEquals(1));
       }
       case Pattern.List list -> Doc.sep(
@@ -287,13 +287,13 @@ public class ConcretePrettier extends BasePrettier<Expr> {
     };
   }
 
-  private Doc visitMaybeCtorPatterns(SeqLike<Arg<WithPos<Pattern>>> patterns, Outer outer, @NotNull Doc delim) {
+  private Doc visitMaybeConPatterns(SeqLike<Arg<WithPos<Pattern>>> patterns, Outer outer, @NotNull Doc delim) {
     patterns = options.map.get(AyaPrettierOptions.Key.ShowImplicitPats) ? patterns : patterns.view().filter(Arg::explicit);
     return Doc.join(delim, patterns.view().map(p -> pattern(p.map(WithPos::data), outer)));
   }
 
   public Doc matchy(@NotNull Pattern.Clause match) {
-    var doc = visitMaybeCtorPatterns(match.patterns, Outer.Free, Doc.plain(", "));
+    var doc = visitMaybeConPatterns(match.patterns, Outer.Free, Doc.plain(", "));
     return match.expr.map(e -> Doc.sep(doc, FN_DEFINED_AS, term(Outer.Free, e))).getOrDefault(doc);
   }
 
@@ -388,19 +388,13 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         });
         yield Doc.sepNonEmpty(doc);
       }*/
-      case TeleDecl.DataCon ctor -> {
-        var ret = ctor.result == null ? Doc.empty() : Doc.sep(HAS_TYPE, term(Outer.Free, ctor.result));
-        var doc = Doc.cblock(Doc.sepNonEmpty(
-          coe(ctor.coerce),
-          defVar(ctor.ref),
-          visitTele(ctor.telescope),
-          ret), 2, Doc.empty() /*partial(ctor.clauses)*/);    // TODO: partial
-        /*
-        if (ctor.patterns.isNotEmpty()) {
-          yield Doc.sep(BAR, patterns(ctor.patterns), FN_DEFINED_AS, doc);
+      case TeleDecl.DataCon con -> {
+        var ret = con.result == null ? Doc.empty() : Doc.sep(HAS_TYPE, term(Outer.Free, con.result));
+        var doc = Doc.sepNonEmpty(coe(con.coerce), defVar(con.ref), visitTele(con.telescope), ret);
+        if (con.patterns.isNotEmpty()) {
+          yield Doc.sep(BAR, Doc.commaList(con.patterns.map(pat ->
+            pattern(pat.map(WithPos::data), Outer.Free))), FN_DEFINED_AS, doc);
         } else yield Doc.sep(BAR, doc);
-        */
-        yield Doc.sep(BAR, doc);
       }
       case TeleDecl.PrimDecl primDecl -> primDoc(primDecl.ref);
     };
