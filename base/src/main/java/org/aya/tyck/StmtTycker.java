@@ -179,7 +179,7 @@ public record StmtTycker(
       if (tyResult instanceof EqTerm eq) {
         var state = tycker.state;
         var fresh = new FreeTerm("i");
-        tycker.unifyTermReported(AppTerm.make(eq.A(), fresh), freeDataCall, conTy.sourcePos(),
+        tycker.unifyTermReported(eq.appA(fresh), freeDataCall, conTy.sourcePos(),
           cmp -> new UnifyError.ConReturn(conDecl, cmp, new UnifyInfo(state)));
 
         selfTele = selfTele.appended(new WithPos<>(conTy.sourcePos(),

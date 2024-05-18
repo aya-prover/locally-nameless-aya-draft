@@ -59,6 +59,7 @@ public record DoubleChecker(
         }
         case EqTerm eq -> {
           var param = putIndex(DimTyTerm.INSTANCE);
+          // TODO: check boundaries
           yield inherit(body.instantiate(param), eq.A());
         }
         default -> failF(new BadExprError(preterm, unifier.pos, expected));

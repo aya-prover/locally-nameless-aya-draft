@@ -120,11 +120,10 @@ public record Synthesizer(
         yield trySynth(whnf(meta));
       }
       case CoeTerm coe -> coe.family();
-      case EqTerm eq -> trySynth(AppTerm.make(eq.A(), DimTerm.I0));
+      case EqTerm eq -> trySynth(eq.appA(DimTerm.I0));
       case PAppTerm papp -> {
-        var fTy = trySynth(papp.fun());
-        if (!(fTy instanceof EqTerm eq)) yield null;
-        yield AppTerm.make(eq.A(), papp.arg());
+        if (!(trySynth(papp.fun()) instanceof EqTerm eq)) yield null;
+        yield eq.appA(papp.arg());
       }
       case ErrorTerm error -> ErrorTerm.typeOf(error);
       case SortTerm sort -> sort.succ();

@@ -173,7 +173,7 @@ public record PatClassifier(
   conTele(@NotNull ImmutableSeq<? extends Indexed<?>> clauses, DataCall dataCall, ConDef con) {
     var conTele = con.selfTele.view();
     // Check if this constructor is available by doing the obvious thing
-    return switch (PatternTycker.isConAvailable(dataCall, con, state())) {
+    return switch (PatternTycker.checkAvail(dataCall, con, state())) {
       // If not, check the reason why: it may fail negatively or positively
       case Result.Err(var e) -> {
         // Index unification fails negatively

@@ -437,7 +437,7 @@ public class PatternTycker implements Problematic, Stateful {
     var body = TeleDef.dataBody(dataRef);
     for (var con : body) {
       if (name != null && con.ref() != name) continue;
-      var matchy = isConAvailable(dataCall, con, exprTycker.state);
+      var matchy = checkAvail(dataCall, con, exprTycker.state);
       if (matchy.isOk()) {
         return new Selection(dataCall, matchy.get(), dataCall.conHead(con.ref()));
       }
@@ -465,10 +465,8 @@ public class PatternTycker implements Problematic, Stateful {
   /**
    * Check whether {@param con} is available under {@param type}
    */
-  public static @NotNull Result<ImmutableSeq<Term>, Boolean> isConAvailable(
-    @NotNull DataCall type,
-    @NotNull ConDef con,
-    @NotNull TyckState state
+  public static @NotNull Result<ImmutableSeq<Term>, Boolean> checkAvail(
+    @NotNull DataCall type, @NotNull ConDef con, @NotNull TyckState state
   ) {
     if (con.pats.isNotEmpty()) {
       var matcher = new PatMatcher(true, new Normalizer(state));
@@ -492,7 +490,6 @@ public class PatternTycker implements Problematic, Stateful {
   }
 
   /// endregion Helper
-
   /// region Error Reporting
 
   @Override public @NotNull Reporter reporter() { return exprTycker.reporter; }

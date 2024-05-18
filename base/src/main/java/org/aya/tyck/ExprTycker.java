@@ -18,7 +18,6 @@ import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
-import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.*;
 import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.*;
@@ -32,7 +31,6 @@ import org.aya.util.error.Panic;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
-import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +81,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         case EqTerm eq -> {
           var core = subscoped(() -> {
             localCtx().put(ref, DimTyTerm.INSTANCE);
-            return inherit(body, AppTerm.make(eq.A(), new FreeTerm(ref))).wellTyped();
+            return inherit(body, eq.appA(new FreeTerm(ref))).wellTyped();
           }).bind(ref);
           checkBoundaries(eq, core, body.sourcePos(), msg ->
             new CubicalError.BoundaryDisagree(expr, msg, new UnifyInfo(state)));
@@ -120,13 +118,6 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       case Expr.Let let -> checkLet(let, e -> inherit(e, type));
       default -> inheritFallbackUnify(type, synthesize(expr), expr);
     };
-  }
-  private void checkBoundaries(
-    EqTerm eq, Term core, @NotNull SourcePos pos,
-    @NotNull Function<UnifyInfo.Comparison, Problem> report
-  ) {
-    unifyTermReported(core.instantiate(DimTerm.I0), eq.a(), pos, report);
-    unifyTermReported(core.instantiate(DimTerm.I1), eq.b(), pos, report);
   }
 
   // TODO: coercive subtyping if needed
@@ -304,9 +295,9 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           var wellTy = inherit(arg.arg(), param).wellTyped();
           return new Jdg.Default(AppTerm.make(acc.wellTyped(), wellTy), body.instantiate(wellTy));
         }
-        case EqTerm(Term A, Term a, Term b) -> {
+        case EqTerm eq -> {
           var wellTy = inherit(arg.arg(), DimTyTerm.INSTANCE).wellTyped();
-          return new Jdg.Default(new PAppTerm(acc.wellTyped(), wellTy, a, b).make(), A.instantiate(wellTy));
+          return new Jdg.Default(eq.makePApp(acc.wellTyped(), wellTy).make(), eq.appA(wellTy));
         }
         default -> throw new NotPi(acc.type());
       }

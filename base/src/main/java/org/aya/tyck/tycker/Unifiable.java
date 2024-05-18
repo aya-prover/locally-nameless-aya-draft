@@ -4,6 +4,8 @@ package org.aya.tyck.tycker;
 
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.xtt.DimTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.tyck.error.UnifyError;
 import org.aya.tyck.error.UnifyInfo;
 import org.aya.unify.TermComparator;
@@ -48,7 +50,15 @@ public interface Unifiable extends Problematic, Stateful {
     return result == null;
   }
 
- default boolean unifyTermReported(
+  default void checkBoundaries(
+    EqTerm eq, Term core, @NotNull SourcePos pos,
+    @NotNull Function<UnifyInfo.Comparison, Problem> report
+  ) {
+    unifyTermReported(core.instantiate(DimTerm.I0), eq.a(), pos, report);
+    unifyTermReported(core.instantiate(DimTerm.I1), eq.b(), pos, report);
+  }
+
+  default boolean unifyTermReported(
     @NotNull Term lhs, @NotNull Term rhs, @NotNull SourcePos pos,
     @NotNull Function<UnifyInfo.Comparison, Problem> pc
   ) {
