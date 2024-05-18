@@ -55,9 +55,11 @@ public record YouTrack(
     //   hole.ref().conditions.append(Tuple.of(rhsSubst, lhsTerm));
     // }
     result = result.instantiateTele(args.view());
+    var old = tycker.setLocalCtx(ctx);
     tycker.unifyTermReported(lhsTerm, rhsTerm, result, pos, comparison ->
       new ClausesProblem.Confluence(pos, rhsInfo.component1() + 1, lhsInfo.component1() + 1,
         comparison, new UnifyInfo(tycker.state), rhsInfo.component2().sourcePos(), lhsInfo.component2().sourcePos()));
+    tycker.setLocalCtx(old);
   }
 
   private void domination(

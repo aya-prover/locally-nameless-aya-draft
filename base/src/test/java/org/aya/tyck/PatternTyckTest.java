@@ -15,11 +15,11 @@ public class PatternTyckTest {
   @Test public void test0() {
     var result = tyck("""
       open data Nat | O | S Nat
-
+      
       def infix + (a b: Nat): Nat
       | 0, b => b
       | S a', b => S (a' + b)
-
+      
       def foo : Nat => (S O) + (S (S O))
       """);
     assert result.isNotEmpty();
@@ -46,21 +46,34 @@ public class PatternTyckTest {
       open data Vec Nat Type
       | 0, A => vnil
       | S n, A => infixr vcons A (Vec n A)
-
+      
       def length (A : Type) (n : Nat) (v : Vec n A) : Nat elim v
       | vnil => 0
       | _ vcons xs => S (length _ _ xs)
-
+      
       def threeTimesAhThreeTimes (A : Type) (a : A) : Vec 3 A =>
         a vcons a vcons a vcons vnil
-
+      
       def head (A : Type) (n : Nat) (v : Vec (S n) A) : A elim v
       | x vcons _ => x
-
+      
       def unwrap (A : Type) (v : Vec 1 A) : A elim v
       | x vcons vnil => x
       """);
 
     assertTrue(result.isNotEmpty());
+  }
+
+  @Test public void test2() {
+    var result = tyck("""
+      open data Nat | O | S Nat
+      
+      overlap def infix + (a b: Nat): Nat
+      | 0, b => b
+      | a, 0 => a
+      | S a, b => S (a + b)
+      | a, S b => S (a + b)
+      """);
+    assert result.isNotEmpty();
   }
 }
