@@ -50,13 +50,11 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   }
 
   public ExprTycker(
-    @NotNull TyckState state,
-    @NotNull LocalCtx ctx,
-    @NotNull LocalLet localLet,
+    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull LocalLet let,
     @NotNull Reporter reporter
   ) {
     super(state, ctx, reporter);
-    this.localLet = localLet;
+    this.localLet = let;
   }
 
   public void solveMetas() {
@@ -91,7 +89,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       };
       case Expr.Hole hole -> {
         var freshHole = freshMeta(Constants.randomName(hole), expr.sourcePos(), new MetaVar.OfType(type));
-        if (hole.explicit()) reporter.report(new Goal(state, freshHole, hole.accessibleLocal().get()));
+        if (hole.explicit()) fail(new Goal(state, freshHole, hole.accessibleLocal().get()));
         yield new Jdg.Default(freshHole, type);
       }
       case Expr.LitInt(var end) -> {

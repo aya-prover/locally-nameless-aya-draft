@@ -75,7 +75,7 @@ public record StmtTycker(
             var result = tycker.inherit(expr, tycker.whnf(signature.result().instantiateTeleVar(teleVars.view())))
               // we still need to bind [result.type()] in case it was a hole
               .bindTele(teleVars.view());
-            result = tycker.freezeHoles(result);
+            result = tycker.zonk(result);
             yield factory.apply(result.type(), Either.left(result.wellTyped()));
           }
           case TeleDecl.BlockBody(var clauses, var elims) -> {
@@ -196,10 +196,10 @@ public record StmtTycker(
 
     // the result will refer to the telescope of con if it has patterns,
     // the path result may also refer to it, so we need to bind both
-    var boundDataCall = (DataCall) freeDataCall.bindTele(selfTeleVars);
-    if (boundaries != null) boundaries = (EqTerm) boundaries.bindTele(selfTeleVars);
+    var boundDataCall = (DataCall) tycker.zonk(freeDataCall).bindTele(selfTeleVars);
+    if (boundaries != null) boundaries = (EqTerm) tycker.zonk(boundaries).bindTele(selfTeleVars);
     var boundariesWithDummy = boundaries != null ? boundaries : SortTerm.Type0;
-    var selfSig = new Signature<>(selfTele, new TupTerm(
+    var selfSig = new Signature<>(tycker.zonk(selfTele), new TupTerm(
       // This is a silly hack that allows two terms to appear in the result of a Signature
       // I considered using `AppTerm` but that is more disgraceful
       ImmutableSeq.of(boundDataCall, boundariesWithDummy))).bindTele(ownerBinds.view());

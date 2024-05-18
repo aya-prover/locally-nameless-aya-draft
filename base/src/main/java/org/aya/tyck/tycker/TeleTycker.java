@@ -29,7 +29,7 @@ public sealed interface TeleTycker extends Contextful {
    */
   @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr);
   void solveMetas();
-  @NotNull Term freeze(@NotNull Term term);
+  @NotNull Term zonk(@NotNull Term term);
 
   /**
    * @return a locally nameless signature computed from what's in the localCtx.
@@ -44,11 +44,14 @@ public sealed interface TeleTycker extends Contextful {
     var checkedResult = checkType(result).bindTele(locals.view());
     solveMetas();
     var finalParam = checkedParam.map(p -> p.map(q ->
-      q.descent(this::freeze)));
-    var finalResult = checkedResult.descent(this::freeze);
+      q.descent(this::zonk)));
+    var finalResult = checkedResult.descent(this::zonk);
     return new Signature<>(finalParam, finalResult);
   }
 
+  /**
+   * Does not zonk the result. Need <emph>you</emph> to zonk them.
+   */
   default @NotNull ImmutableSeq<WithPos<Param>> checkTele(
     @NotNull ImmutableSeq<Expr.Param> cTele
   ) {
@@ -108,7 +111,7 @@ public sealed interface TeleTycker extends Contextful {
   sealed interface Impl extends TeleTycker {
     @NotNull ExprTycker tycker();
     @Override default void solveMetas() { tycker().solveMetas(); }
-    @Override default @NotNull Term freeze(@NotNull Term term) { return tycker().freezeHoles(term); }
+    @Override default @NotNull Term zonk(@NotNull Term term) { return tycker().zonk(term); }
     @Override default @NotNull LocalCtx localCtx() { return tycker().localCtx(); }
     @Override default @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) { return tycker().setLocalCtx(ctx); }
   }

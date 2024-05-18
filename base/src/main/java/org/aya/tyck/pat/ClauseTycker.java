@@ -219,11 +219,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     return TermInline.apply(term);
   }
   private static @NotNull Jdg inlineTerm(@NotNull Jdg r) {
-    return switch (r) {
-      case Jdg.Default(var term, var type) -> new Jdg.Default(inlineTerm(term), inlineTerm(type));
-      case Jdg.Sort sort -> sort;
-      case Jdg.Lazy lazy -> lazy.map(ClauseTycker::inlineTerm);
-    };
+    return r.map(ClauseTycker::inlineTerm);
   }
 
   /**

@@ -33,11 +33,5 @@ public interface Stateful {
   default @NotNull Term freezeHoles(@NotNull Term term) {
     return new Finalizer.Freeze(this).zonk(term);
   }
-  default @NotNull Jdg freezeHoles(@NotNull Jdg r) {
-    return switch (r) {
-      case Jdg.Default(var term, var type) -> new Jdg.Default(freezeHoles(term), freezeHoles(type));
-      case Jdg.Sort sort -> sort;
-      case Jdg.Lazy lazy -> lazy.map(this::freezeHoles);
-    };
-  }
+  default @NotNull Jdg freezeHoles(@NotNull Jdg r) { return r.map(this::freezeHoles); }
 }

@@ -5,10 +5,10 @@ package org.aya.normalize;
 import kala.collection.mutable.MutableSinglyLinkedList;
 import org.aya.normalize.error.UnsolvedLit;
 import org.aya.normalize.error.UnsolvedMeta;
-import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
@@ -35,6 +35,9 @@ public interface Finalizer {
   record Zonk<T extends Problematic & Stateful>(
     @NotNull T delegate, @NotNull MutableSinglyLinkedList<Term> stack
   ) implements Finalizer, Stateful, Problematic {
+    public Zonk(@NotNull T delegate) {
+      this(delegate, MutableSinglyLinkedList.create());
+    }
     @Override public @NotNull TyckState state() { return delegate.state(); }
     @Override public @NotNull Reporter reporter() { return delegate.reporter(); }
     public @NotNull Term zonk(@NotNull Term term) {

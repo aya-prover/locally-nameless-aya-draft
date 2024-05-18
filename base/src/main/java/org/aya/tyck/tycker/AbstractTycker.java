@@ -2,8 +2,11 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.tycker;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.value.LazyValue;
 import org.aya.generic.NameGenerator;
+import org.aya.normalize.Finalizer;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -12,6 +15,7 @@ import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
 import org.aya.unify.Synthesizer;
 import org.aya.unify.TermComparator;
+import org.aya.util.error.WithPos;
 import org.aya.util.reporter.Reporter;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,4 +50,12 @@ public sealed abstract class AbstractTycker implements Stateful, Contextful, Pro
     localCtx.put(var, type);
     return var;
   }
+
+  public @NotNull Term zonk(Term t) {
+    return new Finalizer.Zonk<>(this).zonk(t);
+  }
+  public ImmutableSeq<WithPos<Param>> zonk(ImmutableSeq<WithPos<Param>> tele) {
+    return tele.map(wp -> wp.map(p -> p.descent(this::zonk)));
+  }
+  public @NotNull Jdg zonk(@NotNull Jdg result) { return result.map(this::zonk); }
 }

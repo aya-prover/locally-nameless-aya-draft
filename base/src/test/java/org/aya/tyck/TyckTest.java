@@ -71,6 +71,19 @@ public class TyckTest {
     assertTrue(result.isNotEmpty());
   }
 
+  @Test public void issue768() {
+    var result = tyck("""
+      open data Unit | unit
+      data Nat | O | S Nat
+      open data SomeDT Nat
+      | m => someDT
+      def how' {m : Nat} (a : Nat) (b : SomeDT m) : Nat => 0
+      def what {A : Nat -> Type} (B : Fn (n : Nat) -> A n -> Nat) : Unit => unit
+      def boom : Unit => what (fn n => fn m => how' 0 m)
+      """);
+    assertTrue(result.isNotEmpty());
+  }
+
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
     var stmts = SyntaxTestUtil.parse(code);
     var resolveInfo = SyntaxTestUtil.resolve(ImmutableSeq.narrow(stmts));
