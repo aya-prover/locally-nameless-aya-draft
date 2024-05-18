@@ -89,7 +89,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       };
       case Expr.Hole hole -> {
         var freshHole = freshMeta(Constants.randomName(hole), expr.sourcePos(), new MetaVar.OfType(type));
-        if (hole.explicit()) fail(new Goal(state, freshHole, hole.accessibleLocal().get()));
+        if (hole.explicit()) fail(new Goal(state, freshHole, hole.accessibleLocal()));
         yield new Jdg.Default(freshHole, type);
       }
       case Expr.LitInt(var end) -> {
