@@ -81,10 +81,7 @@ public sealed interface Pat extends AyaDocile {
     return new CorePrettier(options).pat(this, true, BasePrettier.Outer.Free);
   }
 
-  record Bind(
-    @NotNull LocalVar bind,
-    @NotNull Term type
-  ) implements Pat {
+  record Bind(@NotNull LocalVar bind, @NotNull Term type) implements Pat {
     public @NotNull Bind update(@NotNull Term type) {
       return this.type == type ? this : new Bind(bind, type);
     }
