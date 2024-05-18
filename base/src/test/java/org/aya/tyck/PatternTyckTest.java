@@ -68,11 +68,25 @@ public class PatternTyckTest {
     var result = tyck("""
       open data Nat | O | S Nat
       
+      prim I : ISet
+      prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
+      variable A B : Type
+      def infix = (a b : A) : Type => Path (\\i => A) a b
+      def refl {a : A} : a = a => \\i => a
+      def pmap (f : A -> B) {a b : A} (p : a = b) : f a = f b => \\i => f (p i)
+
       overlap def infix + (a b: Nat): Nat
       | 0, b => b
       | a, 0 => a
       | S a, b => S (a + b)
       | a, S b => S (a + b)
+      tighter =
+      
+      overlap def +-comm (a b: Nat): a + b = b + a
+      | 0, _ => refl
+      | _, 0 => refl
+      | S a, b => pmap (\\n => S n) (+-comm a b)
+      | a, S b => pmap (\\n => S n) (+-comm a b)
       """);
     assert result.isNotEmpty();
   }

@@ -52,7 +52,7 @@ public record YouTrack(
     // if (rhsTerm instanceof ErrorTerm error && error.description() instanceof MetaCall hole) {
     //   hole.ref().conditions.append(Tuple.of(rhsSubst, lhsTerm));
     // }
-    result = result.instantiateTele(args.view());
+    result = tycker.whnf(result.instantiateTele(args.view()));
     var old = tycker.setLocalCtx(ctx);
     tycker.unifyTermReported(lhsTerm, rhsTerm, result, pos, comparison ->
       new ClausesProblem.Confluence(pos, rhsInfo.ix + 1, lhsInfo.ix + 1,

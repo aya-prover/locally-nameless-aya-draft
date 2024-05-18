@@ -9,9 +9,9 @@ import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) implements BetaRedex {
-  public @NotNull PAppTerm update(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) {
+  public @NotNull Term update(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) {
     if (this.fun == fun && this.arg == arg && this.a == a && this.b == b) return this;
-    return new PAppTerm(fun, arg, a, b);
+    return new PAppTerm(fun, arg, a, b).make();
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {

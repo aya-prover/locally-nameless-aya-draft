@@ -288,7 +288,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   private Jdg generateApplication(@NotNull ImmutableSeq<Expr.NamedArg> args, Jdg start) throws NotPi {
     return args.foldLeftChecked(start, (acc, arg) -> {
       if (arg.name() != null || !arg.explicit()) fail(new LicitError.BadNamedArg(arg));
-      switch (acc.type()) {
+      switch (whnf(acc.type())) {
         case PiTerm(var param, var body) -> {
           var wellTy = inherit(arg.arg(), param).wellTyped();
           return new Jdg.Default(AppTerm.make(acc.wellTyped(), wellTy), body.instantiate(wellTy));
@@ -297,7 +297,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           var wellTy = inherit(arg.arg(), DimTyTerm.INSTANCE).wellTyped();
           return new Jdg.Default(eq.makePApp(acc.wellTyped(), wellTy).make(), eq.appA(wellTy));
         }
-        default -> throw new NotPi(acc.type());
+        case Term otherwise -> throw new NotPi(otherwise);
       }
     });
   }

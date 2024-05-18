@@ -14,10 +14,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
-import org.aya.syntax.core.term.xtt.CoeTerm;
-import org.aya.syntax.core.term.xtt.DimTerm;
-import org.aya.syntax.core.term.xtt.DimTyTerm;
-import org.aya.syntax.core.term.xtt.EqTerm;
+import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -153,7 +150,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       return compareUntyped(lhs, rhs) != null;
     }
 
-    var result = doCompareTyped(preLhs, preRhs, type);
+    var result = doCompareTyped(lhs, rhs, type);
     if (!result) fail(lhs, rhs);
     return result;
   }
@@ -187,6 +184,19 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         });
         case Pair(LamTerm lambda, _) -> compareLambda(lambda, rhs, pi);
         case Pair(_, LamTerm rambda) -> compareLambda(rambda, lhs, pi);
+        default -> compare(lhs, rhs, null);
+      };
+      case EqTerm eq -> switch (new Pair<>(lhs, rhs)) {
+        case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> subscoped(() -> {
+          var var = putIndex(DimTyTerm.INSTANCE);
+          return compare(
+            lbody.instantiate(var),
+            rbody.instantiate(var),
+            eq.appA(new FreeTerm(var))
+          );
+        });
+        case Pair(LamTerm lambda, _) -> compareLambda(lambda, rhs, eq);
+        case Pair(_, LamTerm rambda) -> compareLambda(rambda, lhs, eq);
         default -> compare(lhs, rhs, null);
       };
       case SigmaTerm(var paramSeq) -> {
@@ -240,6 +250,13 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         if (!(fTy instanceof PiTerm pi)) yield null;
         if (!compare(a, b, pi.param())) yield null;
         yield pi.body().instantiate(a);
+      }
+      case PAppTerm(var f, var a, _, _) -> {
+        if (!(rhs instanceof PAppTerm(var g, var b, _, _))) yield null;
+        var fTy = compareUntyped(f, g);
+        if (!(fTy instanceof EqTerm eq)) yield null;
+        if (!compare(a, b, DimTyTerm.INSTANCE)) yield null;
+        yield eq.appA(a);
       }
       case CoeTerm coe -> {
         if (!(rhs instanceof CoeTerm(var rType, var rR, var rS))) yield null;
@@ -295,15 +312,23 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return null;
   }
 
-  /**
-   * Compare {@param lambda} and {@param rhs} with {@param type}
-   */
+  /** Compare {@param lambda} and {@param rhs} with {@param type} */
   private boolean compareLambda(@NotNull LamTerm lambda, @NotNull Term rhs, @NotNull PiTerm type) {
     return subscoped(() -> {
       var var = putIndex(type.param());
       var lhsBody = lambda.body().instantiate(var);
       var rhsBody = AppTerm.make(rhs, new FreeTerm(var));
       return compare(lhsBody, rhsBody, type.body().instantiate(var));
+    });
+  }
+
+  private boolean compareLambda(@NotNull LamTerm lambda, @NotNull Term rhs, @NotNull EqTerm type) {
+    return subscoped(() -> {
+      var var = putIndex(DimTyTerm.INSTANCE);
+      var lhsBody = lambda.body().instantiate(var);
+      var free = new FreeTerm(var);
+      var rhsBody = AppTerm.make(rhs, free);
+      return compare(lhsBody, rhsBody, type.appA(free));
     });
   }
 
@@ -319,7 +344,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     for (var i = 0; i < list.size(); ++i) {
       var l = list.get(i);
       var r = rist.get(i);
-      var ty = typeView.getFirst();
+      var ty = whnf(typeView.getFirst());
       if (!compare(l, r, ty)) return false;
       typeView = typeView.drop(1).mapIndexed((j, x) -> x.replace(j, l));
     }
