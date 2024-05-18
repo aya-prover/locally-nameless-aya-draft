@@ -78,6 +78,7 @@ public record StmtTycker(
             var result = tycker.inherit(expr, tycker.whnf(signature.result().instantiateTeleVar(teleVars.view())))
               // we still need to bind [result.type()] in case it was a hole
               .bindTele(teleVars.view());
+            tycker.solveMetas();
             result = tycker.zonk(result);
             yield factory.apply(result.type(), Either.left(result.wellTyped()));
           }

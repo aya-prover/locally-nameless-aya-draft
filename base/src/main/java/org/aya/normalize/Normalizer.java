@@ -42,6 +42,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
 
     return switch (postTerm) {
       case StableWHNF _ -> Panic.unreachable();
+      case FreeTerm free -> free;
       case BetaRedex app -> {
         var result = app.make();
         yield result == app ? result : whnf(result);

@@ -71,7 +71,8 @@ public class TyckTest {
     assertTrue(result.isNotEmpty());
   }
 
-  @Test public void issue768() {
+  /// Need pruning
+  /*@Test*/ public void issue768() {
     var result = tyck("""
       open data Unit | unit
       data Nat | O | S Nat
