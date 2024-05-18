@@ -88,6 +88,40 @@ public class PatternTyckTest {
       | S a, b => pmap (\\n => S n) (+-comm a b)
       | a, S b => pmap (\\n => S n) (+-comm a b)
       """);
-    assert result.isNotEmpty();
+    assertTrue(result.isNotEmpty());
+  }
+
+  @Test public void test3() {
+    var result = tyck("""
+      open data Nat | O | S Nat
+
+      prim I : ISet
+      prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
+      variable A B : Type
+      def infix = (a b : A) : Type => Path (\\i => A) a b
+      def refl {a : A} : a = a => \\i => a
+
+      overlap def infix +' (a b: Nat): Nat
+      | 0, b => b
+      | a, 0 => a
+      | S a, b => S (a +' b)
+      | a, S b => S (a +' b)
+      tighter =
+
+      open data Int
+      | pos Nat | neg Nat
+      | zro : pos 0 = neg 0
+
+      def succ Int : Int
+      | pos n => pos (S n)
+      | neg 0 => pos 1
+      | neg (S n) => neg n
+      | zro i => pos 1
+
+      def abs Int : Nat
+      | pos n => n
+      | neg n => n
+      | zro _ => 0
+      """);
   }
 }

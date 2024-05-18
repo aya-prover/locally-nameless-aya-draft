@@ -154,8 +154,7 @@ public sealed interface Expr extends AyaDocile {
       assert param.type() instanceof Expr.Hole;
     }
 
-    @Override
-    public @NotNull Param param() {
+    @Override public @NotNull Param param() {
       return new Param(ref.definition(), ref, true);
     }
 
@@ -191,8 +190,7 @@ public sealed interface Expr extends AyaDocile {
     @NotNull MutableValue<Term> theCoreType
   ) implements Expr, WithTerm {
     public Proj(
-      @NotNull WithPos<Expr> tup,
-      @NotNull Either<Integer, QualifiedID> ix
+      @NotNull WithPos<Expr> tup, @NotNull Either<Integer, QualifiedID> ix
     ) {
       this(tup, ix, null, MutableValue.create());
     }
@@ -225,17 +223,9 @@ public sealed interface Expr extends AyaDocile {
     @Nullable String name,
     @NotNull WithPos<Expr> arg
   ) implements SourceNode, BinOpElem<WithPos<Expr>>, AyaDocile {
-    public NamedArg(boolean explicit, @NotNull WithPos<Expr> arg) {
-      this(explicit, null, arg);
-    }
-
-    @Override public @NotNull SourcePos sourcePos() {
-      return arg.sourcePos();
-    }
-
-    @Override public @NotNull WithPos<Expr> term() {
-      return arg;
-    }
+    public NamedArg(boolean explicit, @NotNull WithPos<Expr> arg) { this(explicit, null, arg); }
+    @Override public @NotNull SourcePos sourcePos() { return arg.sourcePos(); }
+    @Override public @NotNull WithPos<Expr> term() { return arg; }
 
     public @NotNull NamedArg update(@NotNull WithPos<Expr> expr) {
       return expr == arg ? this : new NamedArg(explicit, name, expr);
@@ -285,7 +275,6 @@ public sealed interface Expr extends AyaDocile {
 
   sealed interface Sort extends Expr {
     int lift();
-
     SortKind kind();
 
     @Override default @NotNull Sort descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
@@ -294,27 +283,18 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record Type(@Override int lift) implements Sort {
-    @Override public SortKind kind() {
-      return SortKind.Type;
-    }
+    @Override public SortKind kind() { return SortKind.Type; }
   }
 
   record Set(@Override int lift) implements Sort {
-    @Override public SortKind kind() {
-      return SortKind.Set;
-    }
+    @Override public SortKind kind() { return SortKind.Set; }
   }
 
   enum ISet implements Sort {
     INSTANCE;
 
-    @Override public int lift() {
-      return 0;
-    }
-
-    @Override public SortKind kind() {
-      return SortKind.ISet;
-    }
+    @Override public int lift() { return 0; }
+    @Override public SortKind kind() { return SortKind.ISet; }
   }
 
   record Lift(@NotNull WithPos<Expr> expr, int lift) implements Expr {

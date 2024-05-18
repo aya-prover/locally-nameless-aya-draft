@@ -74,7 +74,7 @@ public interface PatToTerm {
       ImmutableSeq.of(DimTerm.I0), ImmutableSeq.of(DimTerm.I1)
     );
     public @NotNull ImmutableSeq<ImmutableSeq<Term>> list(@NotNull SeqView<Pat> pats) {
-      return list(pats, ImmutableSeq.empty());
+      return list(pats, ImmutableSeq.of(ImmutableSeq.empty()));
     }
     private @NotNull ImmutableSeq<ImmutableSeq<Term>> list(@NotNull SeqView<Pat> pats, @NotNull ImmutableSeq<ImmutableSeq<Term>> base) {
       if (pats.isEmpty()) return base;

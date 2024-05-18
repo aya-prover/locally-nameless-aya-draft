@@ -13,6 +13,7 @@ import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.error.ClausesProblem;
 import org.aya.tyck.error.UnifyInfo;
+import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,20 +48,25 @@ public record IApplyConfl(
   public void check() {
     // A matcher that does not normalize the arguments.
     var chillMatcher = new PatMatcher(false, UnaryOperator.identity());
-    for (int i = 0, size = matchings.size(); i < size; i++) {
-      var matching = matchings.get(i);
-      var ctx = new LocalCtx();
-      var cases = new PatToTerm.Monadic(ctx).list(matching.patterns().view());
-      if (cases.sizeEquals(1)) continue;
-      tycker.setLocalCtx(ctx);
-      var nth = i + 1;
-      cases.forEach(args -> {
-        var currentClause = chillMatcher.apply(matching, args).get();
-        var anoNormalized = tycker.whnf(new FnCall(def.ref, 0, args));
-        tycker.unifyTermReported(anoNormalized, currentClause, def.result.instantiateTele(args.view()),
-          sourcePos, comparison -> new ClausesProblem.Conditions(
-            sourcePos, matching.sourcePos(), nth, args, new UnifyInfo(tycker.state), comparison));
-      });
-    }
+    for (int i = 0, size = matchings.size(); i < size; i++) apply(i, chillMatcher);
+  }
+
+  private void apply(int i, PatMatcher chillMatcher) {
+    var matching = matchings.get(i);
+    var ctx = new LocalCtx();
+    var cases = new PatToTerm.Monadic(ctx).list(matching.patterns().view());
+    if (cases.sizeEquals(1)) return;
+    if (cases.isEmpty()) Panic.unreachable();
+    tycker.setLocalCtx(ctx);
+    var nth = i + 1;
+    cases.forEach(args -> doCompare(chillMatcher, args, matching, nth));
+  }
+
+  private void doCompare(PatMatcher chillMatcher, ImmutableSeq<Term> args, Term.Matching matching, int nth) {
+    var currentClause = chillMatcher.apply(matching, args).get();
+    var anoNormalized = tycker.whnf(new FnCall(def.ref, 0, args));
+    tycker.unifyTermReported(anoNormalized, currentClause, def.result.instantiateTele(args.view()),
+      sourcePos, comparison -> new ClausesProblem.Conditions(
+        sourcePos, matching.sourcePos(), nth, args, new UnifyInfo(tycker.state), comparison));
   }
 }
