@@ -35,6 +35,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -263,6 +264,22 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       case MetaCall mCall -> solveMeta(mCall, rhs, null);
       // By typing invariant, they should have the same type, so no need to check for repr equality.
       case IntegerTerm(var lepr, _, var ty) -> rhs instanceof IntegerTerm(var repr, _, _) && lepr == repr ? ty : null;
+      // fallback case
+      case ConCallLike lCon -> switch (rhs) {
+        case ConCallLike rCon -> {
+          var lef = lCon.ref();
+          yield lef != rCon.ref() ? null : compareConApprox(lCon, rCon);
+        }
+        // case ListTerm rhs -> compareUntyped(lhs, rhs.constructorForm(), lr, rl);
+        default -> null;
+      };
+      case MetaLitTerm mlt -> switch (rhs) {
+        case IntegerTerm mrt -> compareMetaLitWithLit(mlt, mrt.repr(), mrt.type());
+        // case ListTerm mrt -> compareMetaLitWithLit(mlt, mrt.repr(), mrt.type());
+        case ConCall _ -> throw new UnsupportedOperationException("TODO (I have no time to implement this)");
+        case MetaLitTerm mrt -> compareMetaLitWithLit(mlt, mrt.repr(), mrt.type());
+        default -> null;
+      };
       // We already compare arguments in compareApprox, if we arrive here,
       // it means their arguments don't match (even the ref don't match),
       // so we are unable to do more if we can't normalize them.
@@ -270,6 +287,12 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
 
       default -> throw noRules(lhs);
     };
+  }
+
+  private @Nullable Term compareMetaLitWithLit(@NotNull MetaLitTerm lhs, Object repr, @NotNull Term rhsType) {
+    if (!Objects.equals(lhs.repr(), repr)) return null;
+    if (compare(lhs.type(), rhsType, null)) return lhs.type();
+    return null;
   }
 
   /**

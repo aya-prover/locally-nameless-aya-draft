@@ -61,7 +61,7 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
       case Pat.ShapedInt lit -> switch (pre.apply(term)) {
          case IntegerTerm litTerm -> {
            if (!lit.compareUntyped(litTerm)) throw new Failure(false);
-           yield ImmutableSeq.of(litTerm);
+           yield ImmutableSeq.empty();
          }
          case ConCall con -> match(lit.constructorForm(), con);
          // we only need to handle matching both literals, otherwise we just rematch it
