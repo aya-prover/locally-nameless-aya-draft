@@ -72,14 +72,9 @@ public record Synthesizer(
    */
   private @Nullable Term synthesize(@NotNull Term term) {
     return switch (term) {
-      case AppTerm(var f, var a) -> {
-        var fTy = trySynth(f);
-        yield fTy instanceof PiTerm pi ? pi.body().instantiate(a) : null;
-      }
+      case AppTerm(var f, var a) -> trySynth(f) instanceof PiTerm pi ? pi.body().instantiate(a) : null;
       case PiTerm pi -> {
-        var pTy = trySynth(pi.param());
-        if (!(pTy instanceof SortTerm pSort)) yield null;
-
+        if (!(trySynth(pi.param()) instanceof SortTerm pSort)) yield null;
         var bTy = subscoped(() -> {
           var param = putIndex(pi.param());
           return trySynth(pi.body().instantiate(param));
@@ -104,7 +99,7 @@ public record Synthesizer(
       }
       case TupTerm _, LamTerm _ -> null;
       case FreeTerm(var var) -> localCtx().get(var);
-      case LocalTerm _ -> throw new Panic("LocalTerm");
+      case LocalTerm _ -> Panic.unreachable();
       case MetaPatTerm meta -> meta.meta().type();
       case ProjTerm(Term of, int index) -> {
         var ofTy = trySynth(of);
@@ -120,13 +115,16 @@ public record Synthesizer(
 
       case MetaCall(var ref, var args) when ref.req() instanceof MetaVar.OfType(var type) ->
         type.instantiateTele(args.view());
-      case MetaCall _ -> throw new UnsupportedOperationException("TODO");
+      case MetaCall meta -> {
+        if (!state().solutions().containsKey(meta.ref())) yield null;
+        yield trySynth(whnf(meta));
+      }
       case CoeTerm coe -> coe.family();
       case EqTerm eq -> trySynth(AppTerm.make(eq.A(), DimTerm.I0));
       case PAppTerm papp -> {
         var fTy = trySynth(papp.fun());
         if (!(fTy instanceof EqTerm eq)) yield null;
-        yield eq.A().instantiate(papp.arg());
+        yield AppTerm.make(eq.A(), papp.arg());
       }
       case ErrorTerm error -> ErrorTerm.typeOf(error);
       case SortTerm sort -> sort.succ();

@@ -85,11 +85,6 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
           var asName = use.asName().getOrDefault(use.id().name());
           var renamedOpDecl = new ResolveInfo.RenamedOpDecl(new OpDecl.OpInfo(asName, use.asAssoc()));
           var bind = use.asBind();
-          // if (bind != BindBlock.EMPTY) {
-          //   // bind.context().set(ctx);
-          //   // TODO[ice]: is this a no-op?
-          //   throw new UnsupportedOperationException("TODO");
-          // }
           resolveInfo.renameOp(ctx, symbol.get(), renamedOpDecl, bind, true);
         });
         yield null;

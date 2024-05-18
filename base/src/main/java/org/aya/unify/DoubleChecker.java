@@ -24,7 +24,6 @@ public record DoubleChecker(
   @NotNull Unifier unifier,
   @NotNull Synthesizer synthesizer
 ) implements Stateful, Contextful, Problematic {
-
   public DoubleChecker(@NotNull Unifier unifier) {
     this(unifier, new Synthesizer(unifier));
   }
@@ -65,7 +64,6 @@ public record DoubleChecker(
         default -> failF(new BadExprError(preterm, unifier.pos, expected));
       });
       case TupTerm _ -> failF(new BadExprError(preterm, unifier.pos, expected));
-
       default -> unifier.compare(synthesizer.synthDontNormalize(preterm), expected, null);
     };
   }

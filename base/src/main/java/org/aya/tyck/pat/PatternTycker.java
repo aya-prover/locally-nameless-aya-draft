@@ -457,11 +457,7 @@ public class PatternTycker implements Problematic, Stateful {
       return null;
     }
     // Here, name != null, and is not in the list of checked body
-    if (core == null) {
-      throw new UnsupportedOperationException("TODO");
-      // foundError(new TyckOrderError.NotYetTyckedError(pos.sourcePos(), name));
-      // return null;
-    }
+    assert core != null;
     if (name != null) foundError(new PatternProblem.UnknownCon(pattern));
     return null;
   }
