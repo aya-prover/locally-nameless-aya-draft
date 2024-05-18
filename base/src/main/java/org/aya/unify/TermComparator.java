@@ -67,7 +67,6 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   }
 
   /// region Utilities
-
   private void fail(@NotNull Term lhs, @NotNull Term rhs) {
     if (failure == null) {
       failure = new FailureData(lhs, rhs);
@@ -79,7 +78,11 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   }
   /// endregion Utilities
 
-  /** Compare arguments ONLY. */
+  /**
+   * Compare arguments ONLY.
+   * For lossy comparisons, when we fail, we will need to compare them again later,
+   * so don't forget to reset the {@link #failure} after first failure.
+   */
   private @Nullable Term compareApprox(@NotNull Term lhs, @NotNull Term rhs) {
     return switch (new Pair<>(lhs, rhs)) {
       case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
@@ -101,7 +104,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     var argsTy = TeleDef.defTele(typeProvider).map(Param::type);
 
     if (compareMany(lhs.args(), rhs.args(), argsTy))
-      return new Synthesizer(this).synthDontNormalize(lhs);
+      return new Synthesizer(this).synth(lhs);
     return null;
   }
 
@@ -113,7 +116,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     // compare data args first
     if (!compareMany(lhs.head().dataArgs(), rhs.head().dataArgs(), dataArgsTy)) return null;
     if (!compareMany(lhs.conArgs(), rhs.conArgs(), conArgsTy)) return null;
-    return new Synthesizer(this).synthDontNormalize(lhs);
+    return new Synthesizer(this).synth(lhs);
   }
 
   private <R> R swapped(@NotNull Supplier<R> callback) {
@@ -131,10 +134,12 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   public boolean compare(@NotNull Term preLhs, @NotNull Term preRhs, @Nullable Term type) {
     if (preLhs == preRhs) return true;
     if (checkApproxResult(type, compareApprox(preLhs, preRhs))) return true;
+    failure = null;
 
     var lhs = whnf(preLhs);
     var rhs = whnf(preRhs);
-    if ((!(lhs == preLhs && rhs == preRhs)) && checkApproxResult(type, compareApprox(lhs, rhs))) return true;
+    if ((!(lhs == preLhs && rhs == preRhs)) &&
+      checkApproxResult(type, compareApprox(lhs, rhs))) return true;
 
     if (rhs instanceof MetaCall rMeta) {
       // In case we're comparing two metas with one IsType and the other has OfType,
@@ -158,8 +163,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     if (approxResult != null) {
       if (type != null) compare(approxResult, type, null);
       return true;
-    }
-    return false;
+    } else return false;
   }
 
   /**
@@ -219,6 +223,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     {
       var result = compareApprox(preLhs, preRhs);
       if (result != null) return result;
+      failure = null;
     }
 
     var lhs = whnf(preLhs);
