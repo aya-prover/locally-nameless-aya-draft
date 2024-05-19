@@ -3,4 +3,6 @@ module aya.producer {
   requires aya.parser.ij;
 
   requires static org.jetbrains.annotations;
+
+  exports org.aya.producer;
 }

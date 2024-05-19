@@ -57,6 +57,14 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     this.localLet = let;
   }
 
+ public ExprTycker(
+    @NotNull TyckState state, @NotNull LocalCtx ctx, @NotNull LocalLet let,
+    @NotNull Reporter reporter
+  ) {
+    super(state, ctx, reporter);
+    this.localLet = let;
+  }
+
   public void solveMetas() {
     state.solveMetas(reporter);
     withTerms.forEach(with -> with.data().theCoreType().update(this::freezeHoles));

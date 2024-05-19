@@ -28,7 +28,7 @@ import java.util.function.Function;
 import static org.aya.syntax.core.def.PrimDef.*;
 import static org.aya.syntax.core.term.SortTerm.Type0;
 
-public final class PrimFactory {
+public class PrimFactory {
   private final @NotNull Map<@NotNull ID, @NotNull PrimSeed> seeds;
   private final @NotNull EnumMap<@NotNull ID, @NotNull PrimDef> defs = new EnumMap<>(ID.class);
 

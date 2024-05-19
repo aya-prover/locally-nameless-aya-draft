@@ -5,7 +5,6 @@ import org.aya.gradle.GenerateVersionTask
 dependencies {
   api(project(":syntax"))
   api(project(":tools-md"))
-  implementation(libs.commonmark)
   // implementation(libs.manifold.delegate.runtime)
   // annotationProcessor(libs.manifold.delegate.codegen)
   testImplementation(project(":producer"))

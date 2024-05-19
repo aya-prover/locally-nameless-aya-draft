@@ -8,6 +8,10 @@ import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.jetbrains.annotations.NotNull;
 
 public record ModulePath(@NotNull ImmutableSeq<String> module) {
+  public static @NotNull ModulePath of(@NotNull String... names) {
+    return new ModulePath(ImmutableSeq.from(names));
+  }
+
   public boolean isInModule(@NotNull ModulePath other) {
     var moduleName = other.module;
     if (module.sizeLessThan(moduleName.size())) return false;
