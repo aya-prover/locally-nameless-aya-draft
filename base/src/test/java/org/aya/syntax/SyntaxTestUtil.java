@@ -5,8 +5,6 @@ package org.aya.syntax;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.TestUtil;
 import org.aya.producer.AyaParserImpl;
-import org.aya.resolve.ResolveInfo;
-import org.aya.resolve.StmtResolvers;
 import org.aya.resolve.context.EmptyContext;
 import org.aya.resolve.module.DumbModuleLoader;
 import org.aya.syntax.concrete.stmt.Stmt;
@@ -23,11 +21,7 @@ public final class SyntaxTestUtil {
 
   @Contract(mutates = "param1")
   public static void resolve(@NotNull Decl decl) {
-    resolve(ImmutableSeq.of(decl));
-  }
-
-  public static ResolveInfo resolve(@NotNull ImmutableSeq<Stmt> decls) {
-    return moduleLoader().resolve(decls);
+    moduleLoader().resolve(ImmutableSeq.of(decl));
   }
 
   public static @NotNull DumbModuleLoader moduleLoader() {

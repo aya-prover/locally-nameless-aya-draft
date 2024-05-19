@@ -116,11 +116,7 @@ public record StmtTycker(
       case TeleDecl.DataDecl data -> {
         var sig = data.signature;
         assert sig != null;
-        if (tycker == null) {
-          tycker = mkTycker();
-          loadTele(data.teleVars(), sig, tycker);
-        }
-        for (var kon : data.body) checkHeader(kon, tycker);
+        for (var kon : data.body) checkHeader(kon);
         yield new DataDef(data.ref, sig.rawParams(), sig.result(),
           data.body.map(kon -> kon.ref.core));
       }
@@ -186,6 +182,8 @@ public record StmtTycker(
         .map(x -> new WithPos<>(x.var().definition(),
           new Param(x.var().name(), x.type(), false)));
       ownerBinds = allBinds.map(Pat.CollectBind::var);
+    } else {
+      loadTele(ownerBinds.view(), dataSig, tycker);
     }
 
     var teleTycker = new TeleTycker.Con(tycker, dataSig.result());

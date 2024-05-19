@@ -3,7 +3,8 @@
 package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.TestUtil;
+import org.aya.resolve.ResolveInfo;
+import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.SyntaxTestUtil;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.Def;
@@ -23,7 +24,8 @@ public class TyckTest {
       def lam (A : Type) : Fn (a : A) -> Type => fn a => A
       def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a)
         : Sig (a : A) ** B a => (id a, id (b a))
-      def letExample (A : Type) (B : A -> Type) (f : Fn (a : A) -> B a) (a : A) : B a => let b : B a := f a in b
+      def letExample (A : Type) (B : A -> Type) (f : Fn (a : A) -> B a) (a : A) : B a =>
+        let b : B a := f a in b
       """);
     assertTrue(result.isNotEmpty());
   }
@@ -87,9 +89,17 @@ public class TyckTest {
 
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
     var stmts = SyntaxTestUtil.parse(code);
-    var resolveInfo = SyntaxTestUtil.resolve(stmts);
+    var moduleLoader = SyntaxTestUtil.moduleLoader();
+    var resolveInfo = moduleLoader.resolve(stmts);
     var decls = stmts.filterIsInstance(Decl.class);
     decls.forEach(decl -> System.out.println(STR."Scanned \{decl.ref().name()}"));
-    return SillyTycker.tyck(resolveInfo, decls, TestUtil.THROWING);
+    var callback = new ModuleCallback<RuntimeException>() {
+      ImmutableSeq<Def> ok;
+      @Override public void onModuleTycked(@NotNull ResolveInfo moduleResolve, @NotNull ImmutableSeq<Def> defs) {
+        ok = defs;
+      }
+    };
+    moduleLoader.tyckModule(resolveInfo, callback);
+    return callback.ok;
   }
 }

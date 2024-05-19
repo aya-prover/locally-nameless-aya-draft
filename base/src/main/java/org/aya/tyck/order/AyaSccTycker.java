@@ -82,13 +82,14 @@ public record AyaSccTycker(
   }
 
   private void checkUnit(@NotNull TyckOrder order) {
-    // if (order instanceof TyckOrder.Body(TeleDecl.FnDecl fn) && fn.body instanceof TeleDecl.ExprBody(var expr)) {
-    //   checkSimpleFn(order, fn, expr);
-    // } else {
-    check(order);
-    // if (order instanceof TyckOrder.Body body)
-    //   terck(SeqView.of(body));
-    // }
+    if (order.unit() instanceof TeleDecl.FnDecl fn && fn.body instanceof TeleDecl.ExprBody(var expr)) {
+      // checkSimpleFn(order, fn, expr);
+      check(new TyckOrder.Body(fn));
+    } else {
+      check(order);
+      // if (order instanceof TyckOrder.Body body)
+      //   terck(SeqView.of(body));
+    }
   }
 
   private void checkHeader(@NotNull TyckOrder order, @NotNull TyckUnit stmt) {
@@ -97,7 +98,10 @@ public record AyaSccTycker(
   }
 
   private void checkBody(@NotNull TyckOrder order, @NotNull TyckUnit stmt) {
-    if (stmt instanceof Decl decl) tycker.check(decl);
+    if (stmt instanceof Decl decl) {
+      var def = tycker.check(decl);
+      if (!(decl instanceof TeleDecl<?> tele && tele.isExample)) wellTyped.append(def);
+    }
     if (reporter.anyError()) throw new SCCTyckingFailed(ImmutableSeq.of(order));
   }
 
