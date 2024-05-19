@@ -7,10 +7,10 @@ import kala.control.Result;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Constructor extends Telescopic {
-  public final Datatype dataType;
+public abstract class JitCon extends JitTele {
+  public final JitData dataType;
 
-  protected Constructor(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, Datatype dataType) {
+  protected JitCon(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, JitData dataType) {
     super(telescopeSize, telescopeLicit, telescopeName);
     this.dataType = dataType;
   }

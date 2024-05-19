@@ -4,7 +4,7 @@ package org.aya.tyck.tycker;
 
 import kala.collection.immutable.ImmutableArray;
 import kala.function.CheckedBiFunction;
-import org.aya.syntax.compile.Telescopic;
+import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 public interface AppTycker {
   @FunctionalInterface
   interface Factory<Ex extends Exception> extends
-    CheckedBiFunction<Telescopic, Function<Term[], Jdg>, Jdg, Ex> {
+    CheckedBiFunction<JitTele, Function<Term[], Jdg>, Jdg, Ex> {
   }
 
   @SuppressWarnings("unchecked")

@@ -5,12 +5,12 @@ package org.aya.syntax.compile;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Datatype extends Telescopic {
-  protected Datatype(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName) {
+public abstract class JitData extends JitTele {
+  protected JitData(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName) {
     super(telescopeSize, telescopeLicit, telescopeName);
   }
 
-  public abstract @NotNull Constructor[] constructors();
+  public abstract @NotNull JitCon[] constructors();
 
   public @NotNull JitDataCall of(Term... args) {
     return new JitDataCall(this, args);

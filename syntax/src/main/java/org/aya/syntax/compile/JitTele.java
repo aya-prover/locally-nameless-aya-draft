@@ -8,7 +8,7 @@ import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class Telescopic {
+public abstract class JitTele {
   public final int telescopeSize;
   public final boolean[] telescopeLicit;
   public final String[] telescopeNames;
@@ -23,13 +23,13 @@ public abstract class Telescopic {
 
   public abstract @NotNull Term result(Term... teleArgs);
 
-  protected Telescopic(int telescopeSize, boolean[] telescopeLicit, String[] telescopeNames) {
+  protected JitTele(int telescopeSize, boolean[] telescopeLicit, String[] telescopeNames) {
     this.telescopeSize = telescopeSize;
     this.telescopeLicit = telescopeLicit;
     this.telescopeNames = telescopeNames;
   }
 
-  public static class LocallyNameless extends Telescopic {
+  public static class LocallyNameless extends JitTele {
     public final ImmutableSeq<Param> params;
     public final Term result;
     public LocallyNameless(ImmutableSeq<Param> params, Term result) {

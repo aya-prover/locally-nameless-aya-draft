@@ -11,7 +11,6 @@ import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
@@ -97,8 +96,8 @@ public record PatClassifier(
           clauses.noneMatch(subPat -> subPat.pat() instanceof Pat.Con || subPat.pat() instanceof Pat.ShapedInt)
         ) break;
         var data = dataCall.ref();
-        var body = TeleDef.dataBody(data);
         if (data.core == null) throw TyckOrderError.notYetTycked(data);
+        var body = data.core.body;
 
         // Special optimization for literals
         var lits = clauses.mapNotNull(cl -> cl.pat() instanceof Pat.ShapedInt i ?

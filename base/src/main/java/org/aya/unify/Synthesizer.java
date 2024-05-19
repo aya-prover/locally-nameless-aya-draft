@@ -109,8 +109,8 @@ public record Synthesizer(
           .instantiateTele(ProjTerm.projSubst(of, index).view());
       }
       case IntegerTerm(_, _, var ty) -> ty;
-      case Callable.Tele teleCall -> TeleDef.defResult(teleCall.ref())
-        .instantiateTele(teleCall.args().view())
+      case Callable.Tele teleCall -> TeleDef.defSignature(teleCall.ref())
+        .result(teleCall.args().toArray(Term[]::new))
         .elevate(teleCall.ulift());
 
       case MetaCall(var ref, var args) when ref.req() instanceof MetaVar.OfType(var type) ->

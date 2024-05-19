@@ -6,7 +6,7 @@ import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 public record JitConCall(
-  @NotNull Constructor instance,
+  @NotNull JitCon instance,
   @NotNull Term[] ownerArgs,
   @NotNull Term[] conArgs
 ) implements Compiled {

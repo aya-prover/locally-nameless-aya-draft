@@ -434,8 +434,7 @@ public class PatternTycker implements Problematic, Stateful {
       throw TyckOrderError.notYetTycked(dataRef);
     }
 
-    var body = TeleDef.dataBody(dataRef);
-    for (var con : body) {
+    for (var con : core.body) {
       if (name != null && con.ref() != name) continue;
       var matchy = checkAvail(dataCall, con, exprTycker.state);
       if (matchy.isOk()) {

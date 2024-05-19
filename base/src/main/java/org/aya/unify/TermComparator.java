@@ -7,6 +7,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
+import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.def.TeleDef;
@@ -96,15 +97,11 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    * Compare the arguments of two callable ONLY, this method will NOT try to normalize and then compare (while the old project does).
    */
   private @Nullable Term compareCallApprox(
-    @NotNull Callable lhs, @NotNull Callable rhs,
+    @NotNull Callable.Tele lhs, @NotNull Callable.Tele rhs,
     @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> typeProvider
   ) {
     if (lhs.ref() != rhs.ref()) return null;
-
-    var argsTy = TeleDef.defTele(typeProvider).map(Param::type);
-    if (compareMany(lhs.args(), rhs.args(), argsTy))
-      return new Synthesizer(this).synth(lhs);
-    return null;
+    return compareMany(lhs.args(), rhs.args(), lhs.ulift(), TeleDef.defSignature(typeProvider));
   }
 
   private <R> R swapped(@NotNull Supplier<R> callback) {
@@ -196,7 +193,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         var list = ImmutableSeq.fill(size, i -> ProjTerm.make(lhs, i));
         var rist = ImmutableSeq.fill(size, i -> ProjTerm.make(rhs, i));
 
-        yield compareMany(list, rist, paramSeq);
+        var telescopic = new JitTele.LocallyNameless(paramSeq.map(p -> new Param("_", p, true)), SortTerm.Type0);
+        yield compareMany(list, rist, 0, telescopic) != null;
       }
       default -> compareUntyped(lhs, rhs) != null;
     };
@@ -321,24 +319,24 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     });
   }
 
-  private boolean compareMany(
+  private @Nullable Term compareMany(
     @NotNull ImmutableSeq<Term> list,
     @NotNull ImmutableSeq<Term> rist,
-    @NotNull ImmutableSeq<Term> types
+    int ulift, @NotNull JitTele types
   ) {
     assert list.sizeEquals(rist);
-    assert rist.sizeEquals(types);
+    assert rist.sizeEquals(types.telescopeSize);
+    var argsCum = new Term[types.telescopeSize];
 
-    var typeView = types.view();
     for (var i = 0; i < list.size(); ++i) {
       var l = list.get(i);
       var r = rist.get(i);
-      var ty = whnf(typeView.getFirst());
-      if (!compare(l, r, ty)) return false;
-      typeView = typeView.drop(1).mapIndexed((j, x) -> x.replace(j, l));
+      var ty = whnf(types.telescope(i, argsCum)).elevate(ulift);
+      if (!compare(l, r, ty)) return null;
+      argsCum[i] = l;
     }
 
-    return true;
+    return types.result(argsCum);
   }
 
   /**
@@ -434,8 +432,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return switch (new Pair<>(preLhs, (Formation) preRhs)) {
       case Pair(DataCall lhs, DataCall rhs) -> {
         if (lhs.ref() != rhs.ref()) yield false;
-        yield compareMany(lhs.args(), rhs.args(), TeleDef.defTele(lhs.ref())
-          .map(x -> x.type().elevate(lhs.ulift())));
+        yield compareMany(lhs.args(), rhs.args(), lhs.ulift(), TeleDef.defSignature(lhs.ref())) != null;
       }
       case Pair(DimTyTerm _, DimTyTerm _) -> true;
       case Pair(PiTerm(var lParam, var lBody), PiTerm(var rParam, var rBody)) -> compareTypeWith(lParam, rParam,

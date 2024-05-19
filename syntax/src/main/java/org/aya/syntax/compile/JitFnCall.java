@@ -5,7 +5,7 @@ package org.aya.syntax.compile;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public record JitDataCall(
-  @NotNull JitData instance,
-  @NotNull Term... dataArgs
+public record JitFnCall(
+  @NotNull JitFn instance,
+  @NotNull Term... args
 ) implements Compiled { }
