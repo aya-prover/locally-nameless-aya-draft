@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
  * @author kiva, ice1000, HoshinoTented
  */
 public sealed interface Pattern extends AyaDocile {
+  void forEach(@NotNull PosedConsumer<@NotNull Pattern> f);
   interface Salt { }
 
   @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f);
@@ -44,24 +45,28 @@ public sealed interface Pattern extends AyaDocile {
     @Override public @NotNull Tuple descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(patterns.map(a -> a.descent(f)));
     }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) {
+      patterns.forEach(f::accept);
+    }
   }
 
   record Number(int number) implements Pattern {
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { }
     @Override public @NotNull Number descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   enum Absurd implements Pattern {
     INSTANCE;
 
-    @Override
-    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { }
+    @Override public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   enum CalmFace implements Pattern {
     INSTANCE;
 
-    @Override
-    public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { }
+    @Override public @NotNull Pattern descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
   /**
@@ -74,6 +79,7 @@ public sealed interface Pattern extends AyaDocile {
     public Bind(@NotNull LocalVar bind) {
       this(bind, MutableValue.create());
     }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { }
     @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
 
@@ -89,6 +95,9 @@ public sealed interface Pattern extends AyaDocile {
       return params.sameElements(params(), true) ? this : new Con(resolved, params);
     }
 
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) {
+      params.forEach(x -> f.accept(x.term()));
+    }
     @Override public @NotNull Con descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(params.map(a -> a.descent(x -> x.descent(f))));
     }
@@ -103,6 +112,9 @@ public sealed interface Pattern extends AyaDocile {
 
     @Override public @NotNull BinOpSeq descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(seq.map(a -> a.descent(x -> x.descent(f))));
+    }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) {
+      seq.forEach(x -> f.accept(x.term()));
     }
   }
 
@@ -125,6 +137,7 @@ public sealed interface Pattern extends AyaDocile {
     @Override public @NotNull As descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(pattern.descent(f));
     }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { f.accept(pattern); }
   }
 
   /**
@@ -140,16 +153,16 @@ public sealed interface Pattern extends AyaDocile {
     }
 
     @Override public @NotNull QualifiedRef descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { }
   }
 
   /** Sugared List Pattern */
-  record List(
-    @NotNull ImmutableSeq<WithPos<Pattern>> elements
-  ) implements Pattern {
+  record List(@NotNull ImmutableSeq<WithPos<Pattern>> elements) implements Pattern {
     public @NotNull List update(@NotNull ImmutableSeq<WithPos<Pattern>> elements) {
       return elements.sameElements(elements(), true) ? this : new List(elements);
     }
 
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { }
     @Override public @NotNull List descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(elements.map(x -> x.descent(f)));
     }

@@ -17,6 +17,7 @@ import org.aya.parser.ParserDefBase;
 import org.aya.prettier.BasePrettier;
 import org.aya.producer.AyaProducer;
 import org.aya.syntax.concrete.stmt.Stmt;
+import org.aya.syntax.concrete.stmt.StmtExprVisitor;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /** @implNote Use {@link MutableList} instead of {@link SeqView} for performance consideration. */
-public record SyntaxHighlight(@Nullable ModulePath currentFileModule) {
+public record SyntaxHighlight(@Nullable ModulePath currentFileModule) implements StmtExprVisitor {
   public static final @NotNull TokenSet SPECIAL_SYMBOL = TokenSet.orSet(
       AyaParserDefinitionBase.UNICODES,
       AyaParserDefinitionBase.MARKERS,
@@ -79,10 +80,6 @@ public record SyntaxHighlight(@Nullable ModulePath currentFileModule) {
   }
 
 /*
-  @Override public @NotNull MutableList<HighlightInfo> init() {
-    return MutableList.create();
-  }
-
   @Override public @NotNull MutableList<HighlightInfo> foldVarRef(
       @NotNull MutableList<HighlightInfo> acc,
       @NotNull AnyVar var, @NotNull SourcePos pos,

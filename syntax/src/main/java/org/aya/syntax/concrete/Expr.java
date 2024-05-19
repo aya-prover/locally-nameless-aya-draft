@@ -124,9 +124,7 @@ public sealed interface Expr extends AyaDocile {
     @Override public void forEach(@NotNull PosedConsumer<Expr> f) { seq.forEach(arg -> arg.forEach(f)); }
   }
 
-  record Unresolved(
-    @NotNull QualifiedID name
-  ) implements Expr {
+  record Unresolved(@NotNull QualifiedID name) implements Expr {
     public Unresolved(@NotNull SourcePos pos, @NotNull String name) {
       this(new QualifiedID(pos, name));
     }
@@ -135,7 +133,7 @@ public sealed interface Expr extends AyaDocile {
     @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
-  record Ref(@NotNull AnyVar var) implements Expr {
+  record Ref(@NotNull AnyVar var, @NotNull MutableValue<Term> theCoreType) implements Expr, WithTerm {
     @Override public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
     @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
@@ -184,7 +182,7 @@ public sealed interface Expr extends AyaDocile {
     @NotNull WithPos<Expr> tup,
     @NotNull Either<Integer, QualifiedID> ix,
     @Nullable AnyVar resolvedVar,
-    @NotNull MutableValue<Term> theCoreType
+    @Override @NotNull MutableValue<Term> theCoreType
   ) implements Expr, WithTerm {
     public Proj(
       @NotNull WithPos<Expr> tup, @NotNull Either<Integer, QualifiedID> ix
