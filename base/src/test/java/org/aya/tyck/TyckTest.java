@@ -20,7 +20,7 @@ public class TyckTest {
       data Nat | O | S Nat
       data FreeMonoid (A : Type) | e | cons A (FreeMonoid A)
       
-      def id {A : Type} (a : A) : A => a
+      def id {A : Type} (a : A) => a
       def lam (A : Type) : Fn (a : A) -> Type => fn a => A
       def tup (A : Type) (B : A -> Type) (a : A) (b : Fn (a : A) -> B a)
         : Sig (a : A) ** B a => (id a, id (b a))
@@ -62,7 +62,7 @@ public class TyckTest {
       prim I : ISet
       prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
       variable A : Type
-      def infix = (a b : A) : Type => Path (\\i => A) a b
+      def infix = (a b : A) => Path (\\i => A) a b
       def refl {a : A} : a = a => \\i => a
       open data Int
       | pos Nat | neg Nat
@@ -74,7 +74,8 @@ public class TyckTest {
   }
 
   /// Need pruning
-  /*@Test*/ public void issue768() {
+  /*@Test*/
+  public void issue768() {
     var result = tyck("""
       open data Unit | unit
       data Nat | O | S Nat
@@ -82,7 +83,22 @@ public class TyckTest {
       | m => someDT
       def how' {m : Nat} (a : Nat) (b : SomeDT m) : Nat => 0
       def what {A : Nat -> Type} (B : Fn (n : Nat) -> A n -> Nat) : Unit => unit
-      def boom : Unit => what (fn n => fn m => how' 0 m)
+      def boom => what (fn n => fn m => how' 0 m)
+      """);
+    assertTrue(result.isNotEmpty());
+  }
+
+  @Test public void test2() {
+    var result = tyck("""
+      open data Nat | O | S Nat
+      open data Bool | true | false
+      def not Bool : Bool | true => false | false => true
+      def even Nat : Bool
+      | 0 => true
+      | S n => odd n
+      def odd Nat : Bool
+      | 0 => false
+      | S n => even n
       """);
     assertTrue(result.isNotEmpty());
   }

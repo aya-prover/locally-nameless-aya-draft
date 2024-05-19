@@ -14,6 +14,8 @@ import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.UnaryOperator;
+
 /**
  * Signature of a definition, used in concrete and tycking.
  *
@@ -22,8 +24,7 @@ import org.jetbrains.annotations.NotNull;
  * @author ice1000
  */
 public record Signature<T extends Term>(
-  @NotNull ImmutableSeq<WithPos<Param>> param,
-  @NotNull T result
+  @NotNull ImmutableSeq<WithPos<Param>> param, @NotNull T result
 ) implements AyaDocile {
   public @NotNull ImmutableSeq<Param> rawParams() { return param.map(WithPos::data); }
   public @NotNull Signature<?> bindAt(@NotNull LocalVar var, int index) {
@@ -40,6 +41,12 @@ public record Signature<T extends Term>(
   public @NotNull Signature<?> bindAll(@NotNull SeqView<LocalVar> vars) {
     // omg, construct [vars.size()] objects!!
     return vars.<Signature<?>>foldLeftIndexed(this, (idx, acc, var) -> acc.bindAt(var, idx));
+  }
+
+  public @NotNull Signature<Term> descent(@NotNull UnaryOperator<Term> f) {
+    return new Signature<>(
+      param.map(p -> p.map(q -> q.descent(f))),
+      result.descent(f));
   }
 
   /**

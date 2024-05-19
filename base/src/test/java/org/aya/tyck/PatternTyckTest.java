@@ -98,7 +98,7 @@ public class PatternTyckTest {
       prim I : ISet
       prim Path (A : I -> Type) (a : A 0) (b : A 1) : Type
       variable A B : Type
-      def infix = (a b : A) : Type => Path (\\i => A) a b
+      def infix = (a b : A) => Path (\\i => A) a b
       def refl {a : A} : a = a => \\i => a
 
       overlap def infix +' (a b: Nat): Nat

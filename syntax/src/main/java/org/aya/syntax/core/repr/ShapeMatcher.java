@@ -135,7 +135,7 @@ public record ShapeMatcher(
     }, clauseShapes -> {
       if (!def.body.isRight()) return false;
       var clauses = def.body.getRightValue();
-      var mode = def.modifiers.contains(Modifier.Overlap) ? MatchMode.Sub : MatchMode.Eq;
+      var mode = def.is(Modifier.Overlap) ? MatchMode.Sub : MatchMode.Eq;
       return matchInside(() -> captures.put(shape.name(), def.ref), () ->
         matchMany(mode, clauseShapes, clauses, this::matchClause));
     });

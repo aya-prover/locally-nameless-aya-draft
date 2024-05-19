@@ -13,17 +13,17 @@ import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.Def;
+import org.aya.terck.BadRecursion;
 import org.aya.tyck.StmtTycker;
+import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
-import org.aya.util.error.SourceNode;
+import org.aya.util.error.Panic;
 import org.aya.util.reporter.CollectingReporter;
 import org.aya.util.reporter.CountingReporter;
 import org.aya.util.reporter.Reporter;
 import org.aya.util.terck.MutableGraph;
 import org.aya.util.tyck.SCCTycker;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Comparator;
 
 /**
  * Tyck statements in SCC.
@@ -58,20 +58,24 @@ public record AyaSccTycker(
   }
 
   private void checkMutual(@NotNull ImmutableSeq<TyckOrder> scc) {
+    var heads = scc.filterIsInstance(TyckOrder.Head.class);
+    if (heads.sizeGreaterThanOrEquals(2)) {
+      fail(new TyckOrderError.CircularSignature(heads.map(TyckOrder.Head::unit)));
+      throw new SCCTyckingFailed(scc);
+    }
+    throw new Panic("This place is in theory unreachable, we need to investigate if it is reached");
+    /*
     var unit = scc.view().map(TyckOrder::unit)
       .distinct()
       .sorted(Comparator.comparing(SourceNode::sourcePos))
       .toImmutableSeq();
-    // the flattened dependency graph (FDG) lose information about header order, in other words,
-    // FDG treats all order as body order, so it allows all kinds of mutual recursion to be generated.
-    // To detect circular dependency in signatures which we forbid, we have to apply the old way,
-    // that is, what we did before https://github.com/aya-prover/aya-dev/pull/326
     if (unit.sizeEquals(1)) checkUnit(new TyckOrder.Body(unit.getFirst()));
     else {
       unit.forEach(u -> check(new TyckOrder.Head(u)));
       unit.forEach(u -> check(new TyckOrder.Body(u)));
       // terck(scc.view());
     }
+    */
   }
 
   private void check(@NotNull TyckOrder tyckOrder) {
@@ -83,7 +87,10 @@ public record AyaSccTycker(
 
   private void checkUnit(@NotNull TyckOrder order) {
     if (order.unit() instanceof TeleDecl.FnDecl fn && fn.body instanceof TeleDecl.ExprBody(var expr)) {
-      // checkSimpleFn(order, fn, expr);
+      if (selfReferencing(resolveInfo.depGraph(), order)) {
+        reporter.report(new BadRecursion(fn.sourcePos(), fn.ref, null));
+        throw new SCCTyckingFailed(ImmutableSeq.of(order));
+      }
       check(new TyckOrder.Body(fn));
     } else {
       check(order);

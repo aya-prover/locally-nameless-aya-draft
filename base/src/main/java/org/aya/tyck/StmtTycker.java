@@ -50,30 +50,34 @@ public record StmtTycker(
   public @NotNull Def check(Decl predecl) {
     ExprTycker tycker = null;
     if (predecl instanceof TeleDecl<?> decl) {
-      if (decl.signature == null) checkHeader(decl, tycker = mkTycker());
+      if (decl.signature == null) tycker = checkHeader(decl);
     }
 
     return switch (predecl) {
       case TeleDecl.FnDecl fnDecl -> {
-        var signature = fnDecl.signature;
-        assert signature != null;
+        assert fnDecl.signature != null;
 
-        var factory = FnDef.factory((retTy, body) ->
-          new FnDef(fnDecl.ref, signature.rawParams(), retTy, fnDecl.modifiers, body));
+        var factory = FnDef.factory(body ->
+          // DO NOT extract the below `fnDecl.signature` to a local var,
+          // we need it to be captured in `fnDecl` so we can assign them later.
+          new FnDef(fnDecl.ref, fnDecl.signature.rawParams(),
+            fnDecl.signature.result(), fnDecl.modifiers, body));
         var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
         yield switch (fnDecl.body) {
           case TeleDecl.ExprBody(var expr) -> {
+            var signature = fnDecl.signature;
             // In the ordering, we guarantee that expr bodied fn are always checked as a whole
             assert tycker != null;
             var result = tycker.inherit(expr, tycker.whnf(signature.result().instantiateTeleVar(teleVars.view())))
               // we still need to bind [result.type()] in case it was a hole
               .bindTele(teleVars.view());
             tycker.solveMetas();
-            result = tycker.zonk(result);
-            yield factory.apply(result.type(), Either.left(result.wellTyped()));
+            fnDecl.signature = fnDecl.signature.descent(tycker::zonk);
+            yield factory.apply(Either.left(tycker.zonk(result.wellTyped())));
           }
           case TeleDecl.BlockBody(var clauses, var elims) -> {
+            var signature = fnDecl.signature;
             // we do not load signature here, so we need a fresh ExprTycker
             var clauseTycker = new ClauseTycker.Worker(new ClauseTycker(tycker = mkTycker()),
               teleVars, signature, clauses, elims);
@@ -84,7 +88,7 @@ public record StmtTycker(
             if (orderIndependent) {
               // Order-independent.
               patResult = clauseTycker.checkNoClassify();
-              def = factory.apply(signature.result(), Either.right(patResult.wellTyped()));
+              def = factory.apply(Either.right(patResult.wellTyped()));
               if (!patResult.hasLhsError()) {
                 var rawParams = signature.rawParams();
                 var confluence = new YouTrack(rawParams, tycker, fnDecl.sourcePos());
@@ -93,7 +97,7 @@ public record StmtTycker(
               }
             } else {
               patResult = clauseTycker.check(fnDecl.entireSourcePos());
-              def = factory.apply(signature.result(), Either.right(patResult.wellTyped()));
+              def = factory.apply(Either.right(patResult.wellTyped()));
             }
             if (!patResult.hasLhsError()) new IApplyConfl(def, tycker, fnDecl.sourcePos()).check();
             yield def;
@@ -112,8 +116,8 @@ public record StmtTycker(
     };
   }
 
-  public void checkHeader(@NotNull TeleDecl<?> decl) { checkHeader(decl, mkTycker()); }
-  private void checkHeader(@NotNull TeleDecl<?> decl, @NotNull ExprTycker tycker) {
+  public ExprTycker checkHeader(@NotNull TeleDecl<?> decl) {
+    var tycker = mkTycker();
     switch (decl) {
       case TeleDecl.DataCon con -> checkKitsune(con, tycker);
       case TeleDecl.PrimDecl prim -> checkPrim(tycker, prim);
@@ -122,6 +126,8 @@ public record StmtTycker(
         var result = data.result;
         if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
         var signature = teleTycker.checkSignature(data.telescope, result);
+        tycker.solveMetas();
+        signature = signature.descent(tycker::zonk);
         var sort = SortTerm.Type0;
         if (signature.result() instanceof SortTerm userSort) sort = userSort;
         else fail(BadTypeError.univ(tycker.state, result, signature.result()));
@@ -132,8 +138,14 @@ public record StmtTycker(
         var result = fn.result;
         if (result == null) result = new WithPos<>(fn.sourcePos(), new Expr.Hole(false, null));
         fn.signature = teleTycker.checkSignature(fn.telescope, result);
+        // For ExprBody, they will be zonked later
+        if (fn.body instanceof TeleDecl.BlockBody) {
+          tycker.solveMetas();
+          fn.signature = fn.signature.descent(tycker::zonk);
+        }
       }
     }
+    return tycker;
   }
 
   /**
@@ -247,7 +259,7 @@ public record StmtTycker(
       PiTerm.make(core.telescope.view().map(Param::type), core.result),
       null, prim.entireSourcePos(),
       msg -> new PrimError.BadSignature(prim, msg, new UnifyInfo(tycker.state)));
-    prim.signature = tele;
+    prim.signature = tele.descent(tycker::zonk);
     tycker.solveMetas();
     tycker.setLocalCtx(new LocalCtx());
   }

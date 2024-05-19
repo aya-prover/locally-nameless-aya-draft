@@ -28,8 +28,6 @@ public sealed interface TeleTycker extends Contextful {
    * @return well-typed type or {@link ErrorTerm}
    */
   @NotNull Term checkType(@NotNull WithPos<Expr> typeExpr);
-  void solveMetas();
-  @NotNull Term zonk(@NotNull Term term);
 
   /**
    * @return a locally nameless signature computed from what's in the localCtx.
@@ -42,19 +40,13 @@ public sealed interface TeleTycker extends Contextful {
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
     var checkedParam = checkTele(cTele);
     var checkedResult = checkType(result).bindTele(locals.view());
-    solveMetas();
-    var finalParam = checkedParam.map(p -> p.map(q ->
-      q.descent(this::zonk)));
-    var finalResult = checkedResult.descent(this::zonk);
-    return new Signature<>(finalParam, finalResult);
+    return new Signature<>(checkedParam, checkedResult);
   }
 
   /**
    * Does not zonk the result. Need <emph>you</emph> to zonk them.
    */
-  default @NotNull ImmutableSeq<WithPos<Param>> checkTele(
-    @NotNull ImmutableSeq<Expr.Param> cTele
-  ) {
+  default @NotNull ImmutableSeq<WithPos<Param>> checkTele(@NotNull ImmutableSeq<Expr.Param> cTele) {
     var tele = checkTeleFree(cTele);
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
     bindTele(locals, tele);
@@ -110,8 +102,6 @@ public sealed interface TeleTycker extends Contextful {
 
   sealed interface Impl extends TeleTycker {
     @NotNull ExprTycker tycker();
-    @Override default void solveMetas() { tycker().solveMetas(); }
-    @Override default @NotNull Term zonk(@NotNull Term term) { return tycker().zonk(term); }
     @Override default @NotNull LocalCtx localCtx() { return tycker().localCtx(); }
     @Override default @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) { return tycker().setLocalCtx(ctx); }
   }

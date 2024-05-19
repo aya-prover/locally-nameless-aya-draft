@@ -12,7 +12,7 @@ import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * @author ice1000
@@ -35,16 +35,11 @@ public final class FnDef extends TopLevelDef<Term> {
     this.body = body;
   }
 
-  public static <T> BiFunction<Term, Either<Term, ImmutableSeq<Term.Matching>>, T>
-  factory(BiFunction<Term, Either<Term, ImmutableSeq<Term.Matching>>, T> function) {
+  public static <T> Function<Either<Term, ImmutableSeq<Term.Matching>>, T>
+  factory(Function<Either<Term, ImmutableSeq<Term.Matching>>, T> function) {
     return function;
   }
 
-  public boolean is(@NotNull Modifier mod) {
-    return modifiers.contains(mod);
-  }
-
-  public @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref() {
-    return ref;
-  }
+  public boolean is(@NotNull Modifier mod) { return modifiers.contains(mod); }
+  public @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref() { return ref; }
 }
