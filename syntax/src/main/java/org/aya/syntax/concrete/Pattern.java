@@ -15,10 +15,7 @@ import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.ForLSP;
-import org.aya.util.error.PosedUnaryOperator;
-import org.aya.util.error.SourceNode;
-import org.aya.util.error.SourcePos;
-import org.aya.util.error.WithPos;
+import org.aya.util.error.*;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -184,6 +181,10 @@ public sealed interface Pattern extends AyaDocile {
 
     public @NotNull Clause descent(@NotNull PosedUnaryOperator<@NotNull Expr> f, @NotNull PosedUnaryOperator<@NotNull Pattern> g) {
       return update(patterns.map(p -> p.descent(x -> x.descent(g))), expr.map(x -> x.descent(f)));
+    }
+    public void forEach(@NotNull PosedConsumer<@NotNull Expr> f, @NotNull PosedConsumer<@NotNull Pattern> g) {
+      patterns.forEach(a -> g.accept(a.term()));
+      expr.forEach(f::accept);
     }
 
     @Override public @NotNull SourcePos sourcePos() { return sourcePos; }

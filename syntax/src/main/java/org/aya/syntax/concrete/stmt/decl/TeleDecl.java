@@ -16,6 +16,7 @@ import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
+import org.aya.util.error.PosedConsumer;
 import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -24,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 /**
@@ -129,18 +131,27 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
 
   public sealed interface FnBody {
     FnBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g);
+    void forEach(@NotNull PosedConsumer<Expr> f, @NotNull Consumer<Pattern.Clause> g);
   }
 
   public record ExprBody(@NotNull WithPos<Expr> expr) implements FnBody {
     @Override public ExprBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
       return new ExprBody(expr.descent(f));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f, @NotNull Consumer<Pattern.Clause> g) {
+      f.accept(expr);
+    }
   }
 
-  public record BlockBody(ImmutableSeq<Pattern.Clause> clauses,
-                          ImmutableSeq<WithPos<LocalVar>> elims) implements FnBody {
+  public record BlockBody(
+    @NotNull ImmutableSeq<Pattern.Clause> clauses,
+    @NotNull ImmutableSeq<WithPos<LocalVar>> elims
+  ) implements FnBody {
     @Override public BlockBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
       return new BlockBody(clauses.map(g), elims);
+    }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f, @NotNull Consumer<Pattern.Clause> g) {
+      clauses.forEach(g);
     }
   }
 
