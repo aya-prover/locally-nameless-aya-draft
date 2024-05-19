@@ -249,10 +249,10 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         new Jdg.Default(new FreeTerm(lVar), localCtx().get(lVar)));
       case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, state, (params, k) -> {
         int argIx = 0, paramIx = 0;
-        var result = MutableList.<Term>create();
-        while (argIx < args.size() && paramIx < params.size()) {
+        var result = new Term[params.telescopeSize];
+        while (argIx < args.size() && paramIx < params.telescopeSize) {
           var arg = args.get(argIx);
-          var param = params.get(paramIx).descent(t -> t.instantiateTele(result.view()));
+          var param = params.telescopeRich(paramIx, result);
           // Implicit insertion
           if (arg.explicit() != param.explicit()) {
             if (!arg.explicit()) {
@@ -260,35 +260,30 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
               break;
             } else if (arg.name() == null) {
               // here, arg.explicit() == true and param.explicit() == false
-              result.append(mockTerm(param, arg.sourcePos()));
-              paramIx++;
+              result[paramIx++] = mockTerm(param, arg.sourcePos());
               continue;
             }
           }
           if (arg.name() != null && !param.nameEq(arg.name())) {
-            result.append(mockTerm(param, arg.sourcePos()));
-            paramIx++;
+            result[paramIx++] = mockTerm(param, arg.sourcePos());
             continue;
           }
-          result.append(inherit(arg.arg(), param.type()).wellTyped());
+          result[paramIx++] = inherit(arg.arg(), param.type()).wellTyped();
           argIx++;
-          paramIx++;
         }
         // Trailing implicits
-        while (paramIx < params.size()) {
-          var param = params.get(paramIx);
-          if (param.explicit()) break;
-          param = param.descent(t -> t.instantiateTele(result.view()));
-          result.append(mockTerm(param, SourcePos.NONE));
-          paramIx++;
+        while (paramIx < params.telescopeSize) {
+          if (params.telescopeLicit[paramIx]) break;
+          var param = params.telescopeRich(paramIx, result);
+          result[paramIx++] = mockTerm(param, SourcePos.NONE);
         }
         if (argIx < args.size()) {
-          return generateApplication(args.drop(argIx), k.apply(result.toImmutableSeq()));
-        } else if (paramIx < params.size()) {
+          return generateApplication(args.drop(argIx), k.apply(result));
+        } else if (paramIx < params.telescopeSize) {
           // TODO: eta-expand
           throw new UnsupportedOperationException("TODO");
         }
-        return k.apply(result.toImmutableSeq());
+        return k.apply(result);
       });
       default -> throw new UnsupportedOperationException("TODO");
     };
