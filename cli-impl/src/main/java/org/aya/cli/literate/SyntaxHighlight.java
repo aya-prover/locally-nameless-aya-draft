@@ -36,7 +36,6 @@ import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** @implNote Use {@link MutableList} instead of {@link SeqView} for performance consideration. */
 public record SyntaxHighlight(
   @Nullable ModulePath currentFileModule,
   @NotNull MutableList<HighlightInfo> info
@@ -119,7 +118,7 @@ public record SyntaxHighlight(
   }
 
   @Override public void visitModuleRef(@NotNull SourcePos pos, @NotNull ModuleName path) {
-    
+    info.append(DefKind.Module.toRef(pos, Link.loc(path.toString()), null));
   }
 
   @Override public void visitModuleDecl(@NotNull SourcePos pos, @NotNull ModuleName path) {

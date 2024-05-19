@@ -5,6 +5,7 @@ package org.aya.tyck.pat;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
+import kala.value.primitive.MutableBooleanValue;
 import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.concrete.Expr;
@@ -21,6 +22,7 @@ import org.aya.tyck.ExprTycker;
 import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.ctx.LocalLet;
+import org.aya.tyck.error.PatternProblem;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
@@ -133,7 +135,12 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   ) {
     var tycker = newPatternTycker(indices, signature.rawParams().view());
     return exprTycker.subscoped(() -> {
-      // TODO: need some prework, see old project
+      // If a pattern occurs in elimination environment, then we check if it contains absurd pattern.
+      // If it is not the case, the pattern must be accompanied by a body.
+      if (!clause.patterns.anyMatch(p -> hasAbsurdity(p.term().data())) && clause.expr.isEmpty()) {
+        clause.hasError = true;
+        exprTycker.reporter.report(new PatternProblem.InvalidEmptyBody(clause));
+      }
 
       var patResult = tycker.tyck(clause.patterns.view(), null, clause.expr.getOrNull());
       var ctx = exprTycker.localCtx();   // No need to copy the context here
@@ -201,6 +208,15 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         return term.descent(TermInline::apply);
       }
     }
+  }
+
+  private static boolean hasAbsurdity(@NotNull Pattern term) {
+    return hasAbsurdity(term, MutableBooleanValue.create());
+  }
+  private static boolean hasAbsurdity(@NotNull Pattern term, @NotNull MutableBooleanValue b) {
+    if (term == Pattern.Absurd.INSTANCE) b.set(true);
+    else term.forEach((_, p) -> b.set(b.get() || hasAbsurdity(p, b)));
+    return b.get();
   }
 
   /**

@@ -134,6 +134,10 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record Ref(@NotNull AnyVar var, @NotNull MutableValue<Term> theCoreType) implements Expr, WithTerm {
+    public Ref(@NotNull AnyVar var) {
+      this(var, MutableValue.create());
+    }
+
     @Override public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
     @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }

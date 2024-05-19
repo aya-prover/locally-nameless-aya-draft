@@ -147,6 +147,10 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims
   ) implements FnBody {
+    public BlockBody {
+
+    }
+
     @Override public BlockBody map(@NotNull PosedUnaryOperator<Expr> f, @NotNull UnaryOperator<Pattern.Clause> g) {
       return new BlockBody(clauses.map(g), elims);
     }

@@ -191,7 +191,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       case Expr.Sugar s ->
         throw new IllegalArgumentException(STR."\{s.getClass()} is desugared, should be unreachable");
       case Expr.App(var f, var a) -> {
-        if (!(f.data() instanceof Expr.Ref(var ref))) throw new IllegalStateException("function must be Expr.Ref");
+        if (!(f.data() instanceof Expr.Ref(var ref, _))) throw new IllegalStateException("function must be Expr.Ref");
         yield checkApplication(ref, expr.sourcePos(), a);
       }
       case Expr.Hole hole -> throw new UnsupportedOperationException("TODO");
@@ -209,8 +209,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         yield new Jdg.Default(new IntegerTerm(integer, match.component2(), type), type);
       }
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref(LocalVar ref) when localLet.contains(ref) -> localLet.get(ref);
-      case Expr.Ref(var ref) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
+      case Expr.Ref(LocalVar ref, _) when localLet.contains(ref) -> localLet.get(ref);
+      case Expr.Ref(var ref, _) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       case Expr.Sigma _, Expr.Pi _ -> lazyJdg(ty(expr));
       case Expr.Sort _ -> sort(expr);
       case Expr.Tuple(var items) -> {

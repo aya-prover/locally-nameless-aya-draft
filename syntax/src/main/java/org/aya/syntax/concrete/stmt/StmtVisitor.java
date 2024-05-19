@@ -65,8 +65,13 @@ public interface StmtVisitor extends Consumer<Stmt> {
       case Generalize g -> g.variables.forEach(v -> visitVarDecl(v.sourcePos, v, noType));
       case Command.Module m -> visitModuleDecl(m.sourcePos(), new ModuleName.Qualified(m.name()));
       case Command.Import i -> {
+        var isAlsoDef = i.asName() == null;
         visitModuleRef(i.sourcePos(), i.path());
-        visitModuleDecl(i.sourcePos(), new ModuleName.Qualified(i.asName()));
+        if (!isAlsoDef) {
+          visitModuleDecl(i.sourcePos(), new ModuleName.Qualified(i.asName()));
+        } else {
+          // TODO: visitModuleDecl on the last element of i.path
+        }
       }
       case Command.Open o when o.fromSugar() -> { }  // handled in `case Decl` or `case Command.Import`
       case Command.Open o -> {

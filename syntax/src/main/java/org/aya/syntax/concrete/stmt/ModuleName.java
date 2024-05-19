@@ -29,7 +29,7 @@ public sealed interface ModuleName extends Serializable {
   }
 
   record Qualified(@NotNull ImmutableSeq<String> ids) implements ModuleName {
-    public Qualified(String @NotNull ... ids) { this(ImmutableSeq.of(ids)); }
+    public Qualified(@NotNull String @NotNull ... ids) { this(ImmutableSeq.of(ids)); }
     public Qualified {
       assert ids.isNotEmpty() : "Otherwise please use `This`";
     }

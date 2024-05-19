@@ -58,6 +58,13 @@ public interface ModuleLoader extends Problematic {
     return resolveModule(primFactory, new AyaShape.Factory(), opSet, context, program, recurseLoader);
   }
 
+  /**
+   * Resolve a certain module.
+   *
+   * @param context the context of the module
+   * @param program the statements of the module
+   * @param recurseLoader the module loader that used to resolve
+   */
   @ApiStatus.Internal
   default @NotNull ResolveInfo resolveModule(
     @NotNull PrimFactory primFactory, @NotNull AyaShape.Factory shapeFactory, @NotNull AyaBinOpSet opSet,

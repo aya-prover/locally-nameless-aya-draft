@@ -62,7 +62,7 @@ public class ExprBinParser extends BinOpParser<AyaBinOpSet, WithPos<Expr>, Expr.
   @Override protected @Nullable OpDecl underlyingOpDecl(@NotNull Expr.NamedArg elem) {
     var expr = elem.term().data();
     while (expr instanceof Expr.Lift lift) expr = lift.expr().data();
-    return expr instanceof Expr.Ref(var ref) && ref instanceof DefVar<?, ?> defVar
+    return expr instanceof Expr.Ref(var ref, _) && ref instanceof DefVar<?, ?> defVar
       ? defVar.resolveOpDecl(resolveInfo.thisModule().modulePath())
       : null;
   }
