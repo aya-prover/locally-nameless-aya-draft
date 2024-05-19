@@ -62,10 +62,11 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
     @NotNull ImmutableSeq<LocalVar> vars,
     @NotNull Signature<?> signature,
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
-    @NotNull ImmutableSeq<WithPos<LocalVar>> elims
+    @NotNull ImmutableSeq<WithPos<LocalVar>> elims,
+    @NotNull boolean isFn
   ) {
     public @NotNull TyckResult check(@NotNull SourcePos overallPos) {
-      var lhsResult = parent.checkAllLhs(computeIndices(), signature, clauses.view());
+      var lhsResult = parent.checkAllLhs(computeIndices(), signature, clauses.view(), isFn);
 
       if (lhsResult.noneMatch(r -> r.hasError)) {
         var classes = PatClassifier.classify(lhsResult.view().map(LhsResult::clause),
@@ -83,14 +84,14 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
         i -> vars.indexOf(i.data()));
     }
     public @NotNull TyckResult checkNoClassify() {
-      return parent.checkAllRhs(vars, parent.checkAllLhs(computeIndices(), signature, clauses.view()));
+      return parent.checkAllRhs(vars, parent.checkAllLhs(computeIndices(), signature, clauses.view(), isFn));
     }
   }
 
   public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
-    @Nullable ImmutableIntSeq indices, @NotNull Signature<?> signature, @NotNull SeqView<Pattern.Clause> clauses
+    @Nullable ImmutableIntSeq indices, @NotNull Signature<?> signature, @NotNull SeqView<Pattern.Clause> clauses, boolean isFn
   ) {
-    return clauses.map(c -> checkLhs(signature, indices, c)).toImmutableSeq();
+    return clauses.map(c -> checkLhs(signature, indices, c, isFn)).toImmutableSeq();
   }
 
   public @NotNull TyckResult checkAllRhs(
@@ -131,13 +132,14 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   public @NotNull LhsResult checkLhs(
     @NotNull Signature<? extends Term> signature,
     @Nullable ImmutableIntSeq indices,
-    @NotNull Pattern.Clause clause
+    @NotNull Pattern.Clause clause,
+    boolean isFn
   ) {
     var tycker = newPatternTycker(indices, signature.rawParams().view());
     return exprTycker.subscoped(() -> {
       // If a pattern occurs in elimination environment, then we check if it contains absurd pattern.
       // If it is not the case, the pattern must be accompanied by a body.
-      if (!clause.patterns.anyMatch(p -> hasAbsurdity(p.term().data())) && clause.expr.isEmpty()) {
+      if (isFn && !clause.patterns.anyMatch(p -> hasAbsurdity(p.term().data())) && clause.expr.isEmpty()) {
         clause.hasError = true;
         exprTycker.reporter.report(new PatternProblem.InvalidEmptyBody(clause));
       }

@@ -80,7 +80,7 @@ public record StmtTycker(
             var signature = fnDecl.signature;
             // we do not load signature here, so we need a fresh ExprTycker
             var clauseTycker = new ClauseTycker.Worker(new ClauseTycker(tycker = mkTycker()),
-              teleVars, signature, clauses, elims);
+              teleVars, signature, clauses, elims, true);
 
             var orderIndependent = fnDecl.modifiers.contains(Modifier.Overlap);
             FnDef def;
@@ -172,7 +172,7 @@ public record StmtTycker(
     if (dataCon.patterns.isNotEmpty()) {
       // do not do coverage check
       var lhsResult = new ClauseTycker(tycker = mkTycker()).checkLhs(dataSig, null,
-        new Pattern.Clause(dataCon.entireSourcePos(), dataCon.patterns, Option.none()));
+        new Pattern.Clause(dataCon.entireSourcePos(), dataCon.patterns, Option.none()), false);
       wellPats = lhsResult.clause().pats();
       tycker.setLocalCtx(lhsResult.localCtx());
       lhsResult.addLocalLet(ownerBinds, tycker);
