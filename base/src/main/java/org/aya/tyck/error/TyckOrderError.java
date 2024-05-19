@@ -2,15 +2,23 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.error;
 
+import com.sun.jdi.InternalException;
+import kala.collection.immutable.ImmutableSeq;
+import org.aya.generic.TyckUnit;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.error.Panic;
+import org.aya.util.error.SourcePos;
+import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
+
 public interface TyckOrderError extends TyckError {
-/*  default @NotNull String nameOf(@NotNull TyckUnit stmt) {
+  default @NotNull String nameOf(@NotNull TyckUnit stmt) {
     return switch (stmt) {
       case Decl decl -> decl.ref().name();
       default -> throw new InternalException("Unexpected stmt seen in SCCTycker: " + stmt);
@@ -41,7 +49,7 @@ public interface TyckOrderError extends TyckError {
       return Doc.sep(Doc.english("Self-reference found in the signature of"),
         Doc.plain(nameOf(unit)));
     }
-  }*/
+  }
 
   @Contract(pure = true)
   static @NotNull Panic notYetTycked(@NotNull DefVar<?, ?> var) {

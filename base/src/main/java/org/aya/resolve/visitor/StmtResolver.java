@@ -72,7 +72,6 @@ public interface StmtResolver {
             addReferences(info, new TyckOrder.Head(decl), resolver);
           }
         }
-        ;
       }
       case ResolvingStmt.TopDecl(TeleDecl.DataDecl data, var ctx) -> {
         var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, data, Where.Head);
@@ -113,7 +112,7 @@ public interface StmtResolver {
       //   addReferences(info, new TyckOrder.Head(decl), resolver.reference().view()
       //     .concat(decl.members.map(TyckOrder.Head::new)));
       // }
-      // handled in DataDecl and StructDecl
+      // handled in DataDecl and ClassDecl
       case ResolvingStmt.MiscDecl _ -> Panic.unreachable();
       // case TeleDecl.ClassMember field -> {}
     }
@@ -130,8 +129,6 @@ public interface StmtResolver {
   private static void addReferences(@NotNull ResolveInfo info, TyckOrder decl, SeqView<TyckOrder> refs) {
     info.depGraph().sucMut(decl).appendAll(refs
       .filter(unit -> TyckUnit.needTyck(unit, info.thisModule().modulePath())));
-    if (decl instanceof TyckOrder.Body) info.depGraph().sucMut(decl)
-      .append(new TyckOrder.Head(decl.unit()));
   }
 
   /** @param decl is unmodified */

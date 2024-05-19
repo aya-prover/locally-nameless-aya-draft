@@ -49,7 +49,9 @@ public record StmtTycker(
   }
   public @NotNull Def check(Decl predecl) {
     var checked = doCheck(predecl);
-    shapeFactory.bonjour(checked);
+    // In case I'm not an example, recognize my shape
+    if (!(predecl instanceof TeleDecl<?> tele && tele.isExample))
+      shapeFactory.bonjour(checked);
     return checked;
   }
   private @NotNull Def doCheck(Decl predecl) {
@@ -125,6 +127,7 @@ public record StmtTycker(
     };
   }
 
+  public void checkHeader(@NotNull TeleDecl<?> decl) { checkHeader(decl, mkTycker()); }
   private void checkHeader(@NotNull TeleDecl<?> decl, @NotNull ExprTycker tycker) {
     switch (decl) {
       case TeleDecl.DataCon con -> checkKitsune(con, tycker);

@@ -9,6 +9,8 @@ import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.core.repr.AyaShape;
+import org.aya.tyck.order.AyaOrgaTycker;
+import org.aya.tyck.order.AyaSccTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.reporter.DelayedReporter;
 import org.jetbrains.annotations.NotNull;
@@ -31,16 +33,15 @@ public interface ModuleLoader extends Problematic {
   tyckModule(ResolveInfo resolveInfo, ModuleCallback<E> onTycked) throws E {
     var SCCs = resolveInfo.depGraph().topologicalOrder();
     var delayedReporter = new DelayedReporter(reporter());
-    throw new UnsupportedOperationException();
-    // var sccTycker = new AyaOrgaTycker(AyaSccTycker.create(resolveInfo, delayedReporter), resolveInfo);
-    // // in case we have un-messaged TyckException
-    // try (delayedReporter) {
-    //   SCCs.forEach(sccTycker::tyckSCC);
-    // } finally {
-    //   if (onTycked != null) onTycked.onModuleTycked(
-    //     resolveInfo, sccTycker.sccTycker().wellTyped().toImmutableSeq());
-    // }
-    // return resolveInfo;
+    var sccTycker = new AyaOrgaTycker(AyaSccTycker.create(resolveInfo, delayedReporter), resolveInfo);
+    // in case we have un-messaged TyckException
+    try (delayedReporter) {
+      SCCs.forEach(sccTycker::tyckSCC);
+    } finally {
+      if (onTycked != null) onTycked.onModuleTycked(
+        resolveInfo, sccTycker.sccTycker().wellTyped().toImmutableSeq());
+    }
+    return resolveInfo;
   }
 
   default @NotNull ResolveInfo resolveModule(
