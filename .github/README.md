@@ -15,7 +15,8 @@ This is a temporary repo for the rewrite of Aya using locally nameless with the 
 * Re-think about the testing infrastructure, maybe there's a better way to organize the failing cases
 * Get rid of trace builders and "codifiers" because the developers never used them anyway except me for a few times
 * Run internal tests using the "Orga" type checker (non-stopping & deal with mutual recursion correctly) instead of the silly sequential type checker
-* Redesign classes
+* Remove first-class implicit arguments, replace with the design similar to Coq
+* Redesign classes (future plan)
 
 Technically we didn't remove `Glue` because we didn't implement it either, but we can say we replaced it from our roadmap.
 

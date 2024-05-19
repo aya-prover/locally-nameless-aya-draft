@@ -6,11 +6,12 @@ import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitData extends JitTele {
-  protected JitData(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName) {
-    super(telescopeSize, telescopeLicit, telescopeName);
-  }
+  public final @NotNull JitCon[] constructors;
 
-  public abstract @NotNull JitCon[] constructors();
+  protected JitData(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, @NotNull JitCon[] constructors) {
+    super(telescopeSize, telescopeLicit, telescopeName);
+    this.constructors = constructors;
+  }
 
   public @NotNull JitDataCall of(Term... args) {
     return new JitDataCall(this, args);

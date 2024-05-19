@@ -336,7 +336,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       argsCum[i] = l;
     }
 
-    return types.result(argsCum);
+    return whnf(types.result(argsCum));
   }
 
   /**

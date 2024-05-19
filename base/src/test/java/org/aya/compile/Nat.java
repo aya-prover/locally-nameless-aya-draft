@@ -23,11 +23,13 @@ public interface Nat {
 
       private O() {
         super(0, new boolean[0], new String[0], Nat$.INSTANCE);
+        Nat$.INSTANCE.constructors[0] = this;
       }
 
       @Override public @NotNull Term telescope(int i, Term... teleArgs) {
         switch (i) {
-          default: return Panic.unreachable();
+          default:
+            return Panic.unreachable();
         }
       }
 
@@ -46,7 +48,8 @@ public interface Nat {
       public static final @NotNull S INSTANCE = new S();
 
       private S() {
-        super(1, new boolean[] { true }, new String[] { "n" }, Nat$.INSTANCE);
+        super(1, new boolean[]{true}, new String[]{"n"}, Nat$.INSTANCE);
+        Nat$.INSTANCE.constructors[1] = this;
       }
 
       @Override public @NotNull Term telescope(int i, Term... teleArgs) {
@@ -54,7 +57,8 @@ public interface Nat {
           case 0:
             assert teleArgs.length == 0;
             return (Term) ((Object) Nat$.INSTANCE.of());
-          default: return Panic.unreachable();
+          default:
+            return Panic.unreachable();
         }
       }
 
@@ -70,16 +74,13 @@ public interface Nat {
     }
 
     private Nat$() {
-      super(0, new boolean[0], new String[0]);
-    }
-
-    @Override public @NotNull JitCon[] constructors() {
-      return new JitCon[] { O.INSTANCE, S.INSTANCE };
+      super(0, new boolean[0], new String[0], new JitCon[2]);
     }
 
     @Override public @NotNull Term telescope(int i, Term... teleArgs) {
       switch (i) {
-        default: return Panic.unreachable();
+        default:
+          return Panic.unreachable();
       }
     }
 
@@ -92,7 +93,7 @@ public interface Nat {
     public static final @NotNull plus INSTANCE = new plus();
 
     private plus() {
-      super(2, new boolean[] { true, true, }, new String[] { "a", "b" });
+      super(2, new boolean[]{true, true,}, new String[]{"a", "b"});
     }
 
     @Override public @NotNull Term telescope(int i, Term... teleArgs) {
@@ -118,7 +119,7 @@ public interface Nat {
       var args0 = args[0];
       var args1 = args[1];
 
-      if (args0 instanceof JitConCall) {
+      if (((JitConCall) (Object) args0) instanceof JitConCall) {
         if (((JitConCall) ((Object) args0)).instance() == Nat$.O.INSTANCE) {
           return args1;
         }
