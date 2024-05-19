@@ -10,6 +10,7 @@ import org.aya.pretty.doc.Language;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.SourcePos;
+import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,7 @@ public interface AyaLiterate {
    * Aya inline code. For code blocks, see {@link AyaVisibleCodeBlock} and {@link AyaHiddenCodeBlock}
    */
   final class AyaInlineCode extends Literate.InlineCode {
-    public @Nullable Expr expr;
+    public @Nullable WithPos<Expr> expr;
     public @Nullable TyckResult tyckResult;
     public final @NotNull CodeOptions options;
 
@@ -63,12 +64,13 @@ public interface AyaLiterate {
 
     @Override public @NotNull Doc toDoc() {
       if (tyckResult == null) {
-        if (expr != null) return Doc.code(Language.Builtin.Aya, expr.toDoc(options.options()));
+        if (expr != null) return Doc.code(Language.Builtin.Aya,
+          expr.data().toDoc(options.options()));
         else return Doc.code("Error");
       }
       assert expr != null;
       return Doc.code(Language.Builtin.Aya, (switch (options.showCode()) {
-        case Concrete -> expr;
+        case Concrete -> expr.data();
         case Core -> tyckResult.wellTyped();
         case Type -> tyckResult.type();
       }).toDoc(options.options()));

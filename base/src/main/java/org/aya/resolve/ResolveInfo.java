@@ -14,8 +14,11 @@ import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.UseHide;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.ref.DefVar;
+import org.aya.tyck.ExprTycker;
+import org.aya.tyck.TyckState;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.SourcePos;
+import org.aya.util.reporter.Reporter;
 import org.aya.util.terck.MutableGraph;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +42,10 @@ public record ResolveInfo(
   ) {
     this(thisModule, primFactory, shapeFactory, opSet,
       MutableMap.create(), MutableMap.create(), MutableMap.create(), MutableGraph.create());
+  }
+  public ExprTycker newTycker() { return newTycker(opSet.reporter); }
+  public ExprTycker newTycker(@NotNull Reporter reporter) {
+    return new ExprTycker(new TyckState(shapeFactory, primFactory), reporter);
   }
 
   public record ImportInfo(@NotNull ResolveInfo resolveInfo, boolean reExport) { }

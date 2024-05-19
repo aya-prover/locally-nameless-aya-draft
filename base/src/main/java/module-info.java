@@ -10,6 +10,7 @@ module aya.base {
   exports org.aya.resolve.context;
   exports org.aya.resolve.module;
   exports org.aya.resolve.salt;
+  exports org.aya.resolve.visitor;
   exports org.aya.resolve;
   exports org.aya.tyck.ctx;
   exports org.aya.tyck.error;

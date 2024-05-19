@@ -11,6 +11,7 @@ import kala.value.MutableValue;
 import org.aya.generic.TyckOrder;
 import org.aya.generic.TyckUnit;
 import org.aya.resolve.context.Context;
+import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.error.GeneralizedNotAvailableError;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
@@ -23,7 +24,10 @@ import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+
+import static org.aya.syntax.concrete.Expr.buildLam;
 
 /**
  * Resolves bindings.
@@ -41,6 +45,18 @@ public record ExprResolver(
   @NotNull MutableList<TyckOrder> reference,
   @NotNull MutableStack<Where> where
 ) implements PosedUnaryOperator<Expr> {
+  /**
+   * Do !!!NOT!!! use in the type checker.
+   * This is solely for cosmetic features, such as literate mode inline expressions, or repl.
+   */
+  @Contract(pure = true)
+  public static WithPos<Expr> resolveLax(@NotNull ModuleContext context, @NotNull WithPos<Expr> expr) {
+    var resolver = new ExprResolver(context, ExprResolver.LAX);
+    resolver.enter(Where.FnBody);
+    var inner = expr.descent(resolver);
+    var view = resolver.allowedGeneralizes().valuesView().toImmutableSeq().view();
+    return buildLam(expr.sourcePos(), view, inner);
+  }
 
   public ExprResolver(@NotNull Context ctx, @NotNull Options options) {
     this(ctx, options, MutableLinkedHashMap.of(), MutableList.create(), MutableStack.create());
@@ -213,9 +229,9 @@ public record ExprResolver(
 
   public @NotNull WithPos<Pattern> resolvePattern(@NotNull WithPos<Pattern> pattern, MutableValue<Context> ctx) {
     var resolver = new PatternResolver(ctx.get(), this::addReference);
-    var result = resolver.apply(pattern);
+    var result = pattern.descent(resolver);
     ctx.set(resolver.context());
-    return pattern.update(result);
+    return result;
   }
 
   private static Context bindAs(@NotNull LocalVar as, @NotNull Context ctx) { return ctx.bind(as); }
