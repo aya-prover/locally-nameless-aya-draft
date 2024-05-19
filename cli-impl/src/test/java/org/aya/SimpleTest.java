@@ -13,8 +13,7 @@ public class SimpleTest {
     System.out.println("Hello, world!");
   }
 
-  @Test
-  public void test() {
+  @Test public void test() {
     Class<?> foo = null;
     try {
       @Language("Java") var code = """
@@ -29,7 +28,7 @@ public class SimpleTest {
         }
         """;
 
-      foo = Compiler.java().inheritClassPath().from(code).compile().load().get();
+      foo = Compiler.java().from(code).compile().load().get();
       var methodFoo = foo.getDeclaredMethod("foo");
       methodFoo.invoke(null);
     } catch (Compiler.CompileException | IllegalAccessException | InvocationTargetException | NoSuchMethodException |
