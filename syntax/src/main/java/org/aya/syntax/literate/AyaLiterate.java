@@ -41,9 +41,7 @@ public interface AyaLiterate {
       super(language, code, sourcePos);
     }
 
-    @Override public @NotNull Doc toDoc() {
-      return Doc.empty();
-    }
+    @Override public @NotNull Doc toDoc() { return Doc.empty(); }
   }
 
   record TyckResult(Term wellTyped, Term type) { }

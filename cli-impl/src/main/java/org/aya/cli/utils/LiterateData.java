@@ -9,6 +9,7 @@ import org.aya.cli.literate.LiterateFaithfulPrettier;
 import org.aya.cli.literate.SyntaxHighlight;
 import org.aya.literate.Literate;
 import org.aya.literate.LiterateConsumer;
+import org.aya.normalize.Normalizer;
 import org.aya.pretty.doc.Doc;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.salt.Desalt;
@@ -57,8 +58,11 @@ public record LiterateData(
     extractedExprs.forEach(c -> {
       assert c.expr != null;
       var result = tycker.zonk(tycker.synthesize(c.expr));
-      c.tyckResult = new AyaLiterate.TyckResult(result.wellTyped(), result.type());
-      /*.normalize(c.options.mode(), tycker.state)*/;
+      var normalizer = new Normalizer(tycker.state);
+      c.tyckResult = new AyaLiterate.TyckResult(
+        normalizer.normalize(result.wellTyped(), c.options.mode()),
+        normalizer.normalize(result.type(), c.options.mode())
+      );
     });
   }
 

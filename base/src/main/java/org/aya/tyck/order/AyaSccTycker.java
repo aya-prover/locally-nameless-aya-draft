@@ -34,10 +34,10 @@ public record AyaSccTycker(
   @NotNull ResolveInfo resolveInfo,
   @NotNull MutableList<@NotNull Def> wellTyped
 ) implements SCCTycker<TyckOrder, AyaSccTycker.SCCTyckingFailed>, Problematic {
-  public static @NotNull AyaSccTycker create(ResolveInfo resolveInfo, @NotNull Reporter outReporter) {
+  public static @NotNull AyaSccTycker create(ResolveInfo info, @NotNull Reporter outReporter) {
     var counting = CountingReporter.delegate(outReporter);
-    var stmt = new StmtTycker(counting, resolveInfo.shapeFactory(), resolveInfo.primFactory());
-    return new AyaSccTycker(stmt, counting, resolveInfo, MutableList.create());
+    var stmt = new StmtTycker(counting, info.shapeFactory(), info.primFactory());
+    return new AyaSccTycker(stmt, counting, info, MutableList.create());
   }
 
   @Override public @NotNull ImmutableSeq<TyckOrder>

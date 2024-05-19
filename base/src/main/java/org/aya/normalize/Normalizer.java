@@ -17,6 +17,7 @@ import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
+import org.aya.syntax.literate.CodeOptions;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
@@ -78,6 +79,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
       }
       // TODO: handle other cases
       // ice: what are the other cases?
+      // h: i don't know
       default -> term;
     };
   }
@@ -110,5 +112,17 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
   public @NotNull UnaryOperator<Term> full() { return new Full(); }
   private class Full implements UnaryOperator<Term> {
     @Override public Term apply(Term term) { return whnf(term).descent(this); }
+  }
+
+  /**
+   * Do NOT use this in the type checker.
+   * This is for REPL/literate mode and testing.
+   */
+  public @NotNull Term normalize(Term term, CodeOptions.NormalizeMode mode) {
+    return switch (mode) {
+      case HEAD -> apply(term);
+      case FULL -> full().apply(term);
+      case NULL -> new Finalizer.Freeze(() -> state).zonk(term);
+    };
   }
 }
