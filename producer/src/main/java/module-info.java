@@ -4,5 +4,6 @@ module aya.producer {
 
   requires static org.jetbrains.annotations;
 
+  exports org.aya.producer.flcl;
   exports org.aya.producer;
 }
