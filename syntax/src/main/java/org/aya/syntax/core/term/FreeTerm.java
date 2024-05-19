@@ -6,7 +6,7 @@ import kala.function.IndexedFunction;
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
 
-public record FreeTerm(@NotNull LocalVar name) implements InternalState {
+public record FreeTerm(@NotNull LocalVar name) implements TyckInternal {
   public FreeTerm(@NotNull String name) {
     this(new LocalVar(name));
   }

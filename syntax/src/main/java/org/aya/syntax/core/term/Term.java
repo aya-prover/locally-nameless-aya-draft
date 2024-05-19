@@ -12,7 +12,6 @@ import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
-import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.SourcePos;
@@ -24,7 +23,7 @@ import java.io.Serializable;
 import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
-  permits BetaRedex, Formation, InternalState, LocalTerm, StableWHNF, Callable, CoeTerm {
+  permits BetaRedex, Formation, TyckInternal, LocalTerm, StableWHNF, Callable, CoeTerm {
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {

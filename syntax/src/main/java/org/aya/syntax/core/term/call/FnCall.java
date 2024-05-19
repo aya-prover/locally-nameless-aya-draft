@@ -19,8 +19,7 @@ public record FnCall(
     return args.sameElements(args(), true) ? this : new FnCall(ref, ulift, args);
   }
 
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(Callable.descent(args, f));
   }
 

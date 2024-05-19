@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  *                      false if this is just for pretty printing placeholder
  * @see org.aya.prettier.CorePrettier#term(BasePrettier.Outer, Term) (ErrorTerm case)
  */
-public record ErrorTerm(AyaDocile description, boolean isReallyError) implements StableWHNF, InternalState {
+public record ErrorTerm(AyaDocile description, boolean isReallyError) implements StableWHNF, TyckInternal {
   public ErrorTerm(Doc doc, boolean isReallyError) { this(_ -> doc, isReallyError); }
   public ErrorTerm(AyaDocile desc) { this(desc, true); }
   public static @NotNull ErrorTerm typeOf(@NotNull Term origin) {

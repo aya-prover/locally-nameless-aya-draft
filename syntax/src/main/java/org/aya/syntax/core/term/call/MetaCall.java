@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 public record MetaCall(
   @Override @NotNull MetaVar ref,
   @Override @NotNull ImmutableSeq<Term> args
-) implements Callable, InternalState {
+) implements Callable, TyckInternal {
   public static @NotNull Term app(MetaVar ref, Term rhs, ImmutableSeq<Term> args) {
     var directArgs = args.sliceView(0, ref.ctxSize());
     var restArgs = args.sliceView(ref.ctxSize(), args.size());

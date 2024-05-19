@@ -9,7 +9,7 @@ import kala.tuple.Tuple2;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
-import org.aya.syntax.core.term.InternalState;
+import org.aya.syntax.core.term.TyckInternal;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.util.error.SourcePos;
@@ -20,7 +20,7 @@ public record MetaLitTerm(
   @NotNull Object repr,
   @NotNull ImmutableSeq<Tuple2<Def, ShapeRecognition>> candidates,
   @NotNull Term type
-) implements InternalState {
+) implements TyckInternal {
   public @NotNull MetaLitTerm update(@NotNull Term type) {
     return type == type() ? this : new MetaLitTerm(sourcePos, repr, candidates, type);
   }
