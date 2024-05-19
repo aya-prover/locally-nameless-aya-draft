@@ -4,6 +4,7 @@ package org.aya.cli.single;
 
 import org.aya.cli.utils.CliEnums;
 import org.aya.cli.utils.CompilerUtil;
+import org.aya.normalize.PrimFactory;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.context.EmptyContext;
 import org.aya.resolve.context.ModuleContext;
@@ -50,14 +51,13 @@ public record SingleFileCompiler(
       ayaFile.pretty(flags, program, reporter, CliEnums.PrettyStage.raw);
       var loader = new CachedModuleLoader<>(new ModuleListLoader(reporter, flags.modulePaths().view().map(path ->
         new FileModuleLoader(locator, path, reporter, ayaParser, fileManager)).toImmutableSeq()));
-      // loader.tyckModule(, (moduleResolve, defs) -> {
-      //   ayaFile.tyckAdditional(moduleResolve);
-      //   ayaFile.pretty(flags, program, reporter, CliEnums.PrettyStage.scoped);
-      //   ayaFile.pretty(flags, defs, reporter, CliEnums.PrettyStage.typed);
-      //   ayaFile.pretty(flags, program, reporter, CliEnums.PrettyStage.literate);
-      //   if (moduleCallback != null) moduleCallback.onModuleTycked(moduleResolve, defs);
-      // });
-      throw new UnsupportedOperationException("TODO");
+      loader.tyckModule(new PrimFactory(), ctx, program, (moduleResolve, defs) -> {
+        ayaFile.tyckAdditional(moduleResolve);
+        ayaFile.pretty(flags, program, reporter, CliEnums.PrettyStage.scoped);
+        ayaFile.pretty(flags, defs, reporter, CliEnums.PrettyStage.typed);
+        ayaFile.pretty(flags, program, reporter, CliEnums.PrettyStage.literate);
+        if (moduleCallback != null) moduleCallback.onModuleTycked(moduleResolve, defs);
+      });
     });
   }
 }
