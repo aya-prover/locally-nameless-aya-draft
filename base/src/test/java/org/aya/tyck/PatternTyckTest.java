@@ -3,13 +3,13 @@
 package org.aya.tyck;
 
 import org.aya.TestUtil;
+import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.call.ConCall;
 import org.junit.jupiter.api.Test;
 
 import static org.aya.tyck.TyckTest.tyck;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PatternTyckTest {
   @Test public void test0() {
@@ -25,9 +25,9 @@ public class PatternTyckTest {
     assert result.isNotEmpty();
 
     var foo = (FnDef) result.find(d -> d.ref().name().equals("foo")).get();
-    // It is correct that [nf] is [S (O + (S O))], since this is a WH-Normalizer!!
-    var nf = TestUtil.sillyNormalizer().apply(TestUtil.emptyCall(foo));
+    var nf = TestUtil.sillyNormalizer().full().apply(TestUtil.emptyCall(foo));
     var conCall = assertInstanceOf(ConCall.class, nf);
+    assertEquals("S (S (S O))", conCall.toDoc(AyaPrettierOptions.pretty()).commonRender());
   }
 
   @Test public void elim0() {

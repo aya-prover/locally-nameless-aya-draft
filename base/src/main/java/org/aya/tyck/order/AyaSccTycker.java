@@ -4,7 +4,6 @@ package org.aya.tyck.order;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
-import kala.collection.mutable.MutableMap;
 import kala.collection.mutable.MutableSet;
 import org.aya.generic.InterruptException;
 import org.aya.generic.TyckOrder;
@@ -18,7 +17,6 @@ import org.aya.tyck.StmtTycker;
 import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.error.Panic;
-import org.aya.util.reporter.CollectingReporter;
 import org.aya.util.reporter.CountingReporter;
 import org.aya.util.reporter.Reporter;
 import org.aya.util.terck.MutableGraph;
@@ -34,13 +32,12 @@ public record AyaSccTycker(
   @NotNull StmtTycker tycker,
   @NotNull CountingReporter reporter,
   @NotNull ResolveInfo resolveInfo,
-  @NotNull MutableList<@NotNull Def> wellTyped,
-  @NotNull MutableMap<TeleDecl<?>, CollectingReporter> sampleReporters
+  @NotNull MutableList<@NotNull Def> wellTyped
 ) implements SCCTycker<TyckOrder, AyaSccTycker.SCCTyckingFailed>, Problematic {
   public static @NotNull AyaSccTycker create(ResolveInfo resolveInfo, @NotNull Reporter outReporter) {
     var counting = CountingReporter.delegate(outReporter);
     var stmt = new StmtTycker(counting, resolveInfo.shapeFactory(), resolveInfo.primFactory());
-    return new AyaSccTycker(stmt, counting, resolveInfo, MutableList.create(), MutableMap.create());
+    return new AyaSccTycker(stmt, counting, resolveInfo, MutableList.create());
   }
 
   @Override public @NotNull ImmutableSeq<TyckOrder>
@@ -85,7 +82,7 @@ public record AyaSccTycker(
   }
 
   private void checkUnit(@NotNull TyckOrder order) {
-    if (order.unit() instanceof TeleDecl.FnDecl fn && fn.body instanceof TeleDecl.ExprBody(var expr)) {
+    if (order.unit() instanceof TeleDecl.FnDecl fn && fn.body instanceof TeleDecl.ExprBody) {
       if (selfReferencing(resolveInfo.depGraph(), order)) {
         reporter.report(new BadRecursion(fn.sourcePos(), fn.ref, null));
         throw new SCCTyckingFailed(ImmutableSeq.of(order));

@@ -106,4 +106,9 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     }
     return Option.none();
   }
+
+  public @NotNull UnaryOperator<Term> full() { return new Full(); }
+  private class Full implements UnaryOperator<Term> {
+    @Override public Term apply(Term term) { return whnf(term).descent(this); }
+  }
 }
