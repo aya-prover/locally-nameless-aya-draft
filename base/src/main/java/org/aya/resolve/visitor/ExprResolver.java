@@ -14,6 +14,7 @@ import org.aya.resolve.context.Context;
 import org.aya.resolve.error.GeneralizedNotAvailableError;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
+import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GeneralizedVar;
@@ -22,11 +23,7 @@ import org.aya.util.PosedUnaryOperator;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 /**
  * Resolves bindings.
@@ -42,57 +39,32 @@ public record ExprResolver(
   @NotNull Options options,
   @NotNull MutableMap<GeneralizedVar, Expr.Param> allowedGeneralizes,
   @NotNull MutableList<TyckOrder> reference,
-  @NotNull MutableStack<Where> where,
-  @Nullable Consumer<TyckUnit> parentAdd
+  @NotNull MutableStack<Where> where
 ) implements PosedUnaryOperator<Expr> {
 
   public ExprResolver(@NotNull Context ctx, @NotNull Options options) {
-    this(ctx, options, MutableLinkedHashMap.of(), MutableList.create(), MutableStack.create(), null);
+    this(ctx, options, MutableLinkedHashMap.of(), MutableList.create(), MutableStack.create());
   }
 
   public static final @NotNull Options RESTRICTIVE = new Options(false);
   public static final @NotNull Options LAX = new Options(true);
 
-  public void enterHead() {
-    where.push(Where.Head);
-    reference.clear();
-  }
-
-  public void enterBody() {
-    where.push(Where.Body);
-    reference.clear();
-  }
+  public void resetRefs() { reference.clear(); }
+  public void enter(Where loc) { where.push(loc); }
+  public void exit() { where.pop(); }
 
   public @NotNull ExprResolver enter(Context ctx) {
-    return ctx == ctx() ? this : new ExprResolver(ctx, options, allowedGeneralizes, reference, where, parentAdd);
-  }
-
-  public @NotNull ExprResolver member(@NotNull TyckUnit decl, Where initial) {
-    var resolver = new ExprResolver(ctx, RESTRICTIVE,
-      allowedGeneralizes,
-      MutableList.of(new TyckOrder.Head(decl)),
-      MutableStack.create(),
-      this::addReference
-    );
-    resolver.where.push(initial);
-    return resolver;
+    return ctx == ctx() ? this : new ExprResolver(ctx, options, allowedGeneralizes, reference, where);
   }
 
   /**
-   * Getting an {@link ExprResolver} that resolves the rhs of clause<b>s</b>.
+   * The intended usage is to create an {@link ExprResolver}
+   * that resolves the body/bodies of something.
    */
-  @Contract(mutates = "this")
-  public @NotNull ExprResolver enterClauses() {
-    enterBody();
-
-    var resolver = new ExprResolver(ctx, RESTRICTIVE,
+  public @NotNull ExprResolver deriveRestrictive() {
+    return new ExprResolver(ctx, RESTRICTIVE,
       // Hoshino: we needn't copy {allowedGeneralizes} cause this resolver is RESTRICTIVE
-      allowedGeneralizes,
-      MutableList.create(),
-      MutableStack.create(),
-      this::addReference);
-    resolver.where.push(Where.Body);
-    return resolver;
+      allowedGeneralizes, reference, where);
   }
 
   public @NotNull Expr pre(@NotNull Expr expr) {
@@ -117,8 +89,7 @@ public record ExprResolver(
    * Special handling of terms with binding structure.
    * We need to invoke a resolver with a different context under the binders.
    */
-  @Override
-  public @NotNull Expr apply(@NotNull SourcePos pos, @NotNull Expr expr) {
+  @Override public @NotNull Expr apply(@NotNull SourcePos pos, @NotNull Expr expr) {
     return switch (pre(expr)) {
       case Expr.Do doExpr ->
         doExpr.update(apply(SourcePos.NONE, doExpr.bindName()), bind(doExpr.binds(), MutableValue.create(ctx)));
@@ -191,7 +162,6 @@ public record ExprResolver(
         var result = letBind.result().descent(resolver);
         // visit definedAs
         var definedAs = letBind.definedAs().descent(resolver);
-
         // end resolve letBind
 
         // resolve body
@@ -214,33 +184,38 @@ public record ExprResolver(
   }
 
   private void addReference(@NotNull TyckUnit unit) {
-    if (parentAdd != null) parentAdd.accept(unit);
     if (where.isEmpty()) throw new Panic("where am I?");
     switch (where.peek()) {
-      case Head -> {
-        reference.append(new TyckOrder.Head(unit));
+      default -> reference.append(new TyckOrder.Head(unit));
+      case FnPattern -> {
         reference.append(new TyckOrder.Body(unit));
+        if (unit instanceof TeleDecl.DataCon con) {
+          reference.append(new TyckOrder.Body(con.dataRef.concrete));
+        }
       }
-      case Body -> reference.append(new TyckOrder.Body(unit));
     }
   }
 
   private void addReference(@NotNull DefVar<?, ?> defVar) {
-    if (defVar.concrete instanceof TyckUnit unit)
-      addReference(unit);
+    addReference(defVar.concrete);
   }
 
-  public @NotNull Pattern.Clause apply(@NotNull Pattern.Clause clause) {
+  public @NotNull Pattern.Clause clause(@NotNull Pattern.Clause clause) {
     var mCtx = MutableValue.create(ctx);
+    enter(Where.FnPattern);
     var pats = clause.patterns.map(pa -> pa.descent(pat -> resolvePattern(pat, mCtx)));
-    return clause.update(pats, clause.expr.map(x -> x.descent(enter(mCtx.get()))));
+    exit();
+    enter(Where.FnBody);
+    var body = clause.expr.map(x -> x.descent(enter(mCtx.get())));
+    exit();
+    return clause.update(pats, body);
   }
 
   public @NotNull WithPos<Pattern> resolvePattern(@NotNull WithPos<Pattern> pattern, MutableValue<Context> ctx) {
     var resolver = new PatternResolver(ctx.get(), this::addReference);
     var result = resolver.apply(pattern);
     ctx.set(resolver.context());
-    return pattern.map(_ -> result);
+    return pattern.update(result);
   }
 
   private static Context bindAs(@NotNull LocalVar as, @NotNull Context ctx) { return ctx.bind(as); }
@@ -260,6 +235,17 @@ public record ExprResolver(
     });
   }
 
-  public enum Where { Head, Body }
+  public enum Where {
+    // Data head & Fn head
+    Head,
+    // Con patterns
+    ConPattern,
+    // Functions with just a body
+    FnSimple,
+    // Fn patterns
+    FnPattern,
+    // Body of non-simple functions
+    FnBody
+  }
   public record Options(boolean allowIntroduceGeneralized) { }
 }

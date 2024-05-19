@@ -10,6 +10,7 @@ import org.aya.generic.TyckUnit;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
+import org.aya.resolve.visitor.ExprResolver.Where;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
@@ -37,9 +38,9 @@ public interface StmtResolver {
       case ResolvingStmt.ModStmt(var stmts) -> resolveStmt(stmts, info);
       case ResolvingStmt.GenStmt(var variables) -> {
         var resolver = new ExprResolver(info.thisModule(), ExprResolver.RESTRICTIVE);
-        resolver.enterBody();
+        resolver.enter(Where.Head);
         variables.descentInPlace(resolver, (_, p) -> p);
-        addReferences(info, new TyckOrder.Body(variables), resolver);
+        addReferences(info, new TyckOrder.Head(variables), resolver);
       }
     }
   }
@@ -52,47 +53,46 @@ public interface StmtResolver {
   private static void resolveDecl(@NotNull ResolvingStmt.ResolvingDecl predecl, @NotNull ResolveInfo info) {
     switch (predecl) {
       case ResolvingStmt.TopDecl(TeleDecl.FnDecl decl, var ctx) -> {
+        var where = decl.body instanceof TeleDecl.BlockBody ? Where.Head : Where.FnSimple;
         // Generalized works for simple bodies and signatures
-        var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl);
-        decl.body = switch (decl.body) {
+        var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl, where);
+        switch (decl.body) {
           case TeleDecl.BlockBody(var cls, var elims) -> {
             // introducing generalized variable is not allowed in clauses, hence we insert them before body resolving
             insertGeneralizedVars(decl, resolver);
-            var clausesResolver = resolver.enterClauses();
-            var body = new TeleDecl.BlockBody(cls.map(clausesResolver::apply), elims);
-            // TODO[hoshino]: How about sharing {resolver#reference} between resolver and clausesResolver?
-            resolver.reference().appendAll(clausesResolver.reference());
-            yield body;
+            var clausesResolver = resolver.deriveRestrictive();
+            clausesResolver.reference().append(new TyckOrder.Head(decl));
+            decl.body = new TeleDecl.BlockBody(cls.map(clausesResolver::clause), elims);
+            addReferences(info, new TyckOrder.Body(decl), clausesResolver);
           }
           case TeleDecl.ExprBody(var expr) -> {
-            resolver.enterBody();
             var body = expr.descent(resolver);
             insertGeneralizedVars(decl, resolver);
-            yield new TeleDecl.ExprBody(body);
+            decl.body = new TeleDecl.ExprBody(body);
+            addReferences(info, new TyckOrder.Head(decl), resolver);
           }
-        };
-        addReferences(info, new TyckOrder.Body(decl), resolver);
+        }
+        ;
       }
-      case ResolvingStmt.TopDecl(TeleDecl.DataDecl decl, var ctx) -> {
-        var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl);
-        insertGeneralizedVars(decl, resolver);
-        resolver.enterBody();
-        decl.body.forEach(ctor -> {
-          var bodyResolver = resolver.member(decl, ExprResolver.Where.Head);
+      case ResolvingStmt.TopDecl(TeleDecl.DataDecl data, var ctx) -> {
+        var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, data, Where.Head);
+        insertGeneralizedVars(data, resolver);
+        data.body.forEach(con -> {
+          var bodyResolver = resolver.deriveRestrictive();
           var mCtx = MutableValue.create(resolver.ctx());
-          ctor.patterns = ctor.patterns.map(pat -> pat.descent(pattern -> bodyResolver.resolvePattern(pattern, mCtx)));
-          resolveMemberSignature(ctor, bodyResolver, mCtx);
-          // ctor.clauses = bodyResolver.partial(mCtx.get(), ctor.clauses);
-          var head = new TyckOrder.Head(ctor);
-          addReferences(info, head, bodyResolver);
-          addReferences(info, new TyckOrder.Body(ctor), SeqView.of(head));
+          bodyResolver.reference().append(new TyckOrder.Head(data));
+          bodyResolver.enter(Where.ConPattern);
+          con.patterns = con.patterns.map(pat -> pat.descent(pattern -> bodyResolver.resolvePattern(pattern, mCtx)));
+          bodyResolver.exit();
+          resolveMemberSignature(con, bodyResolver, mCtx);
+          addReferences(info, new TyckOrder.Head(con), bodyResolver);
           // No body no body but you!
         });
-        addReferences(info, new TyckOrder.Body(decl), resolver.reference().view()
-          .concat(decl.body.map(TyckOrder.Body::new)));
+        addReferences(info, new TyckOrder.Body(data), resolver.reference().view()
+          .concat(data.body.map(TyckOrder.Body::new)));
       }
       case ResolvingStmt.TopDecl(TeleDecl.PrimDecl decl, var ctx) -> {
-        resolveDeclSignature(ExprResolver.RESTRICTIVE, info, ctx, decl);
+        resolveDeclSignature(ExprResolver.RESTRICTIVE, info, ctx, decl, Where.Head);
         addReferences(info, new TyckOrder.Body(decl), SeqView.empty());
       }
       case ResolvingStmt.TopDecl _ -> Panic.unreachable();
@@ -118,18 +118,18 @@ public interface StmtResolver {
       // case TeleDecl.ClassMember field -> {}
     }
   }
-  private static <T extends TeleDecl<?> & TyckUnit>
-  void resolveMemberSignature(T con, ExprResolver bodyResolver, MutableValue<@NotNull Context> mCtx) {
+  private static void resolveMemberSignature(TeleDecl<?> con, ExprResolver bodyResolver, MutableValue<@NotNull Context> mCtx) {
+    bodyResolver.enter(Where.Head);
     con.telescope = con.telescope.map(param -> bodyResolver.bind(param, mCtx));
     // If changed to method reference, `bodyResolver.enter(mCtx.get())` will be evaluated eagerly
     //  so please don't
     con.modifyResult((pos, t) -> bodyResolver.enter(mCtx.get()).apply(pos, t));
+    bodyResolver.exit();
   }
 
   private static void addReferences(@NotNull ResolveInfo info, TyckOrder decl, SeqView<TyckOrder> refs) {
-    // TODO: garbage
-    // info.depGraph().sucMut(decl).appendAll(refs
-    //   .filter(unit -> unit.unit().needTyck(info.thisModule().modulePath().path())));
+    info.depGraph().sucMut(decl).appendAll(refs
+      .filter(unit -> TyckUnit.needTyck(unit, info.thisModule().modulePath())));
     if (decl instanceof TyckOrder.Body) info.depGraph().sucMut(decl)
       .append(new TyckOrder.Head(decl.unit()));
   }
@@ -141,16 +141,18 @@ public interface StmtResolver {
 
   private static @NotNull ExprResolver
   resolveDeclSignature(
-    @NotNull ExprResolver.Options options, @NotNull ResolveInfo info, @NotNull Context ctx, TeleDecl<?> stmt
+    @NotNull ExprResolver.Options options, @NotNull ResolveInfo info,
+    @NotNull Context ctx, TeleDecl<?> stmt, Where where
   ) {
     var resolver = new ExprResolver(ctx, options);
-    resolver.enterHead();
+    resolver.enter(where);
     var mCtx = MutableValue.create(ctx);
     var telescope = stmt.telescope.map(param -> resolver.bind(param, mCtx));
     var newResolver = resolver.enter(mCtx.get());
     stmt.modifyResult(newResolver);
     stmt.telescope = telescope;
     addReferences(info, new TyckOrder.Head(stmt), resolver);
+    resolver.resetRefs();
     return newResolver;
   }
 
