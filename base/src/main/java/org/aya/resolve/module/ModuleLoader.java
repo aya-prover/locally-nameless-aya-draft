@@ -23,16 +23,6 @@ import org.jetbrains.annotations.Nullable;
  * @author re-xyr
  */
 public interface ModuleLoader extends Problematic {
-  @ApiStatus.Internal
-  default <E extends Exception> @NotNull ResolveInfo tyckModule(
-    @NotNull PrimFactory primFactory,
-    @NotNull ModuleContext context,
-    @NotNull ImmutableSeq<Stmt> program,
-    @Nullable ModuleCallback<E> onTycked
-  ) throws E {
-    return tyckModule(resolveModule(primFactory, context, program, this), onTycked);
-  }
-
   default <E extends Exception> @NotNull ResolveInfo
   tyckModule(ResolveInfo resolveInfo, ModuleCallback<E> onTycked) throws E {
     var SCCs = resolveInfo.depGraph().topologicalOrder();
@@ -46,19 +36,6 @@ public interface ModuleLoader extends Problematic {
         resolveInfo, sccTycker.sccTycker().wellTyped().toImmutableSeq());
     }
     return resolveInfo;
-  }
-
-  @ApiStatus.Internal
-  @Deprecated
-  default @NotNull ResolveInfo resolveModule(
-    @NotNull PrimFactory primFactory,
-    @NotNull ModuleContext context,
-    @NotNull ImmutableSeq<Stmt> program,
-    @NotNull ModuleLoader recurseLoader
-  ) {
-    var shapeFactory = new AyaShape.Factory();
-    var opSet = new AyaBinOpSet(reporter());
-    return resolveModule(primFactory, shapeFactory, opSet, context, program, recurseLoader);
   }
 
   @ApiStatus.Internal

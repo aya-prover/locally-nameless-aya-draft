@@ -48,13 +48,6 @@ public record StmtTycker(
     return new ExprTycker(new TyckState(shapeFactory, primFactory), new LocalCtx(), new LocalLet(), reporter);
   }
   public @NotNull Def check(Decl predecl) {
-    var checked = doCheck(predecl);
-    // In case I'm not an example, recognize my shape
-    if (!(predecl instanceof TeleDecl<?> tele && tele.isExample))
-      shapeFactory.bonjour(checked);
-    return checked;
-  }
-  private @NotNull Def doCheck(Decl predecl) {
     ExprTycker tycker = null;
     if (predecl instanceof TeleDecl<?> decl) {
       if (decl.signature == null) checkHeader(decl, tycker = mkTycker());
@@ -66,17 +59,13 @@ public record StmtTycker(
         assert signature != null;
 
         var factory = FnDef.factory((retTy, body) ->
-          new FnDef(fnDecl.ref,
-            signature.rawParams(),
-            retTy, fnDecl.modifiers, body));
+          new FnDef(fnDecl.ref, signature.rawParams(), retTy, fnDecl.modifiers, body));
         var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
         yield switch (fnDecl.body) {
           case TeleDecl.ExprBody(var expr) -> {
-            if (tycker == null) {
-              tycker = mkTycker();
-              loadTele(fnDecl.teleVars(), fnDecl.signature, tycker);
-            }
+            // In the ordering, we guarantee that expr bodied fn are always checked as a whole
+            assert tycker != null;
             var result = tycker.inherit(expr, tycker.whnf(signature.result().instantiateTeleVar(teleVars.view())))
               // we still need to bind [result.type()] in case it was a hole
               .bindTele(teleVars.view());
