@@ -37,6 +37,6 @@ public record ConCall(
   }
 
   @Override public @NotNull Tele doElevate(int level) {
-    return new ConCall(new Head(head.dataRef(), head.ref(), head.ulift() + level, head.dataArgs()), conArgs);
+    return new ConCall(new Head(head.dataRef(), head.ref(), head.ulift() + level, head.ownerArgs()), conArgs);
   }
 }

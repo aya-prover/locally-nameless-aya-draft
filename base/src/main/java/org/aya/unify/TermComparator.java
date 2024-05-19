@@ -87,7 +87,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return switch (new Pair<>(lhs, rhs)) {
       case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
       case Pair(PrimCall lFn, PrimCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
-      case Pair(ConCallLike lCon, ConCallLike rCon) -> compareConApprox(lCon, rCon);
+      case Pair(ConCallLike lCon, ConCallLike rCon) -> compareCallApprox(lCon, rCon, lCon.ref());
       default -> null;
     };
   }
@@ -102,21 +102,9 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     if (lhs.ref() != rhs.ref()) return null;
 
     var argsTy = TeleDef.defTele(typeProvider).map(Param::type);
-
     if (compareMany(lhs.args(), rhs.args(), argsTy))
       return new Synthesizer(this).synth(lhs);
     return null;
-  }
-
-  private @Nullable Term compareConApprox(@NotNull ConCallLike lhs, @NotNull ConCallLike rhs) {
-    if (lhs.ref() != rhs.ref()) return null;
-
-    var dataArgsTy = TeleDef.defTele(lhs.head().dataRef()).map(Param::type);
-    var conArgsTy = lhs.ref().core.selfTele.map(Param::type);
-    // compare data args first
-    if (!compareMany(lhs.head().dataArgs(), rhs.head().dataArgs(), dataArgsTy)) return null;
-    if (!compareMany(lhs.conArgs(), rhs.conArgs(), conArgsTy)) return null;
-    return new Synthesizer(this).synth(lhs);
   }
 
   private <R> R swapped(@NotNull Supplier<R> callback) {
@@ -287,10 +275,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       case IntegerTerm(var lepr, _, var ty) -> rhs instanceof IntegerTerm(var repr, _, _) && lepr == repr ? ty : null;
       // fallback case
       case ConCallLike lCon -> switch (rhs) {
-        case ConCallLike rCon -> {
-          var lef = lCon.ref();
-          yield lef != rCon.ref() ? null : compareConApprox(lCon, rCon);
-        }
+        case ConCallLike rCon -> compareCallApprox(lCon, rCon, lCon.ref());
         // case ListTerm rhs -> compareUntyped(lhs, rhs.constructorForm(), lr, rl);
         default -> null;
       };

@@ -2,5 +2,5 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
-public sealed interface Compiled permits JitDataCall {
+public sealed interface Compiled permits JitConCall, JitDataCall {
 }

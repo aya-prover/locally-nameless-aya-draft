@@ -2,11 +2,17 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
-public abstract class Datatype extends Telescopic {
-  public final Constructor[] constructors;
+import org.aya.syntax.core.term.Term;
+import org.jetbrains.annotations.NotNull;
 
-  protected Datatype(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, Constructor[] constructors) {
+public abstract class Datatype extends Telescopic {
+  protected Datatype(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName) {
     super(telescopeSize, telescopeLicit, telescopeName);
-    this.constructors = constructors;
+  }
+
+  public abstract @NotNull Constructor[] constructors();
+
+  public @NotNull JitDataCall of(Term... args) {
+    return new JitDataCall(this, args);
   }
 }

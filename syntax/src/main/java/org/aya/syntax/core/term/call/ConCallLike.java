@@ -22,22 +22,17 @@ import org.jetbrains.annotations.NotNull;
  */
 public sealed interface ConCallLike extends Callable.Tele permits ConCall, IntegerTerm {
   /**
-   * @param dataArgs the arguments to the data type, NOT the constructor patterns!!
-   *                 They need to be turned implicit when used as arguments.
+   * @param ownerArgs the arguments to the owner/patterns, NOT the data type parameters!!
    */
   record Head(
     @NotNull DefVar<DataDef, TeleDecl.DataDecl> dataRef,
     @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
     int ulift,
-    @NotNull ImmutableSeq<@NotNull Term> dataArgs
+    @NotNull ImmutableSeq<@NotNull Term> ownerArgs
   ) {
-    public @NotNull DataCall underlyingDataCall() {
-      return new DataCall(dataRef, ulift, dataArgs);
-    }
-
     public @NotNull Head descent(@NotNull IndexedFunction<Term, Term> f) {
-      var args = Callable.descent(dataArgs, f);
-      if (args.sameElements(dataArgs, true)) return this;
+      var args = Callable.descent(ownerArgs, f);
+      if (args.sameElements(ownerArgs, true)) return this;
       return new Head(dataRef, ref, ulift, args);
     }
   }
@@ -45,17 +40,11 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall, Integ
   @NotNull ConCallLike.Head head();
   @NotNull ImmutableSeq<Term> conArgs();
 
-  @Override default @NotNull DefVar<ConDef, TeleDecl.DataCon> ref() {
-    return head().ref();
-  }
+  @Override default @NotNull DefVar<ConDef, TeleDecl.DataCon> ref() { return head().ref; }
 
   @Override default @NotNull ImmutableSeq<@NotNull Term> args() {
-    return head().dataArgs().view()
-      .concat(conArgs())
-      .toImmutableSeq();
+    return head().ownerArgs().concat(conArgs());
   }
 
-  @Override default int ulift() {
-    return head().ulift();
-  }
+  @Override default int ulift() { return head().ulift; }
 }

@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class Telescopic {
   public final int telescopeSize;
@@ -15,12 +16,12 @@ public abstract class Telescopic {
   /**
    * @param teleArgs the arguments before {@param i}, for constructor, it also contains the arguments to the data
    */
-  public abstract Term telescope(int i, Term... teleArgs);
+  public abstract @NotNull Term telescope(int i, Term... teleArgs);
   public Param telescopeRich(int i, Term... teleArgs) {
     return new Param(telescopeNames[i], telescope(i, teleArgs), telescopeLicit[i]);
   }
 
-  public abstract Term result(Term... teleArgs);
+  public abstract @NotNull Term result(Term... teleArgs);
 
   protected Telescopic(int telescopeSize, boolean[] telescopeLicit, String[] telescopeNames) {
     this.telescopeSize = telescopeSize;
