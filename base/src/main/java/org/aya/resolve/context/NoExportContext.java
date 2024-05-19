@@ -12,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.file.Path;
 
 /**
- * @author ice1000
  * Used for `let open`
  */
 public record NoExportContext(
@@ -33,11 +32,6 @@ public record NoExportContext(
     this(parent, new ModuleSymbol<>(), MutableHashMap.create());
   }
 
-  @Override public @NotNull Path underlyingFile() {
-    return parent.underlyingFile();
-  }
-
-  @Override public @NotNull ModuleExport exports() {
-    return new ModuleExport();
-  }
+  @Override public @NotNull Path underlyingFile() { return parent.underlyingFile(); }
+  @Override public @NotNull ModuleExport exports() { return new ModuleExport(); }
 }

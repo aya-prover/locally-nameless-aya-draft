@@ -14,20 +14,13 @@ import java.util.function.UnaryOperator;
 /**
  * @param <Expr> the type of the expression contained, either
  *               {@link org.aya.syntax.core.term.Term} or {@link org.aya.syntax.concrete.Expr}.
- * @author ice1000
  */
 public interface ParamLike<Expr extends AyaDocile> extends AyaDocile {
   boolean explicit();
-
   @NotNull LocalVar ref();
-
   @NotNull Expr type();
-
   @NotNull ParamLike<Expr> map(@NotNull UnaryOperator<Expr> mapper);
-
-  default @NotNull Doc nameDoc() {
-    return BasePrettier.linkDef(ref());
-  }
+  default @NotNull Doc nameDoc() { return BasePrettier.linkDef(ref()); }
 
   @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     return toDoc(nameDoc(), options);

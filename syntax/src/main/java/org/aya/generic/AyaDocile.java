@@ -8,9 +8,6 @@ import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author ice1000
- */
 @FunctionalInterface
 @Debug.Renderer(text = "debuggerOnlyToDoc().debugRender()")
 public interface AyaDocile /*extends Docile*/ {

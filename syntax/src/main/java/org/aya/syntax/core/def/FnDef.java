@@ -14,9 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-/**
- * @author ice1000
- */
 public final class FnDef extends TopLevelDef<Term> {
   public final @NotNull EnumSet<Modifier> modifiers;
   public final @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref;

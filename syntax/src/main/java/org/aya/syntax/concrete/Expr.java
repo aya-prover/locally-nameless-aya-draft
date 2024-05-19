@@ -78,7 +78,6 @@ public sealed interface Expr extends AyaDocile {
    * @param filling  the inner expr of goal
    * @param explicit whether the hole is a type-directed programming goal or
    *                 a to-be-solved by tycking hole.
-   * @author ice1000
    */
   record Hole(
     boolean explicit,

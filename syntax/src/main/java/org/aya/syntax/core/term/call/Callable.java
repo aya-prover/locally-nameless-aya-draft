@@ -14,7 +14,6 @@ import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author ice1000
  * @see AppTerm#make()
  */
 public sealed interface Callable extends Term permits Callable.Common, MetaCall {

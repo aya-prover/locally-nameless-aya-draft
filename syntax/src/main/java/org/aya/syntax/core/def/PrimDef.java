@@ -19,9 +19,6 @@ import java.util.Objects;
 
 import static org.aya.syntax.core.term.SortTerm.Type0;
 
-/**
- * @author ice1000
- */
 public final class PrimDef extends TopLevelDef<Term> {
   public PrimDef(
     @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref,
@@ -74,9 +71,7 @@ public final class PrimDef extends TopLevelDef<Term> {
     public final @NotNull
     @NonNls String id;
 
-    @Override public String toString() {
-      return id;
-    }
+    @Override public String toString() { return id; }
 
     public static @Nullable ID find(@NotNull String id) {
       for (var value : PrimDef.ID.values())
@@ -84,23 +79,8 @@ public final class PrimDef extends TopLevelDef<Term> {
       return null;
     }
 
-    ID(@NotNull String id) {
-      this.id = id;
-    }
+    ID(@NotNull String id) { this.id = id; }
   }
-
-  /*
-  public static class Factory {
-    public Factory() {
-      var init = new Initializer();
-      seeds = ImmutableMap.from(ImmutableSeq.of(
-        init.stringConcat,
-        init.intervalType,
-        init.partialType,
-        init.hcomp
-      ).map(seed -> Tuple.of(seed.name, seed)));
-    }
-  */
 
   public final @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref;
   public final @NotNull ID id;

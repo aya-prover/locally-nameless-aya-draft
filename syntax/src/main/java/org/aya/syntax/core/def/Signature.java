@@ -20,8 +20,6 @@ import java.util.function.UnaryOperator;
  * Signature of a definition, used in concrete and tycking.
  *
  * @apiNote All terms in signature are as bound as possible.
- *
- * @author ice1000
  */
 public record Signature<T extends Term>(
   @NotNull ImmutableSeq<WithPos<Param>> param, @NotNull T result

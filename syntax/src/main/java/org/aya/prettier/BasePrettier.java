@@ -31,9 +31,6 @@ import java.util.function.ToIntBiFunction;
 
 import static org.aya.prettier.Tokens.KW_PRIM;
 
-/**
- * @author ice1000
- */
 public abstract class BasePrettier<Term extends AyaDocile> {
   public static @NotNull Doc argDoc(@NotNull PrettierOptions options, @NotNull Arg<? extends AyaDocile> self) {
     return BasePrettier.arg((_, d) -> d.toDoc(options), self, Outer.Free);

@@ -25,7 +25,6 @@ import java.util.function.UnaryOperator;
 /**
  * YouTrack checks confluence.
  *
- * @author ice1000
  * @see PatClassifier#classify
  */
 public record YouTrack(

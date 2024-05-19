@@ -18,7 +18,10 @@ import org.jetbrains.annotations.NotNull;
  * @author kiva
  */
 public sealed interface Stmt extends TyckUnit, AyaDocile permits Command, Generalize, Decl {
-  /** @apiNote the \import stmts do not have a meaningful accessibility, do not refer to this in those cases */
+  /**
+   * @apiNote the <code>import</code> stmts do not have a meaningful accessibility,
+   * do not refer to this in those cases
+   */
   @Contract(pure = true) @NotNull Accessibility accessibility();
 
   @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
@@ -32,9 +35,7 @@ public sealed interface Stmt extends TyckUnit, AyaDocile permits Command, Genera
     Public("public");
     public final @NotNull String keyword;
 
-    Accessibility(@NotNull String keyword) {
-      this.keyword = keyword;
-    }
+    Accessibility(@NotNull String keyword) { this.keyword = keyword; }
   }
 
   @Contract(mutates = "this")

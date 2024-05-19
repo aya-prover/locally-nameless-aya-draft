@@ -40,8 +40,5 @@ public record SortTerm(@NotNull SortKind kind, int lift) implements StableWHNF, 
     };
   }
 
-  @Override
-  public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return this;
-  }
+  @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) { return this; }
 }

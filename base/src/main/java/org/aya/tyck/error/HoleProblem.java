@@ -19,7 +19,6 @@ import org.aya.util.prettier.PrettierOptions;
 import org.aya.util.reporter.Problem;
 import org.jetbrains.annotations.NotNull;
 
-/** @author ice1000 */
 public sealed interface HoleProblem extends Problem {
   @NotNull MetaCall term();
   @Override default @NotNull Severity level() { return Severity.ERROR; }

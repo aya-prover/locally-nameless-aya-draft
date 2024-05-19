@@ -4,9 +4,6 @@ package org.aya.util;
 
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author ice1000
- */
 public enum Ordering {
   Gt(">="), Eq("=="), Lt("<=");
 

@@ -16,9 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-/**
- * @author ice1000
- */
 public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
   static @NotNull Term defType(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
     return PiTerm.make(defTele(defVar).map(Param::type), defResult(defVar));

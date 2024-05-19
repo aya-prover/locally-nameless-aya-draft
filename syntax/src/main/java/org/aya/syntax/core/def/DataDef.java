@@ -33,26 +33,5 @@ public final class DataDef extends TopLevelDef<SortTerm> {
     else return conHead.concrete.dataRef;
   }
 
-  public @NotNull DefVar<DataDef, TeleDecl.DataDecl> ref() {
-    return ref;
-  }
-
-  // /**
-  //  * @author ice1000
-  //  */
-  // public record CtorTelescopes(
-  //   @NotNull ImmutableSeq<Term.Param> ownerTele,
-  //   @NotNull ImmutableSeq<Term.Param> selfTele,
-  //   @NotNull DataCall ret
-  // ) {
-  //   public CtorTelescopes(@NotNull CtorDef def) {
-  //     this(def.ownerTele.map(Term.Param::implicitify), def.selfTele, (DataCall) def.result);
-  //   }
-  //
-  //   public @NotNull Term toConCall(DefVar<CtorDef, TeleDecl.DataCtor> conVar, int ulift) {
-  //     var body = new ConCall(fromCtor(conVar), conVar,
-  //       ret.args(), ulift, selfTele.map(Term.Param::toArg));
-  //     return LamTerm.make(ownerTele.view().concat(selfTele).map(LamTerm::param), body).rename();
-  //   }
-  // }
+  public @NotNull DefVar<DataDef, TeleDecl.DataDecl> ref() { return ref; }
 }

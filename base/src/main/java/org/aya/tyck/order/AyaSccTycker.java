@@ -28,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Tyck statements in SCC.
  *
- * @author kiva
  * @see org.aya.tyck.ExprTycker
  */
 public record AyaSccTycker(

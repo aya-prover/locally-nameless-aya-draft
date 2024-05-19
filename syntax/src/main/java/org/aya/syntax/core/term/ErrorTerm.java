@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @param isReallyError true if this is indeed an error,
  *                      false if this is just for pretty printing placeholder
- * @author ice1000
  * @see org.aya.prettier.CorePrettier#term(BasePrettier.Outer, Term) (ErrorTerm case)
  */
 public record ErrorTerm(AyaDocile description, boolean isReallyError) implements StableWHNF, InternalState {

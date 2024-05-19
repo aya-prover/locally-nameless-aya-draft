@@ -13,7 +13,6 @@ import java.util.function.UnaryOperator;
 /**
  * @param <T> the type of expressions.
  *            In Aya, it is either core term, core pattern, concrete term, or concrete pattern.
- * @author ice1000
  */
 public record Arg<T>(@Override @NotNull T term, @Override boolean explicit) implements BinOpElem<T> {
   public static <T> @NotNull Arg<T> ofExplicitly(@NotNull T term) {

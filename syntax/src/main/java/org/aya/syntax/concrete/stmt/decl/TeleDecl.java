@@ -180,7 +180,6 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
   }
 
   /**
-   * @author ice1000
    * @implSpec the result field of {@link PrimDecl} might be {@link Expr.Error},
    * which means it's unspecified in the concrete syntax.
    * @see PrimDef

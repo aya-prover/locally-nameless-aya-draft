@@ -21,8 +21,6 @@ public sealed interface Jdg {
 
   /**
    * {@link Default#type} is the type of {@link Default#wellTyped}.
-   *
-   * @author ice1000
    */
   record Default(@Override @NotNull Term wellTyped, @Override @NotNull Term type) implements Jdg {
     @Override public @NotNull Default map(@NotNull UnaryOperator<Term> f) {

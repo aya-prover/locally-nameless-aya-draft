@@ -10,9 +10,6 @@ import org.aya.util.prettier.PrettierOptions;
 import org.commonmark.node.Code;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author ice1000
- */
 public record CodeOptions(
   @NotNull NormalizeMode mode,
   @NotNull PrettierOptions options,

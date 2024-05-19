@@ -9,8 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Top-level definitions.
- *
- * @author ice1000
  */
 public sealed abstract class TopLevelDef<Ret extends Term> implements TeleDef permits DataDef, FnDef, PrimDef {
   public final @NotNull ImmutableSeq<Param> telescope;
@@ -24,11 +22,6 @@ public sealed abstract class TopLevelDef<Ret extends Term> implements TeleDef pe
     this.result = result;
   }
 
-  @Override public @NotNull ImmutableSeq<Param> telescope() {
-    return telescope;
-  }
-
-  @Override public @NotNull Ret result() {
-    return result;
-  }
+  @Override public @NotNull ImmutableSeq<Param> telescope() { return telescope; }
+  @Override public @NotNull Ret result() { return result; }
 }

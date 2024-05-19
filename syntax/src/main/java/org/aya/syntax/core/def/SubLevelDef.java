@@ -10,8 +10,6 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Coconstructors or constructors, in contrast to {@link TopLevelDef}.
- *
- * @author ice1000
  */
 public sealed abstract class SubLevelDef implements TeleDef permits ConDef {
   public final @NotNull ImmutableSeq<Param> ownerTele;
@@ -34,7 +32,5 @@ public sealed abstract class SubLevelDef implements TeleDef permits ConDef {
     return ownerTele.view().concat(selfTele);
   }
 
-  @Override public @NotNull Term result() {
-    return result;
-  }
+  @Override public @NotNull Term result() { return result; }
 }

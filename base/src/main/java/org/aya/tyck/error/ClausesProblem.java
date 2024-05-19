@@ -82,9 +82,6 @@ public sealed interface ClausesProblem extends Problem {
     }
   }
 
-  /**
-   * @author ice1000
-   */
   record MissingCase(
     @Override @NotNull SourcePos sourcePos,
     @NotNull ImmutableSeq<PatClass<ImmutableSeq<Term>>> errs

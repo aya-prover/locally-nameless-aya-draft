@@ -239,8 +239,6 @@ public sealed interface Pat extends AyaDocile {
 
   /**
    * It's 'pre' because there are also impossible clauses, which are removed after tycking.
-   *
-   * @author ice1000
    */
   record Preclause<T extends AyaDocile>(
     @NotNull SourcePos sourcePos,
