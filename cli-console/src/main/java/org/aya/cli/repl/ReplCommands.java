@@ -6,7 +6,6 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.aya.cli.render.RenderOptions;
 import org.aya.prettier.AyaPrettierOptions;
-import org.aya.pretty.doc.Doc;
 import org.aya.producer.AyaParserImpl;
 import org.aya.repl.Command;
 import org.aya.repl.CommandArg;
@@ -21,7 +20,6 @@ import java.nio.file.Path;
 
 public interface ReplCommands {
   record Code(@NotNull String code) {}
-
   record Prompt(@NotNull String prompt) {}
 
   record ColorParam(@NotNull Either<RenderOptions.ColorSchemeName, Path> value)

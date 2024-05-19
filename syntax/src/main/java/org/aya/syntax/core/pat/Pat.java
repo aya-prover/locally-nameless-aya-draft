@@ -82,13 +82,25 @@ public sealed interface Pat extends AyaDocile {
     return new CorePrettier(options).pat(this, true, BasePrettier.Outer.Free);
   }
 
+  enum JitBind implements Pat {
+    INSTANCE;
+    @Override public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
+      return this;
+    }
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+      Panic.unreachable();
+    }
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
+      return this;
+    }
+  }
+
   record Bind(@NotNull LocalVar bind, @NotNull Term type) implements Pat {
     public @NotNull Bind update(@NotNull Term type) {
       return this.type == type ? this : new Bind(bind, type);
     }
 
-    @Override
-    public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
+    @Override public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
       return update(termOp.apply(type));
     }
 

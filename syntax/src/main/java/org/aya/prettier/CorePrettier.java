@@ -240,6 +240,7 @@ public class CorePrettier extends BasePrettier<Term> {
           : Doc.bracedUnless(linkDef(generateName(meta.type())), licit);
       }
       case Pat.Bind bind -> Doc.bracedUnless(linkDef(bind.bind()), licit);
+      case Pat.JitBind _ -> Doc.bracedUnless(Doc.plain("_"), licit);
       case Pat.Con con -> {
         var conDoc = visitCoreCalls(con.ref(), con.args().view().map(PatToTerm::visit), outer,
           optionImplicit());
