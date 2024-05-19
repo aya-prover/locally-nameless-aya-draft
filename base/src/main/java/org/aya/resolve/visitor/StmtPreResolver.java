@@ -9,7 +9,9 @@ import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.context.NoExportContext;
 import org.aya.resolve.context.PhysicalModuleContext;
+import org.aya.resolve.error.NameProblem;
 import org.aya.resolve.error.PrimResolveError;
+import org.aya.resolve.module.ModuleLoader;
 import org.aya.syntax.concrete.stmt.*;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
@@ -29,7 +31,7 @@ import java.util.function.Function;
  *
  * @author re-xyr
  */
-public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull ResolveInfo resolveInfo) {
+public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo resolveInfo) {
   /**
    * Resolve {@link Stmt}s under {@param context}.
    *
@@ -45,9 +47,9 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
       case Command.Module mod -> {
         var wholeModeName = context.modulePath().derive(mod.name());
         // Is there a file level module with path {context.moduleName}::{mod.name} ?
-        // if (loader.existsFileLevelModule(wholeModeName.path())) {
-        //   context.reportAndThrow(new NameProblem.ClashModNameError(wholeModeName.path(), mod.sourcePos()));
-        // }
+        if (loader.existsFileLevelModule(wholeModeName)) {
+          context.reportAndThrow(new NameProblem.ClashModNameError(wholeModeName, mod.sourcePos()));
+        }
         var newCtx = context.derive(mod.name());
         var children = resolveStmt(mod.contents(), newCtx);
         context.importModule(ModuleName.This.resolve(mod.name()), newCtx, mod.accessibility(), mod.sourcePos());
@@ -55,15 +57,16 @@ public record StmtPreResolver(/*@NotNull ModuleLoader loader, */ @NotNull Resolv
       }
       case Command.Import cmd -> {
         var modulePath = cmd.path();
-        throw new UnsupportedOperationException("TODO");
-        // var success = loader.load(modulePath.path());
-        // if (success == null)
-        //   context.reportAndThrow(new NameProblem.ModNotFoundError(modulePath, cmd.sourcePos()));
-        // var mod = success.thisModule();
-        // var as = cmd.asName();
-        // var importedName = as != null ? ModuleName.This.resolve(as) : modulePath.asName();
-        // context.importModule(importedName, mod, cmd.accessibility(), cmd.sourcePos());
-        // resolveInfo.imports().put(importedName, Tuple.of(success, cmd.accessibility() == Stmt.Accessibility.Public));
+        var success = loader.load(modulePath);
+        if (success == null)
+          context.reportAndThrow(new NameProblem.ModNotFoundError(modulePath, cmd.sourcePos()));
+        var mod = success.thisModule();
+        var as = cmd.asName();
+        var importedName = as != null ? ModuleName.This.resolve(as) : modulePath.asName();
+        context.importModule(importedName, mod, cmd.accessibility(), cmd.sourcePos());
+        var importInfo = new ResolveInfo.ImportInfo(success, cmd.accessibility() == Stmt.Accessibility.Public);
+        resolveInfo.imports().put(importedName, importInfo);
+        yield null;
       }
       case Command.Open cmd -> {
         var mod = cmd.path();

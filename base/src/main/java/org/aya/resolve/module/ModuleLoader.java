@@ -5,10 +5,12 @@ package org.aya.resolve.module;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.normalize.PrimFactory;
 import org.aya.resolve.ResolveInfo;
+import org.aya.resolve.StmtResolvers;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.core.repr.AyaShape;
+import org.aya.syntax.ref.ModulePath;
 import org.aya.tyck.order.AyaOrgaTycker;
 import org.aya.tyck.order.AyaSccTycker;
 import org.aya.tyck.tycker.Problematic;
@@ -63,19 +65,18 @@ public interface ModuleLoader extends Problematic {
     @NotNull ImmutableSeq<Stmt> program,
     @NotNull ModuleLoader recurseLoader
   ) {
-    throw new UnsupportedOperationException();
-    // var resolveInfo = new ResolveInfo(context, primFactory, shapeFactory, opSet, program);
-    // Stmt.resolve(program, resolveInfo, recurseLoader);
-    // return resolveInfo;
+    var resolveInfo = new ResolveInfo(context, primFactory, shapeFactory, opSet);
+    new StmtResolvers(recurseLoader, resolveInfo).resolve(program, context);
+    return resolveInfo;
   }
 
-  @Nullable ResolveInfo load(@NotNull ImmutableSeq<@NotNull String> path, @NotNull ModuleLoader recurseLoader);
-  default @Nullable ResolveInfo load(@NotNull ImmutableSeq<@NotNull String> path) {
+  @Nullable ResolveInfo load(@NotNull ModulePath path, @NotNull ModuleLoader recurseLoader);
+  default @Nullable ResolveInfo load(@NotNull ModulePath path) {
     return load(path, this);
   }
 
   /**
    * @return if there is a module with path {@param path}, which can be untycked
    */
-  boolean existsFileLevelModule(@NotNull ImmutableSeq<@NotNull String> path);
+  boolean existsFileLevelModule(@NotNull ModulePath path);
 }

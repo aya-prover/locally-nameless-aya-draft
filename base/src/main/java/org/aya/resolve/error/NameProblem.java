@@ -9,7 +9,6 @@ import org.aya.pretty.doc.Doc;
 import org.aya.resolve.context.BindContext;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.stmt.ModuleName;
-import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.SourcePos;
@@ -91,16 +90,16 @@ public interface NameProblem extends Problem {
   }
 
   record ClashModNameError(
-    @NotNull ImmutableSeq<String> modulePath,
+    @NotNull ModulePath modulePath,
     @Override @NotNull SourcePos sourcePos
   ) implements Error {
     @Override
     public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.sep(
         Doc.english("The inner module"),
-        Doc.code(QualifiedID.join(modulePath)),
+        Doc.code(modulePath.toString()),
         Doc.english("clashes with a file level module"),
-        Doc.code(STR."\{modulePath.joinToString("/")}.aya")
+        Doc.code(STR."\{modulePath.module().joinToString("/")}.aya")
       );
     }
   }

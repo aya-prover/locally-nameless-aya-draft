@@ -31,8 +31,13 @@ public record ResolveInfo(
   @NotNull MutableMap<ModuleName.Qualified, UseHide> reExports,
   @NotNull MutableGraph<TyckOrder> depGraph
 ) {
-  public ResolveInfo(@NotNull ModuleContext thisModule) {
-    this(thisModule, new PrimFactory(), new AyaShape.Factory(), new AyaBinOpSet(thisModule.reporter()),
+  public ResolveInfo(
+    @NotNull ModuleContext thisModule,
+    @NotNull PrimFactory primFactory,
+    @NotNull AyaShape.Factory shapeFactory,
+    @NotNull AyaBinOpSet opSet
+  ) {
+    this(thisModule, primFactory, shapeFactory, opSet,
       MutableMap.create(), MutableMap.create(), MutableMap.create(), MutableGraph.create());
   }
 

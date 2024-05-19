@@ -4,6 +4,7 @@ package org.aya.resolve;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.context.ModuleContext;
+import org.aya.resolve.module.ModuleLoader;
 import org.aya.resolve.salt.Desalt;
 import org.aya.resolve.visitor.StmtBinder;
 import org.aya.resolve.visitor.StmtPreResolver;
@@ -11,12 +12,11 @@ import org.aya.resolve.visitor.StmtResolver;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.jetbrains.annotations.NotNull;
 
-public record StmtResolvers(@NotNull ResolveInfo info) {
+public record StmtResolvers(@NotNull ModuleLoader loader, @NotNull ResolveInfo info) {
   private @NotNull ImmutableSeq<ResolvingStmt> fillContext(
-    @NotNull ImmutableSeq<Stmt> stmts,
-    @NotNull ModuleContext context
+    @NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context
   ) {
-    return new StmtPreResolver(info).resolveStmt(stmts, context);
+    return new StmtPreResolver(loader, info).resolveStmt(stmts, context);
   }
 
   private void resolve(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
@@ -25,9 +25,8 @@ public record StmtResolvers(@NotNull ResolveInfo info) {
 
   private void resolveBind(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
     StmtBinder.resolveBind(stmts, info);
-    info.opRename().forEach((var, rename) -> {
-      StmtBinder.bind(rename.bindCtx(), rename.bind(), info.opSet(), var.opDecl);
-    });
+    info.opRename().forEach((var, rename) ->
+      StmtBinder.bind(rename.bindCtx(), rename.bind(), info.opSet(), var.opDecl));
   }
 
   private void desugar(@NotNull ImmutableSeq<Stmt> stmts) {
