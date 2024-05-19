@@ -5,11 +5,9 @@ package org.aya.resolve.module;
 import org.aya.normalize.PrimFactory;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.EmptyContext;
-import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.AyaFiles;
 import org.aya.syntax.GenericAyaFile;
 import org.aya.syntax.GenericAyaParser;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourceFileLocator;
@@ -27,16 +25,13 @@ public record FileModuleLoader(
   @Override @NotNull Reporter reporter,
   @NotNull GenericAyaParser parser,
   @NotNull GenericAyaFile.Factory fileManager,
-  @NotNull PrimFactory primFactory,
-  @NotNull AyaShape.Factory shapeFactory,
-  @NotNull AyaBinOpSet opSet
-  ) implements ModuleLoader {
+  @NotNull PrimFactory primFactory
+) implements ModuleLoader {
   public FileModuleLoader(
     @NotNull SourceFileLocator locator, @NotNull Path basePath, @NotNull Reporter reporter,
     @NotNull GenericAyaParser parser, @NotNull GenericAyaFile.Factory fileManager
   ) {
-    this(locator, basePath, reporter, parser, fileManager, new PrimFactory(),
-      new AyaShape.Factory(), new AyaBinOpSet(reporter));
+    this(locator, basePath, reporter, parser, fileManager, new PrimFactory());
   }
   @Override
   public @Nullable ResolveInfo load(@NotNull ModulePath path, @NotNull ModuleLoader recurseLoader) {
@@ -44,7 +39,7 @@ public record FileModuleLoader(
     try {
       var program = fileManager.createAyaFile(locator, sourcePath).parseMe(parser);
       var context = new EmptyContext(reporter, sourcePath).derive(path);
-      return tyckModule(resolveModule(primFactory, shapeFactory, opSet, context, program, recurseLoader), null);
+      return tyckModule(resolveModule(primFactory, context, program, recurseLoader), null);
     } catch (IOException e) {
       return null;
     }

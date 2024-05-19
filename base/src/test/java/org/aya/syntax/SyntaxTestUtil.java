@@ -25,7 +25,7 @@ public final class SyntaxTestUtil {
   }
 
   public static @NotNull DumbModuleLoader moduleLoader() {
-    return new DumbModuleLoader(TestUtil.THROWING, new EmptyContext(TestUtil.THROWING, FILE));
+    return new DumbModuleLoader(new EmptyContext(TestUtil.THROWING, FILE));
   }
 
   @Contract(pure = true)

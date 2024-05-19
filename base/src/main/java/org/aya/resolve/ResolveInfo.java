@@ -23,6 +23,14 @@ import org.aya.util.terck.MutableGraph;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @param thisModule   context of the underlying module
+ * @param primFactory  globally shared prim definition data
+ * @param shapeFactory shapes local to this module
+ * @param opSet        operators local to this module
+ * @param opRename     open/import renames with operators
+ * @param depGraph     local to this module
+ */
 @Debug.Renderer(text = "thisModule.moduleName().joinToString(\"::\")")
 public record ResolveInfo(
   @NotNull ModuleContext thisModule,
