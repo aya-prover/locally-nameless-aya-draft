@@ -1,12 +1,14 @@
 module aya.syntax {
+  requires transitive aya.ij.parsing.core;
+  requires transitive aya.md;
   requires transitive aya.pretty;
-  requires transitive aya.util;
   requires transitive aya.util.more;
+  requires transitive aya.util;
   requires transitive kala.base;
   requires transitive kala.collection;
-  requires transitive aya.ij.parsing.core;
 
   requires static org.jetbrains.annotations;
+  requires org.commonmark;
 
   exports org.aya.generic;
   exports org.aya.prettier;
@@ -20,6 +22,7 @@ module aya.syntax {
   exports org.aya.syntax.core.term.repr;
   exports org.aya.syntax.core.term.xtt;
   exports org.aya.syntax.core.term;
+  exports org.aya.syntax.literate;
   exports org.aya.syntax.ref;
   exports org.aya.syntax;
 }

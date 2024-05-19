@@ -3,7 +3,7 @@
 dependencies {
   api(project(":tools-kala"))
   api(libs.annotations)
-  implementation(libs.commonmark)
+  api(libs.commonmark)
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)
 }
