@@ -8,6 +8,7 @@ dependencies {
   api(project(":base"))
   api(project(":parser"))
   api(libs.gson)
+  implementation("com.javax0.sourcebuddy:SourceBuddy:2.5.0")
   implementation(project(":producer"))
   implementation(libs.commonmark)
   testImplementation(libs.junit.jupiter)

@@ -23,7 +23,6 @@ public interface Nat {
 
       private O() {
         super(0, new boolean[0], new String[0], Nat$.INSTANCE);
-        Nat$.INSTANCE.constructors[0] = this;
       }
 
       @Override public @NotNull Term telescope(int i, Term... teleArgs) {
@@ -49,7 +48,6 @@ public interface Nat {
 
       private S() {
         super(1, new boolean[]{true}, new String[]{"n"}, Nat$.INSTANCE);
-        Nat$.INSTANCE.constructors[1] = this;
       }
 
       @Override public @NotNull Term telescope(int i, Term... teleArgs) {
@@ -74,7 +72,16 @@ public interface Nat {
     }
 
     private Nat$() {
-      super(0, new boolean[0], new String[0], new JitCon[2]);
+      super(0, new boolean[0], new String[0], 2);
+    }
+
+    @Override public synchronized @NotNull JitCon[] constructors() {
+      if (this.constructors[0] == null) {
+        this.constructors[0] = O.INSTANCE;
+        this.constructors[1] = S.INSTANCE;
+      }
+
+      return this.constructors;
     }
 
     @Override public @NotNull Term telescope(int i, Term... teleArgs) {

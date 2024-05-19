@@ -9,6 +9,7 @@ public class CompileTest {
   @Test
   public void test0() {
     var o = Nat.Nat$.O.INSTANCE;
-    assertNotNull(o.dataType.constructors[0]);
+    assertNotNull(o.dataType.constructors()[0]);
+    assertNotNull(o.dataType.constructors()[1]);
   }
 }
