@@ -19,10 +19,7 @@ import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
 import org.aya.util.ForLSP;
-import org.aya.util.error.PosedUnaryOperator;
-import org.aya.util.error.SourceNode;
-import org.aya.util.error.SourcePos;
-import org.aya.util.error.WithPos;
+import org.aya.util.error.*;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +31,7 @@ import java.util.function.UnaryOperator;
 
 public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f);
-  @NotNull Expr descent(@NotNull Consumer<WithPos>)
+  void forEach(@NotNull PosedConsumer<@NotNull Expr> f);
   @ForLSP
   sealed interface WithTerm {
     @NotNull MutableValue<Term> theCoreType();
@@ -44,8 +41,7 @@ public sealed interface Expr extends AyaDocile {
   /** Yes, please */
   sealed interface Sugar { }
 
-  @Override
-  default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+  @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     return new ConcretePrettier(options).term(BasePrettier.Outer.Free, this);
   }
 
@@ -74,9 +70,8 @@ public sealed interface Expr extends AyaDocile {
       return type == typeExpr() ? this : new Param(sourcePos, ref, type, explicit, theCoreType);
     }
 
-    public @NotNull Param descent(@NotNull PosedUnaryOperator<Expr> f) {
-      return update(typeExpr.descent(f));
-    }
+    public @NotNull Param descent(@NotNull PosedUnaryOperator<Expr> f) { return update(typeExpr.descent(f)); }
+    public void forEach(@NotNull PosedConsumer<Expr> f) { f.accept(typeExpr); }
   }
 
   /**
@@ -101,6 +96,7 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull Hole descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(filling == null ? null : filling.descent(f));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { if (filling != null) f.accept(filling); }
   }
 
   record Error(@NotNull AyaDocile description) implements Expr {
@@ -108,9 +104,8 @@ public sealed interface Expr extends AyaDocile {
       this(_ -> description);
     }
 
-    @Override public @NotNull Expr.Error descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return this;
-    }
+    @Override public @NotNull Expr.Error descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
   /**
@@ -127,6 +122,7 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull BinOpSeq descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(seq.map(arg -> arg.descent(f)));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { seq.forEach(arg -> arg.forEach(f)); }
   }
 
   record Unresolved(
@@ -136,13 +132,13 @@ public sealed interface Expr extends AyaDocile {
       this(new QualifiedID(pos, name));
     }
 
-    @Override public @NotNull Unresolved descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return this;
-    }
+    @Override public @NotNull Unresolved descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
   record Ref(@NotNull AnyVar var) implements Expr {
     @Override public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
   record Lambda(
@@ -167,11 +163,10 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull Lambda descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(body.descent(f));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { f.accept(body); }
   }
 
-  record Tuple(
-    @NotNull ImmutableSeq<@NotNull WithPos<Expr>> items
-  ) implements Expr {
+  record Tuple(@NotNull ImmutableSeq<@NotNull WithPos<Expr>> items) implements Expr {
     public @NotNull Expr.Tuple update(@NotNull ImmutableSeq<@NotNull WithPos<Expr>> items) {
       return items.sameElements(items(), true) ? this : new Tuple(items);
     }
@@ -179,6 +174,7 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull Expr.Tuple descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(items.map(x -> x.descent(f)));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { items.forEach(f::accept); }
   }
 
   /**
@@ -204,6 +200,7 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull Expr.Proj descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(tup.descent(f));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { f.accept(tup); }
   }
 
   record App(
@@ -217,6 +214,10 @@ public sealed interface Expr extends AyaDocile {
 
     @Override public @NotNull App descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(function.descent(f), argument.map(arg -> arg.descent(f)));
+    }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) {
+      f.accept(function);
+      argument.forEach(arg -> arg.forEach(f));
     }
   }
 
@@ -242,6 +243,9 @@ public sealed interface Expr extends AyaDocile {
     public @NotNull NamedArg descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(arg.descent(f));
     }
+    public void forEach(@NotNull PosedConsumer<Expr> f) {
+      f.accept(arg);
+    }
   }
 
   record Pi(
@@ -255,11 +259,13 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull Pi descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(param.descent(f), last.descent(f));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) {
+      param.forEach(f);
+      f.accept(last);
+    }
   }
 
-  record Sigma(
-    @NotNull ImmutableSeq<@NotNull Param> params
-  ) implements Expr {
+  record Sigma(@NotNull ImmutableSeq<@NotNull Param> params) implements Expr {
     public @NotNull Sigma update(@NotNull ImmutableSeq<@NotNull Param> params) {
       return params.sameElements(params(), true) ? this : new Sigma(params);
     }
@@ -267,21 +273,20 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull Sigma descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(params.map(param -> param.descent(f)));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { params.forEach(param -> param.forEach(f)); }
   }
 
   record RawSort(@NotNull SortKind kind) implements Expr, Sugar {
-    @Override public @NotNull RawSort descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return this;
-    }
+    @Override public @NotNull RawSort descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
   sealed interface Sort extends Expr {
     int lift();
     SortKind kind();
 
-    @Override default @NotNull Sort descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return this;
-    }
+    @Override default @NotNull Sort descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
+    @Override default void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
   record Type(@Override int lift) implements Sort {
@@ -307,18 +312,17 @@ public sealed interface Expr extends AyaDocile {
     @Override public @NotNull Lift descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(expr.descent(f));
     }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { f.accept(expr); }
   }
 
   record LitInt(int integer) implements Expr {
-    @Override public @NotNull LitInt descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return this;
-    }
+    @Override public @NotNull LitInt descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
   record LitString(@NotNull String string) implements Expr {
-    @Override public @NotNull LitString descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return this;
-    }
+    @Override public @NotNull LitString descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
   }
 
   record Idiom(
@@ -332,6 +336,10 @@ public sealed interface Expr extends AyaDocile {
 
     @Override public @NotNull Idiom descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(names.fmap(x -> f.apply(SourcePos.NONE, x)), barredApps.map(x -> x.descent(f)));
+    }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) {
+      names.forEach(x -> f.accept(SourcePos.NONE, x));
+      barredApps.forEach(f::accept);
     }
   }
 
@@ -355,15 +363,19 @@ public sealed interface Expr extends AyaDocile {
         && applicativeAp == names.applicativeAp
         && applicativePure == names.applicativePure;
     }
+
+    public void forEach(@NotNull Consumer<Expr> f) {
+      f.accept(alternativeEmpty);
+      f.accept(alternativeOr);
+      f.accept(applicativeAp);
+      f.accept(applicativePure);
+    }
   }
 
   /**
    * @param bindName guess: we don't need the source pos of it
    */
-  record Do(
-    @NotNull Expr bindName,
-    @NotNull ImmutableSeq<DoBind> binds
-  ) implements Expr, Sugar {
+  record Do(@NotNull Expr bindName, @NotNull ImmutableSeq<DoBind> binds) implements Expr, Sugar {
     public @NotNull Do update(@NotNull Expr bindName, @NotNull ImmutableSeq<DoBind> binds) {
       return bindName == bindName() && binds.sameElements(binds(), true) ? this
         : new Do(bindName, binds);
@@ -371,6 +383,10 @@ public sealed interface Expr extends AyaDocile {
 
     @Override public @NotNull Do descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
       return update(f.apply(SourcePos.NONE, bindName), binds.map(bind -> bind.descent(f)));
+    }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) {
+      f.accept(SourcePos.NONE, bindName);
+      binds.forEach(bind -> bind.forEach(f));
     }
   }
 
@@ -383,9 +399,8 @@ public sealed interface Expr extends AyaDocile {
       return expr == expr() ? this : new DoBind(sourcePos, var, expr);
     }
 
-    public @NotNull DoBind descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return update(expr.descent(f));
-    }
+    public @NotNull DoBind descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return update(expr.descent(f)); }
+    public void forEach(@NotNull PosedConsumer<Expr> f) { f.accept(expr); }
   }
 
   /**
@@ -394,9 +409,7 @@ public sealed interface Expr extends AyaDocile {
    * @param arrayBlock <code>[ x | x <- [ 1, 2, 3 ] ]</code> (left) or <code>[ 1, 2, 3 ]</code> (right)
    * @apiNote empty array <code>[]</code> should be a right (an empty expr seq)
    */
-  record Array(
-    @NotNull Either<CompBlock, ElementList> arrayBlock
-  ) implements Expr {
+  record Array(@NotNull Either<CompBlock, ElementList> arrayBlock) implements Expr {
     public @NotNull Array update(@NotNull Either<CompBlock, ElementList> arrayBlock) {
       var equal = arrayBlock.bifold(this.arrayBlock, false,
         (newOne, oldOne) -> newOne == oldOne,
@@ -409,6 +422,10 @@ public sealed interface Expr extends AyaDocile {
       return update(arrayBlock.map(comp -> comp.descent(f), list -> list.descent(f)));
     }
 
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) {
+      arrayBlock.forEach(comp -> comp.forEach(f), list -> list.forEach(f));
+    }
+
     public record ElementList(@NotNull ImmutableSeq<WithPos<Expr>> exprList) {
       public @NotNull ElementList update(@NotNull ImmutableSeq<WithPos<Expr>> exprList) {
         return exprList.sameElements(exprList(), true) ? this : new ElementList(exprList);
@@ -417,6 +434,7 @@ public sealed interface Expr extends AyaDocile {
       public @NotNull ElementList descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
         return update(exprList.map(x -> x.descent(f)));
       }
+      public void forEach(@NotNull PosedConsumer<Expr> f) { exprList.forEach(f::accept); }
     }
 
     public record ListCompNames(
@@ -429,6 +447,11 @@ public sealed interface Expr extends AyaDocile {
 
       public boolean identical(@NotNull ListCompNames names) {
         return monadBind == names.monadBind && functorPure == names.functorPure;
+      }
+
+      public void forEach(@NotNull Consumer<Expr> f) {
+        f.accept(monadBind);
+        f.accept(functorPure);
       }
     }
 
@@ -458,6 +481,11 @@ public sealed interface Expr extends AyaDocile {
 
       public @NotNull CompBlock descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
         return update(generator.descent(f), binds.map(bind -> bind.descent(f)), names.fmap(x -> f.apply(SourcePos.NONE, x)));
+      }
+      public void forEach(@NotNull PosedConsumer<Expr> f) {
+        f.accept(generator);
+        binds.forEach(bind -> bind.forEach(f));
+        names.forEach(x -> f.accept(SourcePos.NONE, x));
       }
     }
 
@@ -511,15 +539,15 @@ public sealed interface Expr extends AyaDocile {
         : new Let(bind, body);
     }
 
-    @Override
-    public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return update(bind().descent(f), body.descent(f));
+    @Override public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
+      return update(bind.descent(f), body.descent(f));
+    }
+    @Override public void forEach(@NotNull PosedConsumer<Expr> f) {
+      bind.forEach(f);
+      f.accept(body);
     }
 
-    @Override
-    public @NotNull LetBind param() {
-      return bind;
-    }
+    @Override public @NotNull LetBind param() { return bind; }
   }
 
   record LetBind(
@@ -536,7 +564,12 @@ public sealed interface Expr extends AyaDocile {
     }
 
     public @NotNull LetBind descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
-      return update(telescope().map(x -> x.descent(f)), result.descent(f), definedAs.descent(f));
+      return update(telescope.map(x -> x.descent(f)), result.descent(f), definedAs.descent(f));
+    }
+    public void forEach(PosedConsumer<Expr> f) {
+      telescope.forEach(param -> param.forEach(f));
+      f.accept(result);
+      f.accept(definedAs);
     }
   }
 
