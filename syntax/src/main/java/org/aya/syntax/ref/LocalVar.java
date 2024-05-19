@@ -32,4 +32,8 @@ public record LocalVar(
   public static final @NotNull LocalVar IGNORED = new LocalVar("_", SourcePos.NONE);
   @Override public boolean equals(@Nullable Object o) {return this == o;}
   @Override public int hashCode() {return System.identityHashCode(this);}
+
+  public boolean isGenerated() {
+    return generateKind != GenerateKind.Basic.None;
+  }
 }

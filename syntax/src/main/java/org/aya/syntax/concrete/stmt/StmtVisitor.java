@@ -21,7 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Consumer;
 
-public interface StmtExprVisitor extends Consumer<Stmt> {
+public interface StmtVisitor extends Consumer<Stmt> {
   /** module decl or import as name */
   default void visitModuleDecl(@NotNull SourcePos pos, @NotNull ModuleName path) { }
   /** module name ref */
@@ -110,7 +110,7 @@ public interface StmtExprVisitor extends Consumer<Stmt> {
     visitVars(stmt);
   }
 
-  default void visitPattern(@NotNull WithPos<Pattern> pat) { visitPattern(pat.sourcePos(), pat.data()); }
+  private void visitPattern(@NotNull WithPos<Pattern> pat) { visitPattern(pat.sourcePos(), pat.data()); }
   default void visitPattern(@NotNull SourcePos pos, @NotNull Pattern pat) {
     switch (pat) {
       case Pattern.Con con -> {
@@ -128,7 +128,7 @@ public interface StmtExprVisitor extends Consumer<Stmt> {
   default void visitParamDecl(Expr.@NotNull Param param) {
     visitVarDecl(param.sourcePos(), param.ref(), withTermType(param));
   }
-  default void visitExpr(@NotNull WithPos<Expr> expr) { visitExpr(expr.sourcePos(), expr.data()); }
+  private void visitExpr(@NotNull WithPos<Expr> expr) { visitExpr(expr.sourcePos(), expr.data()); }
   default void visitExpr(@NotNull SourcePos pos, @NotNull Expr expr) {
     switch (expr) {
       case Expr.Ref ref -> visitVarRef(pos, ref.var(), withTermType(ref));
