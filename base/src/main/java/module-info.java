@@ -5,7 +5,6 @@ module aya.base {
   requires static org.jetbrains.annotations;
 
   requires org.commonmark;
-  requires jdk.jdi;
   // requires manifold.delegation.rt;
 
   exports org.aya.normalize;

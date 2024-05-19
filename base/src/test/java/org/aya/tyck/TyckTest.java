@@ -87,7 +87,7 @@ public class TyckTest {
 
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
     var stmts = SyntaxTestUtil.parse(code);
-    var resolveInfo = SyntaxTestUtil.resolve(ImmutableSeq.narrow(stmts));
+    var resolveInfo = SyntaxTestUtil.resolve(stmts);
     var decls = stmts.filterIsInstance(Decl.class);
     decls.forEach(decl -> System.out.println(STR."Scanned \{decl.ref().name()}"));
     return SillyTycker.tyck(resolveInfo, decls, TestUtil.THROWING);

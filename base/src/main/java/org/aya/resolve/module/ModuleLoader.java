@@ -15,6 +15,7 @@ import org.aya.tyck.order.AyaOrgaTycker;
 import org.aya.tyck.order.AyaSccTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.util.reporter.DelayedReporter;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * @author re-xyr
  */
 public interface ModuleLoader extends Problematic {
+  @ApiStatus.Internal
   default <E extends Exception> @NotNull ResolveInfo tyckModule(
     @NotNull PrimFactory primFactory,
     @NotNull ModuleContext context,
@@ -46,6 +48,8 @@ public interface ModuleLoader extends Problematic {
     return resolveInfo;
   }
 
+  @ApiStatus.Internal
+  @Deprecated
   default @NotNull ResolveInfo resolveModule(
     @NotNull PrimFactory primFactory,
     @NotNull ModuleContext context,
@@ -57,13 +61,10 @@ public interface ModuleLoader extends Problematic {
     return resolveModule(primFactory, shapeFactory, opSet, context, program, recurseLoader);
   }
 
+  @ApiStatus.Internal
   default @NotNull ResolveInfo resolveModule(
-    @NotNull PrimFactory primFactory,
-    @NotNull AyaShape.Factory shapeFactory,
-    @NotNull AyaBinOpSet opSet,
-    @NotNull ModuleContext context,
-    @NotNull ImmutableSeq<Stmt> program,
-    @NotNull ModuleLoader recurseLoader
+    @NotNull PrimFactory primFactory, @NotNull AyaShape.Factory shapeFactory, @NotNull AyaBinOpSet opSet,
+    @NotNull ModuleContext context, @NotNull ImmutableSeq<Stmt> program, @NotNull ModuleLoader recurseLoader
   ) {
     var resolveInfo = new ResolveInfo(context, primFactory, shapeFactory, opSet);
     new StmtResolvers(recurseLoader, resolveInfo).resolve(program, context);

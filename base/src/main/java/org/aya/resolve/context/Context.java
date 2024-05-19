@@ -209,10 +209,10 @@ public interface Context {
   }
 
   default @NotNull PhysicalModuleContext derive(@NotNull String extraName) {
-    return derive(ImmutableSeq.of(extraName));
+    return derive(new ModulePath(ImmutableSeq.of(extraName)));
   }
 
-  default @NotNull PhysicalModuleContext derive(@NotNull ImmutableSeq<@NotNull String> extraName) {
+  default @NotNull PhysicalModuleContext derive(@NotNull ModulePath extraName) {
     return new PhysicalModuleContext(this, this.modulePath().derive(extraName));
   }
 

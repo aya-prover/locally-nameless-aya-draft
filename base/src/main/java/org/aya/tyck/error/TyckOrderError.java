@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.error;
 
-import com.sun.jdi.InternalException;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.TyckUnit;
 import org.aya.prettier.BasePrettier;
@@ -21,7 +20,7 @@ public interface TyckOrderError extends TyckError {
   default @NotNull String nameOf(@NotNull TyckUnit stmt) {
     return switch (stmt) {
       case Decl decl -> decl.ref().name();
-      default -> throw new InternalException("Unexpected stmt seen in SCCTycker: " + stmt);
+      default -> throw new Panic("Unexpected stmt seen in SCCTycker: " + stmt);
     };
   }
 

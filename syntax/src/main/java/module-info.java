@@ -21,4 +21,5 @@ module aya.syntax {
   exports org.aya.syntax.core.term.xtt;
   exports org.aya.syntax.core.term;
   exports org.aya.syntax.ref;
+  exports org.aya.syntax;
 }

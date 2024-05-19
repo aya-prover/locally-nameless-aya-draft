@@ -4,15 +4,13 @@ package org.aya.syntax;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.TestUtil;
-import org.aya.normalize.PrimFactory;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.StmtResolvers;
 import org.aya.resolve.context.EmptyContext;
-import org.aya.resolve.salt.AyaBinOpSet;
+import org.aya.resolve.module.DumbModuleLoader;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.util.error.SourceFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Contract;
@@ -29,16 +27,11 @@ public final class SyntaxTestUtil {
   }
 
   public static ResolveInfo resolve(@NotNull ImmutableSeq<Stmt> decls) {
-    var resolveInfo = nakedResolveInfo();
-    new StmtResolvers(resolveInfo).resolve(decls, resolveInfo.thisModule());
-    return resolveInfo;
+    return moduleLoader().resolve(decls);
   }
 
-  public static @NotNull ResolveInfo nakedResolveInfo() {
-    var derive = new EmptyContext(TestUtil.THROWING, FILE).derive("114514");
-    return new ResolveInfo(derive,
-      new PrimFactory(), new AyaShape.Factory(),
-      new AyaBinOpSet(derive.reporter()));
+  public static @NotNull DumbModuleLoader moduleLoader() {
+    return new DumbModuleLoader(TestUtil.THROWING, new EmptyContext(TestUtil.THROWING, FILE));
   }
 
   @Contract(pure = true)

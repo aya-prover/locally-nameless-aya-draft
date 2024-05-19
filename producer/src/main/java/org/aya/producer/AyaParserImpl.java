@@ -5,6 +5,7 @@ package org.aya.producer;
 import com.intellij.psi.DefaultPsiParser;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
+import org.aya.syntax.GenericAyaParser;
 import org.aya.intellij.GenericNode;
 import org.aya.intellij.MarkerNodeWrapper;
 import org.aya.parser.AyaLanguage;
