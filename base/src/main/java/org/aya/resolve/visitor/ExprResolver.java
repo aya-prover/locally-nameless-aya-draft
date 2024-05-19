@@ -20,7 +20,7 @@ import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GeneralizedVar;
 import org.aya.syntax.ref.LocalVar;
-import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;

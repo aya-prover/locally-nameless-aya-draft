@@ -19,7 +19,7 @@ import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.BinOpElem;
 import org.aya.util.ForLSP;
-import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
@@ -28,11 +28,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 public sealed interface Expr extends AyaDocile {
   @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f);
+  @NotNull Expr descent(@NotNull Consumer<WithPos>)
   @ForLSP
   sealed interface WithTerm {
     @NotNull MutableValue<Term> theCoreType();

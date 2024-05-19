@@ -6,7 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.ref.ModulePath;
-import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

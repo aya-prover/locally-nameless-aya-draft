@@ -15,7 +15,7 @@ import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
 import org.aya.util.ForLSP;
-import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;

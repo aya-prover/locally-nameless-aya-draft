@@ -12,7 +12,7 @@ import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;

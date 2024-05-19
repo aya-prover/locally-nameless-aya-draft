@@ -1,9 +1,7 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.util;
+package org.aya.util.error;
 
-import org.aya.util.error.SourcePos;
-import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiFunction;

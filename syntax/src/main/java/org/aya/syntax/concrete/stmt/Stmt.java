@@ -9,7 +9,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.util.PosedUnaryOperator;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

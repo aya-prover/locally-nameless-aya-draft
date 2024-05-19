@@ -2,17 +2,13 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.util.error;
 
-import org.aya.util.PosedUnaryOperator;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 public record WithPos<T>(@NotNull SourcePos sourcePos, T data) implements SourceNode {
-  public static <U> WithPos<? extends U> narrow(@NotNull WithPos<U> value) {
-    return value;
-  }
+  public static <U> WithPos<? extends U> narrow(@NotNull WithPos<U> value) { return value; }
 
   public static <T> @NotNull WithPos<T> dummy(@NotNull T data) {
     return new WithPos<>(SourcePos.NONE, data);
@@ -26,11 +22,7 @@ public record WithPos<T>(@NotNull SourcePos sourcePos, T data) implements Source
     return data == this.data ? this : new WithPos<>(sourcePos, data);
   }
 
-  public @NotNull WithPos<T> descent(@NotNull PosedUnaryOperator<T> f) {
-    return update(f.apply(this));
-  }
-
-  public <R> @NotNull WithPos<R> replace(@NotNull R value) {
-    return new WithPos<>(sourcePos, value);
-  }
+  public @NotNull WithPos<T> descent(@NotNull PosedUnaryOperator<T> f) { return update(f.apply(this)); }
+  public void forEach(@NotNull PosedConsumer<T> f) { f.accept(sourcePos, data); }
+  public <R> @NotNull WithPos<R> replace(@NotNull R value) { return new WithPos<>(sourcePos, value); }
 }
