@@ -161,14 +161,14 @@ public class ReplCompiler {
     }
   }
 
-  public @Nullable Term computeType(@NotNull String text, boolean whnf) {
+  public @Nullable Term computeType(@NotNull String text, NormalizeMode mode) {
     try {
       var parseTree = new AyaParserImpl(reporter).repl(text);
       if (parseTree.isLeft()) {
         reporter.reportString("Expect expression, got statement", Problem.Severity.ERROR);
         return null;
       }
-      return tyckExpr(parseTree.getRightValue()).type();
+      return new Normalizer(tcState).normalize(tyckExpr(parseTree.getRightValue()).type(), mode);
     } catch (InterruptException ignored) {
       return null;
     }
