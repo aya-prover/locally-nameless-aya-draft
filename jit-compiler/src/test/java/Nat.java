@@ -1,13 +1,16 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.compile;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Result;
+import org.aya.cli.compiler.util.SerializeUtils;
+import org.aya.normalize.PatMatcher;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitConCall;
 import org.aya.syntax.compile.JitData;
 import org.aya.syntax.compile.JitFn;
+import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
@@ -56,7 +59,7 @@ public interface Nat {
         switch (i) {
           case 0:
             assert teleArgs.length == 0;
-            return (Term) ((Object) Nat$.INSTANCE.of());
+            return Nat$.INSTANCE.of();
           default:
             return Panic.unreachable();
         }
@@ -64,7 +67,7 @@ public interface Nat {
 
       @Override public @NotNull Term result(Term... teleArgs) {
         assert teleArgs.length == 1;
-        return (Term) ((Object) Nat$.INSTANCE.of());
+        return Nat$.INSTANCE.of();
       }
 
       @Override protected @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args) {
@@ -158,38 +161,41 @@ public interface Nat {
       @Override
       protected @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args) {
         Term[] result = new Term[2];
-        int failState = 0;
+        int matchState = 0;
+        boolean metaState = false;
 
         result[0] = args[0];
-        if (((Object) args[1]) instanceof JitConCall) {
-          if (((JitConCall) ((Object) args[1])).instance() == Nat$.O.INSTANCE) {
-            Term[] finalResult = Arrays.copyOf(result, 1);
-            return Result.ok(ImmutableSeq.from(finalResult));
-          } else failState = 2;
-        } else {
-          failState = 1;
+        Term _0 = args[1];
+        if (_0 instanceof MetaPatTerm _1) {
+          _0 = PatMatcher.realSolution(_1);
+          if (_0 instanceof MetaPatTerm _2) {
+            SerializeUtils.copyTo(result, PatMatcher.doSolveMeta(new Pat.JCon(Nat$.O.INSTANCE, ImmutableSeq.empty()), _2.meta()), 1);
+            metaState = true;
+          }
         }
 
-        assert failState != 0;
-
-        result[0] = args[0];
-        if (((Object) args[1]) instanceof JitConCall) {
-          if (((JitConCall) ((Object) args[1])).instance() == Nat$.S.INSTANCE) {
-            result[1] = ((JitConCall) ((Object) args[1])).conArgs()[0];
-            Term[] finalResult = Arrays.copyOf(result, 2);
-            return Result.ok(ImmutableSeq.from(finalResult));
-          } else failState = 2;
-        } else {
-          failState = 1;
+        if (!metaState) {
+          if (args[1] instanceof JitConCall _3) {
+            if (_3.instance() == Nat$.O.INSTANCE) {
+              metaState = true;
+            } else matchState = -1;
+          } else {
+            matchState = 0;
+          }
         }
 
-        assert failState != 0;
+        if (metaState) {
+          matchState = 1;
+        }
 
-        switch (failState) {
-          case 1:
-            return Result.err(true);
-          case 2:
+        switch (matchState) {
+          case -1:
             return Result.err(false);
+          case 0:
+            return Result.err(true);
+          case 1:
+            var finalResult = Arrays.copyOf(result, 1);
+            return Result.ok(ImmutableSeq.from(finalResult));
           default:
             return Panic.unreachable();
         }

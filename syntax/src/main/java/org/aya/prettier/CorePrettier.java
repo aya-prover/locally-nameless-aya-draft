@@ -254,6 +254,8 @@ public class CorePrettier extends BasePrettier<Term> {
           ? linkLit(0, lit.conRef(CodeShape.GlobalId.ZERO), CON)
           : linkLit(lit.repr(), lit.conRef(CodeShape.GlobalId.SUC), CON),
         licit);
+      // TODO
+      case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
     };
   }
 

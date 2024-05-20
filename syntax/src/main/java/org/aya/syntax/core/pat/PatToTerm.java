@@ -34,6 +34,8 @@ public interface PatToTerm {
         case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(this));
         case Pat.Meta meta -> new MetaPatTerm(meta);
         case Pat.ShapedInt si -> si.toTerm();
+        // TODO
+        case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
       };
     }
   }
@@ -100,6 +102,8 @@ public interface PatToTerm {
           .map(args -> new ConCall(conHead(con), args));
         case Pat.Tuple tuple -> list(tuple.elements().view())
           .map(args -> new TupTerm(args));
+        // TODO
+        case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
       };
     }
   }

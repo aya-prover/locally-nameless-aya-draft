@@ -9,18 +9,28 @@ import kala.collection.mutable.MutableList;
 import kala.tuple.Tuple;
 import kala.value.primitive.MutableIntValue;
 import org.aya.generic.NameGenerator;
+import org.aya.normalize.PatMatcher;
 import org.aya.normalize.PatMatcher.State;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<PatternSerializer.Matching>> {
-  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull Runnable onSucc) {}
+  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull Runnable onSucc) { }
 
   private static final @NotNull String VARIABLE_RESULT = "result";
   private static final @NotNull String VARIABLE_STATE = "matchState";
+  private static final @NotNull String VARIABLE_META_STATE = "metaState";
+
+  private static final @NotNull String CLASS_METAPATTERM = MetaPatTerm.class.getName();
+  private static final @NotNull String CLASS_PATMATCHER = PatMatcher.class.getName();
+  private static final @NotNull String CLASS_PAT_ABSURD = Pat.Absurd.class.getName();
+  private static final @NotNull String CLASS_PAT_BIND = Pat.Bind.class.getName();
+  private static final @NotNull String CLASS_PAT_JCON = Pat.JCon.class.getName();
 
   private final @NotNull String argName;
   private final @NotNull Runnable onStuck;
@@ -28,12 +38,12 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   private int bindCount = 0;
 
   public PatternSerializer(
-      @NotNull StringBuilder builder,
-      int indent,
-      @NotNull NameGenerator nameGen,
-      @NotNull String argName,
-      @NotNull Runnable onStuck,
-      @NotNull Runnable onDontMatch
+    @NotNull StringBuilder builder,
+    int indent,
+    @NotNull NameGenerator nameGen,
+    @NotNull String argName,
+    @NotNull Runnable onStuck,
+    @NotNull Runnable onDontMatch
   ) {
     super(builder, indent, nameGen);
     this.argName = argName;
@@ -41,20 +51,54 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     this.onDontMatch = onDontMatch;
   }
 
+  // TODO: How about another Pattern Serializer?
+  private static void toSource(@NotNull StringBuilder acc, @NotNull ImmutableSeq<Pat> pats) {
+    if (pats.isEmpty()) {
+      acc.append("ImmutableSeq.empty()");
+      return;
+    }
+
+    acc.append("ImmutableSeq.of(");
+
+    var it = pats.iterator();
+    toSource(acc, it.next());
+
+    while (it.hasNext()) {
+      acc.append(", ");
+      toSource(acc, it.next());
+    }
+
+    acc.append(")");
+  }
+
   private static void toSource(@NotNull StringBuilder acc, @NotNull Pat pat) {
     switch (pat) {
-      case Pat.Absurd _ -> acc.append("Pat.Absurd.INSTANCE");
+      case Pat.Absurd _ -> acc.append(getInstance(CLASS_PAT_ABSURD));
       case Pat.Bind bind -> {
         // it is safe to new a LocalVar, this method will be called when meta solving only,
         // but the meta solver will eat all LocalVar so that it will be happy.
-        acc.append("""
-            new Pat.Bind(new LocalVar("dogfood"), ErrorTerm.DUMMY)""");
+        acc.append(STR."new \{CLASS_PAT_BIND}(new LocalVar(\"dogfood\"), ErrorTerm.DUMMY)");
       }
-      case Pat.Con con -> throw new UnsupportedOperationException();
+      case Pat.ConLike con -> {
+        var instance = switch (con) {
+          case Pat.Con con1 -> getQualified(con1.ref());
+          case Pat.JCon jCon -> getQualified(jCon.ref());
+        };
+
+        acc.append(STR."new \{CLASS_PAT_JCON}(\{getInstance(instance)}, ");
+        toSource(acc, con.args());
+        acc.append(")");
+      }
       case Pat.Meta meta -> Panic.unreachable();
       case Pat.Tuple tuple -> throw new UnsupportedOperationException();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException();
     }
+  }
+
+  private static @NotNull String toSource(@NotNull Pat pat) {
+    var builder = new StringBuilder();
+    toSource(builder, pat);
+    return builder.toString();
   }
 
   private void doSerialize(@NotNull Pat pat, @NotNull String term, @NotNull Runnable continuation) {
@@ -64,16 +108,18 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         onMatchBind(term);
         continuation.run();
       }
+      case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
       case Pat.Con con -> {
         var qualifiedName = getQualified(con.ref());
-        term = solveMeta(pat, term, continuation);
-        buildIfInstanceElse(term, CLASS_JITCONCALL, State.Stuck, mTerm -> {
-          buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
-            State.Mismatch, () -> doSerialize(con.args().view(),
-              fromArray(STR."\{mTerm}.conArgs()",
-                con.args().size()).view(),
-              continuation));
-        });
+        solveMeta(pat, term, State.Mismatch, (realTerm, mCon) -> {
+          buildIfInstanceElse(realTerm, CLASS_JITCONCALL, State.Stuck, mTerm -> {
+            buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
+              State.Mismatch, () -> doSerialize(con.args().view(),
+                fromArray(STR."\{mTerm}.conArgs()",
+                  con.args().size()).view(),
+                mCon));
+          });
+        }, continuation);
       }
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException("TODO");    // TODO
@@ -87,22 +133,37 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   /**
    * Generate meta solving code
-   *
-   * @return the name of new term that is ready to be solved.
    */
-  private @NotNull String solveMeta(@NotNull Pat pat, @NotNull String term, @NotNull Runnable continuation) {
+  private void solveMeta(
+    @NotNull Pat pat,
+    @NotNull String term,
+    @NotNull State stateOnFail,
+    @NotNull BiConsumer<String, Runnable> matchContinuation,
+    @NotNull Runnable continuation
+  ) {
     var tmpName = nameGen.nextName(null);
-
+    buildUpdate(VARIABLE_META_STATE, "false");
     buildLocalVar("Term", tmpName, term);
-    buildIf(STR."\{term} instanceof MetaPatTerm", () -> {
-      appendLine(STR."\{tmpName} = PatMatcher.realSolution((MetaPatTerm) \{term});");
-      buildIf(STR."\{tmpName} instanceof MetaPatTerm", () -> {
-        continuation.run();
-        appendLine("throw new UnsupportedOperationException();");
-      });
-    });
+    buildIfInstanceElse(term, CLASS_METAPATTERM, metaTerm -> {
+      buildUpdate(tmpName, STR."\{CLASS_PATMATCHER}.realSolution(\{metaTerm})");
+      // if the solution is still a meta, we solve it
+      // this is a heavy work
+      buildIfInstanceElse(tmpName, CLASS_METAPATTERM, stillMetaTerm -> {
+        var doSolveMetaResult = STR."\{CLASS_PATMATCHER}.doSolveMeta(\{toSource(pat)}, \{stillMetaTerm}.meta())";
+        appendLine(STR."\{CLASS_SERIALIZEUTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
+        buildUpdate(VARIABLE_META_STATE, "true");
+        // at this moment, the matching is complete,
+        // but we still need to generate the code for normal matching
+        // and it will increase bindCount
+      }, null);
 
-    return tmpName;
+    }, null);
+
+    buildIf(STR."! \{VARIABLE_META_STATE}", () -> matchContinuation.accept(tmpName, () -> {
+      buildUpdate(VARIABLE_META_STATE, "true");
+    }));
+
+    buildIfElse(VARIABLE_META_STATE, stateOnFail, continuation);
   }
 
   /**
@@ -128,7 +189,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     buildIfInstanceElse(term, type, continuation, () -> updateState(-state.ordinal()));
   }
 
-
   private void buildIfElse(@NotNull String condition, @NotNull State state, @NotNull Runnable continuation) {
     buildIfElse(condition, continuation, () -> updateState(-state.ordinal()));
   }
@@ -149,15 +209,16 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   @Override public void serialize(@NotNull ImmutableSeq<Matching> unit) {
     var bindSize = unit.mapToInt(ImmutableIntSeq.factory(),
-        x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
+      x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
     int maxBindSize = bindSize.max();
     var jumpTable = MutableList.of(
-        Tuple.of("-1", onDontMatch),
-        Tuple.of("0", onStuck)
+      Tuple.of("-1", onDontMatch),
+      Tuple.of("0", onStuck)
     );
 
     buildLocalVar("Term[]", VARIABLE_RESULT, STR."new Term[\{maxBindSize}]");
     buildLocalVar("int", VARIABLE_STATE, "0");
+    buildLocalVar("boolean", VARIABLE_META_STATE, "false");
 
     buildGoto(() -> {
       unit.forEachIndexed((idx, clause) -> {
@@ -165,11 +226,11 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         jumpTable.append(Tuple.of(Integer.toString(jumpCode), clause.onSucc));
 
         doSerialize(
-            clause.patterns().view(),
-            fromArray(argName, clause.patterns.size()).view(),
-            () -> {
-              updateState(jumpCode);
-            });
+          clause.patterns().view(),
+          fromArray(argName, clause.patterns.size()).view(),
+          () -> {
+            updateState(jumpCode);
+          });
 
         buildIf(STR."\{VARIABLE_STATE} > 0", this::buildBreak);
       });

@@ -4,7 +4,9 @@ package org.aya.cli.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple2;
+import org.aya.cli.compiler.util.SerializeUtils;
 import org.aya.generic.NameGenerator;
+import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +16,8 @@ import java.util.function.Consumer;
 
 public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   public record Param(@NotNull String name, @NotNull String type) { }
+
+  public static final @NotNull String CLASS_SERIALIZEUTILS = SerializeUtils.class.getName();
 
   protected final @NotNull StringBuilder builder;
   protected int indent;
@@ -170,7 +174,12 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected static @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
-    return Objects.requireNonNull(ref.module).module().joinToString(".");
+    return Objects.requireNonNull(ref.module).module().view().appended(ref.name())
+      .joinToString(".");
+  }
+
+  protected static @NotNull String getQualified(@NotNull JitTele ref) {
+    return ref.getClass().getName();
   }
 
   protected static @NotNull String getInstance(@NotNull String defName) {

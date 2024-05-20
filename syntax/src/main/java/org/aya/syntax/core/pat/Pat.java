@@ -14,6 +14,7 @@ import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.prettier.Tokens;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.repr.ShapeRecognition;
@@ -117,12 +118,22 @@ public sealed interface Pat extends AyaDocile {
     }
   }
 
+  sealed interface ConLike extends Pat {
+    @NotNull ImmutableSeq<Pat> args();
+
+    @Override
+    default void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+      args().forEach(arg -> arg.consumeBindings(consumer));
+    }
+  }
+
+
   record Con(
     @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
-    @NotNull ImmutableSeq<Pat> args,
+    @Override @NotNull ImmutableSeq<Pat> args,
     @Nullable ShapeRecognition typeRecog,
     @NotNull DataCall data
-  ) implements Pat {
+  ) implements ConLike {
     public @NotNull Pat.Con update(@NotNull ImmutableSeq<Pat> args) {
       return this.args.sameElements(args, true) ? this : new Con(ref, args, typeRecog, data);
     }
@@ -131,11 +142,30 @@ public sealed interface Pat extends AyaDocile {
       return update(args.map(patOp));
     }
 
-    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
-      args.forEach(arg -> arg.consumeBindings(consumer));
+    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
+      return update(args.map(x -> x.inline(bind)));
+    }
+  }
+
+  /**
+   * A constructor pattern, but compiled data,
+   * that means {@link org.aya.syntax.compile.JitConCall} can match this pattern
+   * instead of {@link org.aya.syntax.core.term.call.ConCallLike}
+   * @param ref
+   * @param args
+   */
+  record JCon(@NotNull JitCon ref, @Override @NotNull ImmutableSeq<Pat> args) implements ConLike {
+    public @NotNull Pat.JCon update(@NotNull ImmutableSeq<Pat> args) {
+      return this.args.sameElements(args, true) ? this : new JCon(ref, args);
     }
 
-    @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
+    @Override
+    public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
+      return update(args.map(patOp));
+    }
+
+    @Override
+    public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
       return update(args.map(x -> x.inline(bind)));
     }
   }

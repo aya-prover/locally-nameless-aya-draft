@@ -58,6 +58,8 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
         case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
         default -> throw new Failure(State.Stuck);
       };
+      // TODO
+      case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
       case Pat.Tuple tuple -> switch (pre.apply(term)) {
         case TupTerm tup -> matchMany(tuple.elements(), tup.items());
         case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);

@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitTele {
