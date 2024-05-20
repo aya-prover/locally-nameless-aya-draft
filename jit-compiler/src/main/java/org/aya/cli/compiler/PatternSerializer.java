@@ -112,7 +112,11 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
    * @apiNote {@code pats.sizeEquals(terms)}
    */
   private void doSerialize(@NotNull SeqView<Pat> pats, @NotNull SeqView<String> terms, @NotNull Runnable continuation) {
-    if (pats.isEmpty()) return;
+    if (pats.isEmpty()) {
+      continuation.run();
+      return;
+    }
+
     var pat = pats.getFirst();
     var term = terms.getFirst();
     doSerialize(pat, term, () -> doSerialize(pats.drop(1), terms.drop(1), continuation));
@@ -125,11 +129,11 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   }
 
   private void updateState(int state) {
-    appendLine(STR."\{VARIABLE_STATE} = \{state}");
+    appendLine(STR."\{VARIABLE_STATE} = \{state};");
   }
 
   private void onMatchBind(@NotNull String term) {
-    appendLine(STR."\{VARIABLE_RESULT}[\{bindCount++}] = \{term}");
+    appendLine(STR."\{VARIABLE_RESULT}[\{bindCount++}] = \{term};");
   }
 
   private @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {

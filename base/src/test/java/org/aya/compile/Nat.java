@@ -14,6 +14,8 @@ import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+
 public interface Nat {
   final class Nat$ extends JitData {
     public static final @NotNull Nat$ INSTANCE = new Nat$();
@@ -139,6 +141,90 @@ public interface Nat {
         }
       }
 
+      return null;
+    }
+  }
+
+  static final class Vec extends JitData {
+    public static final Vec INSTANCE = new Vec();
+
+    public static final class vnil extends JitCon {
+      public static final vnil INSTANCE = new vnil();
+
+      protected vnil() {
+        super(0, new boolean[]{ }, new String[]{ }, Vec.INSTANCE);
+      }
+
+      @Override
+      protected @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args) {
+        Term[] result = new Term[2];
+        int failState = 0;
+
+        result[0] = args[0];
+        if (((Object) args[1]) instanceof JitConCall) {
+          if (((JitConCall) ((Object) args[1])).instance() == Nat$.O.INSTANCE) {
+            Term[] finalResult = Arrays.copyOf(result, 1);
+            return Result.ok(ImmutableSeq.from(finalResult));
+          } else failState = 2;
+        } else {
+          failState = 1;
+        }
+
+        assert failState != 0;
+
+        result[0] = args[0];
+        if (((Object) args[1]) instanceof JitConCall) {
+          if (((JitConCall) ((Object) args[1])).instance() == Nat$.S.INSTANCE) {
+            result[1] = ((JitConCall) ((Object) args[1])).conArgs()[0];
+            Term[] finalResult = Arrays.copyOf(result, 2);
+            return Result.ok(ImmutableSeq.from(finalResult));
+          } else failState = 2;
+        } else {
+          failState = 1;
+        }
+
+        assert failState != 0;
+
+        switch (failState) {
+          case 1:
+            return Result.err(true);
+          case 2:
+            return Result.err(false);
+          default:
+            return Panic.unreachable();
+        }
+      }
+
+      @Override
+      public @NotNull Term telescope(int i, Term... teleArgs) {
+        return null;
+      }
+      @Override
+      public @NotNull Term result(Term... teleArgs) {
+        return null;
+      }
+    }
+
+    private Vec() {
+      super(2, new boolean[]{true, true}, new String[]{"A", "n"}, 2);
+    }
+
+    @Override
+    public @NotNull JitCon[] constructors() {
+      if (constructors[0] == null) {
+
+      }
+
+      return this.constructors;
+    }
+
+    @Override
+    public @NotNull Term telescope(int i, Term... teleArgs) {
+      return null;
+    }
+
+    @Override
+    public @NotNull Term result(Term... teleArgs) {
       return null;
     }
   }

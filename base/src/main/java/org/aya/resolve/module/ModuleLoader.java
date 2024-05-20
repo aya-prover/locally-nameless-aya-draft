@@ -47,6 +47,13 @@ public interface ModuleLoader extends Problematic {
     return resolveInfo;
   }
 
+  /**
+   * Resolve a certain module
+   *
+   * @param context       the module
+   * @param program       the stmt
+   * @param recurseLoader the {@link ModuleLoader} that use for tycking the module
+   */
   @ApiStatus.Internal
   default @NotNull ResolveInfo resolveModule(
     @NotNull PrimFactory primFactory,
