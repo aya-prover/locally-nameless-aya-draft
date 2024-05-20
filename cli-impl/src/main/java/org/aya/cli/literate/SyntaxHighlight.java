@@ -83,7 +83,7 @@ public record SyntaxHighlight(
 
   @Override
   public void visitVarRef(@NotNull SourcePos pos, @NotNull AnyVar path, @NotNull LazyValue<@Nullable Term> type) {
-    linkRef(pos, path, type.get());
+    info.append(linkRef(pos, path, type.get()));
   }
   @Override public void visitExpr(@NotNull SourcePos pos, @NotNull Expr expr) {
     switch (expr) {
