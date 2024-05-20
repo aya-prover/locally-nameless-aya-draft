@@ -46,6 +46,7 @@ public class TestRunner {
       GoalAndMeta.class,
       ScopeError.class
     ).forEachChecked(TestRunner::expectFixture);
+    Files.deleteIfExists(TMP_FILE);
   }
 
   public static void main(String... args) throws Exception {

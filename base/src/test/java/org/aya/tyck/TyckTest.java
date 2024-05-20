@@ -69,6 +69,8 @@ public class TyckTest {
       | zro : pos 0 = neg 0
       example def testZro0 : zro 0 = pos 0 => refl
       example def testZro1 : zro 1 = neg 0 => refl
+      def funExt (A B : Type) (f g : A -> B) (p : Fn (a : A) -> f a = g a) : f = g =>
+        \\ i => \\ a => p a i
       """);
     assertTrue(result.isNotEmpty());
   }

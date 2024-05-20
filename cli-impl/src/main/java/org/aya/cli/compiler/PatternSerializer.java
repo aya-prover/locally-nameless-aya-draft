@@ -4,6 +4,7 @@ package org.aya.cli.compiler;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.immutable.primitive.ImmutableIntSeq;
 import kala.tuple.Tuple;
 import kala.value.primitive.MutableIntValue;
 import org.aya.syntax.core.pat.Pat;
@@ -55,7 +56,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
           });
         });
       }
-      case Pat.JitBind jitBind -> Panic.unreachable();
       case Pat.Meta meta -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException("TODO");    // TODO
       case Pat.Tuple tuple -> {
@@ -97,18 +97,16 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   }
 
   @Override public void serialize(@NotNull ImmutableSeq<Matching> unit) {
-    var bindSize = unit.view()
-      .map(x -> x.patterns().view().foldLeft(0, (acc, p) -> acc + bindAmount(p)))
-      .toImmutableSeq();
-
-    int maxBindSize = bindSize.foldLeft(0, Math::max);
+    var bindSize = unit.mapToInt(ImmutableIntSeq.factory(),
+      x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
+    int maxBindSize = bindSize.max();
 
     appendLine(STR."Term[] \{VARIABLE_RESULT} = new Term[\{maxBindSize}];");
     appendLine(STR."int \{VARIABLE_STATE} = 0;");
 
     for (var clause : unit) {
       doSerialize(clause.patterns().view(), fromArray(argName, clause.patterns.size()).view(), clause.onSucc);
-      // the user should return an value and exit this function
+      // the user should return a value and exit this function
       appendLine(STR."assert \{VARIABLE_STATE} != 0;");
     }
 

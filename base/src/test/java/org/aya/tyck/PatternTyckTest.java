@@ -123,5 +123,17 @@ public class PatternTyckTest {
       | neg n => n
       | zro _ => 0
       """);
+    assertTrue(result.isNotEmpty());
+  }
+
+  @Test public void test4() {
+    assertTrue(tyck("""
+      open data Nat | O | S Nat
+      open data Fin Nat
+      | 0 => fzero
+      | S n => fsucc (Fin n)
+
+      def exfalso (A : Type) (Fin 0) : A | ()
+      """).isNotEmpty());
   }
 }
