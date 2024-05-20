@@ -41,11 +41,11 @@ public abstract class JitTele {
       }
       this.params = params;
     }
-    @Override public Term telescope(int i, Term... teleArgs) {
+    @Override public @NotNull Term telescope(int i, Term... teleArgs) {
       ImmutableSeq<Term> unsafeView = ImmutableArray.Unsafe.wrap(teleArgs);
       return params.get(i).type().instantiateTele(unsafeView.sliceView(0, i));
     }
-    @Override public Term result(Term... teleArgs) {
+    @Override public @NotNull Term result(Term... teleArgs) {
       assert teleArgs.length == telescopeSize;
       ImmutableSeq<Term> unsafeView = ImmutableArray.Unsafe.wrap(teleArgs);
       return result.instantiateTele(unsafeView.view());

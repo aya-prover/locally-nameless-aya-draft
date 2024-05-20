@@ -46,10 +46,8 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   public void buildLocalVar(@NotNull String type, @NotNull String name, @Nullable String initial) {
-    appendLine(STR."\{type} \{name};");
-    if (initial != null) {
-      buildUpdate(name, initial);
-    }
+    var update = initial == null ? "" : STR." = \{initial}";
+    appendLine(STR."\{type} \{name}\{update};");
   }
 
   public void buildUpdate(@NotNull String lhs, @NotNull String rhs) {
@@ -165,6 +163,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."public \{returnType} \{name}(\{paramStr}) {");
     runInside(continuation);
     appendLine("}");
+  }
+
+  protected static @NotNull String copyOf(@NotNull String arrayTerm, int length) {
+    return STR."Arrays.copyOf(\{arrayTerm}, \{length})";
   }
 
   protected static @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
