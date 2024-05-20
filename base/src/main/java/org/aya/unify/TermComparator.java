@@ -193,7 +193,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         var list = ImmutableSeq.fill(size, i -> ProjTerm.make(lhs, i));
         var rist = ImmutableSeq.fill(size, i -> ProjTerm.make(rhs, i));
 
-        var telescopic = new JitTele.LocallyNameless(paramSeq.map(p -> new Param("_", p, true)), SortTerm.Type0);
+        var telescopic = new JitTele.LocallyNameless(paramSeq.map(p -> new Param("_", p, true)), ErrorTerm.DUMMY);
         yield compareMany(list, rist, 0, telescopic) != null;
       }
       default -> compareUntyped(lhs, rhs) != null;

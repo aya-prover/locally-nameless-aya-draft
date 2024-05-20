@@ -217,7 +217,7 @@ public record StmtTycker(
     // the path result may also refer to it, so we need to bind both
     var boundDataCall = (DataCall) tycker.zonk(freeDataCall).bindTele(selfTeleVars);
     if (boundaries != null) boundaries = (EqTerm) tycker.zonk(boundaries).bindTele(selfTeleVars);
-    var boundariesWithDummy = boundaries != null ? boundaries : SortTerm.Type0;
+    var boundariesWithDummy = boundaries != null ? boundaries : ErrorTerm.DUMMY;
     var selfSig = new Signature<>(tycker.zonk(selfTele), new TupTerm(
       // This is a silly hack that allows two terms to appear in the result of a Signature
       // I considered using `AppTerm` but that is more disgraceful

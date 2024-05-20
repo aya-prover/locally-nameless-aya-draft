@@ -4,6 +4,7 @@ package org.aya.cli.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple2;
+import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
@@ -35,12 +36,28 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     indent--;
   }
 
-  protected void buildIf(@NotNull String condition, @NotNull Runnable onSucc, @NotNull Runnable onFailed) {
+  protected void buildIf(@NotNull String condition, @NotNull Runnable onSucc) {
+    appendLine(STR."if (\{condition}) {");
+    runInside(onSucc);
+    appendLine("}");
+  }
+
+  protected void buildIfElse(@NotNull String condition, @NotNull Runnable onSucc, @NotNull Runnable onFailed) {
     appendLine(STR."if (\{condition}) {");
     runInside(onSucc);
     appendLine("} else {");
     runInside(onFailed);
     appendLine("}");
+  }
+
+  protected void buildGoto(@NotNull Runnable continuation) {
+    appendLine("do {");
+    runInside(continuation);
+    appendLine("} while (false);");
+  }
+
+  protected void buildBreak() {
+    appendLine("break;");
   }
 
   protected void buildClass(@NotNull String className, @NotNull String superClass, @NotNull Runnable continuation) {
@@ -92,5 +109,9 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
       runInside(defaultCase);
     });
     appendLine(STR."}");
+  }
+
+  protected @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
+    return ref.module.module().joinToString(".");
   }
 }

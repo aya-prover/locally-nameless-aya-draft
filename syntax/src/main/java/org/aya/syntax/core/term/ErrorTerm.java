@@ -14,6 +14,8 @@ import org.jetbrains.annotations.NotNull;
  * @see org.aya.prettier.CorePrettier#term(BasePrettier.Outer, Term) (ErrorTerm case)
  */
 public record ErrorTerm(AyaDocile description, boolean isReallyError) implements StableWHNF, TyckInternal {
+  public static final @NotNull ErrorTerm DUMMY =  new ErrorTerm(Doc.plain("dummy"), false);
+
   public ErrorTerm(Doc doc, boolean isReallyError) { this(_ -> doc, isReallyError); }
   public ErrorTerm(AyaDocile desc) { this(desc, true); }
   public static @NotNull ErrorTerm typeOf(@NotNull Term origin) {

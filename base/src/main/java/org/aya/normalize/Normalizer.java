@@ -7,6 +7,7 @@ import kala.collection.immutable.ImmutableSet;
 import kala.control.Either;
 import kala.control.Option;
 import org.aya.generic.Modifier;
+import org.aya.syntax.compile.JitFnCall;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
@@ -58,6 +59,11 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
           yield whnf(result.get());
         }
       };
+      case JitFnCall(var instance, var ulift, var args) -> {
+        var result = instance.invoke(args);
+        if (result != null) yield whnf(result);
+        yield term;
+      }
       case ConCall(var head, var args)
         when head.ref().core instanceof ConDef con
         && con.equality instanceof EqTerm eq
