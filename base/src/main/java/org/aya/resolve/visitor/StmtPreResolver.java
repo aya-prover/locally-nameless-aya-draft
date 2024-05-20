@@ -26,10 +26,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * TODO: fix commented code
  * simply adds all top-level names to the context
- *
- * @author re-xyr
  */
 public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo resolveInfo) {
   /**

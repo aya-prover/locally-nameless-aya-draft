@@ -1,0 +1,6 @@
+*.aya
+!expected-*.aya
+*.html
+*.out.md
+*.tex
+*.txt

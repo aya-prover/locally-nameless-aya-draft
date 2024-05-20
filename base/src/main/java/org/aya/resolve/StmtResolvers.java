@@ -14,12 +14,12 @@ import org.jetbrains.annotations.NotNull;
 
 public record StmtResolvers(@NotNull ModuleLoader loader, @NotNull ResolveInfo info) {
   private @NotNull ImmutableSeq<ResolvingStmt> fillContext(
-    @NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context
+    @NotNull ImmutableSeq<Stmt> stmts
   ) {
-    return new StmtPreResolver(loader, info).resolveStmt(stmts, context);
+    return new StmtPreResolver(loader, info).resolveStmt(stmts, info.thisModule());
   }
 
-  private void resolve(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
+  private void resolveStmts(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
     StmtResolver.resolveStmt(stmts, info);
   }
 
@@ -35,11 +35,11 @@ public record StmtResolvers(@NotNull ModuleLoader loader, @NotNull ResolveInfo i
   }
 
   /**
-   * Resolve {@link Stmt}s under {@param context}
+   * Resolve file level {@link Stmt}s
    */
-  public void resolve(@NotNull ImmutableSeq<Stmt> stmts, @NotNull ModuleContext context) {
-    var resolving = fillContext(stmts, context);
-    resolve(resolving); // resolve mutates stmts
+  public void resolve(@NotNull ImmutableSeq<Stmt> stmts) {
+    var resolving = fillContext(stmts);
+    resolveStmts(resolving); // resolve mutates stmts
     resolveBind(resolving); // mutates bind blocks
     desugar(stmts);
   }

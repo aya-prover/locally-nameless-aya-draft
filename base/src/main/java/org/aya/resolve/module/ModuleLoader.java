@@ -78,7 +78,7 @@ public interface ModuleLoader extends Problematic {
     @NotNull ModuleContext context, @NotNull ImmutableSeq<Stmt> program, @NotNull ModuleLoader recurseLoader
   ) {
     var resolveInfo = new ResolveInfo(context, primFactory, shapeFactory, opSet);
-    new StmtResolvers(recurseLoader, resolveInfo).resolve(program, context);
+    new StmtResolvers(recurseLoader, resolveInfo).resolve(program);
     return resolveInfo;
   }
 
