@@ -57,7 +57,7 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
         default -> throw new Failure(true);
       };
       // You can't match with a tycking pattern!
-      case Pat.Meta meta -> throw new Panic("Illegal pattern: Pat.Meta");
+      case Pat.Meta _ -> throw new Panic("Illegal pattern: Pat.Meta");
       case Pat.ShapedInt lit -> switch (pre.apply(term)) {
          case IntegerTerm litTerm -> {
            if (!lit.compareUntyped(litTerm)) throw new Failure(false);
@@ -117,7 +117,6 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
     var meta = term.meta();
     return meta.mapChecked(p -> match(pat, PatToTerm.visit(p)), () -> {
       if (!inferMeta) throw new Failure(true);
-
       // No solution, set the current pattern as solution,
       // also replace the bindings in pat as sub-meta,
       // so that we can solve this meta more.

@@ -6,6 +6,7 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
+import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
@@ -130,6 +131,7 @@ public record Synthesizer(
       case DimTerm _ -> DimTyTerm.INSTANCE;
       case DimTyTerm _ -> SortTerm.ISet;
       case MetaLitTerm mlt -> mlt.type();
+      case Compiled compiled -> throw new UnsupportedOperationException("TODO: synth compiled term");
     };
   }
 

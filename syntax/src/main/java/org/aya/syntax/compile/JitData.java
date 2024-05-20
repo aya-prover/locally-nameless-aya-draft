@@ -16,6 +16,6 @@ public abstract class JitData extends JitTele {
   public abstract @NotNull JitCon[] constructors();
 
   public @NotNull JitDataCall of(Term... args) {
-    return new JitDataCall(this, args);
+    return new JitDataCall(this, 0, args);
   }
 }

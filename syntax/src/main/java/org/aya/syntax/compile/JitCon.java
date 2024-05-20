@@ -18,6 +18,6 @@ public abstract class JitCon extends JitTele {
   protected abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
 
   public @NotNull JitConCall of(Term[] ownerArgs, Term... args) {
-    return new JitConCall(this, ownerArgs, args);
+    return new JitConCall(this, 0, ownerArgs, args);
   }
 }

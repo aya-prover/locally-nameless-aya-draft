@@ -10,6 +10,7 @@ import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.xtt.CoeTerm;
@@ -23,7 +24,7 @@ import java.io.Serializable;
 import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
-  permits BetaRedex, Formation, TyckInternal, LocalTerm, StableWHNF, Callable, CoeTerm {
+  permits Compiled, BetaRedex, Formation, LocalTerm, StableWHNF, TyckInternal, Callable, CoeTerm {
 
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {

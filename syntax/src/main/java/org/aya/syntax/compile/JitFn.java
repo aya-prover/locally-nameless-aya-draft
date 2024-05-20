@@ -18,6 +18,6 @@ public abstract class JitFn extends JitTele {
   public abstract @Nullable Term invoke(Term... args);
 
   public @NotNull JitFnCall of(Term... args) {
-    return new JitFnCall(this, args);
+    return new JitFnCall(this, 0, args);
   }
 }

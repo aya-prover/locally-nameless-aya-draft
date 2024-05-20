@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.generic;
 
+import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
@@ -54,6 +55,7 @@ public class NameGenerator {
       case DimTerm _, ErrorTerm _, LamTerm _, SortTerm _, TupTerm _, LocalTerm _, MetaLitTerm _ -> null;
       case EqTerm _ -> "Eq";
       case CoeTerm _ -> "coe";
+      case Compiled _ -> "C";
     };
   }
 }

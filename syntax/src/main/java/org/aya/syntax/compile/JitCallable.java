@@ -4,5 +4,9 @@ package org.aya.syntax.compile;
 
 import org.aya.syntax.core.term.Term;
 
-public sealed interface Compiled extends Term permits JitCallable {
+public sealed interface JitCallable extends Compiled
+  permits JitConCall, JitDataCall, JitFnCall {
+  JitTele instance();
+  int ulift();
+  Term[] args();
 }

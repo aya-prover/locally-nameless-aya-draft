@@ -10,6 +10,7 @@ import org.aya.generic.AyaDocile;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.ParamLike;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
@@ -106,7 +107,7 @@ public class CorePrettier extends BasePrettier<Term> {
 
         var list = MutableList.of(LAMBDA);
         params.forEach(param -> list.append(Doc.bracedUnless(linkDef(param), true)));
-        list.append(Tokens.FN_DEFINED_AS);
+        list.append(FN_DEFINED_AS);
         list.append(bodyDoc);
         var doc = Doc.sep(list);
         yield checkParen(outer, doc, Outer.BinOp);
@@ -160,16 +161,16 @@ public class CorePrettier extends BasePrettier<Term> {
         // Try to omit the Pi keyword
         if (FindUsage.bound(piTerm.body(), 0) == 0) yield checkParen(outer, Doc.sep(
           justType(Arg.ofExplicitly(piTerm.param()), Outer.BinOp),
-          Tokens.ARROW,
+          ARROW,
           term(Outer.Codomain, piTerm.body())
         ), Outer.BinOp);
         var pair = PiTerm.unpi(piTerm, UnaryOperator.identity());
         var params = generateNames(pair.params());
         var body = pair.body().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));
         var doc = Doc.sep(
-          Tokens.KW_PI,
+          KW_PI,
           visitTele(params, body, FindUsage::free),
-          Tokens.ARROW,
+          ARROW,
           term(Outer.Codomain, body)
         );
         // Add paren when it's not free or a codomain
@@ -204,6 +205,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var doc = Doc.sep(term(Outer.BinOp, a), EQ, term(Outer.BinOp, b));
         yield checkParen(outer, doc, Outer.BinOp);
       }
+      case Compiled _ -> Doc.plain("<TODO: pretty print compiled terms>");
     };
   }
 
@@ -266,12 +268,12 @@ public class CorePrettier extends BasePrettier<Term> {
         line1.appendAll(new Doc[]{
           defVar(def.ref()),
           visitTele(tele),
-          Tokens.HAS_TYPE,
+          HAS_TYPE,
           term(Outer.Free, def.result)
         });
         var line1sep = Doc.sepNonEmpty(line1);
         yield def.body.fold(
-          term -> Doc.sep(line1sep, Tokens.FN_DEFINED_AS, term(Outer.Free, term.instantiateTele(subst))),
+          term -> Doc.sep(line1sep, FN_DEFINED_AS, term(Outer.Free, term.instantiateTele(subst))),
           clauses -> Doc.vcat(line1sep, Doc.nest(2, visitClauses(clauses, subst))));
       }
       // case MemberDef field -> Doc.sepNonEmpty(Doc.symbol("|"),
@@ -289,7 +291,7 @@ public class CorePrettier extends BasePrettier<Term> {
           var pats = Doc.commaList(con.pats.view().map(pat -> pat(pat, true, Outer.Free)));
           line1 = Doc.sep(Doc.symbol("|"), pats, Doc.symbol("=>"), doc);
         } else {
-          line1 = Doc.sep(Tokens.BAR, doc);
+          line1 = Doc.sep(BAR, doc);
         }
         yield Doc.cblock(line1, 2, Doc.empty() /*partial(options, con.clauses, false, Doc.empty(), Doc.empty())*/);
       }
@@ -334,7 +336,7 @@ public class CorePrettier extends BasePrettier<Term> {
     //   var pats = Doc.commaList(ctor.pats.view().map(pat -> pat(pat, Outer.Free)));
     //   line1 = Doc.sep(Doc.symbol("|"), pats, Doc.symbol("=>"), doc);
     // } else {
-    line1 = Doc.sep(Tokens.BAR, doc);
+    line1 = Doc.sep(BAR, doc);
     // }
     return Doc.cblock(line1, 2, Doc.empty() /*partial(options, ctor.clauses, false, Doc.empty(), Doc.empty())*/);
   }
@@ -346,7 +348,7 @@ public class CorePrettier extends BasePrettier<Term> {
     // TODO: subset clause body with [teleSubst]
     return Doc.vcat(clauses.view().map(matching ->
       // TODO: toDoc use a new CorePrettier => new NameGenerator
-      Doc.sep(Tokens.BAR, matching.toDoc(options))));
+      Doc.sep(BAR, matching.toDoc(options))));
   }
 
   public @NotNull Doc visitParam(@NotNull Param param, @NotNull Outer outer) {

@@ -49,10 +49,15 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         continuation.run();
       }
       case Pat.Con con -> {
+        // TODO: store Pat form in case MetaPatTerm
         var qualifiedName = con.ref().toString();    // TODO: SerState
-        buildIf(STR."\{term} instanceof JitConCall", State.Stuck, () -> {
-          buildIf(STR."((JitConCall) \{term}).instance() == \{qualifiedName}.INSTANCE", State.DontMatch, () -> {
-            doSerialize(con.args().view(), fromArray(STR."((JitConCall) \{term}).conArgs()", con.args().size()).view(), continuation);
+        buildIf(STR."\{term} instanceof \{CLASS_JITCONCALL}", State.Stuck, () -> {
+          buildIf(STR."((\{CLASS_JITCONCALL}) \{term}).\{FIELD_INSTANCE}() == \{qualifiedName}.\{STATIC_FIELD_INSTANCE}",
+            State.DontMatch, () -> {
+            doSerialize(con.args().view(),
+              fromArray(STR."((\{CLASS_JITCONCALL}) \{term}).conArgs()",
+                con.args().size()).view(),
+              continuation);
           });
         });
       }
@@ -66,7 +71,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     }
   }
 
-  // This is in fact a FreePatMatcher/Java
   /**
    * @apiNote {@code pats.sizeEquals(terms)}
    */

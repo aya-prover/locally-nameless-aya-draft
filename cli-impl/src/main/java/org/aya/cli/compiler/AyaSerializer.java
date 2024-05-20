@@ -2,8 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.cli.compiler;
 
+import org.aya.syntax.compile.JitConCall;
+import org.aya.syntax.compile.JitDataCall;
+import org.aya.syntax.compile.JitFnCall;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
 
 public interface AyaSerializer<T> {
   String STATIC_FIELD_INSTANCE = "INSTANCE";
@@ -13,6 +15,9 @@ public interface AyaSerializer<T> {
    * @see org.aya.syntax.compile.JitFnCall#instance()
    */
   String FIELD_INSTANCE = "instance";
+  String CLASS_JITCONCALL = JitConCall.class.getSimpleName();
+  String CLASS_JITDATACALL = JitDataCall.class.getSimpleName();
+  String CLASS_JITFNCALL = JitFnCall.class.getSimpleName();
 
   @Language("Java") String IMPORT_BLOCK = """
     import org.aya.syntax.compile.*;
