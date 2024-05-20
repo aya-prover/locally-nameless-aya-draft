@@ -194,8 +194,7 @@ public interface Context {
   }
 
   default @NotNull Context bind(
-    @NotNull String name,
-    @NotNull LocalVar ref,
+    @NotNull String name, @NotNull LocalVar ref,
     @NotNull Predicate<@Nullable AnyVar> toWarn
   ) {
     // do not bind ignored var, and users should not try to use it

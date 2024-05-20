@@ -3,6 +3,7 @@
 package org.aya.generic;
 
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Global;
 import org.aya.util.error.SourcePos;
@@ -40,7 +41,7 @@ public interface Constants {
   @NotNull Expr monadBind = new Expr.Unresolved(SourcePos.NONE, MONAD_BIND);
 
   static @NotNull LocalVar randomlyNamed(@NotNull SourcePos pos) {
-    return new LocalVar(randomName(pos), pos/*, GenerateKind.Anonymous.INSTANCE*/);
+    return new LocalVar(randomName(pos), pos, GenerateKind.Basic.Anonymous);
   }
 
   @Contract(pure = true)

@@ -15,3 +15,17 @@ dependencies {
   testImplementation(libs.hamcrest)
   testImplementation(project(":cli-console"))
 }
+
+tasks.named<Test>("test") {
+  testLogging.showStandardStreams = true
+  testLogging.showCauses = true
+  val resources = projectDir.resolve("src/test/resources")
+  resources.mkdirs()
+  inputs.dir(resources)
+}
+
+tasks.register<JavaExec>("runCustomTest") {
+  group = "Execution"
+  classpath = sourceSets.test.get().runtimeClasspath
+  mainClass.set("org.aya.test.TestRunner")
+}

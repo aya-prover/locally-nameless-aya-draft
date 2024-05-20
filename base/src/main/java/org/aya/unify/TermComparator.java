@@ -117,7 +117,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    * @return true if they are 'the same' under {@param type}, false otherwise.
    */
   public boolean compare(@NotNull Term preLhs, @NotNull Term preRhs, @Nullable Term type) {
-    if (preLhs == preRhs) return true;
+    if (preLhs == preRhs || preLhs instanceof ErrorTerm || preRhs instanceof ErrorTerm) return true;
     if (checkApproxResult(type, compareApprox(preLhs, preRhs))) return true;
     failure = null;
 
