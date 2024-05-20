@@ -1,10 +1,11 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.test;
+package org.aya.test.fixtures;
 
 import org.intellij.lang.annotations.Language;
 
-public interface ExprTypeErrorFixtures {
+@SuppressWarnings("unused")
+public interface ExprTyckError {
   @Language("Aya") String testTypeMismatch = """
     open import Arith::Nat
     def test => 1 + Type

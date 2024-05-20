@@ -88,7 +88,7 @@ In file $FILE:2:5 ->
   2 │   prim Path (A : I -> Type) (a b : A)
     │        ╰──╯
 
-Error: `prim Path` is expected to have a type
+Error: `prim Path` is expected to have a return type
 
 In file $FILE:2:5 ->
 
@@ -96,7 +96,7 @@ In file $FILE:2:5 ->
   2 │   prim Path (A : I -> Type) (a b : A)
     │        ╰──╯
 
-Error: `prim Path` is expected to have a type
+Error: `prim Path` is expected to have a return type
 
 2 error(s), 0 warning(s).
 What are you doing?

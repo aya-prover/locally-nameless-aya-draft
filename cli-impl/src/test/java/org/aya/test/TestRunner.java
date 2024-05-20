@@ -3,9 +3,12 @@
 package org.aya.test;
 
 import com.intellij.openapi.util.text.StringUtil;
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.cli.single.CompilerFlags;
 import org.aya.cli.single.SingleFileCompiler;
+import org.aya.test.fixtures.ExprTyckError;
+import org.aya.test.fixtures.GoalAndMeta;
 import org.aya.util.FileUtil;
 import org.aya.util.error.Global;
 import org.aya.util.error.SourceFileLocator;
@@ -36,8 +39,11 @@ public class TestRunner {
     Global.NO_RANDOM_NAME = true;
   }
 
-  @Test public void negative() throws IOException, IllegalAccessException {
-    expectFixture(ExprTypeErrorFixtures.class);
+  @Test public void negative() throws Exception {
+    Seq.of(
+      ExprTyckError.class,
+      GoalAndMeta.class
+    ).forEachChecked(TestRunner::expectFixture);
   }
 
   public static void main(String... args) throws Exception {
