@@ -13,8 +13,7 @@ import org.aya.syntax.ref.ModulePath;
 import org.junit.jupiter.api.Test;
 
 public class CompileTest {
-  @Test
-  public void test0() {
+  @Test public void test0() {
     DefVar<ConDef, TeleDecl.DataCon> S = DefVar.empty("S");
     S.module = ModulePath.of("Data", "Nat", "Nat");
 

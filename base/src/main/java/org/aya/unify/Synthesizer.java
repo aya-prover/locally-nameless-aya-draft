@@ -7,6 +7,7 @@ import org.aya.generic.NameGenerator;
 import org.aya.generic.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.Compiled;
+import org.aya.syntax.compile.JitLambda;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
@@ -98,7 +99,7 @@ public record Synthesizer(
         // This is safe since a [SigmaTerm] has at least 2 parameters.
         yield pTys.reduce(SigmaTerm::lub);
       }
-      case TupTerm _, LamTerm _ -> null;
+      case TupTerm _, LamTerm _, JitLambda _ -> null;
       case FreeTerm(var var) -> localCtx().get(var);
       case LocalTerm _ -> Panic.unreachable();
       case MetaPatTerm meta -> meta.meta().type();

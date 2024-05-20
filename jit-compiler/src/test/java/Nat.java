@@ -39,7 +39,7 @@ public interface Nat {
 
       @Override public @NotNull Term result(Term... teleArgs) {
         assert teleArgs.length == 0;
-        return (Term) ((Object) Nat$.INSTANCE.of());
+        return Nat$.INSTANCE.of();
       }
 
       @Override protected @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args) {
@@ -112,10 +112,10 @@ public interface Nat {
       switch (i) {
         case 0:
           assert teleArgs.length == 0;
-          return (Term) ((Object) Nat$.INSTANCE.of());
+          return Nat$.INSTANCE.of();
         case 1:
           assert teleArgs.length == 1;
-          return (Term) ((Object) Nat$.INSTANCE.of());
+          return Nat$.INSTANCE.of();
         default:
           return Panic.unreachable();
       }
@@ -123,7 +123,7 @@ public interface Nat {
 
     @Override public @NotNull Term result(Term... teleArgs) {
       assert teleArgs.length == 2;
-      return (Term) ((Object) Nat$.INSTANCE.of());
+      return Nat$.INSTANCE.of();
     }
 
     @Override public @Nullable Term invoke(Term... args) {
@@ -131,16 +131,16 @@ public interface Nat {
       var args0 = args[0];
       var args1 = args[1];
 
-      if (((JitConCall) (Object) args0) instanceof JitConCall) {
-        if (((JitConCall) ((Object) args0)).instance() == Nat$.O.INSTANCE) {
+      if (args0 instanceof JitConCall) {
+        if (((JitConCall) args0).instance() == Nat$.O.INSTANCE) {
           return args1;
         }
 
-        if (((JitConCall) ((Object) args0)).instance() == Nat$.S.INSTANCE) {
-          var var10000 = ((JitConCall) ((Object) args0)).conArgs()[0];
+        if (((JitConCall) args0).instance() == Nat$.S.INSTANCE) {
+          var var10000 = ((JitConCall) args0).conArgs()[0];
           // We directly call `invoke` rather than construct a JitFnCall,
           // since the normalizer ALWAYS unfolds a JitFnCall
-          return (Term) ((Object) Nat$.S.INSTANCE.of(new Term[0], invoke(var10000, args1)));
+          return Nat$.S.INSTANCE.of(new Term[0], invoke(var10000, args1));
         }
       }
 

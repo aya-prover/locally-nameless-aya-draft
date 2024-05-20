@@ -183,6 +183,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       Tuple.of("0", onStuck)
     );
 
+    // TODO: fix hard code Term
     buildLocalVar("Term[]", VARIABLE_RESULT, STR."new Term[\{maxBindSize}]");
     buildLocalVar("int", VARIABLE_STATE, "0");
     buildLocalVar("boolean", VARIABLE_META_STATE, "false");

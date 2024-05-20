@@ -4,6 +4,7 @@ package org.aya.cli.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,12 +32,12 @@ public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
       var iTerm = "i";
       var teleArgsTerm = "teleArgs";
       buildMethod("telescope", ImmutableSeq.of(
-        new Param("i", "int"),
-        new Param("teleArgs", "Term...")
+        new JitParam("i", "int"),
+        new JitParam("teleArgs", "Term...")
       ), "Term", () -> buildTelescope(unit, iTerm, teleArgsTerm), true);
       appendLine();
       buildMethod("result", ImmutableSeq.of(
-        new Param("teleArgs", "Term...")
+        new JitParam("teleArgs", "Term...")
       ), "Term", () -> buildResult(unit, teleArgsTerm), true);
       appendLine();
       continuation.run();
@@ -55,8 +56,16 @@ public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
    */
   protected abstract void buildTelescope(T unit, @NotNull String iTerm, @NotNull String teleArgsTerm);
 
+  protected void buildTelescope(@NotNull ImmutableSeq<Param> param, @NotNull String iTerm, @NotNull String teleArgsTerm) {
+
+  }
+
   /**
    * @see org.aya.syntax.compile.JitTele#result(Term...)
    */
   protected abstract void buildResult(T unit, @NotNull String teleArgsTerm);
+
+  public void buildSuperCall(@NotNull ImmutableSeq<String> args) {
+    appendLine(STR."super(\{args.joinToString(", ")});");
+  }
 }

@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
-  public record Param(@NotNull String name, @NotNull String type) { }
+  public record JitParam(@NotNull String name, @NotNull String type) { }
 
   public static final @NotNull String CLASS_SERIALIZEUTILS = SerializeUtils.class.getName();
 
@@ -154,7 +154,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
 
   public void buildMethod(
     @NotNull String name,
-    @NotNull ImmutableSeq<Param> params,
+    @NotNull ImmutableSeq<JitParam> params,
     @NotNull String returnType,
     @NotNull Runnable continuation,
     boolean override

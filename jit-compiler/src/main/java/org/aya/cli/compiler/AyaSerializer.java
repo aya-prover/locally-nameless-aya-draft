@@ -2,9 +2,11 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.cli.compiler;
 
+import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.compile.JitConCall;
 import org.aya.syntax.compile.JitDataCall;
 import org.aya.syntax.compile.JitFnCall;
+import org.aya.syntax.core.term.Term;
 import org.intellij.lang.annotations.Language;
 
 public interface AyaSerializer<T> {
@@ -18,6 +20,8 @@ public interface AyaSerializer<T> {
   String CLASS_JITCONCALL = JitConCall.class.getSimpleName();
   String CLASS_JITDATACALL = JitDataCall.class.getSimpleName();
   String CLASS_JITFNCALL = JitFnCall.class.getSimpleName();
+  String CLASS_IMMSEQ = ImmutableSeq.class.getName();
+  String CLASS_TERM = Term.class.getName();
 
   @Language("Java") String IMPORT_BLOCK = """
     import org.aya.syntax.compile.*;

@@ -52,10 +52,10 @@ public class NameGenerator {
       case ProjTerm p -> nameOf(p.of());
       case AppTerm a -> nameOf(a.fun());
       case PAppTerm a -> nameOf(a.fun());
-      case DimTerm _, ErrorTerm _, LamTerm _, SortTerm _, TupTerm _, LocalTerm _, MetaLitTerm _ -> null;
       case EqTerm _ -> "Eq";
       case CoeTerm _ -> "coe";
       case Compiled _ -> "C";
+      default -> null;
     };
   }
 }
