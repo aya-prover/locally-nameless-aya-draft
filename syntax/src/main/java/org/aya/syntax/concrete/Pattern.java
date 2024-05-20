@@ -35,9 +35,7 @@ public sealed interface Pattern extends AyaDocile {
     return new ConcretePrettier(options).pattern(this, true, BasePrettier.Outer.Free);
   }
 
-  record Tuple(
-    @NotNull ImmutableSeq<WithPos<Pattern>> patterns
-  ) implements Pattern {
+  record Tuple(@NotNull ImmutableSeq<WithPos<Pattern>> patterns) implements Pattern {
     public @NotNull Tuple update(@NotNull ImmutableSeq<WithPos<Pattern>> patterns) {
       return patterns.sameElements(patterns(), true) ? this : new Tuple(patterns);
     }
@@ -45,9 +43,7 @@ public sealed interface Pattern extends AyaDocile {
     @Override public @NotNull Tuple descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(patterns.map(a -> a.descent(f)));
     }
-    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) {
-      patterns.forEach(f::accept);
-    }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { patterns.forEach(f::accept); }
   }
 
   record Number(int number) implements Pattern {
@@ -76,9 +72,7 @@ public sealed interface Pattern extends AyaDocile {
     @NotNull LocalVar bind,
     @ForLSP @NotNull MutableValue<@Nullable Term> type
   ) implements Pattern {
-    public Bind(@NotNull LocalVar bind) {
-      this(bind, MutableValue.create());
-    }
+    public Bind(@NotNull LocalVar bind) { this(bind, MutableValue.create()); }
     @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { }
     @Override public @NotNull Bind descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) { return this; }
   }
@@ -103,9 +97,7 @@ public sealed interface Pattern extends AyaDocile {
     }
   }
 
-  record BinOpSeq(
-    @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> seq
-  ) implements Pattern, Salt {
+  record BinOpSeq(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> seq) implements Pattern, Salt {
     public @NotNull BinOpSeq update(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> seq) {
       return seq.sameElements(seq(), true) ? this : new BinOpSeq(seq);
     }
@@ -113,9 +105,7 @@ public sealed interface Pattern extends AyaDocile {
     @Override public @NotNull BinOpSeq descent(@NotNull PosedUnaryOperator<@NotNull Pattern> f) {
       return update(seq.map(a -> a.descent(x -> x.descent(f))));
     }
-    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) {
-      seq.forEach(x -> f.accept(x.term()));
-    }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Pattern> f) { seq.forEach(x -> f.accept(x.term())); }
   }
 
   /**

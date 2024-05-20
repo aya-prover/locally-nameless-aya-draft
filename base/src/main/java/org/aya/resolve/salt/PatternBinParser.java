@@ -7,6 +7,7 @@ import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.error.OperatorError;
 import org.aya.syntax.concrete.Pattern;
+import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.error.PatternProblem;
 import org.aya.tyck.tycker.Problematic;
@@ -37,7 +38,7 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
   }
 
   private static final Arg<WithPos<Pattern>> OP_APP = new Arg<>(new WithPos<>(SourcePos.NONE,
-    new Pattern.Bind(new LocalVar(BinOpSet.APP_ELEM.name()))), true);
+    new Pattern.Bind(new LocalVar(BinOpSet.APP_ELEM.name(), SourcePos.NONE, GenerateKind.Basic.Tyck))), true);
 
   @Override protected @NotNull Arg<WithPos<Pattern>> appOp() { return OP_APP; }
 
@@ -59,7 +60,8 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
   }
 
   @Override protected @NotNull WithPos<Pattern> createErrorExpr(@NotNull SourcePos sourcePos) {
-    return new WithPos<>(sourcePos, new Pattern.Bind(new LocalVar("a broken constructor pattern")));
+    return new WithPos<>(sourcePos, new Pattern.Bind(new LocalVar("a broken constructor pattern",
+      SourcePos.NONE, GenerateKind.Basic.Tyck)));
   }
 
   @Override protected @Nullable OpDecl underlyingOpDecl(@NotNull Arg<WithPos<Pattern>> elem) {

@@ -11,17 +11,17 @@ public interface PatCohError {
     | m => fzero
     | suc m => fsuc (Fin+1 m)
     
-    def finToNat (n : Nat) (att : Fin+1 n) : Nat
+    def finToNat (n' : Nat) (att : Fin+1 n') : Nat
     | n, fzero => zero
     | suc n, fsuc a => suc (finToNat n a)
     
     def addF {m n : Nat} (a : Fin+1 m) (b : Fin+1 n) : Fin+1 (finToNat m a + n)
-    | fzero, a => a
+    | fzero, a' => a'
     """;
 
   @Language("Aya") String testConfl = """
     open import Arith::Nat
-    overlap def addN (a b : Nat) : Nat
+    overlap def addN Nat Nat : Nat
     | zero, a => suc a
     | a, zero => a
     | suc a, b => suc (addN a b)
@@ -79,7 +79,7 @@ public interface PatCohError {
 
   @Language("Aya") String testFirstMatchDomination = """
     open import Arith::Nat
-    def addN (a b : Nat) : Nat
+    def addN Nat Nat : Nat
     | zero, a => a
     | a, zero => a
     | suc a, b => suc (addN a b)
@@ -88,7 +88,7 @@ public interface PatCohError {
 
   @Language("Aya") String testNestedMissing = """
     open import Arith::Nat
-    def add {a b : Nat} : Nat
+    def add {m n : Nat} : Nat
     | {0}, {0} => 0
     | {0}, {suc (suc a)} => 0
     | {suc a}, {0} => 0

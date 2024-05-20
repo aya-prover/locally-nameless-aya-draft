@@ -8,7 +8,6 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.xtt.DimTerm;
-import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.util.Pair;
 import org.aya.util.error.Panic;
@@ -56,6 +55,9 @@ public interface PatToTerm {
         case Pair(var lhs, Pat.Bind _) -> unary.apply(lhs);
         // It must be the case that lhs.ref == rhs.ref
         case Pair(Pat.Con lhs, Pat.Con rhs) -> new ConCall(conHead(lhs), list(lhs.args(), rhs.args()));
+        case Pair(Pat.ShapedInt lhs, Pat.Con rhs) -> apply(lhs.constructorForm(), rhs);
+        case Pair(Pat.Con lhs, Pat.ShapedInt rhs) -> apply(lhs, rhs.constructorForm());
+        case Pair(Pat.ShapedInt lhs, Pat.ShapedInt _) -> lhs.toTerm();
         case Pair(Pat.Tuple lhs, Pat.Tuple rhs) -> new TupTerm(list(lhs.elements(), rhs.elements()));
         default -> Panic.unreachable();
       };
