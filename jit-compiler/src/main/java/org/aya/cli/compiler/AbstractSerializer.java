@@ -25,24 +25,24 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return builder.toString();
   }
 
-  protected void fillIndent() {
+  public void fillIndent() {
     if (indent == 0) return;
     builder.append("  ".repeat(indent));
   }
 
-  protected void runInside(@NotNull Runnable runnable) {
+  public void runInside(@NotNull Runnable runnable) {
     indent++;
     runnable.run();
     indent--;
   }
 
-  protected void buildIf(@NotNull String condition, @NotNull Runnable onSucc) {
+  public void buildIf(@NotNull String condition, @NotNull Runnable onSucc) {
     appendLine(STR."if (\{condition}) {");
     runInside(onSucc);
     appendLine("}");
   }
 
-  protected void buildIfElse(@NotNull String condition, @NotNull Runnable onSucc, @NotNull Runnable onFailed) {
+  public void buildIfElse(@NotNull String condition, @NotNull Runnable onSucc, @NotNull Runnable onFailed) {
     appendLine(STR."if (\{condition}) {");
     runInside(onSucc);
     appendLine("} else {");
@@ -50,23 +50,23 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine("}");
   }
 
-  protected void buildGoto(@NotNull Runnable continuation) {
+  public void buildGoto(@NotNull Runnable continuation) {
     appendLine("do {");
     runInside(continuation);
     appendLine("} while (false);");
   }
 
-  protected void buildBreak() {
+  public void buildBreak() {
     appendLine("break;");
   }
 
-  protected void buildClass(@NotNull String className, @NotNull String superClass, @NotNull Runnable continuation) {
+  public void buildClass(@NotNull String className, @NotNull String superClass, @NotNull Runnable continuation) {
     appendLine(STR."class \{className} extends \{superClass} {");
     runInside(continuation);
     appendLine("}");
   }
 
-  protected void buildMethod(
+  public void buildMethod(
     @NotNull String methodName,
     @NotNull String returnType,
     @NotNull ImmutableSeq<Tuple2<String, String>> telescope,
@@ -84,7 +84,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     builder.append('\n');
   }
 
-  protected void buildSwitch(
+  public void buildSwitch(
     @NotNull String term,
     @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases
   ) {
@@ -93,7 +93,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     });
   }
 
-  protected void buildSwitch(
+  public void buildSwitch(
     @NotNull String term,
     @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases,
     @NotNull Runnable defaultCase) {
