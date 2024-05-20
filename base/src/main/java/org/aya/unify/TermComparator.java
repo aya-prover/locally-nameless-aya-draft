@@ -63,8 +63,9 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   protected abstract @Nullable Term doSolveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type);
 
   protected @Nullable Term solveMeta(@NotNull MetaCall meta, @NotNull Term rhs, @Nullable Term type) {
-    if (!solveMeta) return null;
-    return doSolveMeta(meta, whnf(rhs), type);
+    var result = !solveMeta ? null : doSolveMeta(meta, whnf(rhs), type);
+    if (result == null) fail(meta, rhs);
+    return result;
   }
 
   /// region Utilities
@@ -85,10 +86,6 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    * so don't forget to reset the {@link #failure} after first failure.
    */
   private @Nullable Term compareApprox(@NotNull Term lhs, @NotNull Term rhs) {
-    count++;
-    if (count >= 600) {
-      System.out.println();
-    }
     return switch (new Pair<>(lhs, rhs)) {
       case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
       case Pair(PrimCall lFn, PrimCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
@@ -97,7 +94,6 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       default -> null;
     };
   }
-  private static int count = 0;
 
   /**
    * Compare the arguments of two callable ONLY, this method will NOT try to normalize and then compare (while the old project does).

@@ -27,7 +27,15 @@ Error: Unable to apply the expression
        because the type of what you applied is not a Pi type, but instead:
          Nat
 
-1 error(s), 0 warning(s).
+In file $FILE:2:4 ->
+
+  1 │   open import Arith::Nat
+  2 │   def test (a : Nat) => a 1
+    │       ╰──╯
+
+Error: Unsolved meta _
+
+2 error(s), 0 warning(s).
 What are you doing?
 
 WantButNo:

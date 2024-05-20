@@ -300,6 +300,11 @@ public class PatternTycker implements Problematic, Stateful {
 
     // Hwhile : currentParam == null || patterns.isEmpty()
     // [currentParam] is the next unchecked parameter if not null (by loop invariant)
+    if (currentParam == null && patterns.isNotEmpty()) {
+      var pattern = patterns.getFirst();
+      // too many pattern
+      foundError(new PatternProblem.TooManyPattern(pattern.term()));
+    }
 
     boolean needGenPat = true;
 

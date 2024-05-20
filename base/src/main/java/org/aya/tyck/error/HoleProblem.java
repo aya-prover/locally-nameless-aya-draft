@@ -24,9 +24,7 @@ public sealed interface HoleProblem extends Problem {
   @Override default @NotNull Severity level() { return Severity.ERROR; }
   @Override default @NotNull SourcePos sourcePos() { return term().ref().pos(); }
 
-  record BadSpineError(
-    @Override @NotNull MetaCall term
-  ) implements HoleProblem {
+  record BadSpineError(@Override @NotNull MetaCall term) implements HoleProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.english("The following spine is not in pattern fragment:"),

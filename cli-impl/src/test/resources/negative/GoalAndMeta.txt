@@ -43,6 +43,16 @@ In file $FILE:5:17 ->
     │                    ╰────╯
 
 Error: Unsolved meta A
+       in `Option ?A`
+
+In file $FILE:5:17 ->
+
+  3 │   open data Option (A : Type)
+  4 │     | some A
+  5 │   def test => some 114514
+    │                    ╰────╯
+
+Error: Unsolved meta A
        in `some 114514`
 
 In file $FILE:5:17 ->
@@ -57,6 +67,6 @@ Error: Unable to solve the type of this literal:
        I'm confused about the following candidates:
          `Nat`, `Nat2`
 
-2 error(s), 0 warning(s).
+3 error(s), 0 warning(s).
 What are you doing?
 

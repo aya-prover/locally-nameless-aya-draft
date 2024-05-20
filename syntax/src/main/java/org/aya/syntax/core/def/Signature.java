@@ -44,7 +44,7 @@ public record Signature<T extends Term>(
   public @NotNull Signature<Term> descent(@NotNull UnaryOperator<Term> f) {
     return new Signature<>(
       param.map(p -> p.map(q -> q.descent(f))),
-      result.descent(f));
+      f.apply(result));
   }
 
   /**

@@ -48,4 +48,11 @@ public interface PatTyckError {
     | true, x, {y} => x
     | false, x, y => y
     """;
+
+  @Language("Aya") String testTooManyPattern2 = """
+    open import Arith::Bool
+    def ifElse {A : Type} (b : Bool) A A : A
+    | true, x, y, z => x
+    | false, x, y => y
+    """;
 }

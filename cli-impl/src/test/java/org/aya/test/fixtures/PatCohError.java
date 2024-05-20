@@ -4,6 +4,7 @@ package org.aya.test.fixtures;
 
 import org.intellij.lang.annotations.Language;
 
+@SuppressWarnings("unused")
 public interface PatCohError {
   @Language("Aya") String testUnsureMissing = """
     open import Arith::Nat
@@ -86,6 +87,16 @@ public interface PatCohError {
     | a, suc b => suc (addN a b)
     """;
 
+  @Language("Aya") String testLiteralConfluence = """
+    open import Arith::Nat
+    overlap def not-conf Nat : Nat
+    | zero => 1
+    | 0 => 0
+    | 1 => 1
+    | suc 1 => 1
+    | suc n => n
+    """;
+
   @Language("Aya") String testNestedMissing = """
     open import Arith::Nat
     def add {m n : Nat} : Nat
@@ -94,5 +105,15 @@ public interface PatCohError {
     | {suc a}, {0} => 0
     | {suc a}, {b} => 0
     | {suc a}, {suc b} => 0
+    """;
+
+  @Language("Aya") String testIApplyConfluence = """
+    open import Arith::Nat
+    open import Arith::Int
+    open import Arith::Bool
+    def test Int : Nat
+    | signed true _ => 1
+    | signed false _ => 0
+    | posneg _ => 1
     """;
 }

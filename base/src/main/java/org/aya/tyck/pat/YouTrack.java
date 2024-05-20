@@ -59,13 +59,15 @@ public record YouTrack(
     tycker.setLocalCtx(old);
   }
 
+  // TODO: this implementation is incorrect. To do it correctly, we will need to do another unification,
+  //  and I am unsure if it is worth the effort.
   private void domination(
     LocalCtx ctx, ImmutableSeq<Term> subst,
     int lhsIx, int rhsIx, Term.Matching matching,
     MutableSet<ClausesProblem.Domination> doms
   ) {
-    if (subst.allMatch(dom -> dom instanceof FreeTerm(var ref) && ctx.contains(ref)))
-      doms.add(new ClausesProblem.Domination(lhsIx + 1, rhsIx + 1, matching.sourcePos()));
+    // if (subst.allMatch(dom -> dom instanceof FreeTerm(var ref) && ctx.contains(ref)))
+    //   doms.add(new ClausesProblem.Domination(lhsIx + 1, rhsIx + 1, matching.sourcePos()));
   }
 
   public void check(
