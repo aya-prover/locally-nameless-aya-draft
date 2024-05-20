@@ -13,18 +13,31 @@ Error: Unknown constructor
 What are you doing?
 
 SelectionFailed:
-In file C:\Users\yinsenz\git-repos\new-aya-draft\cli-impl\src\test\resources\shared\src\Data\Vec.aya:5:2 ->
+In file $FILE:4:2 ->
 
-  3 │   open data Vec Nat Type
-  4 │   | 0, A => []
-  5 │   | S n, A => infixr :> A (Vec n A)
+  2 │   open import Data::Vec
+  3 │   def mapImpl {A B : Type} {n : Nat} (f : A -> B) (xs : Vec (n + n) A) : Vec (n + n) B elim xs
+  4 │   | [] => []
     │     ╰╯
 
-Error: Unknown constructor
-         S
+Error: I'm unsure if there should be a case for
+         []
+       as index unification is blocked for type
+         Vec (<n> + <n>) A
 
-Resolving interrupted due to:
-1 error(s), 0 warning(s).
+In file $FILE:5:2 ->
+
+  3 │   def mapImpl {A B : Type} {n : Nat} (f : A -> B) (xs : Vec (n + n) A) : Vec (n + n) B elim xs
+  4 │   | [] => []
+  5 │   | _ :> _ => _
+    │     ╰────╯
+
+Error: I'm unsure if there should be a case for
+         :> _ _
+       as index unification is blocked for type
+         Vec (<n> + <n>) A
+
+2 error(s), 0 warning(s).
 What are you doing?
 
 SplitOnNonData:

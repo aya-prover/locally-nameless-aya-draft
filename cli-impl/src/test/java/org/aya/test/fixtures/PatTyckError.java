@@ -18,9 +18,9 @@ public interface PatTyckError {
   @Language("Aya") String testSelectionFailed = """
     open import Arith::Nat
     open import Data::Vec
-    def mapImpl {A B : Type} {n : Nat} (f : A -> B) (xs : Vec A n) : Vec B n elim xs
-    | vnil => vnil
-    | vcons x xs => _
+    def mapImpl {A B : Type} {n : Nat} (f : A -> B) (xs : Vec (n + n) A) : Vec (n + n) B elim xs
+    | [] => []
+    | _ :> _ => _
     """;
 
   @Language("Aya") String testSplitOnNonData = """

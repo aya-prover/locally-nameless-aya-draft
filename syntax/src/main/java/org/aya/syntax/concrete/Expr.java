@@ -99,9 +99,7 @@ public sealed interface Expr extends AyaDocile {
   }
 
   record Error(@NotNull AyaDocile description) implements Expr {
-    public Error(@NotNull Doc description) {
-      this(_ -> description);
-    }
+    public Error(@NotNull Doc description) { this(_ -> description); }
 
     @Override public @NotNull Expr.Error descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) { return this; }
     @Override public void forEach(@NotNull PosedConsumer<Expr> f) { }
@@ -153,10 +151,7 @@ public sealed interface Expr extends AyaDocile {
       assert param.type() instanceof Expr.Hole;
     }
 
-    @Override public @NotNull Param param() {
-      return new Param(ref.definition(), ref, true);
-    }
-
+    @Override public @NotNull Param param() { return new Param(ref.definition(), ref, true); }
     public @NotNull Lambda update(@NotNull WithPos<Expr> body) {
       return body == body() ? this : new Lambda(ref, body);
     }
