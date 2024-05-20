@@ -43,7 +43,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   private void doSerialize(@NotNull Pat pat, @NotNull String term, @NotNull Runnable continuation) {
     switch (pat) {
-      case Pat.Absurd absurd -> buildIf("Panic.unreachable()", State.Success, continuation);
+      case Pat.Absurd _ -> buildIf("Panic.unreachable()", State.Success, continuation);
       case Pat.Bind bind -> {
         onMatchBind(term);
         continuation.run();
@@ -56,7 +56,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
           });
         });
       }
-      case Pat.Meta meta -> Panic.unreachable();
+      case Pat.Meta _ -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException("TODO");    // TODO
       case Pat.Tuple tuple -> {
         buildIf(STR."\{term} instanceof TupleTerm", State.Stuck, () -> {
@@ -66,6 +66,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     }
   }
 
+  // This is in fact a FreePatMatcher/Java
   /**
    * @apiNote {@code pats.sizeEquals(terms)}
    */
