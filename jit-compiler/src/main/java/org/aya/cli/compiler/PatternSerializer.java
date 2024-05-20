@@ -51,6 +51,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     this.onDontMatch = onDontMatch;
   }
 
+  /// region Exprize
+
   // TODO: How about another Pattern Serializer?
   private static void toSource(@NotNull StringBuilder acc, @NotNull ImmutableSeq<Pat> pats) {
     if (pats.isEmpty()) {
@@ -80,10 +82,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         acc.append(STR."new \{CLASS_PAT_BIND}(new LocalVar(\"dogfood\"), ErrorTerm.DUMMY)");
       }
       case Pat.ConLike con -> {
-        var instance = switch (con) {
-          case Pat.Con con1 -> getQualified(con1.ref());
-          case Pat.JCon jCon -> getQualified(jCon.ref());
-        };
+        var instance = getQualified(con);
 
         acc.append(STR."new \{CLASS_PAT_JCON}(\{getInstance(instance)}, ");
         toSource(acc, con.args());
@@ -101,6 +100,10 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     return builder.toString();
   }
 
+  /// endregion Exprize
+
+  /// region Serializing
+
   private void doSerialize(@NotNull Pat pat, @NotNull String term, @NotNull Runnable continuation) {
     switch (pat) {
       case Pat.Absurd _ -> buildIfElse("Panic.unreachable()", State.Stuck, continuation);
@@ -108,9 +111,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         onMatchBind(term);
         continuation.run();
       }
-      case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
-      case Pat.Con con -> {
-        var qualifiedName = getQualified(con.ref());
+      case Pat.ConLike con -> {
+        var qualifiedName = getQualified(con);
         solveMeta(pat, term, State.Mismatch, (realTerm, mCon) -> {
           buildIfInstanceElse(realTerm, CLASS_JITCONCALL, State.Stuck, mTerm -> {
             buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
@@ -180,6 +182,10 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     doSerialize(pat, term, () -> doSerialize(pats.drop(1), terms.drop(1), continuation));
   }
 
+  /// endregion Serializing
+
+  /// region Java Source Code Generate API
+
   private void buildIfInstanceElse(
     @NotNull String term,
     @NotNull String type,
@@ -206,6 +212,15 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     pat.consumeBindings((_, _) -> acc.increment());
     return acc.get();
   }
+
+  private static @NotNull String getQualified(@NotNull Pat.ConLike conLike) {
+    return switch (conLike) {
+      case Pat.Con con -> getQualified(con.ref());
+      case Pat.JCon jCon -> getQualified(jCon.ref());
+    };
+  }
+
+  /// endregion Java Source Code Generate API
 
   @Override public void serialize(@NotNull ImmutableSeq<Matching> unit) {
     var bindSize = unit.mapToInt(ImmutableIntSeq.factory(),
