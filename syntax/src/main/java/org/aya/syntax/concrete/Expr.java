@@ -89,7 +89,7 @@ public sealed interface Expr extends AyaDocile {
     }
 
     public @NotNull Hole update(@Nullable WithPos<Expr> filling) {
-      return filling == filling() ? this : new Hole(explicit, filling);
+      return filling == filling() ? this : new Hole(explicit, filling, accessibleLocal);
     }
 
     @Override public @NotNull Hole descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {

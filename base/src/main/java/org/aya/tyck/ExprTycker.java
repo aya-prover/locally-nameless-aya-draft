@@ -132,7 +132,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     return switch (expr.data()) {
       case Expr.Hole hole -> {
         var meta = freshMeta(Constants.randomName(hole), expr.sourcePos(), MetaVar.Misc.IsType);
-        if (hole.explicit()) reporter.report(new Goal(state, meta, hole.accessibleLocal()));
+        if (hole.explicit()) fail(new Goal(state, meta, hole.accessibleLocal()));
         yield meta;
       }
       case Expr.Sort sort -> new SortTerm(sort.kind(), sort.lift());

@@ -195,7 +195,7 @@ public record ExprResolver(
       //           letOpen.sourcePos(), letOpen.useHide());
       //   yield letOpen.update(enter(context).apply(letOpen.body()));
       // }
-      default -> expr.descent(this);
+      case Expr newExpr -> newExpr.descent(this);
     };
   }
 
