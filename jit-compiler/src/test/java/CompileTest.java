@@ -24,11 +24,11 @@ public class CompileTest {
     );
 
     var builder = new StringBuilder();
-    var ser = new PatternSerializer(builder, 0, "args", () -> {
+    var ser = new PatternSerializer(builder, 0, new NameGenerator(), "args", () -> {
       builder.append("System.out.println(\"Hello, world!\");\n");
     }, () -> {
       builder.append("System.out.println(\"Unhello, world!\");\n");
-    }, new NameGenerator());
+    });
 
     ser.serialize(ImmutableSeq.of(
       new PatternSerializer.Matching(cls0, () -> {

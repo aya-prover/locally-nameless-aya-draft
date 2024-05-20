@@ -4,20 +4,27 @@ package org.aya.cli.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple2;
+import org.aya.generic.NameGenerator;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.function.Consumer;
 
 public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   protected final @NotNull StringBuilder builder;
   protected int indent;
+  protected final @NotNull NameGenerator nameGen;
 
-  protected AbstractSerializer(@NotNull StringBuilder builder, int indent) {
+  protected AbstractSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen) {
     this.builder = builder;
     this.indent = indent;
+    this.nameGen = nameGen;
   }
 
   protected AbstractSerializer(@NotNull AbstractSerializer<?> other) {
-    this(other.builder, other.indent);
+    this(other.builder, other.indent, other.nameGen);
   }
 
   @Override
@@ -36,18 +43,48 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     indent--;
   }
 
-  public void buildIf(@NotNull String condition, @NotNull Runnable onSucc) {
-    appendLine(STR."if (\{condition}) {");
-    runInside(onSucc);
-    appendLine("}");
+  public void buildLocalVar(@NotNull String type, @NotNull String name, @Nullable String initial) {
+    appendLine(STR."\{type} \{name};");
+    if (initial != null) {
+      buildUpdate(name, initial);
+    }
   }
 
-  public void buildIfElse(@NotNull String condition, @NotNull Runnable onSucc, @NotNull Runnable onFailed) {
+  public void buildUpdate(@NotNull String lhs, @NotNull String rhs) {
+    appendLine(STR."\{lhs} = \{rhs};");
+  }
+
+  public void buildIf(@NotNull String condition, @NotNull Runnable onSucc) {
+    buildIfElse(condition, onSucc, null);
+  }
+
+  public void buildIfElse(@NotNull String condition, @NotNull Runnable onSucc, @Nullable Runnable onFailed) {
     appendLine(STR."if (\{condition}) {");
     runInside(onSucc);
-    appendLine("} else {");
-    runInside(onFailed);
-    appendLine("}");
+    if (onFailed == null) {
+      appendLine("}");
+    } else {
+      appendLine("} else {");
+      runInside(onFailed);
+      appendLine("}");
+    }
+  }
+
+  /**
+   * Generate java code that check whether {@param term} is an instance of {@param type}
+   *
+   * @param onSucc the argument is a local variable that has type {@param type} and identical equal to {@param term};
+   */
+  public void buildIfInstanceElse(
+    @NotNull String term,
+    @NotNull String type,
+    @NotNull Consumer<String> onSucc,
+    @Nullable Runnable onFailed
+  ) {
+    String name = nameGen.nextName(null);
+    buildIfElse(STR."\{term} instanceof \{type} \{name}",
+      () -> onSucc.accept(name),
+      onFailed);
   }
 
   public void buildGoto(@NotNull Runnable continuation) {
@@ -76,6 +113,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."public \{returnType} \{methodName} (\{teleStr}) {");
     runInside(continuation);
     appendLine("}");
+  }
+
+  public @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {
+    return ImmutableSeq.fill(size, idx -> STR."\{term}[\{idx}]");
   }
 
   public void appendLine(@NotNull String string) {
@@ -111,7 +152,15 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."}");
   }
 
-  protected @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
-    return ref.module.module().joinToString(".");
+  protected static @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
+    return Objects.requireNonNull(ref.module).module().joinToString(".");
+  }
+
+  protected static @NotNull String getInstance(@NotNull String defName) {
+    return STR."\{defName}.\{STATIC_FIELD_INSTANCE}";
+  }
+
+  protected static @NotNull String getCallInstance(@NotNull String term) {
+    return STR."\{term}.\{FIELD_INSTANCE}()";
   }
 }
