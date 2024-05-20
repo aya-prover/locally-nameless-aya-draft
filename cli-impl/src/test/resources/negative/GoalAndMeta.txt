@@ -21,7 +21,7 @@ Goal: Goal of type
         Nat
         (WHNF: Nat)
       Context:
-        a (not in scope)
+        a
 
 In file $FILE:2:28 ->
 
