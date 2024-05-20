@@ -69,7 +69,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         continuation.run();
       }
       case Pat.Con con -> {
-        var qualifiedName = getQualified(con.ef());
+        var qualifiedName = getQualified(con.ref());
         var mTerm = solveMeta(pat, term, continuation);
         buildIfElse(STR."\{mTerm} instanceof \{CLASS_JITCONCALL}", State.Stuck, () -> {
           buildIfElse(STR."((\{CLASS_JITCONCALL}) \{mTerm}).\{FIELD_INSTANCE}() == \{qualifiedName}.\{STATIC_FIELD_INSTANCE}",
