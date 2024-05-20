@@ -5,6 +5,7 @@ package org.aya.syntax.core.term;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
+import org.aya.syntax.core.term.marker.TyckInternal;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;

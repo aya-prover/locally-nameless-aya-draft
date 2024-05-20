@@ -6,6 +6,8 @@ import kala.function.IndexedFunction;
 import org.aya.generic.AyaDocile;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.core.term.marker.StableWHNF;
+import org.aya.syntax.core.term.marker.TyckInternal;
 import org.jetbrains.annotations.NotNull;
 
 /**

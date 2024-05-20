@@ -8,7 +8,7 @@ import org.aya.generic.Shaped;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
-import org.aya.syntax.core.term.StableWHNF;
+import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;

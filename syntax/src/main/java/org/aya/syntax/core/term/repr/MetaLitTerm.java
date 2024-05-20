@@ -9,7 +9,7 @@ import kala.tuple.Tuple2;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
-import org.aya.syntax.core.term.TyckInternal;
+import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.util.error.SourcePos;

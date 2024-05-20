@@ -7,6 +7,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.core.term.marker.BetaRedex;
 import org.jetbrains.annotations.NotNull;
 
 public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements BetaRedex {

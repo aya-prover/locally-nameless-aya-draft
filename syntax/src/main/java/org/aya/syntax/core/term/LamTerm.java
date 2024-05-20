@@ -4,9 +4,10 @@ package org.aya.syntax.core.term;
 
 import kala.function.IndexedFunction;
 import kala.tuple.primitive.IntObjTuple2;
+import org.aya.syntax.core.term.marker.UnaryClosure;
 import org.jetbrains.annotations.NotNull;
 
-public record LamTerm(Term body) implements StableWHNF {
+public record LamTerm(Term body) implements UnaryClosure {
   public @NotNull LamTerm update(@NotNull Term body) {
     return body == this.body ? this : new LamTerm(body);
   }
@@ -38,4 +39,6 @@ public record LamTerm(Term body) implements StableWHNF {
 
     return IntObjTuple2.of(params, it);
   }
+
+  @Override public Term apply(Term term) { return body.instantiate(term); }
 }

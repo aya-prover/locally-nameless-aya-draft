@@ -26,4 +26,5 @@ module aya.syntax {
   exports org.aya.syntax.literate;
   exports org.aya.syntax.ref;
   exports org.aya.syntax;
+  exports org.aya.syntax.core.term.marker;
 }

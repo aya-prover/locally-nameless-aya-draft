@@ -110,16 +110,13 @@ public class TyckTest {
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
     var stmts = SyntaxTestUtil.parse(code);
     var moduleLoader = SyntaxTestUtil.moduleLoader();
-    var resolveInfo = moduleLoader.resolve(stmts);
-    var decls = stmts.filterIsInstance(Decl.class);
-    decls.forEach(decl -> System.out.println(STR."Scanned \{decl.ref().name()}"));
     var callback = new ModuleCallback<RuntimeException>() {
       ImmutableSeq<Def> ok;
-      @Override public void onModuleTycked(@NotNull ResolveInfo moduleResolve, @NotNull ImmutableSeq<Def> defs) {
-        ok = defs;
-      }
+      @Override public void onModuleTycked(@NotNull ResolveInfo x, @NotNull ImmutableSeq<Def> defs) { ok = defs; }
     };
-    moduleLoader.tyckModule(resolveInfo, callback);
+    var decls = stmts.filterIsInstance(Decl.class);
+    decls.forEach(decl -> System.out.println(STR."Scanned \{decl.ref().name()}"));
+    moduleLoader.tyckModule(moduleLoader.resolve(stmts), callback);
     return callback.ok;
   }
 }

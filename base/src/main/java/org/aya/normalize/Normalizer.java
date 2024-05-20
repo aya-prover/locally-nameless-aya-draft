@@ -16,6 +16,8 @@ import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.marker.BetaRedex;
+import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;

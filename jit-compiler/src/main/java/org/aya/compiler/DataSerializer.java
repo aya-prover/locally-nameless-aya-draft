@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.cli.compiler;
+package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
@@ -54,10 +54,12 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
       jumpTable.append(Tuple.of(
         Integer.toString(idx), () -> {
           var serializer = new TermSerializer(this.builder, this.indent, this.nameGen, fromArray(teleArgsTerm, idx));
-
+          buildReturn(serializer.serialize(tele.get(idx)).result());
         }
       ));
     });
+
+    buildSwitch(iTerm, jumpTable.toImmutableSeq());
   }
 
   @Override

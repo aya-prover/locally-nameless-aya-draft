@@ -1,12 +1,13 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.cli.compiler;
+package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.compile.JitConCall;
 import org.aya.syntax.compile.JitDataCall;
 import org.aya.syntax.compile.JitFnCall;
 import org.aya.syntax.core.term.Term;
+import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
 
 public interface AyaSerializer<T> {
@@ -22,6 +23,7 @@ public interface AyaSerializer<T> {
   String CLASS_JITFNCALL = JitFnCall.class.getSimpleName();
   String CLASS_IMMSEQ = ImmutableSeq.class.getName();
   String CLASS_TERM = Term.class.getName();
+  String CLASS_PANIC = Panic.class.getName();
 
   @Language("Java") String IMPORT_BLOCK = """
     import org.aya.syntax.compile.*;

@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.cli.compiler;
+package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
@@ -10,12 +10,11 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
-
-import static org.aya.cli.compiler.AyaRuntimeException.onRuntime;
 
 /**
  * Build the "constructor form" of {@link Term}, but in Java.
@@ -80,7 +79,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
         ));
       }
       case LocalTerm(var idx) -> {
-        var subst = onRuntime(() -> instantiates.get(instantiates.size() - idx - 1));
+        var subst = AyaRuntimeException.onRuntime(() -> instantiates.get(instantiates.size() - idx - 1));
         builder.append(subst);
       }
       // NbE!!!!
@@ -89,7 +88,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
           doSerialize(level + 1, lamTerm.body());
         });
       }
-      case JitLambda jLambda -> buildNew(CLASS_LAMTERM, level,
+      case JitLamTerm jLambda -> buildNew(CLASS_LAMTERM, level,
         ImmutableSeq.of(jLambda.toLam().body()));
       case DataCall(var ref, var ulift, var args) -> {
         buildNew(CLASS_JITDATACALL, () -> {

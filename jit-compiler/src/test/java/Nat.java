@@ -3,7 +3,7 @@
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Result;
-import org.aya.cli.compiler.util.SerializeUtils;
+import org.aya.compiler.util.SerializeUtils;
 import org.aya.normalize.PatMatcher;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitConCall;

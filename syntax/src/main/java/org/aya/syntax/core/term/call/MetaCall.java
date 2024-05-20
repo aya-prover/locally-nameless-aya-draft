@@ -5,6 +5,7 @@ package org.aya.syntax.core.term.call;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.ref.MetaVar;
 import org.jetbrains.annotations.NotNull;
 

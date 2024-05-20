@@ -4,8 +4,8 @@ package org.aya.syntax.core.term.xtt;
 
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.AppTerm;
-import org.aya.syntax.core.term.Formation;
-import org.aya.syntax.core.term.StableWHNF;
+import org.aya.syntax.core.term.marker.Formation;
+import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,10 +1,10 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.cli.compiler;
+package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple2;
-import org.aya.cli.compiler.util.SerializeUtils;
+import org.aya.compiler.util.SerializeUtils;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.ref.DefVar;
@@ -101,6 +101,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine("break;");
   }
 
+  public void buildReturn(@NotNull String retWith) {
+    appendLine(STR."return \{retWith};");
+  }
+
   public void buildClass(@NotNull String className, @NotNull String superClass, @NotNull Runnable continuation) {
     appendLine(STR."class \{className} extends \{superClass} {");
     runInside(continuation);
@@ -130,7 +134,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases
   ) {
     buildSwitch(term, cases, () -> {
-      appendLine("return Panic.unreachable();");
+      appendLine(STR."throw new \{CLASS_PANIC}();");
     });
   }
 

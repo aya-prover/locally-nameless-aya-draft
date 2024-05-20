@@ -3,7 +3,7 @@
 package org.aya.syntax.core.term.xtt;
 
 import kala.function.IndexedFunction;
-import org.aya.syntax.core.term.BetaRedex;
+import org.aya.syntax.core.term.marker.BetaRedex;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
