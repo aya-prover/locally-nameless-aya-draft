@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 public final class Unifier extends TermComparator {
   private final boolean allowDelay;
+  public boolean allowVague = false;
   public Unifier(
     @NotNull TyckState state, @NotNull LocalCtx ctx,
     @NotNull Reporter reporter, @NotNull SourcePos pos, @NotNull Ordering cmp,
@@ -59,7 +60,7 @@ public final class Unifier extends TermComparator {
 
     // In this case, the solution may not be unique (see #608),
     // so we may delay its resolution to the end of the tycking when we disallow delayed unification.
-    if (overlap.anyMatch(var -> FindUsage.free(rhs, var) > 0)) {
+    if (!allowVague && overlap.anyMatch(var -> FindUsage.free(rhs, var) > 0)) {
       if (allowDelay) {
         state.addEqn(createEqn(meta, rhs));
         return returnType;

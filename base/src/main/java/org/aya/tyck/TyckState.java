@@ -41,7 +41,10 @@ public record TyckState(
   public void solve(MetaVar meta, Term candidate) { solutions.put(meta, candidate); }
 
   private void solveEqn(@NotNull Reporter reporter, @NotNull Eqn eqn, boolean allowDelay) {
-    new Unifier(this, eqn.localCtx, reporter, eqn.pos, eqn.cmp, allowDelay).checkEqn(eqn);
+    var unifier = new Unifier(this, eqn.localCtx, reporter, eqn.pos, eqn.cmp, allowDelay);
+    // We're at the end of the type checking, let's solve something that we didn't want to solve before
+    if (!allowDelay) unifier.allowVague = true;
+    unifier.checkEqn(eqn);
   }
 
   public void solveMetas(@NotNull Reporter reporter) {
