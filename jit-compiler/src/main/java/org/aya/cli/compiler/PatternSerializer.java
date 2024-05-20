@@ -9,6 +9,7 @@ import kala.collection.mutable.MutableList;
 import kala.tuple.Tuple;
 import kala.value.primitive.MutableIntValue;
 import org.aya.generic.NameGenerator;
+import org.aya.normalize.PatMatcher.State;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -20,11 +21,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   private static final @NotNull String VARIABLE_RESULT = "result";
   private static final @NotNull String VARIABLE_STATE = "matchState";
-
-  enum State {
-    Stuck,
-    DontMatch
-  }
 
   private final @NotNull String argName;
   private final @NotNull Runnable onStuck;
@@ -73,7 +69,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         term = solveMeta(pat, term, continuation);
         buildIfInstanceElse(term, CLASS_JITCONCALL, State.Stuck, mTerm -> {
           buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
-            State.DontMatch, () -> doSerialize(con.args().view(),
+            State.Mismatch, () -> doSerialize(con.args().view(),
               fromArray(STR."\{mTerm}.conArgs()",
                 con.args().size()).view(),
               continuation));
@@ -126,14 +122,14 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   private void buildIfInstanceElse(
     @NotNull String term,
     @NotNull String type,
-    @NotNull PatternSerializer.State state,
+    @NotNull State state,
     @NotNull Consumer<String> continuation
   ) {
     buildIfInstanceElse(term, type, continuation, () -> updateState(-state.ordinal()));
   }
 
 
-  private void buildIfElse(@NotNull String condition, @NotNull PatternSerializer.State state, @NotNull Runnable continuation) {
+  private void buildIfElse(@NotNull String condition, @NotNull State state, @NotNull Runnable continuation) {
     buildIfElse(condition, continuation, () -> updateState(-state.ordinal()));
   }
 

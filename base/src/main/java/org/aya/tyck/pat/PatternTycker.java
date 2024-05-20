@@ -14,7 +14,6 @@ import org.aya.normalize.PatMatcher;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.repr.AyaShape;
@@ -443,7 +442,7 @@ public class PatternTycker implements Problematic, Stateful {
       // For absurd pattern, we look at the next constructor
       if (name == null) {
         // Is blocked
-        if (matchy.getErr()) {
+        if (matchy.getErr() == PatMatcher.State.Stuck) {
           foundError(new PatternProblem.BlockedEval(pattern, dataCall));
           return null;
         }
@@ -464,7 +463,7 @@ public class PatternTycker implements Problematic, Stateful {
   /**
    * Check whether {@param con} is available under {@param type}
    */
-  public static @NotNull Result<ImmutableSeq<Term>, Boolean> checkAvail(
+  public static @NotNull Result<ImmutableSeq<Term>, PatMatcher.State> checkAvail(
     @NotNull DataCall type, @NotNull ConDef con, @NotNull TyckState state
   ) {
     if (con.pats.isNotEmpty()) {

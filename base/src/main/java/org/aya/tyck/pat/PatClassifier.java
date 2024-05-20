@@ -9,6 +9,7 @@ import kala.collection.immutable.primitive.ImmutableIntSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
+import org.aya.normalize.PatMatcher;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.pat.Pat;
@@ -176,7 +177,7 @@ public record PatClassifier(
       // If not, check the reason why: it may fail negatively or positively
       case Result.Err(var e) -> {
         // Index unification fails negatively
-        if (e) {
+        if (e == PatMatcher.State.Stuck) {
           // If clauses is empty, we continue splitting to see
           // if we can ensure that the other cases are impossible, it would be fine.
           if (clauses.isNotEmpty() &&

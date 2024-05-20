@@ -23,10 +23,16 @@ import java.util.function.UnaryOperator;
  * @param inferMeta whether infer the PatMetaTerm
  */
 public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
+  public enum State {
+    // like trying to split a non-constructor (fail negatively)
+    Stuck,
+    // like trying to match zero with suc (fail positively)
+    Mismatch
+  }
   public static class Failure extends Throwable {
-    public final boolean reason;
+    public final State reason;
 
-    private Failure(boolean reason) {
+    private Failure(State reason) {
       super(null, null, false, false);
       this.reason = reason;
     }
@@ -41,27 +47,27 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
     return switch (pat) {
       // We stuck on absurd patterns, as if this is reached, the term must have an empty type,
       // which we should be expecting to refute, not to compute on it.
-      case Pat.Absurd _ -> throw new Failure(true);
+      case Pat.Absurd _ -> throw new Failure(State.Stuck);
       case Pat.Bind _ -> ImmutableSeq.of(term);
       case Pat.Con con -> switch (pre.apply(term)) {
         case ConCallLike kon -> {
-          if (con.ref() != kon.ref()) throw new Failure(false);
+          if (con.ref() != kon.ref()) throw new Failure(State.Mismatch);
           yield matchMany(con.args(), kon.conArgs());
           // ^ arguments for data should not be matched
         }
         case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
-        default -> throw new Failure(true);
+        default -> throw new Failure(State.Stuck);
       };
       case Pat.Tuple tuple -> switch (pre.apply(term)) {
         case TupTerm tup -> matchMany(tuple.elements(), tup.items());
         case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
-        default -> throw new Failure(true);
+        default -> throw new Failure(State.Stuck);
       };
       // You can't match with a tycking pattern!
       case Pat.Meta _ -> throw new Panic("Illegal pattern: Pat.Meta");
       case Pat.ShapedInt lit -> switch (pre.apply(term)) {
         case IntegerTerm litTerm -> {
-          if (!lit.compareUntyped(litTerm)) throw new Failure(false);
+          if (!lit.compareUntyped(litTerm)) throw new Failure(State.Mismatch);
           yield ImmutableSeq.empty();
         }
         case ConCall con -> match(lit.constructorForm(), con);
@@ -73,14 +79,13 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
   }
 
   /**
-   * @return a substitution of corresponding bindings of {@param pats} if success,
-   * true if stuck (like trying to split a non-constructor),
-   * false if it does not match (like trying to match zero with suc).
+   * @return a substitution of corresponding bindings of {@param pats} if success.
    * @apiNote The binding order is the same as {@link Pat#consumeBindings(java.util.function.BiConsumer)}
+   * @see State
    */
-  public @NotNull Result<ImmutableSeq<Term>, Boolean> apply(
-      @NotNull ImmutableSeq<Pat> pats,
-      @NotNull ImmutableSeq<Term> terms
+  public @NotNull Result<ImmutableSeq<Term>, State> apply(
+    @NotNull ImmutableSeq<Pat> pats,
+    @NotNull ImmutableSeq<Term> terms
   ) {
     try {
       return Result.ok(matchMany(pats, terms));
@@ -89,9 +94,9 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
     }
   }
 
-  public @NotNull Result<Term, Boolean> apply(
-      @NotNull Term.Matching matching,
-      @NotNull ImmutableSeq<Term> terms
+  public @NotNull Result<Term, State> apply(
+    @NotNull Term.Matching matching,
+    @NotNull ImmutableSeq<Term> terms
   ) {
     try {
       return Result.ok(matching.body().instantiateTele(matchMany(matching.patterns(), terms).view()));
@@ -104,8 +109,8 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
    * @see #match(Pat, Term)
    */
   private @NotNull ImmutableSeq<Term> matchMany(
-      @NotNull ImmutableSeq<Pat> pats,
-      @NotNull ImmutableSeq<Term> terms
+    @NotNull ImmutableSeq<Pat> pats,
+    @NotNull ImmutableSeq<Term> terms
   ) throws Failure {
     assert pats.sizeEquals(terms) : "List size mismatch 😱";
 
@@ -118,7 +123,7 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
     var maybeMeta = realSolution(term);
     if (maybeMeta instanceof MetaPatTerm meta) {
       if (inferMeta) return doSolveMeta(pat, meta.meta());
-      else throw new Failure(true);
+      else throw new Failure(State.Stuck);
     } else {
       return match(pat, maybeMeta);
     }

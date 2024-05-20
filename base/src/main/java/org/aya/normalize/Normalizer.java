@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.ImmutableSet;
 import kala.control.Either;
 import kala.control.Option;
+import kala.control.Result;
 import org.aya.generic.Modifier;
 import org.aya.syntax.compile.JitFnCall;
 import org.aya.syntax.core.def.ConDef;
@@ -26,6 +27,8 @@ import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
+
+import static org.aya.normalize.PatMatcher.State.Stuck;
 
 /**
  * Unlike in pre-v0.30 Aya, we use only one normalizer, only doing head reduction,
@@ -107,10 +110,14 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
   ) {
     for (var matchy : clauses) {
       var matcher = new PatMatcher(false, this);
-      var subst = matcher.apply(matchy.patterns(), args);
-      if (subst.isOk()) {
-        return Option.some(matchy.body().elevate(ulift).instantiateTele(subst.get().view()));
-      } else if (!orderIndependent && subst.getErr()) return Option.none();
+      switch (matcher.apply(matchy.patterns(), args)) {
+        case Result.Err(var st) -> {
+          if (!orderIndependent && st == Stuck) return Option.none();
+        }
+        case Result.Ok(var subst) -> {
+          return Option.some(matchy.body().elevate(ulift).instantiateTele(subst.view()));
+        }
+      }
     }
     return Option.none();
   }
