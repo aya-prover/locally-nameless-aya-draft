@@ -17,21 +17,21 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     @NotNull StringBuilder builder,
     int indent,
     @NotNull NameGenerator nameGen
-  ) {
-    super(builder, indent, nameGen, JitData.class.getName());
-  }
+  ) { super(builder, indent, nameGen, JitData.class.getName()); }
 
-  @Override
-  public AyaSerializer<DataDef> serialize(DataDef unit) {
+  @Override public AyaSerializer<DataDef> serialize(DataDef unit) {
+    buildFramework(unit, () -> {
+
+    });
+
     return this;
   }
 
-  @Override
-  protected void buildConstructor(DataDef unit) {
+  @Override protected void buildConstructor(DataDef unit) {
     var tele = unit.telescope();
     var size = tele.size();
     var licit = tele.view().map(Param::explicit).map(Object::toString);
-    var names = tele.view().map(Param::name);
+    var names = tele.view().map(Param::name).map(x -> STR."\"\{x}\"");
 
     buildSuperCall(ImmutableSeq.of(
       Integer.toString(size),
@@ -41,20 +41,16 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     ));
   }
 
-  @Override
-  protected String getClassName(DataDef unit) {
-    return unit.ref.name();
-  }
+  @Override protected String getClassName(DataDef unit) { return unit.ref.name(); }
 
-  @Override
-  protected void buildTelescope(DataDef unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
+  @Override protected void buildTelescope(DataDef unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
     var tele = unit.telescope;
     var jumpTable = MutableList.<Tuple2<String, Runnable>>create();
     tele.forEachIndexed((idx, p) -> {
       jumpTable.append(Tuple.of(
         Integer.toString(idx), () -> {
-          var serializer = new TermSerializer(this.builder, this.indent, this.nameGen, fromArray(teleArgsTerm, idx));
-          buildReturn(serializer.serialize(tele.get(idx)).result());
+          var serializer = new TermSerializer(new StringBuilder(), 0, this.nameGen, fromArray(teleArgsTerm, idx));
+          buildReturn(serializer.serialize(tele.get(idx).type()).result());
         }
       ));
     });
@@ -62,13 +58,10 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     buildSwitch(iTerm, jumpTable.toImmutableSeq());
   }
 
-  @Override
-  protected void buildResult(DataDef unit, @NotNull String teleArgsTerm) {
-
+  @Override protected void buildResult(DataDef unit, @NotNull String teleArgsTerm) {
   }
 
   private void buildConstructors(DataDef unit) {
-
   }
 
   public @NotNull String arrayFrom(@NotNull String type, @NotNull ImmutableSeq<String> elements) {

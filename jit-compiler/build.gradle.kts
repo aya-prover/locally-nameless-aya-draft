@@ -6,4 +6,5 @@ dependencies {
   implementation("com.javax0.sourcebuddy:SourceBuddy:2.5.0")
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)
+  testImplementation(project(":producer"))
 }

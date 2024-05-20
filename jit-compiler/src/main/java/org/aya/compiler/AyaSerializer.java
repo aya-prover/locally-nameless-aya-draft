@@ -36,6 +36,5 @@ public interface AyaSerializer<T> {
    * the source code can be a class declaration or a expression, depends on the type of unit.
    */
   AyaSerializer<T> serialize(T unit);
-
   String result();
 }

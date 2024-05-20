@@ -5,6 +5,7 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.generic.NameGenerator;
+import org.aya.generic.SortKind;
 import org.aya.syntax.compile.*;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
@@ -23,6 +24,8 @@ public class TermSerializer extends AbstractSerializer<Term> {
   public static final String CLASS_LAMTERM = LamTerm.class.getName();
   public static final String CLASS_APPTERM = AppTerm.class.getName();
   public static final String CLASS_DATACALL = DataCall.class.getName();
+  public static final String CLASS_SORTTERM = SortTerm.class.getName();
+  public static final String CLASS_SORTKIND = SortKind.class.getName();
 
   // telescope order, it can grow, i.e. lambda
   private final @NotNull MutableList<String> instantiates;
@@ -94,16 +97,14 @@ public class TermSerializer extends AbstractSerializer<Term> {
         buildNew(CLASS_JITDATACALL, () -> {
           builder.append(getInstance(getQualified(ref))); sep();
           builder.append(ulift); sep();
-          // since JitDataCall supper var args
-          doSerialize("", "", level, args);
+          buildArray(CLASS_TERM, level, ImmutableSeq.from(args));
         });
       }
       case JitDataCall(var ref, var ulift, var args) -> {
         buildNew(CLASS_JITDATACALL, () -> {
           builder.append(getInstance(getQualified(ref))); sep();
           builder.append(ulift); sep();
-          // since JitDataCall supper var args
-          doSerialize("", "", level, ImmutableSeq.from(args));
+          buildArray(CLASS_TERM, level, ImmutableSeq.from(args));
         });
       }
       case ConCall(var head, var args) -> {
@@ -125,13 +126,19 @@ public class TermSerializer extends AbstractSerializer<Term> {
         sep();
         builder.append(ulift);
         sep();
-        doSerialize("", "", level, args);
+        buildArray(CLASS_TERM, level, ImmutableSeq.from(args));
       });
       case JitFnCall(var ref, var ulift, var args) -> buildNew(CLASS_JITFNCALL, () -> {
         builder.append(getInstance(getQualified(ref))); sep();
         builder.append(ulift); sep();
-        doSerialize("", "", level, ImmutableSeq.from(args));
+        buildArray(CLASS_TERM, level, ImmutableSeq.from(args));
       });
+      case SortTerm(var kind, var ulift) -> {
+        buildNew(CLASS_SORTTERM, () -> {
+          builder.append(STR."\{CLASS_SORTKIND}.\{kind.name()}"); sep();
+          builder.append(ulift);
+        });
+      }
       case CoeTerm coeTerm -> { }
       case ProjTerm projTerm -> { }
       case PAppTerm pAppTerm -> { }
