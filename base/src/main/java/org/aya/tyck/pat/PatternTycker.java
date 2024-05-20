@@ -432,21 +432,26 @@ public class PatternTycker implements Problematic, Stateful {
       // We are checking an absurd pattern, but the data is not yet fully checked
       throw TyckOrderError.notYetTycked(dataRef);
     }
+    assert core != null;
 
+    // If name != null, only one iteration of this loop is not skipped
     for (var con : core.body) {
       if (name != null && con.ref() != name) continue;
-      var matchy = checkAvail(dataCall, con, exprTycker.state);
-      if (matchy.isOk()) {
-        return new Selection(dataCall, matchy.get(), dataCall.conHead(con.ref()));
-      }
-      // For absurd pattern, we look at the next constructor
-      if (name == null) {
-        // Is blocked
-        if (matchy.getErr() == PatMatcher.State.Stuck) {
-          foundError(new PatternProblem.BlockedEval(pattern, dataCall));
-          return null;
+      switch (checkAvail(dataCall, con, exprTycker.state)) {
+        case Result.Ok(var subst) -> {
+          return new Selection(dataCall, subst, dataCall.conHead(con.ref()));
         }
-        continue;
+        case Result.Err(var st) -> {
+          // For absurd pattern, we look at the next constructor
+          if (name == null) {
+            // Is blocked
+            if (st == PatMatcher.State.Stuck) {
+              foundError(new PatternProblem.BlockedEval(pattern, dataCall));
+              return null;
+            }
+            continue;
+          }
+        }
       }
       // Since we cannot have two constructors of the same name,
       // if the name-matching constructor mismatches the type,
@@ -455,7 +460,6 @@ public class PatternTycker implements Problematic, Stateful {
       return null;
     }
     // Here, name != null, and is not in the list of checked body
-    assert core != null;
     if (name != null) foundError(new PatternProblem.UnknownCon(pattern));
     return null;
   }

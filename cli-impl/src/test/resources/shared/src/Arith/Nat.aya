@@ -1,7 +1,7 @@
-open data Nat | O | S Nat
+open data Nat | zero | suc Nat
 
 overlap def infix + Nat Nat : Nat
 | 0, b => b
 | a, 0 => a
-| S a, b => S (a + b)
-| a, S b => S (a + b)
+| suc a, b => suc (a + b)
+| a, suc b => suc (a + b)

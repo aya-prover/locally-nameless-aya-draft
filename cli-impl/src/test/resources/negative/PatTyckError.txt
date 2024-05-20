@@ -1,0 +1,154 @@
+UnknownCon:
+In file $FILE:5:2 ->
+
+  3 │   
+  4 │   def test Test1 : Test1
+  5 │   | test2 => test1
+    │     ╰───╯
+
+Error: Unknown constructor
+         test2
+
+1 error(s), 0 warning(s).
+What are you doing?
+
+SelectionFailed:
+In file C:\Users\yinsenz\git-repos\new-aya-draft\cli-impl\src\test\resources\shared\src\Data\Vec.aya:5:2 ->
+
+  3 │   open data Vec Nat Type
+  4 │   | 0, A => []
+  5 │   | S n, A => infixr :> A (Vec n A)
+    │     ╰╯
+
+Error: Unknown constructor
+         S
+
+Resolving interrupted due to:
+1 error(s), 0 warning(s).
+What are you doing?
+
+SplitOnNonData:
+In file $FILE:3:3 ->
+
+  1 │   open data Unit | unit
+  2 │   def test (a : Type) : Type
+  3 │    | unit y => a
+    │      ╰────╯
+
+Error: Cannot split on a non-inductive type
+         Type 0
+       with a constructor pattern
+         unit y
+
+1 error(s), 0 warning(s).
+What are you doing?
+
+BadLiteral:
+In file $FILE:3:2 ->
+
+  1 │   open data Test | t
+  2 │   def not-conf Test : Test
+  3 │   | 1 => t
+    │     ╰╯
+
+Error: The literal
+         1
+       cannot be encoded as a term of type:
+         Test
+
+1 error(s), 0 warning(s).
+What are you doing?
+
+NotEnoughPattern:
+In file $FILE:3:8 ->
+
+  1 │   open import Arith::Bool
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x => x
+    │           ╰╯
+
+Warning: The name `x` shadows a previous local definition from outer scope
+
+In file $FILE:4:9 ->
+
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x => x
+  4 │   | false, x, y => y
+    │            ╰╯
+
+Warning: The name `x` shadows a previous local definition from outer scope
+
+In file $FILE:4:12 ->
+
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x => x
+  4 │   | false, x, y => y
+    │               ╰╯
+
+Warning: The name `y` shadows a previous local definition from outer scope
+
+In file $FILE:3:8 ->
+
+  1 │   open import Arith::Bool
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x => x
+    │           ╰╯
+
+Error: There is no pattern for the parameter
+         ^2
+
+1 error(s), 3 warning(s).
+What are you doing?
+
+TooManyPattern:
+In file $FILE:3:8 ->
+
+  1 │   open import Arith::Bool
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x, {y} => x
+    │           ╰╯
+
+Warning: The name `x` shadows a previous local definition from outer scope
+
+In file $FILE:3:12 ->
+
+  1 │   open import Arith::Bool
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x, {y} => x
+    │               ╰╯
+
+Warning: The name `y` shadows a previous local definition from outer scope
+
+In file $FILE:4:9 ->
+
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x, {y} => x
+  4 │   | false, x, y => y
+    │            ╰╯
+
+Warning: The name `x` shadows a previous local definition from outer scope
+
+In file $FILE:4:12 ->
+
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x, {y} => x
+  4 │   | false, x, y => y
+    │               ╰╯
+
+Warning: The name `y` shadows a previous local definition from outer scope
+
+In file $FILE:3:11 ->
+
+  1 │   open import Arith::Bool
+  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  3 │   | true, x, {y} => x
+    │              ╰─╯
+
+Error: There are too many implicit patterns:
+         y
+       should be an explicit pattern matched against
+         ^2
+
+1 error(s), 4 warning(s).
+What are you doing?
+

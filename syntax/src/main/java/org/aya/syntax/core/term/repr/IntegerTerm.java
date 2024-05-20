@@ -32,8 +32,8 @@ public record IntegerTerm(
   @Override
   public @NotNull ConCall.Head head() {
     var ref = repr == 0
-      ? ctorRef(CodeShape.GlobalId.ZERO)
-      : ctorRef(CodeShape.GlobalId.SUC);
+      ? conRef(CodeShape.GlobalId.ZERO)
+      : conRef(CodeShape.GlobalId.SUC);
 
     return new ConCallLike.Head(type.ref(), ref.core.ref, 0, ImmutableSeq.empty());
   }

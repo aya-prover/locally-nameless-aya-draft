@@ -64,8 +64,8 @@ public class CorePrettier extends BasePrettier<Term> {
         lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
       case TupTerm(var items) -> Doc.parened(argsDoc(options, items.view().map(Arg::ofExplicitly)));
       case IntegerTerm shaped -> shaped.repr() == 0
-        ? linkLit(0, shaped.ctorRef(CodeShape.GlobalId.ZERO), CON)
-        : linkLit(shaped.repr(), shaped.ctorRef(CodeShape.GlobalId.SUC), CON);
+        ? linkLit(0, shaped.conRef(CodeShape.GlobalId.ZERO), CON)
+        : linkLit(shaped.repr(), shaped.conRef(CodeShape.GlobalId.SUC), CON);
       case ConCallLike conCall -> visitCoreCalls(conCall.ref(), conCall.conArgs(), outer, optionImplicit());
       case FnCall fnCall -> visitCoreCalls(fnCall.ref(), fnCall.args(), outer, optionImplicit());
       case SigmaTerm(var params) -> {
@@ -251,8 +251,8 @@ public class CorePrettier extends BasePrettier<Term> {
       case Pat.Tuple tuple -> Doc.licit(licit,
         Doc.commaList(tuple.elements().view().map(sub -> pat(sub, true, Outer.Free))));
       case Pat.ShapedInt lit -> Doc.bracedUnless(lit.repr() == 0
-          ? linkLit(0, lit.ctorRef(CodeShape.GlobalId.ZERO), CON)
-          : linkLit(lit.repr(), lit.ctorRef(CodeShape.GlobalId.SUC), CON),
+          ? linkLit(0, lit.conRef(CodeShape.GlobalId.ZERO), CON)
+          : linkLit(lit.repr(), lit.conRef(CodeShape.GlobalId.SUC), CON),
         licit);
     };
   }

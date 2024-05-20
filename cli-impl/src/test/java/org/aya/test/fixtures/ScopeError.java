@@ -16,7 +16,7 @@ public interface ScopeError {
     def one => suc zero
     """;
   @Language("Aya") String testImportDefineShadow = """
-    open data Bool | true | false
+    open import Arith::Bool
     module A {
       def foo : Bool => true
     }

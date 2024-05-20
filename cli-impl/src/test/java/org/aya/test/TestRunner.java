@@ -7,9 +7,7 @@ import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.cli.single.CompilerFlags;
 import org.aya.cli.single.SingleFileCompiler;
-import org.aya.test.fixtures.ExprTyckError;
-import org.aya.test.fixtures.GoalAndMeta;
-import org.aya.test.fixtures.ScopeError;
+import org.aya.test.fixtures.*;
 import org.aya.util.FileUtil;
 import org.aya.util.error.Global;
 import org.aya.util.error.SourceFileLocator;
@@ -33,18 +31,16 @@ import static org.junit.jupiter.api.Assertions.fail;
 public class TestRunner {
   public static final @NotNull Path DEFAULT_TEST_DIR = Paths.get("src", "test", "resources").toAbsolutePath();
   public static final @NotNull Path TMP_FILE = DEFAULT_TEST_DIR.resolve("tmp.aya");
-  public static final @NotNull SourceFileLocator LOCATOR = new SourceFileLocator() {
-  };
-
-  @BeforeAll public static void startDash() {
-    Global.NO_RANDOM_NAME = true;
-  }
+  public static final @NotNull SourceFileLocator LOCATOR = new SourceFileLocator() { };
+  @BeforeAll public static void startDash() { Global.NO_RANDOM_NAME = true; }
 
   @Test public void negative() throws Exception {
     Seq.of(
       ExprTyckError.class,
       GoalAndMeta.class,
-      ScopeError.class
+      ScopeError.class,
+      PatTyckError.class,
+      PatCohError.class
     ).forEachChecked(TestRunner::expectFixture);
     Files.deleteIfExists(TMP_FILE);
   }
@@ -113,6 +109,7 @@ public class TestRunner {
       for (var field : fixturesClass.getDeclaredFields()) {
         var name = field.getName();
         if (!name.startsWith("test")) continue;
+        System.out.println("Running " + name.substring(4));
         stream.println(name.substring(4) + ":");
         var code = (String) field.get(null);
         runSingleCase(code, stream);
@@ -132,6 +129,6 @@ public class TestRunner {
 
   public static @NotNull CompilerFlags flags() {
     var modulePaths = ImmutableSeq.of(DEFAULT_TEST_DIR.resolve("shared/src"));
-    return new CompilerFlags(CompilerFlags.Message.ASCII, true, false, null, modulePaths, null);
+    return new CompilerFlags(CompilerFlags.Message.ASCII, false, false, null, modulePaths, null);
   }
 }

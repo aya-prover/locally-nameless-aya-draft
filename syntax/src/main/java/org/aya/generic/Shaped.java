@@ -37,7 +37,7 @@ public interface Shaped<T> {
     @NotNull ShapeRecognition recognition();
     @NotNull T constructorForm();
 
-    @SuppressWarnings("unchecked") default @NotNull DefVar<ConDef, ?> ctorRef(@NotNull CodeShape.GlobalId id) {
+    @SuppressWarnings("unchecked") default @NotNull DefVar<ConDef, ?> conRef(@NotNull CodeShape.GlobalId id) {
       return (DefVar<ConDef, ?>) recognition().captures().get(id);
     }
 
@@ -61,8 +61,8 @@ public interface Shaped<T> {
 
     default @Override @NotNull T constructorForm() {
       int repr = repr();
-      var zero = ctorRef(CodeShape.GlobalId.ZERO);
-      var suc = ctorRef(CodeShape.GlobalId.SUC);
+      var zero = conRef(CodeShape.GlobalId.ZERO);
+      var suc = conRef(CodeShape.GlobalId.SUC);
       if (repr == 0) return makeZero(zero.core);
       return makeSuc(suc.core, destruct(repr - 1));
     }
@@ -93,8 +93,8 @@ public interface Shaped<T> {
     }
 
     @Override default @NotNull T constructorForm() {
-      var nil = ctorRef(CodeShape.GlobalId.NIL).core;
-      var cons = ctorRef(CodeShape.GlobalId.CONS).core;
+      var nil = conRef(CodeShape.GlobalId.NIL).core;
+      var cons = conRef(CodeShape.GlobalId.CONS).core;
       var dataArg = type().args().getFirst(); // Check?
       var elements = repr();
       if (elements.isEmpty()) return makeNil(nil, dataArg);

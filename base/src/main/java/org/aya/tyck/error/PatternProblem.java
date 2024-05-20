@@ -62,16 +62,14 @@ public sealed interface PatternProblem extends Problem {
   ) implements PatternProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
-        Doc.english("I'm not sure if there should be a case for"),
+        Doc.english("I'm unsure if there should be a case for"),
         Doc.par(1, pattern.data().toDoc(options)),
         Doc.english("as index unification is blocked for type"),
         Doc.par(1, dataCall.toDoc(options)));
     }
   }
 
-  record UnknownCon(
-    @Override @NotNull WithPos<Pattern> pattern
-  ) implements PatternProblem {
+  record UnknownCon(@Override @NotNull WithPos<Pattern> pattern) implements PatternProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.english("Unknown constructor"),
@@ -94,9 +92,7 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  record TooManyPattern(
-    @Override @NotNull WithPos<Pattern> pattern
-  ) implements PatternProblem {
+  record TooManyPattern(@Override @NotNull WithPos<Pattern> pattern) implements PatternProblem {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.vcat(
         Doc.english("There is no parameter for the pattern"),
@@ -133,9 +129,7 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  @Override default @NotNull Severity level() {
-    return Severity.ERROR;
-  }
+  @Override default @NotNull Severity level() { return Severity.ERROR; }
 
   record BadLitPattern(
     @NotNull WithPos<Pattern> pattern,
@@ -149,21 +143,13 @@ public sealed interface PatternProblem extends Problem {
     }
   }
 
-  record InvalidEmptyBody(
-    @NotNull Pattern.Clause match
-  ) implements Problem {
-
-    @Override @NotNull public SourcePos sourcePos() {
-      return match.sourcePos;
-    }
+  record InvalidEmptyBody(@NotNull Pattern.Clause match) implements Problem {
+    @Override @NotNull public SourcePos sourcePos() { return match.sourcePos; }
 
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.english("This match arm does not contain any absurd pattern but it has an empty body");
     }
 
-    @Override
-    public @NotNull Severity level() {
-      return Severity.ERROR;
-    }
+    @Override public @NotNull Severity level() { return Severity.ERROR; }
   }
 }

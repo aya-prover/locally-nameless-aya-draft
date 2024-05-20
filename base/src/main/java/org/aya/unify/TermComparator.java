@@ -85,13 +85,19 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    * so don't forget to reset the {@link #failure} after first failure.
    */
   private @Nullable Term compareApprox(@NotNull Term lhs, @NotNull Term rhs) {
+    count++;
+    if (count >= 600) {
+      System.out.println();
+    }
     return switch (new Pair<>(lhs, rhs)) {
       case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
       case Pair(PrimCall lFn, PrimCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
+      case Pair(IntegerTerm lInt, IntegerTerm rInt) -> lInt.repr() == rInt.repr() ? lInt : null;
       case Pair(ConCallLike lCon, ConCallLike rCon) -> compareCallApprox(lCon, rCon, lCon.ref());
       default -> null;
     };
   }
+  private static int count = 0;
 
   /**
    * Compare the arguments of two callable ONLY, this method will NOT try to normalize and then compare (while the old project does).
