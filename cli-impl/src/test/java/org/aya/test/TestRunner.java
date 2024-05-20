@@ -9,6 +9,7 @@ import org.aya.cli.single.CompilerFlags;
 import org.aya.cli.single.SingleFileCompiler;
 import org.aya.test.fixtures.ExprTyckError;
 import org.aya.test.fixtures.GoalAndMeta;
+import org.aya.test.fixtures.ScopeError;
 import org.aya.util.FileUtil;
 import org.aya.util.error.Global;
 import org.aya.util.error.SourceFileLocator;
@@ -42,7 +43,8 @@ public class TestRunner {
   @Test public void negative() throws Exception {
     Seq.of(
       ExprTyckError.class,
-      GoalAndMeta.class
+      GoalAndMeta.class,
+      ScopeError.class
     ).forEachChecked(TestRunner::expectFixture);
   }
 
