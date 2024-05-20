@@ -27,7 +27,7 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
     return update(f.apply(0, param), f.apply(1, body));
   }
 
-  public record Unpi(@NotNull ImmutableSeq<Term> params, @NotNull Term body) {}
+  public record Unpi(@NotNull ImmutableSeq<Term> params, @NotNull Term body) { }
   public static @NotNull Unpi unpi(@NotNull Term term, @NotNull UnaryOperator<Term> pre) {
     var params = MutableList.<Term>create();
     while (pre.apply(term) instanceof PiTerm(var param, var body)) {

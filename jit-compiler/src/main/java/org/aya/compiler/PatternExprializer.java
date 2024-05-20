@@ -39,7 +39,7 @@ public class PatternExprializer extends AbstractSerializer<Pat> {
       case Pat.Bind bind -> {
         // it is safe to new a LocalVar, this method will be called when meta solving only,
         // but the meta solver will eat all LocalVar so that it will be happy.
-        builder.append(STR."new \{PatternSerializer.CLASS_PAT_BIND}(new LocalVar(\"dogfood\"), ErrorTerm.DUMMY)");
+        builder.append(STR."new \{PatternSerializer.CLASS_PAT_BIND}(new LocalVar(\"\{bind.bind().name()}\"), ErrorTerm.DUMMY)");
       }
       case Pat.ConLike con -> {
         var instance = PatternSerializer.getQualified(con);

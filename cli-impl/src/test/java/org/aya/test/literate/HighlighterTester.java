@@ -199,17 +199,9 @@ public class HighlighterTester {
   public static void highlightAndTest(@Language("Aya") @NotNull String code, @Nullable ExpectedHighlightInfo... expected) {
     var sourceFile = new SourceFile("test.aya", Option.none(), code);
     var reporter = new ThrowingReporter(AyaPrettierOptions.pretty());
-
-    var parser = new AyaParserImpl(reporter);
-    var stmts = parser.program(sourceFile);
-    var resolveInfo = new ResolveInfo(
-      new EmptyContext(reporter, Path.of(".")).derive("main"),
-      new PrimFactory(),
-      new AyaShape.Factory(),
-      new AyaBinOpSet(reporter)
-    );
-
-    new StmtResolvers(new DumbModuleLoader(resolveInfo.thisModule()), resolveInfo).resolve(stmts);
+    var moduleLoader = new DumbModuleLoader(new EmptyContext(reporter, Path.of(".")).derive("main"));
+    var stmts = new AyaParserImpl(reporter).program(sourceFile);
+    moduleLoader.resolve(stmts);
     var result = SyntaxHighlight.highlight(null, Option.some(sourceFile), stmts)
       .filterNot(it -> it instanceof HighlightInfo.Lit(_, var kind)
         && ignored.contains(kind));
