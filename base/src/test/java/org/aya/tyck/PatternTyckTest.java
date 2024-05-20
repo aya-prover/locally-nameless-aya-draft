@@ -130,10 +130,10 @@ public class PatternTyckTest {
     assertTrue(tyck("""
       open data Nat | O | S Nat
       open data Fin Nat
-      | 0 => fzero
+      | 1 => fzero
       | S n => fsucc (Fin n)
 
-      def exfalso (A : Type) (Fin 0) : A | ()
+      def exfalso (A : Type) (x : Fin 0) : A elim x | ()
       """).isNotEmpty());
   }
 }

@@ -90,9 +90,10 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   }
 
   public @NotNull Doc visitCoreCalls(
-    @NotNull DefVar<?, ?> var, @NotNull SeqLike<Term> args, @NotNull Outer outer, boolean showImplicits
+    @NotNull DefVar<?, ?> var, @NotNull SeqLike<Term> args,
+    @NotNull Outer outer, boolean showImplicits
   ) {
-    var preargs = args.toImmutableSeq();
+    var preArgs = args.toImmutableSeq();
 
     ImmutableSeq<Param> licit =
       // Because the signature of DataCon is selfTele, so we only need to deal with core con
@@ -101,12 +102,12 @@ public abstract class BasePrettier<Term extends AyaDocile> {
           ? TeleDef.defTele((DefVar<? extends TeleDef, ? extends TeleDecl<?>>) var)
           : ImmutableSeq.empty();
 
-    // licited args, note that this may not include all [var] args since [preargs.size()] may less than [licit.size()]
+    // licited args, note that this may not include all [var] args since [preArgs.size()] may less than [licit.size()]
     // this is safe since the core call is always fully applied, that is, no missing implicit arguments.
-    var licitArgs = preargs.zip(licit, (t, p) -> new Arg<>(t, p.explicit()));
+    var licitArgs = preArgs.zip(licit, (t, p) -> new Arg<>(t, p.explicit()));
     // explicit arguments, these are not [var] arguments, for example, a function [f {Nat} Nat : Nat -> Nat]
     // [explicitArgs.isEmpty] if licitArgs doesn't include all [var] args.
-    var explicitArgs = preargs.view().drop(licitArgs.size()).map(Arg::ofExplicitly);
+    var explicitArgs = preArgs.view().drop(licitArgs.size()).map(Arg::ofExplicitly);
 
     return visitCalls(var.assoc(), refVar(var), licitArgs.view().appendedAll(explicitArgs), outer, showImplicits);
   }

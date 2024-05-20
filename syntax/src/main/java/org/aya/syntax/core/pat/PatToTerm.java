@@ -4,10 +4,7 @@ package org.aya.syntax.core.pat;
 
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.syntax.core.term.FreeTerm;
-import org.aya.syntax.core.term.MetaPatTerm;
-import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.TupTerm;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.xtt.DimTerm;
@@ -28,7 +25,8 @@ public interface PatToTerm {
   record Unary(@NotNull Consumer<Pat.Bind> freshCallback) implements Function<Pat, Term> {
     @Override public Term apply(Pat pat) {
       return switch (pat) {
-        case Pat.Absurd _ -> Panic.unreachable();
+        // We expect this to be never used
+        case Pat.Absurd _ -> SortTerm.Type0;
         case Pat.Bind bind -> {
           freshCallback.accept(bind);
           yield new FreeTerm(bind.bind());
@@ -87,7 +85,7 @@ public interface PatToTerm {
 
     @Override public ImmutableSeq<Term> apply(Pat pat) {
       return switch (pat) {
-        case Pat.Absurd _, Pat.Meta _ _ -> Panic.unreachable();
+        case Pat.Absurd _, Pat.Meta _ -> Panic.unreachable();
         case Pat.ShapedInt si -> ImmutableSeq.of(si.toTerm());
         case Pat.Bind bind -> {
           ctx.put(bind.bind(), bind.type());
