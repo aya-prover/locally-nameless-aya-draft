@@ -28,14 +28,16 @@ public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
       // empty return type for constructor
       buildMethod(className, ImmutableSeq.empty(), "", () -> buildConstructor(unit), false);
       appendLine();
+      var iTerm = "i";
+      var teleArgsTerm = "teleArgs";
       buildMethod("telescope", ImmutableSeq.of(
         new Param("i", "int"),
         new Param("teleArgs", "Term...")
-      ), "Term", () -> buildTelescope(unit), true);
+      ), "Term", () -> buildTelescope(unit, iTerm, teleArgsTerm), true);
       appendLine();
       buildMethod("result", ImmutableSeq.of(
         new Param("teleArgs", "Term...")
-      ), "Term", () -> buildResult(unit), true);
+      ), "Term", () -> buildResult(unit, teleArgsTerm), true);
       appendLine();
       continuation.run();
     });
@@ -51,10 +53,10 @@ public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
   /**
    * @see org.aya.syntax.compile.JitTele#telescope(int, Term...)
    */
-  protected abstract void buildTelescope(T unit);
+  protected abstract void buildTelescope(T unit, @NotNull String iTerm, @NotNull String teleArgsTerm);
 
   /**
    * @see org.aya.syntax.compile.JitTele#result(Term...)
    */
-  protected abstract void buildResult(T unit);
+  protected abstract void buildResult(T unit, @NotNull String teleArgsTerm);
 }
