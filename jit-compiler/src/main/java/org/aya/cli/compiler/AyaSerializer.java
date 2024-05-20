@@ -10,9 +10,9 @@ import org.intellij.lang.annotations.Language;
 public interface AyaSerializer<T> {
   String STATIC_FIELD_INSTANCE = "INSTANCE";
   /**
-   * @see org.aya.syntax.compile.JitConCall#instance()
-   * @see org.aya.syntax.compile.JitDataCall#instance()
-   * @see org.aya.syntax.compile.JitFnCall#instance()
+   * @see JitConCall#instance()
+   * @see JitDataCall#instance()
+   * @see JitFnCall#instance()
    */
   String FIELD_INSTANCE = "instance";
   String CLASS_JITCONCALL = JitConCall.class.getSimpleName();
