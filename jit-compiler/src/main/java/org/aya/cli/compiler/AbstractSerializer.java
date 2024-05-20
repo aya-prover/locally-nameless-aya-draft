@@ -13,6 +13,8 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
+  public record Param(@NotNull String name, @NotNull String type) { }
+
   protected final @NotNull StringBuilder builder;
   protected int indent;
   protected final @NotNull NameGenerator nameGen;
@@ -103,16 +105,8 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine("}");
   }
 
-  public void buildMethod(
-    @NotNull String methodName,
-    @NotNull String returnType,
-    @NotNull ImmutableSeq<Tuple2<String, String>> telescope,
-    @NotNull Runnable continuation
-  ) {
-    var teleStr = telescope.joinToString(", ", (pair) -> STR."\{pair.component1()} \{pair.component2()}");
-    appendLine(STR."public \{returnType} \{methodName} (\{teleStr}) {");
-    runInside(continuation);
-    appendLine("}");
+  public void buildInstance(@NotNull String className) {
+    appendLine(STR."public static final \{className} INSTANCE = new \{className}();");
   }
 
   public @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {
@@ -122,6 +116,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   public void appendLine(@NotNull String string) {
     fillIndent();
     builder.append(string);
+    builder.append('\n');
+  }
+
+  public void appendLine() {
     builder.append('\n');
   }
 
@@ -150,6 +148,23 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
       runInside(defaultCase);
     });
     appendLine(STR."}");
+  }
+
+  public void buildMethod(
+    @NotNull String name,
+    @NotNull ImmutableSeq<Param> params,
+    @NotNull String returnType,
+    @NotNull Runnable continuation,
+    boolean override
+  ) {
+    if (override) {
+      appendLine("@Override");
+    }
+
+    var paramStr = params.joinToString(", ", param -> STR."\{param.type()} \{param.name()}");
+    appendLine(STR."public \{returnType} \{name}(\{paramStr}) {");
+    runInside(continuation);
+    appendLine("}");
   }
 
   protected static @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
