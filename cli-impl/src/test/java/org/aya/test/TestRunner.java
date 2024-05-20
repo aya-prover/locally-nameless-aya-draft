@@ -12,6 +12,7 @@ import org.aya.util.error.SourceFileLocator;
 import org.aya.util.reporter.CountingReporter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,9 +36,13 @@ public class TestRunner {
     Global.NO_RANDOM_NAME = true;
   }
 
+  @Test public void negative() throws IOException, IllegalAccessException {
+    expectFixture(ExprTypeErrorFixtures.class);
+  }
+
   public static void main(String... args) throws Exception {
     TestRunner.startDash();
-    expectFixture(TypeErrorFixtures.class);
+    new TestRunner().negative();
   }
 
   private static String instantiateVars(String template) {
@@ -99,7 +104,7 @@ public class TestRunner {
       for (var field : fixturesClass.getDeclaredFields()) {
         var name = field.getName();
         if (!name.startsWith("test")) continue;
-        stream.println(name.substring(4));
+        stream.println(name.substring(4) + ":");
         var code = (String) field.get(null);
         runSingleCase(code, stream);
         stream.println();

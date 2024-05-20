@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 public sealed interface PrimError extends TyckError {
   record NoResultType(@NotNull TeleDecl.PrimDecl prim) implements PrimError {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
-      return Doc.sep(Doc.code(prim.toDoc(options)), Doc.english("is expected to have a type"));
+      return Doc.sep(Doc.code(prim.toDoc(options)), Doc.english("is expected to have a return type"));
     }
 
     @Override public @NotNull SourcePos sourcePos() { return prim.sourcePos(); }
@@ -26,8 +26,8 @@ public sealed interface PrimError extends TyckError {
       var prologue = Doc.vcat(
         Doc.english("The prim declaration"),
         Doc.par(1, prim.toDoc(options)),
-        Doc.english("is written to have the type"));
-      return info.describeUnify(options, comparison, prologue, Doc.english("while the standard type is"));
+        Doc.english("should have type"));
+      return info.describeUnify(options, comparison, prologue, Doc.english("but you gave"));
     }
     @Override public @NotNull SourcePos sourcePos() {
       return prim.sourcePos();
