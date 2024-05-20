@@ -26,11 +26,12 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   private static final @NotNull String VARIABLE_STATE = "matchState";
   private static final @NotNull String VARIABLE_META_STATE = "metaState";
 
-  private static final @NotNull String CLASS_METAPATTERM = MetaPatTerm.class.getName();
-  private static final @NotNull String CLASS_PATMATCHER = PatMatcher.class.getName();
-  private static final @NotNull String CLASS_PAT_ABSURD = Pat.Absurd.class.getName();
-  private static final @NotNull String CLASS_PAT_BIND = Pat.Bind.class.getName();
-  private static final @NotNull String CLASS_PAT_JCON = Pat.JCon.class.getName();
+  static final @NotNull String CLASS_METAPATTERM = MetaPatTerm.class.getName();
+  static final @NotNull String CLASS_PATMATCHER = PatMatcher.class.getName();
+  // TODO: they are inner class, which contains '$'
+  static final @NotNull String CLASS_PAT_ABSURD = Pat.Absurd.class.getName();
+  static final @NotNull String CLASS_PAT_BIND = Pat.Bind.class.getName();
+  static final @NotNull String CLASS_PAT_JCON = Pat.JCon.class.getName();
 
   private final @NotNull String argName;
   private final @NotNull Runnable onStuck;
@@ -50,57 +51,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     this.onStuck = onStuck;
     this.onDontMatch = onDontMatch;
   }
-
-  /// region Exprize
-
-  // TODO: How about another Pattern Serializer?
-  private static void toSource(@NotNull StringBuilder acc, @NotNull ImmutableSeq<Pat> pats) {
-    if (pats.isEmpty()) {
-      acc.append("ImmutableSeq.empty()");
-      return;
-    }
-
-    acc.append("ImmutableSeq.of(");
-
-    var it = pats.iterator();
-    toSource(acc, it.next());
-
-    while (it.hasNext()) {
-      acc.append(", ");
-      toSource(acc, it.next());
-    }
-
-    acc.append(")");
-  }
-
-  private static void toSource(@NotNull StringBuilder acc, @NotNull Pat pat) {
-    switch (pat) {
-      case Pat.Absurd _ -> acc.append(getInstance(CLASS_PAT_ABSURD));
-      case Pat.Bind bind -> {
-        // it is safe to new a LocalVar, this method will be called when meta solving only,
-        // but the meta solver will eat all LocalVar so that it will be happy.
-        acc.append(STR."new \{CLASS_PAT_BIND}(new LocalVar(\"dogfood\"), ErrorTerm.DUMMY)");
-      }
-      case Pat.ConLike con -> {
-        var instance = getQualified(con);
-
-        acc.append(STR."new \{CLASS_PAT_JCON}(\{getInstance(instance)}, ");
-        toSource(acc, con.args());
-        acc.append(")");
-      }
-      case Pat.Meta meta -> Panic.unreachable();
-      case Pat.Tuple tuple -> throw new UnsupportedOperationException();
-      case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException();
-    }
-  }
-
-  private static @NotNull String toSource(@NotNull Pat pat) {
-    var builder = new StringBuilder();
-    toSource(builder, pat);
-    return builder.toString();
-  }
-
-  /// endregion Exprize
 
   /// region Serializing
 
@@ -151,7 +101,9 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       // if the solution is still a meta, we solve it
       // this is a heavy work
       buildIfInstanceElse(tmpName, CLASS_METAPATTERM, stillMetaTerm -> {
-        var doSolveMetaResult = STR."\{CLASS_PATMATCHER}.doSolveMeta(\{toSource(pat)}, \{stillMetaTerm}.meta())";
+        var exprializer = new PatternExprializer(nameGen);
+        exprializer.serialize(pat);
+        var doSolveMetaResult = STR."\{CLASS_PATMATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";
         appendLine(STR."\{CLASS_SERIALIZEUTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
         buildUpdate(VARIABLE_META_STATE, "true");
         // at this moment, the matching is complete,
@@ -213,7 +165,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     return acc.get();
   }
 
-  private static @NotNull String getQualified(@NotNull Pat.ConLike conLike) {
+  static @NotNull String getQualified(@NotNull Pat.ConLike conLike) {
     return switch (conLike) {
       case Pat.Con con -> getQualified(con.ref());
       case Pat.JCon jCon -> getQualified(jCon.ref());
@@ -222,7 +174,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   /// endregion Java Source Code Generate API
 
-  @Override public void serialize(@NotNull ImmutableSeq<Matching> unit) {
+  @Override public AyaSerializer<ImmutableSeq<Matching>> serialize(@NotNull ImmutableSeq<Matching> unit) {
     var bindSize = unit.mapToInt(ImmutableIntSeq.factory(),
       x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
     int maxBindSize = bindSize.max();
@@ -253,5 +205,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
     // if the execution arrive here, that means no clause is matched
     buildSwitch(VARIABLE_STATE, jumpTable.toImmutableSeq());
+
+    return this;
   }
 }

@@ -29,7 +29,7 @@ public interface AyaSerializer<T> {
    * Serialize the given {@param unit} to java source code,
    * the source code can be a class declaration or a expression, depends on the type of unit.
    */
-  void serialize(T unit);
+  AyaSerializer<T> serialize(T unit);
 
   String result();
 }
