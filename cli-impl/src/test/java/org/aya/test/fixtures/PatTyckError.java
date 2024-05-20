@@ -37,14 +37,14 @@ public interface PatTyckError {
 
   @Language("Aya") String testNotEnoughPattern = """
     open import Arith::Bool
-    def ifElse {A : Type} (b : Bool) (x y : A) : A
+    def ifElse {A : Type} (b : Bool) A A : A
     | true, x => x
     | false, x, y => y
     """;
 
   @Language("Aya") String testTooManyPattern = """
     open import Arith::Bool
-    def ifElse {A : Type} (b : Bool) (x y : A) : A
+    def ifElse {A : Type} (b : Bool) A A : A
     | true, x, {y} => x
     | false, x, y => y
     """;

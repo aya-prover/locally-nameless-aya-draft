@@ -63,84 +63,21 @@ NotEnoughPattern:
 In file $FILE:3:8 ->
 
   1 │   open import Arith::Bool
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
-  3 │   | true, x => x
-    │           ╰╯
-
-Warning: The name `x` shadows a previous local definition from outer scope
-
-In file $FILE:4:9 ->
-
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
-  3 │   | true, x => x
-  4 │   | false, x, y => y
-    │            ╰╯
-
-Warning: The name `x` shadows a previous local definition from outer scope
-
-In file $FILE:4:12 ->
-
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
-  3 │   | true, x => x
-  4 │   | false, x, y => y
-    │               ╰╯
-
-Warning: The name `y` shadows a previous local definition from outer scope
-
-In file $FILE:3:8 ->
-
-  1 │   open import Arith::Bool
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  2 │   def ifElse {A : Type} (b : Bool) A A : A
   3 │   | true, x => x
     │           ╰╯
 
 Error: There is no pattern for the parameter
          ^2
 
-1 error(s), 3 warning(s).
+1 error(s), 0 warning(s).
 What are you doing?
 
 TooManyPattern:
-In file $FILE:3:8 ->
-
-  1 │   open import Arith::Bool
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
-  3 │   | true, x, {y} => x
-    │           ╰╯
-
-Warning: The name `x` shadows a previous local definition from outer scope
-
-In file $FILE:3:12 ->
-
-  1 │   open import Arith::Bool
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
-  3 │   | true, x, {y} => x
-    │               ╰╯
-
-Warning: The name `y` shadows a previous local definition from outer scope
-
-In file $FILE:4:9 ->
-
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
-  3 │   | true, x, {y} => x
-  4 │   | false, x, y => y
-    │            ╰╯
-
-Warning: The name `x` shadows a previous local definition from outer scope
-
-In file $FILE:4:12 ->
-
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
-  3 │   | true, x, {y} => x
-  4 │   | false, x, y => y
-    │               ╰╯
-
-Warning: The name `y` shadows a previous local definition from outer scope
-
 In file $FILE:3:11 ->
 
   1 │   open import Arith::Bool
-  2 │   def ifElse {A : Type} (b : Bool) (x y : A) : A
+  2 │   def ifElse {A : Type} (b : Bool) A A : A
   3 │   | true, x, {y} => x
     │              ╰─╯
 
@@ -149,6 +86,6 @@ Error: There are too many implicit patterns:
        should be an explicit pattern matched against
          ^2
 
-1 error(s), 4 warning(s).
+1 error(s), 0 warning(s).
 What are you doing?
 
