@@ -74,12 +74,12 @@ public record Synthesizer(
    */
   private @Nullable Term synthesize(@NotNull Term term) {
     return switch (term) {
-      case AppTerm(var f, var a) -> trySynth(f) instanceof PiTerm pi ? pi.body().instantiate(a) : null;
+      case AppTerm(var f, var a) -> trySynth(f) instanceof PiTerm pi ? pi.body().apply(a) : null;
       case PiTerm pi -> {
         if (!(trySynth(pi.param()) instanceof SortTerm pSort)) yield null;
         var bTy = subscoped(() -> {
           var param = putIndex(pi.param());
-          return trySynth(pi.body().instantiate(param));
+          return trySynth(pi.body().apply(param));
         });
 
         if (!(bTy instanceof SortTerm bSort)) yield null;

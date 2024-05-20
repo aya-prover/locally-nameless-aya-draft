@@ -160,11 +160,14 @@ public class CorePrettier extends BasePrettier<Term> {
       //     .toImmutableSeq()));
       case PiTerm piTerm -> {
         // Try to omit the Pi keyword
-        if (FindUsage.bound(piTerm.body(), 0) == 0) yield checkParen(outer, Doc.sep(
-          justType(Arg.ofExplicitly(piTerm.param()), Outer.BinOp),
-          ARROW,
-          term(Outer.Codomain, piTerm.body())
-        ), Outer.BinOp);
+        var codomain = piTerm.body().apply(nameGen.nextVar(piTerm.param()));
+        if (FindUsage.bound(codomain, 0) == 0) {
+          yield checkParen(outer, Doc.sep(
+            justType(Arg.ofExplicitly(piTerm.param()), Outer.BinOp),
+            ARROW,
+            term(Outer.Codomain, codomain)
+          ), Outer.BinOp);
+        }
         var pair = PiTerm.unpi(piTerm, UnaryOperator.identity());
         var params = generateNames(pair.params());
         var body = pair.body().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));

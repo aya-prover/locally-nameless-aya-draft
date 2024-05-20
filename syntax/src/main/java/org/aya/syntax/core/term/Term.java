@@ -12,10 +12,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
-import org.aya.syntax.core.term.marker.BetaRedex;
-import org.aya.syntax.core.term.marker.Formation;
-import org.aya.syntax.core.term.marker.StableWHNF;
-import org.aya.syntax.core.term.marker.TyckInternal;
+import org.aya.syntax.core.term.marker.*;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.SourcePos;
@@ -48,10 +45,11 @@ public sealed interface Term extends Serializable, AyaDocile
    * </pre>
    *
    * @see #instantiate(Term)
-   * @apiNote {@code bind-preserve : ∀ (T : Type) (T extends Term) (t : T) → ¬ (T = FreeTerm) → ∀ (var : LocalVar) → t.bind(var) instanceof T}
+   * @see UnaryClosure#mkConst
+   * @apiNote bind preserve the term former unless it's a {@link FreeTerm}.
    */
-  default @NotNull Term bind(@NotNull LocalVar var) {
-    return bindAt(var, 0);
+  default @NotNull LamTerm bind(@NotNull LocalVar var) {
+    return new LamTerm(bindAt(var, 0));
   }
 
   /**

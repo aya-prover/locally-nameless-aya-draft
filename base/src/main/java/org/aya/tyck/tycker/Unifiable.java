@@ -4,6 +4,7 @@ package org.aya.tyck.tycker;
 
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.marker.UnaryClosure;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.tyck.error.UnifyError;
@@ -52,11 +53,11 @@ public interface Unifiable extends Problematic, Stateful {
   }
 
   default void checkBoundaries(
-    EqTerm eq, Term core, @NotNull SourcePos pos,
+    EqTerm eq, UnaryClosure core, @NotNull SourcePos pos,
     @NotNull Function<UnifyInfo.Comparison, Problem> report
   ) {
-    unifyTermReported(core.instantiate(DimTerm.I0), eq.a(), eq.appA(DimTerm.I0), pos, report);
-    unifyTermReported(core.instantiate(DimTerm.I1), eq.b(), eq.appA(DimTerm.I1), pos, report);
+    unifyTermReported(core.apply(DimTerm.I0), eq.a(), eq.appA(DimTerm.I0), pos, report);
+    unifyTermReported(core.apply(DimTerm.I1), eq.b(), eq.appA(DimTerm.I1), pos, report);
   }
 
   default boolean unifyTermReported(

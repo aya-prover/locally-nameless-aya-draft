@@ -10,6 +10,7 @@ import kala.function.IndexedFunction;
 import org.aya.generic.SortKind;
 import org.aya.syntax.core.term.marker.Formation;
 import org.aya.syntax.core.term.marker.StableWHNF;
+import org.aya.syntax.core.term.marker.UnaryClosure;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,13 +19,13 @@ import java.util.function.UnaryOperator;
 /**
  * @author re-xyr, kiva, ice1000
  */
-public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableWHNF, Formation {
-  public @NotNull PiTerm update(@NotNull Term param, @NotNull Term body) {
+public record PiTerm(@NotNull Term param, @NotNull UnaryClosure body) implements StableWHNF, Formation {
+  public @NotNull PiTerm update(@NotNull Term param, @NotNull UnaryClosure body) {
     return param == this.param && body == this.body ? this : new PiTerm(param, body);
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(f.apply(0, param), f.apply(1, body));
+    return update(f.apply(0, param), (UnaryClosure) f.apply(1, body));
   }
 
   public record Unpi(@NotNull ImmutableSeq<Term> params, @NotNull Term body) { }
@@ -66,13 +67,13 @@ public record PiTerm(@NotNull Term param, @NotNull Term body) implements StableW
 
   public static @NotNull Term substBody(@NotNull Term pi, @NotNull SeqView<Term> args) {
     for (var arg : args) {
-      if (pi instanceof PiTerm realPi) pi = realPi.body.instantiate(arg);
+      if (pi instanceof PiTerm realPi) pi = realPi.body.apply(arg);
       else Panic.unreachable();
     }
     return pi;
   }
 
   public static @NotNull Term make(@NotNull SeqLike<@NotNull Term> telescope, @NotNull Term body) {
-    return telescope.view().foldRight(body, PiTerm::new);
+    return telescope.view().foldRight(body, (param, cod) -> new PiTerm(param, new LamTerm(cod)));
   }
 }

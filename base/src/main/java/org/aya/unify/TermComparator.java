@@ -171,7 +171,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
           return compare(
             lbody.instantiate(var),
             rbody.instantiate(var),
-            pi.body().instantiate(var)
+            pi.body().apply(var)
           );
         });
         case Pair(LamTerm lambda, _) -> compareLambda(lambda, rhs, pi);
@@ -242,7 +242,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         var fTy = compareUntyped(f, g);
         if (!(fTy instanceof PiTerm pi)) yield null;
         if (!compare(a, b, pi.param())) yield null;
-        yield pi.body().instantiate(a);
+        yield pi.body().apply(a);
       }
       case PAppTerm(var f, var a, _, _) -> {
         if (!(rhs instanceof PAppTerm(var g, var b, _, _))) yield null;
@@ -308,7 +308,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       var var = putIndex(type.param());
       var lhsBody = lambda.body().instantiate(var);
       var rhsBody = AppTerm.make(rhs, new FreeTerm(var));
-      return compare(lhsBody, rhsBody, type.body().instantiate(var));
+      return compare(lhsBody, rhsBody, type.body().apply(var));
     });
   }
 
