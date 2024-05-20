@@ -13,6 +13,9 @@ public abstract class JitData extends JitTele {
     this.constructors = new JitCon[conAmount];
   }
 
+  /**
+   * The constructor of this data type, should initialize {@link #constructors} at the first call.
+   */
   public abstract @NotNull JitCon[] constructors();
 
   public @NotNull JitDataCall of(Term... args) {

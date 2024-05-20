@@ -15,8 +15,8 @@ import java.util.function.UnaryOperator;
 /**
  * We eat bindings, now there are only holes.
  */
-public record BindEater(@NotNull MutableList<Term> mouth) {
-  public @NotNull Pat apply(@NotNull Pat pat) {
+public record BindEater(@NotNull MutableList<Term> mouth) implements UnaryOperator<Pat> {
+  @Override public @NotNull Pat apply(@NotNull Pat pat) {
     return switch (pat) {
       // {pat} is supposed to be a tycked (not still tycking) pattern,
       // which should not contain meta pattern
@@ -28,7 +28,7 @@ public record BindEater(@NotNull MutableList<Term> mouth) {
         yield meta;
       }
 
-      default -> pat.descent(this::apply, UnaryOperator.identity());
+      default -> pat.descent(this, UnaryOperator.identity());
     };
   }
 }

@@ -23,8 +23,9 @@ import java.util.function.UnaryOperator;
  * @param inferMeta whether infer the PatMetaTerm
  */
 public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
-  private static class Failure extends Throwable {
+  public static class Failure extends Throwable {
     public final boolean reason;
+
     private Failure(boolean reason) {
       super(null, null, false, false);
       this.reason = reason;
@@ -59,15 +60,15 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
       // You can't match with a tycking pattern!
       case Pat.Meta _ -> throw new Panic("Illegal pattern: Pat.Meta");
       case Pat.ShapedInt lit -> switch (pre.apply(term)) {
-         case IntegerTerm litTerm -> {
-           if (!lit.compareUntyped(litTerm)) throw new Failure(false);
-           yield ImmutableSeq.empty();
-         }
-         case ConCall con -> match(lit.constructorForm(), con);
-         // we only need to handle matching both literals, otherwise we just rematch it
-         // with constructor form to reuse the code as much as possible (like solving MetaPats).
-         case Term t -> match(lit.constructorForm(), t);
-       };
+        case IntegerTerm litTerm -> {
+          if (!lit.compareUntyped(litTerm)) throw new Failure(false);
+          yield ImmutableSeq.empty();
+        }
+        case ConCall con -> match(lit.constructorForm(), con);
+        // we only need to handle matching both literals, otherwise we just rematch it
+        // with constructor form to reuse the code as much as possible (like solving MetaPats).
+        case Term t -> match(lit.constructorForm(), t);
+      };
     };
   }
 
@@ -78,8 +79,8 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
    * @apiNote The binding order is the same as {@link Pat#consumeBindings(java.util.function.BiConsumer)}
    */
   public @NotNull Result<ImmutableSeq<Term>, Boolean> apply(
-    @NotNull ImmutableSeq<Pat> pats,
-    @NotNull ImmutableSeq<Term> terms
+      @NotNull ImmutableSeq<Pat> pats,
+      @NotNull ImmutableSeq<Term> terms
   ) {
     try {
       return Result.ok(matchMany(pats, terms));
@@ -89,8 +90,8 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
   }
 
   public @NotNull Result<Term, Boolean> apply(
-    @NotNull Term.Matching matching,
-    @NotNull ImmutableSeq<Term> terms
+      @NotNull Term.Matching matching,
+      @NotNull ImmutableSeq<Term> terms
   ) {
     try {
       return Result.ok(matching.body().instantiateTele(matchMany(matching.patterns(), terms).view()));
@@ -103,8 +104,8 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
    * @see #match(Pat, Term)
    */
   private @NotNull ImmutableSeq<Term> matchMany(
-    @NotNull ImmutableSeq<Pat> pats,
-    @NotNull ImmutableSeq<Term> terms
+      @NotNull ImmutableSeq<Pat> pats,
+      @NotNull ImmutableSeq<Term> terms
   ) throws Failure {
     assert pats.sizeEquals(terms) : "List size mismatch 😱";
 
@@ -114,18 +115,30 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
   }
 
   private @NotNull ImmutableSeq<Term> solve(@NotNull Pat pat, @NotNull MetaPatTerm term) throws Failure {
-    var meta = term.meta();
-    return meta.mapChecked(p -> match(pat, PatToTerm.visit(p)), () -> {
-      if (!inferMeta) throw new Failure(true);
-      // No solution, set the current pattern as solution,
-      // also replace the bindings in pat as sub-meta,
-      // so that we can solve this meta more.
+    var maybeMeta = realSolution(term);
+    if (maybeMeta instanceof MetaPatTerm meta) {
+      if (inferMeta) return doSolveMeta(pat, meta.meta());
+      else throw new Failure(true);
+    } else {
+      return match(pat, maybeMeta);
+    }
+  }
 
-      var eater = new BindEater(MutableList.create());
-      var boroboroPat = eater.apply(pat);   // It looks boroboro, there are holes on it.
-      meta.solution().set(boroboroPat);
+  public static @NotNull Term realSolution(@NotNull MetaPatTerm term) {
+    Pat pat = term.meta();
+    while (pat instanceof Pat.Meta meta && meta.solution().get() instanceof Pat notNullPat) pat = notNullPat;
+    return PatToTerm.visit(pat);
+  }
 
-      return eater.mouth().toImmutableSeq();
-    });
+  public static @NotNull ImmutableSeq<Term> doSolveMeta(@NotNull Pat pat, Pat.Meta meta) {
+    // No solution, set the current pattern as solution,
+    // also replace the bindings in pat as sub-meta,
+    // so that we can solve this meta more.
+
+    var eater = new BindEater(MutableList.create());
+    var boroboroPat = eater.apply(pat);   // It looks boroboro, there are holes on it.
+    meta.solution().set(boroboroPat);
+
+    return eater.mouth().toImmutableSeq();
   }
 }

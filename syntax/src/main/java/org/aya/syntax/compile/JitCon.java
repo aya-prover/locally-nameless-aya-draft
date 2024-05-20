@@ -15,6 +15,11 @@ public abstract class JitCon extends JitTele {
     this.dataType = dataType;
   }
 
+  /**
+   * Whether this constructor is available of data type
+   * @param args the argument to the data type
+   * @return a match result, a sequence of substitution if success
+   */
   protected abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
 
   public @NotNull JitConCall of(Term[] ownerArgs, Term... args) {
