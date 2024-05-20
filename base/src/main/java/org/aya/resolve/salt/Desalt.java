@@ -23,8 +23,7 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
     };
   }
 
-  @Override
-  public @NotNull Expr apply(@NotNull SourcePos sourcePos, @NotNull Expr expr) {
+  @Override public @NotNull Expr apply(@NotNull SourcePos sourcePos, @NotNull Expr expr) {
     if (expr instanceof Expr.App(var f, var args)) {
       if (f.data() instanceof Expr.RawSort typeF && typeF.kind() != SortKind.ISet) {
         if (args.sizeEquals(1)) {

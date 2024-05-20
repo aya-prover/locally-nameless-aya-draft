@@ -39,5 +39,8 @@ public sealed interface Command extends Stmt {
     @NotNull ImmutableSeq<@NotNull Stmt> contents
   ) implements Command {
     @Override public @NotNull Accessibility accessibility() { return Accessibility.Public; }
+    @Override public void descentInPlace(@NotNull PosedUnaryOperator<Expr> f, @NotNull PosedUnaryOperator<Pattern> p) {
+      contents.forEach(stmt -> stmt.descentInPlace(f, p));
+    }
   }
 }
