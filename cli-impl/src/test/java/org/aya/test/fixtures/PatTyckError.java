@@ -55,4 +55,11 @@ public interface PatTyckError {
     | true, x, y, z => x
     | false, x, y => y
     """;
+
+  @Language("Aya") String testInvalidEmptyBody = """
+    open import Arith::Bool
+    def test Bool : Bool
+    | true
+    | false
+    """;
 }

@@ -119,3 +119,27 @@ Error: There is no parameter for the pattern
 1 error(s), 0 warning(s).
 What are you doing?
 
+InvalidEmptyBody:
+In file $FILE:3:2 ->
+
+  1 │   open import Arith::Bool
+  2 │   def test Bool : Bool
+  3 │   | true
+    │     ╰──╯
+
+Error: This match arm does not contain any absurd pattern but it has an empty 
+       body
+
+In file $FILE:4:2 ->
+
+  2 │   def test Bool : Bool
+  3 │   | true
+  4 │   | false
+    │     ╰───╯
+
+Error: This match arm does not contain any absurd pattern but it has an empty 
+       body
+
+2 error(s), 0 warning(s).
+What are you doing?
+
