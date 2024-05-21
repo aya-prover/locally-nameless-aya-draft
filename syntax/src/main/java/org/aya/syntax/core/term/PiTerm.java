@@ -11,6 +11,7 @@ import org.aya.generic.SortKind;
 import org.aya.syntax.core.term.marker.Formation;
 import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.syntax.core.term.marker.UnaryClosure;
+import org.aya.util.ForLSP;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -73,6 +74,7 @@ public record PiTerm(@NotNull Term param, @NotNull UnaryClosure body) implements
     return pi;
   }
 
+  @ForLSP
   public static @NotNull Term make(@NotNull SeqLike<@NotNull Term> telescope, @NotNull Term body) {
     return telescope.view().foldRight(body, (param, cod) -> new PiTerm(param, new LamTerm(cod)));
   }

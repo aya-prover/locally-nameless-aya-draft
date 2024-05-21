@@ -10,6 +10,7 @@ import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.Compiled;
+import org.aya.syntax.compile.JitLamTerm;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.marker.*;
@@ -27,8 +28,7 @@ import java.util.function.UnaryOperator;
 public sealed interface Term extends Serializable, AyaDocile
   permits Compiled, BetaRedex, Formation, LocalTerm, StableWHNF, TyckInternal, Callable, CoeTerm {
 
-  @Override
-  default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
+  @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     return new CorePrettier(options).term(BasePrettier.Outer.Free, this);
   }
 
@@ -44,7 +44,7 @@ public sealed interface Term extends Serializable, AyaDocile
    * abstract :: Name → Expr → Scope
    * </pre>
    *
-   * @see #instantiate(Term)
+   * @see UnaryClosure#apply(Term)
    * @see UnaryClosure#mkConst
    * @apiNote bind preserve the term former unless it's a {@link FreeTerm}.
    */
@@ -149,6 +149,8 @@ public sealed interface Term extends Serializable, AyaDocile
    *          {@code f} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
    *          so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.
+   *           Also, {@param f} should preserve {@link UnaryClosure},
+   *           but you can turn a {@link LamTerm} to a {@link JitLamTerm} and vice versa.
    * @apiNote Note that {@link Term}s provided by {@param f} might contain {@link LocalTerm},
    *          therefore your {@param f} should be able to handle them.
    */

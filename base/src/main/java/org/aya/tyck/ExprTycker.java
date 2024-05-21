@@ -72,11 +72,11 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
   public @NotNull Jdg inherit(@NotNull WithPos<Expr> expr, @NotNull Term type) {
     return switch (expr.data()) {
       case Expr.Lambda(var ref, var body) -> switch (type) {
-        case PiTerm(Term dom, Term cod) -> {
+        case PiTerm(var dom, var cod) -> {
           // unifyTyReported(param, dom, expr);
           var core = subscoped(() -> {
             localCtx().put(ref, dom);
-            return inherit(body, cod.instantiate(new FreeTerm(ref))).wellTyped();
+            return inherit(body, cod.apply(new FreeTerm(ref))).wellTyped();
           }).bind(ref);
           yield new Jdg.Default(core, type);
         }
@@ -296,7 +296,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       switch (whnf(acc.type())) {
         case PiTerm(var param, var body) -> {
           var wellTy = inherit(arg.arg(), param).wellTyped();
-          return new Jdg.Default(AppTerm.make(acc.wellTyped(), wellTy), body.instantiate(wellTy));
+          return new Jdg.Default(AppTerm.make(acc.wellTyped(), wellTy), body.apply(wellTy));
         }
         case EqTerm eq -> {
           var wellTy = inherit(arg.arg(), DimTyTerm.INSTANCE).wellTyped();

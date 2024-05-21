@@ -9,6 +9,7 @@ import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
+import org.aya.syntax.core.term.marker.UnaryClosure;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
@@ -84,6 +85,6 @@ public interface Contextful {
     var genName = name + Constants.GENERATED_POSTFIX;
     var domain = freshMeta(STR."\{genName}ty", pos, MetaVar.Misc.IsType);
     var codomain = freshMeta(STR."\{genName}ret", pos, MetaVar.Misc.IsType);
-    return new PiTerm(domain, codomain);
+    return new PiTerm(domain, UnaryClosure.mkConst(codomain));
   }
 }

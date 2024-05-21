@@ -19,7 +19,11 @@ import java.util.function.UnaryOperator;
 public sealed interface UnaryClosure extends StableWHNF, UnaryOperator<Term> permits LamTerm, JitLamTerm {
   static @NotNull UnaryClosure mkConst(@NotNull Term term) { return new JitLamTerm(_ -> term); }
 
-  /** Instantiate the body with given {@param term} */
+  /**
+   * Corresponds to <emph>instantiate</emph> operator in [MM 2004],
+   * <emph>instantiate</emph> the body with given {@param term}.
+   * Called <code>apply</code> due to Mini-TT.
+   */
   @Override Term apply(Term term);
   default @NotNull Term apply(LocalVar var) { return apply(new FreeTerm(var)); }
 }
