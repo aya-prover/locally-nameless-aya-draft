@@ -48,11 +48,11 @@ Resolving interrupted due to:
 What are you doing?
 
 ImportDefineShadow:
-In file $FILE:6:4 ->
+In file $FILE:4:4 ->
 
-  4 │   }
-  5 │   open A
-  6 │   def foo : Bool => false
+  2 │   module A { def foo => true }
+  3 │   open A
+  4 │   def foo => false
     │       ╰─╯
 
 Warning: The name `foo` introduces ambiguity and can only be accessed through a 
@@ -60,12 +60,40 @@ Warning: The name `foo` introduces ambiguity and can only be accessed through a
 
 That looks right!
 
-ImportDefineShadow2:
-In file $FILE:6:5 ->
+ImportUsing:
+In file $FILE:4:14 ->
 
-  4 │   }
-  5 │   def foo : Bool => false
-  6 │   open A
+  2 │   module A { def foo => true }
+  3 │   open A using (foo as bruh)
+  4 │   open A using (bar)
+    │                 ╰─╯
+
+Error: The qualified name `A::bar` is not defined in the current scope
+
+Resolving interrupted due to:
+1 error(s), 0 warning(s).
+What are you doing?
+
+ImportHiding:
+In file $FILE:4:15 ->
+
+  2 │   module A { def foo => true }
+  3 │   open A hiding (foo)
+  4 │   open A hiding (bar)
+    │                  ╰─╯
+
+Error: The qualified name `A::bar` is not defined in the current scope
+
+Resolving interrupted due to:
+1 error(s), 0 warning(s).
+What are you doing?
+
+ImportDefineShadow2:
+In file $FILE:4:5 ->
+
+  2 │   module A { def foo => true }
+  3 │   def foo => false
+  4 │   open A
     │        ╰╯
 
 Warning: The name `foo` introduces ambiguity and can only be accessed through a 

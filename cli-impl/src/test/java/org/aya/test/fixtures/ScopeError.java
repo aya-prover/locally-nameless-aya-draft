@@ -17,18 +17,26 @@ public interface ScopeError {
     """;
   @Language("Aya") String testImportDefineShadow = """
     open import Arith::Bool
-    module A {
-      def foo : Bool => true
-    }
+    module A { def foo => true }
     open A
-    def foo : Bool => false
+    def foo => false
+    """;
+  @Language("Aya") String testImportUsing = """
+    open import Arith::Bool
+    module A { def foo => true }
+    open A using (foo as bruh)
+    open A using (bar)
+    """;
+  @Language("Aya") String testImportHiding = """
+    open import Arith::Bool
+    module A { def foo => true }
+    open A hiding (foo)
+    open A hiding (bar)
     """;
   @Language("Aya") String testImportDefineShadow2 = """
     open data Bool | true | false
-    module A {
-      def foo : Bool => true
-    }
-    def foo : Bool => false
+    module A { def foo => true }
+    def foo => false
     open A
     """;
   @Language("Aya") String testInfRec = "def undefined => undefined";

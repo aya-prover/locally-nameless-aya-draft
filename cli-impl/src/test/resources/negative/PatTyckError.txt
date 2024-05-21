@@ -40,6 +40,21 @@ Error: I'm unsure if there should be a case for
 2 error(s), 0 warning(s).
 What are you doing?
 
+SelectionBlocked:
+In file $FILE:4:2 ->
+
+  2 │   open import Data::Vec
+  3 │   def mapImpl {A B : Type} {n : Nat} (f : A -> B) (xs : Vec (n + n) A) : Vec (n + n) B elim xs
+  4 │   | () => []
+    │     ╰╯
+
+Error: Unsure if this pattern is actually impossible, as constructor selection 
+       is blocked on:
+         Vec (<n> + <n>) A
+
+1 error(s), 0 warning(s).
+What are you doing?
+
 SplitOnNonData:
 In file $FILE:3:3 ->
 

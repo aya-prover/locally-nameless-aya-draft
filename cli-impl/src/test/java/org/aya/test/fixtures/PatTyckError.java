@@ -23,6 +23,13 @@ public interface PatTyckError {
     | _ :> _ => _
     """;
 
+  @Language("Aya") String testSelectionBlocked = """
+    open import Arith::Nat
+    open import Data::Vec
+    def mapImpl {A B : Type} {n : Nat} (f : A -> B) (xs : Vec (n + n) A) : Vec (n + n) B elim xs
+    | () => []
+    """;
+
   @Language("Aya") String testSplitOnNonData = """
     open data Unit | unit
     def test (a : Type) : Type

@@ -49,16 +49,13 @@ public record ModuleExport(
         names.forEach(qname -> {
           var unit = getMaybe(qname.component(), qname.name());
 
-          if (unit.isOk()) {
-            unit.get().forEach(
-              symbol -> newModule.export(qname.component(), qname.name(), symbol),
-              module -> newModule.export(qname.component().resolve(qname.name()), module)
-            );
-          } else {
-            switch (unit.getErr()) {
-              case NotFound -> badNames.append(qname);
-              case Ambiguous -> ambiNames.append(new WithPos<>(qname.sourcePos(), qname.name()));
-            }
+          if (unit.isOk()) unit.get().forEach(
+            symbol -> newModule.export(qname.component(), qname.name(), symbol),
+            module -> newModule.export(qname.component().resolve(qname.name()), module)
+          );
+          else switch (unit.getErr()) {
+            case NotFound -> badNames.append(qname);
+            case Ambiguous -> ambiNames.append(new WithPos<>(qname.sourcePos(), qname.name()));
           }
         });
       }
@@ -106,8 +103,7 @@ public record ModuleExport(
       if (thing.isOk()) {
         var reportShadow = MutableBooleanValue.create(false);
 
-        thing.get().forEach(
-          symbol -> {
+        thing.get().forEach(symbol -> {
             var candidates = newExport.symbols.resolveUnqualified(to).asMut().get();
             var isShadow = candidates.isNotEmpty();
             // If there is an export with name `to`, shadow!
@@ -119,8 +115,7 @@ public record ModuleExport(
 
             // now, {candidates} is empty
             candidates.put(ModuleName.This, symbol);
-          },
-          module -> {
+          }, module -> {
             var isShadow = newExport.modules.containsKey(new ModuleName.Qualified(to));
 
             if (isShadow) {
