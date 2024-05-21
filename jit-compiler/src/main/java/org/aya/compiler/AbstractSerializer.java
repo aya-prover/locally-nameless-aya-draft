@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.compiler.util.SerializeUtils;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitTele;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,7 +117,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
 
   public void buildPanic(@Nullable String message) {
     message = message == null ? "" : STR."\"\{message}\"";
-    appendLine(STR."new \{CLASS_PANIC}(\{message});");
+    appendLine(STR."throw new \{CLASS_PANIC}(\{message});");
   }
 
   public @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {
@@ -180,6 +181,11 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return builder.toString();
   }
 
+  protected @NotNull String serializeTermUnderTele(@NotNull Term term, @NotNull String argsTerm, int size) {
+    return new TermSerializer(this.nameGen, fromArray(argsTerm, size))
+        .serialize(term).result();
+  }
+
   protected static @NotNull String isNull(@NotNull String term) {
     return STR."\{term} == null";
   }
@@ -189,7 +195,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected static @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
-    return Objects.requireNonNull(ref.module).module().view().appended(ref.name())
+    return Objects.requireNonNull(ref.module).module().view().appended(javify(ref))
       .joinToString(".");
   }
 
@@ -210,9 +216,9 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   /**
    * Turn an aya symbol name to a java symbol name
    */
-  public static @NotNull String javify(@NotNull String ayaName) {
+  public static @NotNull String javify(@NotNull DefVar<?, ?> ayaName) {
     // TODO: impl
-    return ayaName;
+    return ayaName.name();
   }
 
   public static @NotNull String getQualified(@NotNull Class<?> clazz) {

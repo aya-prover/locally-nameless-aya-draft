@@ -49,7 +49,9 @@ public abstract class JitTeleSerializer<T extends TeleDef> extends AbstractSeria
     });
   }
 
-  protected abstract String getClassName(T unit);
+  private @NotNull String getClassName(T unit) {
+    return javify(unit.ref());
+  }
 
   /**
    * @see org.aya.syntax.compile.JitTele
@@ -75,8 +77,7 @@ public abstract class JitTeleSerializer<T extends TeleDef> extends AbstractSeria
   protected void buildTelescope(T unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
     @NotNull ImmutableSeq<Param> tele = unit.telescope();
     buildSwitch(iTerm, IntRange.closedOpen(0, tele.size()).collect(ImmutableSeq.factory()), kase -> {
-      var serializer = new TermSerializer(this.nameGen, fromArray(teleArgsTerm, kase));
-      buildReturn(serializer.serialize(tele.get(kase).type()).result());
+      buildReturn(serializeTermUnderTele(tele.get(kase).type(), teleArgsTerm, kase));
     }, () -> buildPanic(null));
   }
 
@@ -84,11 +85,7 @@ public abstract class JitTeleSerializer<T extends TeleDef> extends AbstractSeria
    * @see org.aya.syntax.compile.JitTele#result(Term...)
    */
   protected void buildResult(T unit, @NotNull String teleArgsTerm) {
-    buildReturn(
-      new TermSerializer(nameGen, fromArray(teleArgsTerm, unit.telescope().size()))
-        .serialize(unit.result())
-        .result()
-    );
+    buildReturn(serializeTermUnderTele(unit.result(), teleArgsTerm, unit.telescope().size()));
   }
 
   public void buildSuperCall(@NotNull ImmutableSeq<String> args) {

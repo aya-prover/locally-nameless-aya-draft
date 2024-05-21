@@ -19,7 +19,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<PatternSerializer.Matching>> {
-  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull Consumer<PatternSerializer> onSucc) { }
+  @FunctionalInterface
+  public interface SuccessContinuation extends BiConsumer<PatternSerializer, Integer> {}
+  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull SuccessContinuation onSucc) { }
 
   public static final @NotNull String VARIABLE_RESULT = "result";
   public static final @NotNull String VARIABLE_STATE = "matchState";
@@ -188,6 +190,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
     buildGoto(() -> unit.forEachIndexed((idx, clause) -> {
       var jumpCode = idx + 1;
+      bindCount = 0;
       doSerialize(
         clause.patterns().view(),
         fromArray(argName, clause.patterns.size()).view(),
@@ -197,18 +200,16 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     }));
 
     // -1 ..= unit.size()
-    buildSwitch(VARIABLE_STATE, IntRange.closed(-1, unit.size()).collect(ImmutableSeq.factory()), state -> {
+    var range = IntRange.closed(-1, unit.size()).collect(ImmutableSeq.factory());
+    buildSwitch(VARIABLE_STATE, range, state -> {
       switch (state) {
-        case -1:
-          onMismatch.accept(this);
-          break;
-        case 0:
-          onStuck.accept(this);
-          break;
-        default:
+        case -1 -> onMismatch.accept(this);
+        case 0 -> onStuck.accept(this);
+        default -> {
           assert state > 0;
-          unit.get(state - 1).onSucc.accept(this);
-          break;
+          var realIdx = state - 1;
+          unit.get(realIdx).onSucc.accept(this, bindSize.get(realIdx));
+        }
       }
     }, () -> buildPanic(null));
 

@@ -3,14 +3,9 @@
 package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableList;
-import kala.range.primitive.IntRange;
-import kala.tuple.Tuple;
-import kala.tuple.Tuple2;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitData;
 import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.term.Param;
 import org.jetbrains.annotations.NotNull;
 
 // You should compile this with its constructors
@@ -24,9 +19,8 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
   @Override public AyaSerializer<DataDef> serialize(DataDef unit) {
     buildFramework(unit, () -> {
       // TODO: is it better to be synchronized ?
-      buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", true, () -> {
-        buildConstructors(unit);
-      });
+      buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", true,
+        () -> buildConstructors(unit));
     });
 
     return this;
@@ -36,19 +30,15 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     buildConstructor(unit, ImmutableSeq.of(Integer.toString(unit.body.size())));
   }
 
-  @Override protected String getClassName(DataDef unit) { return unit.ref.name(); }
-
   /**
    * @see JitData#constructors()
    */
   private void buildConstructors(DataDef unit) {
     var cRef = "this.constructors";
 
-    buildIf(isNull(STR."\{cRef}[0]"), () -> {
-      unit.body.forEachIndexed((idx, con) -> {
-        buildUpdate(STR."\{cRef}[\{idx}]", getInstance(getQualified(con.ref)));
-      });
-    });
+    buildIf(isNull(STR."\{cRef}[0]"), () ->
+      unit.body.forEachIndexed((idx, con) ->
+        buildUpdate(STR."\{cRef}[\{idx}]", getInstance(getQualified(con.ref)))));
 
     buildReturn(cRef);
   }

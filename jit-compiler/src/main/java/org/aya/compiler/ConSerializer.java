@@ -13,7 +13,6 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
     super(builder, indent, nameGen, JitCon.class.getName());
   }
 
-  @Override protected String getClassName(ConDef unit) { return javify(unit.ref.name()); }
   @Override protected void buildConstructor(ConDef unit) {
     buildConstructor(unit, ImmutableSeq.of(getInstance(getQualified(unit.dataRef))));
   }
@@ -24,7 +23,8 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
       s -> s.buildReturn(STR."\{CLASS_RESULT}.err(false)"));
 
     ser.serialize(ImmutableSeq.of(new PatternSerializer.Matching(unit.pats,
-      s -> s.buildReturn(STR."\{CLASS_RESULT}.ok(\{CLASS_IMMSEQ}.from(\{PatternSerializer.VARIABLE_RESULT}))"))));
+      // we have only one clause, so the size is useless
+      (s, _) -> s.buildReturn(STR."\{CLASS_RESULT}.ok(\{CLASS_IMMSEQ}.from(\{PatternSerializer.VARIABLE_RESULT}))"))));
   }
 
   @Override public AyaSerializer<ConDef> serialize(ConDef unit) {

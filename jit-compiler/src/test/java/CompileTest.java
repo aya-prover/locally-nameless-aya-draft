@@ -4,6 +4,7 @@
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.compiler.ConSerializer;
 import org.aya.compiler.DataSerializer;
+import org.aya.compiler.FnSerializer;
 import org.aya.compiler.PatternSerializer;
 import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
@@ -16,6 +17,7 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.ErrorTerm;
 import org.aya.syntax.ref.DefVar;
@@ -45,7 +47,7 @@ public class CompileTest {
       s -> s.appendLine("System.out.println(\"Unhello, world!\");"));
 
     ser.serialize(ImmutableSeq.of(new PatternSerializer.Matching(cls0,
-      s -> s.appendLine("System.out.println(\"Good, world!\");"))));
+        (s, _) -> s.appendLine("System.out.println(\"Good, world!\");"))));
 
     System.out.println(ser.result());
   }
@@ -56,6 +58,10 @@ public class CompileTest {
       open data Vec (n : Nat) Type
       | O, A   => []
       | S n, A => infixr :> A (Vec n A)
+
+      def plus (a b : Nat) : Nat elim a
+      | O => b
+      | S n => S (plus n b)
       """);
 
     var vec = (DataDef) result.findFirst(def -> def.ref().name().equals("Vec")).get();
@@ -66,6 +72,11 @@ public class CompileTest {
     var vnil = (ConDef) result.findFirst(def -> def.ref().name().equals("[]")).get();
     out = new ConSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(vnil).result();
     System.out.println("vnil.java");
+    System.out.println(out);
+
+    var plus = (FnDef) result.findFirst(def -> def.ref().name().equals("plus")).get();
+    out = new FnSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(plus).result();
+    System.out.println("plus.java");
     System.out.println(out);
   }
 
