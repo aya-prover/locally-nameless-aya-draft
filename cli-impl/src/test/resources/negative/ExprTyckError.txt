@@ -109,3 +109,46 @@ Error: `prim Path` is expected to have a return type
 2 error(s), 0 warning(s).
 What are you doing?
 
+PiDom:
+In file $FILE:2:23 ->
+
+  1 │   data X : Set
+  2 │   data Test : Type | con X
+    │                          ╰╯
+
+Error: The type
+         X
+       is in the domain of a function whose type is
+         Type 0
+
+1 error(s), 0 warning(s).
+What are you doing?
+
+PiDomMeta:
+In file $FILE:4:19 ->
+
+  2 │   data infix = (a b : X) : Type
+  3 │   data Test : Type
+  4 │   | con (x : _) (y : X) (x = y)
+    │                      ╰╯
+
+Error: The type
+         X
+       is in the domain of a function whose type is
+         Type 0
+
+In file $FILE:4:11 ->
+
+  2 │   data infix = (a b : X) : Type
+  3 │   data Test : Type
+  4 │   | con (x : _) (y : X) (x = y)
+    │              ╰╯
+
+Error: The meta (denoted ? below) is supposed to satisfy:
+         ? → _ : Type 0
+       However, the solution below does not seem so:
+         X
+
+2 error(s), 0 warning(s).
+What are you doing?
+

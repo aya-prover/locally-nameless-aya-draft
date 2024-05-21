@@ -12,10 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class AyaBinOpSet extends BinOpSet {
   public final @NotNull Reporter reporter;
-
-  public AyaBinOpSet(@NotNull Reporter reporter) {
-    this.reporter = reporter;
-  }
+  public AyaBinOpSet(@NotNull Reporter reporter) { this.reporter = reporter; }
 
   @Override protected void reportSelfBind(@NotNull SourcePos sourcePos) {
     reporter.report(new OperatorError.SelfBind(sourcePos));

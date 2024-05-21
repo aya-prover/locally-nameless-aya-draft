@@ -47,4 +47,22 @@ public interface GoalAndMeta {
     // ^ see issue608.aya, issue602.aya in proto repo
     // https://github.com/aya-prover/aya-prover-proto/issues/608
     """;
+
+  @Language("Aya") String testNorell = """
+    open import Arith::Nat
+    data Empty
+    def Neg (T : Type) => T -> Empty
+    // Ulf's counterexample
+    def test
+     (F : Type -> Type)
+     (g : ∀ (X : F _) -> F (Neg X)) : Nat => g 0
+    """;
+
+  @Language("Aya") String testScopeCheck = """
+    open import Paths
+    variable A : Type
+    
+    // https://cstheory.stackexchange.com/a/49160/50892
+    def test (a : _) (B : Type) (b : B) (p : a = b) : I => 0
+    """;
 }

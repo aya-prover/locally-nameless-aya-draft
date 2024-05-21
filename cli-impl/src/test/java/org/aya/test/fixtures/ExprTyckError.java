@@ -32,4 +32,16 @@ public interface ExprTyckError {
     prim I
     prim Path (A : I -> Type) (a b : A)
     """;
+
+  @Language("Aya") String testPiDom = """
+    data X : Set
+    data Test : Type | con X
+    """;
+
+  @Language("Aya") String testPiDomMeta = """
+    data X : Set
+    data infix = (a b : X) : Type
+    data Test : Type
+    | con (x : _) (y : X) (x = y)
+    """;
 }

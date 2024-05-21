@@ -83,3 +83,86 @@ Info: Solving equation(s) with not very general solution(s)
 
 That looks right!
 
+Norell:
+In file $FILE:7:28 ->
+
+  5 │   def test
+  6 │    (F : Type -> Type)
+  7 │    (g : ∀ (X : F _) -> F (Neg X)) : Nat => g 0
+    │                               ╰╯
+
+Error: Cannot check the expression
+         X
+       of type
+         F (?_ F)
+       against the type
+         Type 0
+
+In file $FILE:7:43 ->
+
+  5 │   def test
+  6 │    (F : Type -> Type)
+  7 │    (g : ∀ (X : F _) -> F (Neg X)) : Nat => g 0
+    │                                              ╰╯
+
+Error: Cannot check the expression
+         0
+       of type
+         Nat
+       against the type
+         F (?_ F)
+
+In file $FILE:7:41 ->
+
+  5 │   def test
+  6 │    (F : Type -> Type)
+  7 │    (g : ∀ (X : F _) -> F (Neg X)) : Nat => g 0
+    │                                            ╰─╯
+
+Error: Cannot check the expression
+         g 0
+       of type
+         F (Neg 0)
+         (Normalized: F (0 → Empty))
+       against the type
+         Nat
+
+In file $FILE:7:15 ->
+
+  5 │   def test
+  6 │    (F : Type -> Type)
+  7 │    (g : ∀ (X : F _) -> F (Neg X)) : Nat => g 0
+    │                  ╰╯
+
+Error: Unsolved meta _
+       in `^0 (?_ ^0)`
+       in `Fn (_0 : ^0 (?_ ^0)) → ^1 (Neg _0)`
+
+4 error(s), 0 warning(s).
+What are you doing?
+
+ScopeCheck:
+In file $FILE:5:14 ->
+
+  3 │   
+  4 │   // https://cstheory.stackexchange.com/a/49160/50892
+  5 │   def test (a : _) (B : Type) (b : B) (p : a = b) : I => 0
+    │                 ╰╯
+
+Error: The solution
+         B
+       is not well-scoped
+       Only the variables below are allowed: 
+
+In file $FILE:5:14 ->
+
+  3 │   
+  4 │   // https://cstheory.stackexchange.com/a/49160/50892
+  5 │   def test (a : _) (B : Type) (b : B) (p : a = b) : I => 0
+    │                 ╰╯
+
+Error: Unsolved meta _
+
+2 error(s), 0 warning(s).
+What are you doing?
+

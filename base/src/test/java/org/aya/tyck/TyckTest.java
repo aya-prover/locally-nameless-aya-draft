@@ -106,6 +106,16 @@ public class TyckTest {
     assertTrue(result.isNotEmpty());
   }
 
+  @Test public void test3() {
+    assertTrue(tyck("""
+      open data Nat | O | S Nat
+      open data Natt | OO | SS Nat
+      def infix = {A : Type} (a b : A) => Type
+      // Disambiguate by type checking
+      def test (a : Nat) => a = 114514
+      """).isNotEmpty());
+  }
+
   public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
     var moduleLoader = SyntaxTestUtil.moduleLoader();
     var callback = new ModuleCallback<RuntimeException>() {
