@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.term;
 
-import kala.collection.MapLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
@@ -25,6 +24,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 public sealed interface Term extends Serializable, AyaDocile
@@ -33,25 +33,6 @@ public sealed interface Term extends Serializable, AyaDocile
   @Override
   default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     return new CorePrettier(options).term(BasePrettier.Outer.Free, this);
-  }
-
-  // O(2n)!!
-  /**
-   * @param term this term should not have any free {@link LocalTerm}
-   */
-  default @NotNull Term replaceWith(@NotNull LocalVar var, @NotNull Term term) {
-    return bind(var).instantiate(term);
-  }
-
-  default @NotNull Term subst(@NotNull MapLike<LocalVar, Term> map) {
-    if (map.isEmpty()) return this;
-    var acc = this;
-    for (var key : map.keysView()) {
-      var value = map.get(key);
-      acc = acc.replaceWith(key, value);
-    }
-
-    return acc;
   }
 
   default @NotNull Term bindAt(@NotNull LocalVar var, int depth) {
@@ -86,14 +67,6 @@ public sealed interface Term extends Serializable, AyaDocile
 
   default @NotNull Term bindTele(@NotNull SeqView<LocalVar> teleVars) {
     return bindAll(teleVars.reversed());
-  }
-
-  /**
-   * @see Term#replaceAllFrom(int, ImmutableSeq)
-   */
-  @ApiStatus.Internal
-  default @NotNull Term replace(int index, @NotNull Term arg) {
-    return replaceAllFrom(index, ImmutableSeq.of(arg));
   }
 
   /**
@@ -224,9 +197,9 @@ public sealed interface Term extends Serializable, AyaDocile
       return update(patterns.map(g), f.apply(body));
     }
 
-    // public void descentConsume(@NotNull Consumer<Term> f, @NotNull Consumer<Pat> g) {
-    //   patterns.forEach(a -> a.descent(g));
-    //   f.accept(body);
-    // }
+    public void forEach(@NotNull Consumer<Term> f, @NotNull Consumer<Pat> g) {
+      patterns.forEach(g);
+      f.accept(body);
+    }
   }
 }
