@@ -159,17 +159,20 @@ public class CorePrettier extends BasePrettier<Term> {
       //     .toImmutableSeq()));
       case PiTerm piTerm -> {
         // Try to omit the Pi keyword
-        var codomain = piTerm.body().apply(nameGen.nextVar(piTerm.param()));
-        if (FindUsage.bound(codomain, 0) == 0) {
-          yield checkParen(outer, Doc.sep(
-            justType(Arg.ofExplicitly(piTerm.param()), Outer.BinOp),
-            ARROW,
-            term(Outer.Codomain, codomain)
-          ), Outer.BinOp);
+        {
+          var var = nameGen.nextVar(piTerm.param());
+          var codomain = piTerm.body().apply(var);
+          if (FindUsage.free(codomain, var) == 0) {
+            yield checkParen(outer, Doc.sep(
+              justType(Arg.ofExplicitly(piTerm.param()), Outer.BinOp),
+              ARROW,
+              term(Outer.Codomain, codomain)
+            ), Outer.BinOp);
+          }
         }
         var pair = PiTerm.unpi(piTerm, UnaryOperator.identity());
-        var params = generateNames(pair.params());
-        var body = pair.body().instantiateTele(params.view().map(x -> new FreeTerm(x.ref())));
+        var params = pair.names().zip(pair.params(), CoreParam::new);
+        var body = pair.body().instantiateTeleVar(params.view().map(ParamLike::ref));
         var doc = Doc.sep(
           KW_PI,
           visitTele(params, body, FindUsage::free),
@@ -305,7 +308,7 @@ public class CorePrettier extends BasePrettier<Term> {
       //   Doc.nest(2, Doc.vcat(def.members.view().map(this::def)))));
       case DataDef def -> {
         var richDataTele = enrich(def.telescope());
-        var dataArgs = richDataTele.<Term>map(t -> new FreeTerm(t.ref()));
+        var dataArgs = richDataTele.view().<Term>map(t -> new FreeTerm(t.ref()));
 
         var line1 = MutableList.of(KW_DATA,
           defVar(def.ref()),
@@ -389,13 +392,11 @@ public class CorePrettier extends BasePrettier<Term> {
    * @return a {@link ParamLike} telescope
    * @apiNote remember to instantiate body with corresponding {@link FreeTerm}
    */
-  private @NotNull ImmutableSeq<ParamLike<Term>> generateNames(
-    @NotNull ImmutableSeq<Term> tele
-  ) {
+  private @NotNull ImmutableSeq<ParamLike<Term>> generateNames(@NotNull ImmutableSeq<Term> tele) {
     var richTele = MutableList.<ParamLike<Term>>create();
     for (var param : tele) {
-      var freeTy = param.instantiateTele(richTele.view()    // mutable view!!😱
-        .map(x -> new FreeTerm(x.ref())));
+      var freeTy = param.instantiateTeleVar(richTele.view().map(ParamLike::ref));
+      // mutable view!!😱
       // perhaps we can obtain the whnf of ty as the name
       // ice: just use freeTy I think it's ok
       richTele.append(new CoreParam(generateName(freeTy), freeTy));

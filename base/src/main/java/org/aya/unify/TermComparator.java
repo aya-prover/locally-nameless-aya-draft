@@ -447,11 +447,10 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         var tyResult = subscoped(() -> {
           var var = new FreeTerm(LocalVar.generate("j"));
           localCtx().put(var.name(), DimTyTerm.INSTANCE);
-          return compare(AppTerm.make(A, var), AppTerm.make(B, var), null);
+          return compare(A.apply(var), B.apply(var), null);
         });
         if (!tyResult) yield false;
-        yield compare(a0, b0, AppTerm.make(A, DimTerm.I0))
-          && compare(a1, b1, AppTerm.make(A, DimTerm.I1));
+        yield compare(a0, b0, A.apply(DimTerm.I0)) && compare(a1, b1, A.apply(DimTerm.I1));
       }
       default -> throw noRules(preLhs);
     };

@@ -47,7 +47,7 @@ public class TestRunner {
   }
 
   @Test public void playground() throws IOException {
-    // runSingleCase(PatCohError.testCoverage, System.out);
+    // runSingleCase(GoalAndMeta.testNorell, System.out);
   }
 
   public static void main(String... args) throws Exception {

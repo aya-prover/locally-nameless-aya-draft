@@ -8,6 +8,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
 import kala.tuple.Tuple;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.PrimCall;
@@ -76,7 +77,9 @@ public class PrimFactory {
 
   final @NotNull PrimSeed pathType = new PrimSeed(ID.PATH, (prim, _) -> {
     var args = prim.args();
-    return new EqTerm(args.get(0), args.get(1), args.get(2));
+    var var = LocalVar.generate("disappearing");
+    var closureA = AppTerm.make(args.get(0), new FreeTerm(var)).bind(var);
+    return new EqTerm(closureA, args.get(1), args.get(2));
   }, ref -> {
     // (A : I -> Type) (a : A 0) (b : A 1) : Type
     var paramA = new Param("A", intervalToType, true);

@@ -380,7 +380,6 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     sealed interface Ref {
       record Free(@NotNull LocalVar var) implements Ref { }
       record Meta(@NotNull MetaVar var) implements Ref { }
-      record Bound(int idx) implements Ref { }
       enum AnyFree implements Ref { INSTANCE }
     }
   }

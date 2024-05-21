@@ -300,7 +300,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         }
         case EqTerm eq -> {
           var wellTy = inherit(arg.arg(), DimTyTerm.INSTANCE).wellTyped();
-          return new Jdg.Default(eq.makePApp(acc.wellTyped(), wellTy).make(), eq.appA(wellTy));
+          return new Jdg.Default(eq.makePApp(acc.wellTyped(), wellTy), eq.appA(wellTy));
         }
         case Term otherwise -> throw new NotPi(otherwise);
       }

@@ -4,7 +4,6 @@ package org.aya.prettier;
 
 import org.aya.prettier.BasePrettier.Usage.Ref;
 import org.aya.syntax.core.term.FreeTerm;
-import org.aya.syntax.core.term.LocalTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.ref.LocalVar;
@@ -44,7 +43,6 @@ public record FindUsage(@NotNull Ref ref, @NotNull Accumulator accumulator) {
       case Pair(FreeTerm(_), Ref.AnyFree _) -> accumulator.found();
       case Pair(FreeTerm(var var), Ref.Free(var fvar)) when var == fvar -> accumulator.found();
       case Pair(MetaCall meta, Ref.Meta(var fvar)) when meta.ref() == fvar -> accumulator.found();
-      case Pair(LocalTerm(var idx), Ref.Bound(var idy)) when idx == (idy + index) -> accumulator.found();
       default -> {
         var before = accumulator.inMeta;
         if (term instanceof MetaCall) accumulator.inMeta = true;
@@ -67,9 +65,6 @@ public record FindUsage(@NotNull Ref ref, @NotNull Accumulator accumulator) {
   }
   public static int meta(Term t, MetaVar l) {
     return new FindUsage(new Ref.Meta(l)).apply(0, t);
-  }
-  public static int bound(Term t, int i) {
-    return new FindUsage(new Ref.Bound(i)).apply(0, t);
   }
   public static @NotNull Accumulator anyFree(Term t) {
     var findUsage = new FindUsage(Ref.AnyFree.INSTANCE);

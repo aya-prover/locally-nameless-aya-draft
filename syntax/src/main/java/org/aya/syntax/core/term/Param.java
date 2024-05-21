@@ -22,13 +22,13 @@ public record Param(@NotNull String name, @NotNull Term type, boolean explicit) 
   }
 
   public boolean nameEq(@Nullable String otherName) { return name.equals(otherName); }
-  public @NotNull Arg<Term> toArg() { return new Arg<>(type, explicit); }
+  // public @NotNull Arg<Term> toArg() { return new Arg<>(type, explicit); }
   public @NotNull Pat toFreshPat() { return new Pat.Bind(LocalVar.generate(name), type); }
   public @NotNull FreeTerm toFreshTerm() { return new FreeTerm(name); }
   public @NotNull Param implicitize() { return new Param(name, type, false); }
   public @NotNull Param explicitize() { return new Param(name, type, true); }
 
-  public @NotNull Param bindAt(LocalVar ref, int i) { return this.descent(t -> t.bindAt(ref, i)); }
+  // public @NotNull Param bindAt(LocalVar ref, int i) { return this.descent(t -> t.bindAt(ref, i)); }
   public Param instTele(SeqView<Term> terms) { return update(type.instantiateTele(terms)); }
 
   public @NotNull Param update(@NotNull Term type) {

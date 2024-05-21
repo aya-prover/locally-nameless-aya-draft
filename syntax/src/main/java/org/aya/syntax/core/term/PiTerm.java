@@ -31,16 +31,23 @@ public record PiTerm(@NotNull Term param, @NotNull Closure body) implements Stab
     return update(f.apply(0, param), body.descent(f));
   }
 
-  public record Unpi(@NotNull ImmutableSeq<Term> params, @NotNull Term body) { }
+  public record Unpi(
+    @NotNull ImmutableSeq<Term> params,
+    @NotNull ImmutableSeq<LocalVar> names,
+    @NotNull Term body
+  ) { }
   @ForLSP public static @NotNull Unpi unpi(@NotNull Term term, @NotNull UnaryOperator<Term> pre) {
     var params = MutableList.<Term>create();
+    var names = MutableList.<LocalVar>create();
     var nameGen = new NameGenerator();
     while (pre.apply(term) instanceof PiTerm(var param, var body)) {
       params.append(param);
-      term = body.apply(LocalVar.generate(nameGen.next(param)));
+      var var = LocalVar.generate(nameGen.next(param));
+      names.append(var);
+      term = body.apply(var);
     }
 
-    return new Unpi(params.toImmutableSeq(), term);
+    return new Unpi(params.toImmutableSeq(), names.toImmutableSeq(), term);
   }
 
   public static @NotNull SortTerm lub(@NotNull SortTerm domain, @NotNull SortTerm codomain) {

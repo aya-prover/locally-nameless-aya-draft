@@ -73,7 +73,8 @@ public sealed interface Term extends Serializable, AyaDocile
   /**
    * Replacing indexes from {@code from} to {@code from + list.size()} (exclusive) with {@code list}
    */
-  private @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
+  @ApiStatus.Internal
+  default @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
     if (list.isEmpty()) return this;
     return descent((i, t) -> t.replaceAllFrom(from + i, list));
   }
@@ -90,12 +91,9 @@ public sealed interface Term extends Serializable, AyaDocile
    * Corresponds to <emph>instantiate</emph> operator in [MM 2004].
    * Could be called <code>apply</code> similar to Mini-TT.
    */
+  @ApiStatus.Internal
   default @NotNull Term instantiate(Term arg) {
     return replaceAllFrom(0, ImmutableSeq.of(arg));
-  }
-
-  default @NotNull Term instantiate(@NotNull LocalVar var) {
-    return instantiate(new FreeTerm(var));
   }
 
   /**
