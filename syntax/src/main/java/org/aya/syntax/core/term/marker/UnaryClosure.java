@@ -12,17 +12,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.UnaryOperator;
 
 /**
- * An Abstract Lambda Term
+ * An "abstract" Lambda Term.<br/>
+ * We also use it to represent a term that contains a "free" {@link org.aya.syntax.core.term.LocalTerm},
+ * so we can handle them in a scope-safe manner.
  */
 public sealed interface UnaryClosure extends StableWHNF, UnaryOperator<Term> permits LamTerm, JitLamTerm {
-  static @NotNull UnaryClosure mkConst(@NotNull Term term) {
-    return new JitLamTerm(_ -> term);
-  }
+  static @NotNull UnaryClosure mkConst(@NotNull Term term) { return new JitLamTerm(_ -> term); }
 
-  /**
-   * Instantiate the body with given {@param tern}
-   */
+  /** Instantiate the body with given {@param term} */
   @Override Term apply(Term term);
-
   default @NotNull Term apply(LocalVar var) { return apply(new FreeTerm(var)); }
 }
