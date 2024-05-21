@@ -304,10 +304,7 @@ public class CorePrettier extends BasePrettier<Term> {
       //   Doc.nest(2, Doc.vcat(def.members.view().map(this::def)))));
       case DataDef def -> {
         var richDataTele = enrich(def.telescope());
-        var reversedRichDataTele = richDataTele.view()
-          .<Term>map(t -> new FreeTerm(t.ref()))
-          .reversed()
-          .toImmutableSeq();
+        var dataArgs = richDataTele.<Term>map(t -> new FreeTerm(t.ref()));
 
         var line1 = MutableList.of(KW_DATA,
           defVar(def.ref()),
@@ -320,7 +317,7 @@ public class CorePrettier extends BasePrettier<Term> {
             // i: nth param
             // p: the param
             // instantiate reference to data tele
-            return p.descent(t -> t.replaceAllFrom(i, reversedRichDataTele));
+            return p.descent(t -> t.replaceTeleFrom(i, dataArgs));
           })), con.coerce));
 
         yield Doc.vcat(Doc.sepNonEmpty(line1),

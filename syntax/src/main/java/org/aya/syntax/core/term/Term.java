@@ -60,7 +60,7 @@ public sealed interface Term extends Serializable, AyaDocile
    * @see #instantiateAll(SeqView)
    * @see #instantiateTele(SeqView)
    */
-  default @NotNull Term bindAll(@NotNull SeqView<LocalVar> vars) {
+  private @NotNull Term bindAll(@NotNull SeqView<LocalVar> vars) {
     if (vars.isEmpty()) return this;
     return vars.foldLeftIndexed(this, (idx, acc, var) -> acc.bindAt(var, idx));
   }
@@ -72,8 +72,7 @@ public sealed interface Term extends Serializable, AyaDocile
   /**
    * Replacing indexes from {@code from} to {@code from + list.size()} (exclusive) with {@code list}
    */
-  @ApiStatus.Internal
-  default @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
+  private @NotNull Term replaceAllFrom(int from, @NotNull ImmutableSeq<Term> list) {
     if (list.isEmpty()) return this;
     return descent((i, t) -> t.replaceAllFrom(from + i, list));
   }
