@@ -29,17 +29,17 @@ public interface StmtVisitor extends Consumer<Stmt> {
   /** import */
   default void visitModuleRef(@NotNull SourcePos pos, @NotNull ModulePath path) { }
   default void visitVar(
-    @NotNull SourcePos pos, @NotNull AnyVar path,
+    @NotNull SourcePos pos, @NotNull AnyVar var,
     @NotNull LazyValue<@Nullable Term> type
   ) { }
   default void visitVarRef(
-    @NotNull SourcePos pos, @NotNull AnyVar path,
+    @NotNull SourcePos pos, @NotNull AnyVar var,
     @NotNull LazyValue<@Nullable Term> type
-  ) { visitVar(pos, path, type); }
+  ) { visitVar(pos, var, type); }
   default void visitVarDecl(
-    @NotNull SourcePos pos, @NotNull AnyVar path,
+    @NotNull SourcePos pos, @NotNull AnyVar var,
     @NotNull LazyValue<@Nullable Term> type
-  ) { visitVar(pos, path, type); }
+  ) { visitVar(pos, var, type); }
 
   @SuppressWarnings("unchecked") private @Nullable Term varType(@Nullable AnyVar var) {
     if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof TeleDef)
