@@ -80,9 +80,7 @@ public interface OperatorError extends Problem {
     }
   }
 
-  record Circular(
-    @NotNull ImmutableSeq<BinOpSet.BinOP> items
-  ) implements OperatorError {
+  record Circular(@NotNull ImmutableSeq<BinOpSet.BinOP> items) implements OperatorError {
     @Override public @NotNull SourcePos sourcePos() {
       return items.view().map(BinOpSet.BinOP::firstBind)
         .max(Comparator.comparingInt(SourcePos::endLine));

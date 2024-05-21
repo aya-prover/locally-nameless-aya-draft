@@ -3,7 +3,6 @@
 package org.aya.resolve;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.module.ModuleLoader;
 import org.aya.resolve.salt.Desalt;
 import org.aya.resolve.visitor.StmtBinder;
@@ -42,5 +41,6 @@ public record StmtResolvers(@NotNull ModuleLoader loader, @NotNull ResolveInfo i
     resolveStmts(resolving); // resolve mutates stmts
     resolveBind(resolving); // mutates bind blocks
     desugar(stmts);
+    info.opSet().reportIfCyclic();
   }
 }

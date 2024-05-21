@@ -40,6 +40,7 @@ public class TestRunner {
       GoalAndMeta.class,
       ScopeError.class,
       PatTyckError.class,
+      OperatorError.class,
       PatCohError.class
     ).forEachChecked(TestRunner::expectFixture);
     Files.deleteIfExists(TMP_FILE);

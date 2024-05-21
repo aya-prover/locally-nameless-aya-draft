@@ -223,8 +223,9 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         yield new Jdg.Default(wellTyped, ty);
       }
       case Expr.Let let -> checkLet(let, this::synthesize);
+      case Expr.Error err -> new Jdg.Default(new ErrorTerm(err), ErrorTerm.typeOf(err));
       case Expr.Array array -> throw new UnsupportedOperationException("TODO");
-      case Expr.Unresolved _, Expr.Error _ -> Panic.unreachable();
+      case Expr.Unresolved _ -> Panic.unreachable();
       default -> fail(expr.data(), new NoRuleError(expr, null));
     };
   }
