@@ -4,6 +4,7 @@ package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import kala.range.primitive.IntRange;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import org.aya.generic.NameGenerator;
@@ -23,9 +24,9 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
   @Override public AyaSerializer<DataDef> serialize(DataDef unit) {
     buildFramework(unit, () -> {
       // TODO: is it better to be synchronized ?
-      buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", () -> {
+      buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", true, () -> {
         buildConstructors(unit);
-      }, true);
+      });
     });
 
     return this;
@@ -49,17 +50,11 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
 
   @Override protected void buildTelescope(DataDef unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
     var tele = unit.telescope;
-    var jumpTable = MutableList.<Tuple2<String, Runnable>>create();
-    tele.forEachIndexed((idx, p) -> {
-      jumpTable.append(Tuple.of(
-        Integer.toString(idx), () -> {
-          var serializer = new TermSerializer(this.nameGen, fromArray(teleArgsTerm, idx));
-          buildReturn(serializer.serialize(tele.get(idx).type()).result());
-        }
-      ));
-    });
 
-    buildSwitch(iTerm, jumpTable.toImmutableSeq());
+    buildSwitch(iTerm, IntRange.closedOpen(0, tele.size()).collect(ImmutableSeq.factory()), kase -> {
+      var serializer = new TermSerializer(this.nameGen, fromArray(teleArgsTerm, kase));
+      buildReturn(serializer.serialize(tele.get(kase).type()).result());
+    }, () -> buildPanic(null));
   }
 
   @Override protected void buildResult(DataDef unit, @NotNull String teleArgsTerm) {

@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
+import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple2;
 import org.aya.compiler.util.SerializeUtils;
@@ -115,6 +116,11 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."public static final \{className} INSTANCE = new \{className}();");
   }
 
+  public void buildPanic(@Nullable String message) {
+    message = message == null ? "" : STR."\"\{message}\"";
+    appendLine(STR."new \{CLASS_PANIC}(\{message});");
+  }
+
   public @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {
     return ImmutableSeq.fill(size, idx -> STR."\{term}[\{idx}]");
   }
@@ -129,25 +135,18 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     builder.append('\n');
   }
 
-  public void buildSwitch(
+  public <R> void buildSwitch(
     @NotNull String term,
-    @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases
+    @NotNull ImmutableSeq<R> cases,
+    @NotNull Consumer<R> continuation,
+    @NotNull Runnable defaultCase
   ) {
-    buildSwitch(term, cases, () -> {
-      appendLine(STR."throw new \{CLASS_PANIC}();");
-    });
-  }
-
-  public void buildSwitch(
-    @NotNull String term,
-    @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases,
-    @NotNull Runnable defaultCase) {
     appendLine(STR."switch (\{term}) {");
     runInside(() -> {
       for (var kase : cases) {
-        appendLine(STR."case \{kase.component1()}:");
+        appendLine(STR."case \{kase}:");
         // the continuation should return
-        runInside(kase.component2());
+        runInside(() -> continuation.accept(kase));
       }
 
       appendLine(STR."default:");
@@ -156,12 +155,31 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."}");
   }
 
+  public void buildSwitch(
+    @NotNull String term,
+    @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases
+  ) {
+    buildSwitch(term, cases, () -> {
+      buildPanic(null);
+    });
+  }
+
+  public void buildSwitch(
+    @NotNull String term,
+    @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases,
+    @NotNull Runnable defaultCase) {
+    var map = ImmutableMap.from(cases);
+    buildSwitch(term, cases.map(Tuple2::component1), kase -> {
+      map.get(kase).run();
+    }, defaultCase);
+  }
+
   public void buildMethod(
     @NotNull String name,
     @NotNull ImmutableSeq<JitParam> params,
     @NotNull String returnType,
-    @NotNull Runnable continuation,
-    boolean override
+    boolean override,
+    @NotNull Runnable continuation
   ) {
     if (override) {
       appendLine("@Override");

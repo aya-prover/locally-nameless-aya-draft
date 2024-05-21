@@ -30,18 +30,18 @@ public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
       buildInstance(className);
       appendLine();     // make code more pretty
       // empty return type for constructor
-      buildMethod(className, ImmutableSeq.empty(), "/*constructor*/", () -> buildConstructor(unit), false);
+      buildMethod(className, ImmutableSeq.empty(), "/*constructor*/", false, () -> buildConstructor(unit));
       appendLine();
       var iTerm = "i";
       var teleArgsTerm = "teleArgs";
       buildMethod("telescope", ImmutableSeq.of(
         new JitParam("i", "int"),
         new JitParam("teleArgs", "Term...")
-      ), "Term", () -> buildTelescope(unit, iTerm, teleArgsTerm), true);
+      ), "Term", true, () -> buildTelescope(unit, iTerm, teleArgsTerm));
       appendLine();
       buildMethod("result", ImmutableSeq.of(
         new JitParam("teleArgs", "Term...")
-      ), "Term", () -> buildResult(unit, teleArgsTerm), true);
+      ), "Term", true, () -> buildResult(unit, teleArgsTerm));
       appendLine();
       continuation.run();
     });
