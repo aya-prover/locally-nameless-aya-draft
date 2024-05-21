@@ -37,12 +37,12 @@ public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
       var teleArgsTerm = "teleArgs";
       buildMethod("telescope", ImmutableSeq.of(
         new JitParam("i", "int"),
-        new JitParam("teleArgs", "Term...")
-      ), "Term", true, () -> buildTelescope(unit, iTerm, teleArgsTerm));
+        new JitParam("teleArgs", STR."\{CLASS_TERM}...")
+      ), CLASS_TERM, true, () -> buildTelescope(unit, iTerm, teleArgsTerm));
       appendLine();
       buildMethod("result", ImmutableSeq.of(
-        new JitParam("teleArgs", "Term...")
-      ), "Term", true, () -> buildResult(unit, teleArgsTerm));
+        new JitParam("teleArgs", STR."\{CLASS_TERM}...")
+      ), CLASS_TERM, true, () -> buildResult(unit, teleArgsTerm));
       appendLine();
       continuation.run();
     });

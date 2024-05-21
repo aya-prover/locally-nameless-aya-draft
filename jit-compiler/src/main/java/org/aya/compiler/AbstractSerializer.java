@@ -191,6 +191,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine("}");
   }
 
+  protected static @NotNull String isNull(@NotNull String term) {
+    return STR."\{term} == null";
+  }
+
   protected static @NotNull String copyOf(@NotNull String arrayTerm, int length) {
     return STR."Arrays.copyOf(\{arrayTerm}, \{length})";
   }
