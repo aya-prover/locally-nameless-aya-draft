@@ -57,8 +57,8 @@ public final class PrimDef extends TopLevelDef<Term> {
   public static final @NotNull Term intervalToType = new PiTerm(DimTyTerm.INSTANCE, Closure.mkConst(Type0));
 
   /** Let A be argument, then <code>A i -> A j</code>. Handles index shifting. */
-  public static @NotNull PiTerm familyI2J(Term term, Term i, Term j) {
-    return new PiTerm(AppTerm.make(term, i), Closure.mkConst(AppTerm.make(term, j)));
+  public static @NotNull PiTerm familyI2J(Closure term, Term i, Term j) {
+    return new PiTerm(term.apply(i), Closure.mkConst(term.apply(j)));
   }
 
   public enum ID {

@@ -199,7 +199,7 @@ public class CorePrettier extends BasePrettier<Term> {
         SeqView.of(new Arg<>(app.arg(), true)), outer, optionImplicit());
       case CoeTerm(var ty, var r, var s) -> visitCalls(null,
         KW_COE,
-        ImmutableSeq.of(r, s, ty).view().map(t -> new Arg<>(t, true)),
+        ImmutableSeq.of(r, s, new LamTerm(ty)).view().map(t -> new Arg<>(t, true)),
         outer, true);
       // case HCompTerm hComp -> throw new InternalException("TODO");
       case DimTerm dim -> Doc.styled(KEYWORD, switch (dim) {

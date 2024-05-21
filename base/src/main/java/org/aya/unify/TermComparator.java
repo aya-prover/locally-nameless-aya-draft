@@ -9,7 +9,6 @@ import org.aya.generic.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
@@ -255,8 +254,11 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         if (!(rhs instanceof CoeTerm(var rType, var rR, var rS))) yield null;
         if (!compare(coe.r(), rR, DimTyTerm.INSTANCE)) yield null;
         if (!compare(coe.s(), rS, DimTyTerm.INSTANCE)) yield null;
-        yield compare(coe.type(), rType, PrimDef.intervalToType) ?
-          coe.family() : null;
+        if (!subscoped(() -> {
+          var var = putIndex(DimTyTerm.INSTANCE);
+          return compare(coe.type().apply(var), rType.apply(var), null);
+        })) yield null;
+        yield coe.family();
       }
       case ProjTerm(var lof, var ldx) -> {
         // Since {lhs} and {rhs} are whnf, at this point, {lof} is unable to evaluate.
@@ -445,8 +447,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       case Pair(SortTerm lhs, SortTerm rhs) -> compareSort(lhs, rhs);
       case Pair(EqTerm(var A, var a0, var a1), EqTerm(var B, var b0, var b1)) -> {
         var tyResult = subscoped(() -> {
-          var var = new FreeTerm(LocalVar.generate("j"));
-          localCtx().put(var.name(), DimTyTerm.INSTANCE);
+          var var = putIndex(DimTyTerm.INSTANCE);
           return compare(A.apply(var), B.apply(var), null);
         });
         if (!tyResult) yield false;

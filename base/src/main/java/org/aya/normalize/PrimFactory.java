@@ -59,7 +59,7 @@ public class PrimFactory {
 
   final @NotNull PrimSeed coe = new PrimSeed(ID.COE, (prim, _) -> {
     var args = prim.args();
-    return new CoeTerm(args.get(2), args.get(0), args.get(1));
+    return new CoeTerm(closureParam(args.get(2)), args.get(0), args.get(1));
   }, ref -> {
     // coe (r s : I) (A : I -> Type) : A r -> A s
     var telescope = ImmutableSeq.of(
@@ -69,7 +69,9 @@ public class PrimFactory {
     var r = LocalVar.generate("r");
     var s = LocalVar.generate("s");
     var A = LocalVar.generate("A");
-    var result = familyI2J(new FreeTerm(A), new FreeTerm(r), new FreeTerm(s))
+    // Eta-expanded A
+    var closureA = new Closure.Idx(new AppTerm(new FreeTerm(A), new LocalTerm(0)));
+    var result = familyI2J(closureA, new FreeTerm(r), new FreeTerm(s))
       .bindTele(ImmutableSeq.of(r, s, A).view());
 
     return new PrimDef(ref, telescope, result, ID.COE);
@@ -77,9 +79,7 @@ public class PrimFactory {
 
   final @NotNull PrimSeed pathType = new PrimSeed(ID.PATH, (prim, _) -> {
     var args = prim.args();
-    var var = LocalVar.generate("disappearing");
-    var closureA = AppTerm.make(args.get(0), new FreeTerm(var)).bind(var);
-    return new EqTerm(closureA, args.get(1), args.get(2));
+    return new EqTerm(closureParam(args.get(0)), args.get(1), args.get(2));
   }, ref -> {
     // (A : I -> Type) (a : A 0) (b : A 1) : Type
     var paramA = new Param("A", intervalToType, true);
@@ -87,6 +87,11 @@ public class PrimFactory {
     var paramRight = new Param("b", AppTerm.make(new LocalTerm(1), DimTerm.I1), true);
     return new PrimDef(ref, ImmutableSeq.of(paramA, paramLeft, paramRight), Type0, ID.PATH);
   }, ImmutableSeq.of(ID.I));
+
+  private static @NotNull Closure closureParam(@NotNull Term term) {
+    var var = LocalVar.generate("disappearing");
+    return AppTerm.make(term, new FreeTerm(var)).bind(var);
+  }
 
   final @NotNull PrimSeed stringType =
     new PrimSeed(ID.STRING, this::primCall,
