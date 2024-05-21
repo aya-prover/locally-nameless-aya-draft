@@ -33,32 +33,10 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
   }
 
   @Override protected void buildConstructor(DataDef unit) {
-    var tele = unit.telescope();
-    var size = tele.size();
-    var licit = tele.view().map(Param::explicit).map(Object::toString);
-    var names = tele.view().map(Param::name).map(x -> STR."\"\{x}\"");
-
-    buildSuperCall(ImmutableSeq.of(
-      Integer.toString(size),
-      arrayFrom("boolean", licit.toImmutableSeq()),
-      arrayFrom("String", names.toImmutableArray()),
-      Integer.toString(unit.body.size())
-    ));
+    buildConstructor(unit, ImmutableSeq.of(Integer.toString(unit.body.size())));
   }
 
   @Override protected String getClassName(DataDef unit) { return unit.ref.name(); }
-
-  @Override protected void buildTelescope(DataDef unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
-    super.buildTelescope(unit.telescope, iTerm, teleArgsTerm);
-  }
-
-  @Override protected void buildResult(DataDef unit, @NotNull String teleArgsTerm) {
-    buildReturn(
-      new TermSerializer(nameGen, fromArray(teleArgsTerm, unit.telescope.size()))
-        .serialize(unit.result)
-        .result()
-    );
-  }
 
   /**
    * @see JitData#constructors()
@@ -66,22 +44,12 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
   private void buildConstructors(DataDef unit) {
     var cRef = "this.constructors";
 
-    buildIf(STR."\{cRef}[0] == null", () -> {
+    buildIf(isNull(STR."\{cRef}[0]"), () -> {
       unit.body.forEachIndexed((idx, con) -> {
         buildUpdate(STR."\{cRef}[\{idx}]", getInstance(getQualified(con.ref)));
       });
     });
 
     buildReturn(cRef);
-  }
-
-  public @NotNull String arrayFrom(@NotNull String type, @NotNull ImmutableSeq<String> elements) {
-    var builder = new StringBuilder();
-    builder.append("new ");
-    builder.append(type);
-    builder.append("[] { ");
-    elements.joinTo(builder, ", ");
-    builder.append(" }");
-    return builder.toString();
   }
 }

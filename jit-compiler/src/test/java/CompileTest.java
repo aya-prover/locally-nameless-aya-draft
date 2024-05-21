@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.compiler.ConSerializer;
 import org.aya.compiler.DataSerializer;
 import org.aya.compiler.PatternSerializer;
 import org.aya.generic.NameGenerator;
@@ -59,6 +60,12 @@ public class CompileTest {
 
     var vec = (DataDef) result.findFirst(def -> def.ref().name().equals("Vec")).get();
     var out = new DataSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(vec).result();
+    System.out.println("Vec.java");
+    System.out.println(out);
+
+    var vnil = (ConDef) result.findFirst(def -> def.ref().name().equals("[]")).get();
+    out = new ConSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(vnil).result();
+    System.out.println("vnil.java");
     System.out.println(out);
   }
 

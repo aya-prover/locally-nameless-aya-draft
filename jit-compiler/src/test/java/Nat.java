@@ -1,6 +1,7 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 
+import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Result;
 import org.aya.compiler.util.SerializeUtils;
@@ -194,8 +195,7 @@ public interface Nat {
           case 0:
             return Result.err(true);
           case 1:
-            var finalResult = Arrays.copyOf(result, 1);
-            return Result.ok(ImmutableSeq.from(finalResult));
+            return Result.ok(ImmutableSeq.from(Arrays.copyOf(result, 1)));
           default:
             return Panic.unreachable();
         }

@@ -191,6 +191,16 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine("}");
   }
 
+  protected @NotNull String arrayFrom(@NotNull String type, @NotNull ImmutableSeq<String> elements) {
+    var builder = new StringBuilder();
+    builder.append("new ");
+    builder.append(type);
+    builder.append("[] { ");
+    elements.joinTo(builder, ", ");
+    builder.append(" }");
+    return builder.toString();
+  }
+
   protected static @NotNull String isNull(@NotNull String term) {
     return STR."\{term} == null";
   }

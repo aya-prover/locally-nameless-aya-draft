@@ -22,9 +22,9 @@ import java.util.function.Consumer;
 public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<PatternSerializer.Matching>> {
   public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull Runnable onSucc) { }
 
-  private static final @NotNull String VARIABLE_RESULT = "result";
-  private static final @NotNull String VARIABLE_STATE = "matchState";
-  private static final @NotNull String VARIABLE_META_STATE = "metaState";
+  public static final @NotNull String VARIABLE_RESULT = "result";
+  public static final @NotNull String VARIABLE_STATE = "matchState";
+  public static final @NotNull String VARIABLE_META_STATE = "metaState";
 
   static final @NotNull String CLASS_METAPATTERM = MetaPatTerm.class.getName();
   static final @NotNull String CLASS_PATMATCHER = PatMatcher.class.getName();

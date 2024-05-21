@@ -3,12 +3,15 @@
 package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.control.Result;
 import org.aya.syntax.compile.JitConCall;
 import org.aya.syntax.compile.JitDataCall;
 import org.aya.syntax.compile.JitFnCall;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
+
+import java.util.Arrays;
 
 import static org.aya.compiler.AbstractSerializer.getQualified;
 
@@ -26,6 +29,10 @@ public interface AyaSerializer<T> {
   String CLASS_IMMSEQ = getQualified(ImmutableSeq.class);
   String CLASS_TERM = getQualified(Term.class);
   String CLASS_PANIC = getQualified(Panic.class);
+
+  String CLASS_RESULT = getQualified(Result.class);
+  String CLASS_ARRAYS = getQualified(Arrays.class);
+  String CLASS_BOOLEAN = getQualified(Boolean.class);
 
   @Language("Java") String IMPORT_BLOCK = """
     import org.aya.syntax.compile.*;
