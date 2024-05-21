@@ -46,6 +46,10 @@ public class TestRunner {
     Files.deleteIfExists(TMP_FILE);
   }
 
+  @Test public void playground() throws IOException {
+    // runSingleCase(PatCohError.testCoverage, System.out);
+  }
+
   public static void main(String... args) throws Exception {
     TestRunner.startDash();
     new TestRunner().negative();

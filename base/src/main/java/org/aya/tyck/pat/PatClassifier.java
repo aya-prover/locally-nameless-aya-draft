@@ -17,6 +17,7 @@ import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.ClausesProblem;
 import org.aya.tyck.error.TyckOrderError;
@@ -32,6 +33,7 @@ import org.aya.util.tyck.pat.PatClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 public record PatClassifier(
@@ -112,7 +114,9 @@ public record PatClassifier(
               Indexed.indices(Seq.wrapJava(i)).concat(binds)));
           var ml = MutableArrayList.<PatClass<Term>>create(classes.size() + 1);
           ml.appendAll(classes);
-          ml.append(new PatClass<>(param.toFreshTerm(), binds));
+          var maxInt = lits.max(Comparator.comparing(p -> p.pat().repr())).pat();
+          var onePlus = new IntegerTerm(maxInt.repr() + 1, maxInt.recognition(), maxInt.type());
+          ml.append(new PatClass<>(onePlus, binds));
           return ml.toImmutableSeq();
         }
 
@@ -134,9 +138,8 @@ public record PatClassifier(
             // In this case we give up and do not split on this constructor
             if (conTele.isEmpty() || fuel1 <= 0) {
               var err = new ErrorTerm(Doc.plain("..."), false);
-              buffer.append(new PatClass<>(new ConCall(conHead,
-                conTele.isEmpty() ? ImmutableSeq.empty() : ImmutableSeq.of(err)),
-                ImmutableIntSeq.empty()));
+              var missingCon = new ConCall(conHead, conTele.isEmpty() ? ImmutableSeq.empty() : ImmutableSeq.of(err));
+              buffer.append(new PatClass<>(missingCon, ImmutableIntSeq.empty()));
               continue;
             }
           }

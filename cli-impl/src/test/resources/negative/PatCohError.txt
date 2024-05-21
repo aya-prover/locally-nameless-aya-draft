@@ -449,3 +449,48 @@ Error: The 3rd clause matches on a path constructor. We failed to unify
 1 error(s), 0 warning(s).
 What are you doing?
 
+Coverage:
+In file $FILE:2:0 ->
+
+  1 │   open import Arith::Nat
+  2 │   def cov (x x' x'' x''' : Nat) : Nat
+    │ ╭─╯
+  3 │ │  | zero, a, b, c => 0
+    │ │  
+  4 │ │  | a, zero, b, c => 0
+    │ │  
+  5 │ │ | a, b, zero, c => 0
+    │ ╰────────────────────╯
+
+Error: Unhandled case:
+         suc _, suc _, suc zero, zero
+         suc _, suc _, suc zero, suc zero
+         suc _, suc _, suc zero, suc (suc ...)
+         suc _, suc _, suc (suc ...), zero
+         suc _, suc _, suc (suc ...), suc zero
+         suc _, suc _, suc (suc ...), suc (suc ...)
+
+1 error(s), 0 warning(s).
+What are you doing?
+
+CoverageLiteral:
+In file $FILE:2:0 ->
+
+  1 │   open import Arith::Nat
+  2 │   def cov (x x' x'' x''' : Nat) : Nat
+    │ ╭─╯
+  3 │ │  | 0, a, b, c => 0
+    │ │  
+  4 │ │  | a, 0, b, c => 0
+    │ │  
+  5 │ │ | a, b, 0, c => 0
+    │ ╰─────────────────╯
+
+Error: Unhandled case:
+         1, 1, 1, zero
+         1, 1, 1, suc zero
+         1, 1, 1, suc (suc ...)
+
+1 error(s), 0 warning(s).
+What are you doing?
+

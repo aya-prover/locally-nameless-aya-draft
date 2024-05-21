@@ -116,4 +116,20 @@ public interface PatCohError {
     | signed false _ => 0
     | posneg _ => 1
     """;
+
+  @Language("Aya") String testCoverage = """
+    open import Arith::Nat
+    def cov (x x' x'' x''' : Nat) : Nat
+    | zero, a, b, c => 0
+    | a, zero, b, c => 0
+    | a, b, zero, c => 0
+    """;
+
+  @Language("Aya") String testCoverageLiteral = """
+    open import Arith::Nat
+    def cov (x x' x'' x''' : Nat) : Nat
+    | 0, a, b, c => 0
+    | a, 0, b, c => 0
+    | a, b, 0, c => 0
+    """;
 }
