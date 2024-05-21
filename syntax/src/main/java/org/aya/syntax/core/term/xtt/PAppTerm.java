@@ -3,10 +3,9 @@
 package org.aya.syntax.core.term.xtt;
 
 import kala.function.IndexedFunction;
-import org.aya.syntax.core.term.marker.BetaRedex;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.marker.UnaryClosure;
+import org.aya.syntax.core.term.marker.BetaRedex;
 import org.jetbrains.annotations.NotNull;
 
 public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @NotNull Term b) implements BetaRedex {
@@ -25,7 +24,7 @@ public record PAppTerm(@NotNull Term fun, @NotNull Term arg, @NotNull Term a, @N
   }
 
   @Override public @NotNull Term make() {
-    if (fun instanceof UnaryClosure closure) return closure.apply(arg);
+    if (fun instanceof LamTerm(var closure)) return closure.apply(arg);
     if (arg instanceof DimTerm dim) return switch (dim) {
       case I0 -> a;
       case I1 -> b;

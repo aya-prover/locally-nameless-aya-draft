@@ -24,9 +24,7 @@ public record DoubleChecker(
   @NotNull Unifier unifier,
   @NotNull Synthesizer synthesizer
 ) implements Stateful, Contextful, Problematic {
-  public DoubleChecker(@NotNull Unifier unifier) {
-    this(unifier, new Synthesizer(unifier));
-  }
+  public DoubleChecker(@NotNull Unifier unifier) { this(unifier, new Synthesizer(unifier)); }
 
   public boolean inherit(@NotNull Term preterm, @NotNull Term expected) {
     return switch (preterm) {
@@ -35,7 +33,7 @@ public record DoubleChecker(
         if (!(whnf(expected) instanceof SortTerm expectedTy)) yield Panic.unreachable();
         yield synthesizer.inheritPiDom(pParam, expectedTy) && subscoped(() -> {
           var param = putIndex(pParam);
-          return inherit(pBody.instantiate(param), expectedTy);
+          return inherit(pBody.apply(param), expectedTy);
         });
       }
       case SigmaTerm sigma -> {
@@ -55,12 +53,12 @@ public record DoubleChecker(
       case LamTerm(var body) -> subscoped(() -> switch (whnf(expected)) {
         case PiTerm(var dom, var cod) -> {
           var param = putIndex(dom);
-          yield inherit(body.instantiate(param), cod.instantiate(param));
+          yield inherit(body.apply(param), cod.apply(param));
         }
         case EqTerm eq -> {
           var param = putIndex(DimTyTerm.INSTANCE);
           // TODO: check boundaries
-          yield inherit(body.instantiate(param), eq.A());
+          yield inherit(body.apply(param), eq.A());
         }
         default -> failF(new BadExprError(preterm, unifier.pos, expected));
       });

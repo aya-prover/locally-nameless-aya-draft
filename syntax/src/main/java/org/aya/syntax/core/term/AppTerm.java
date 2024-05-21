@@ -8,7 +8,6 @@ import kala.collection.mutable.MutableList;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.marker.BetaRedex;
-import org.aya.syntax.core.term.marker.UnaryClosure;
 import org.jetbrains.annotations.NotNull;
 
 public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements BetaRedex {
@@ -20,9 +19,7 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements BetaRedex
     return update(f.apply(0, fun), f.apply(0, arg));
   }
 
-  public static @NotNull Term make(@NotNull Term f, @NotNull Term a) {
-    return new AppTerm(f, a).make();
-  }
+  public static @NotNull Term make(@NotNull Term f, @NotNull Term a) { return new AppTerm(f, a).make(); }
   public static @NotNull Term make(@NotNull Term f, @NotNull SeqView<Term> args) {
     for (var arg : args) f = make(f, arg);
     return f;
@@ -30,7 +27,7 @@ public record AppTerm(@NotNull Term fun, @NotNull Term arg) implements BetaRedex
 
   @Override public @NotNull Term make() {
     return switch (fun) {
-      case UnaryClosure closure -> closure.apply(arg);
+      case LamTerm(var closure) -> closure.apply(arg);
       case MetaCall(var ref, var args) -> new MetaCall(ref, args.appended(arg));
       default -> this;
     };

@@ -4,8 +4,11 @@ package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.marker.UnaryClosure;
+import org.aya.syntax.core.Closure;
+import org.aya.syntax.core.term.AppTerm;
+import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.PiTerm;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.error.WithPos;
@@ -51,11 +54,11 @@ public final class PrimDef extends TopLevelDef<Term> {
   }
 
   /** <code>I -> Type</code> */
-  public static final @NotNull Term intervalToType = new PiTerm(DimTyTerm.INSTANCE, UnaryClosure.mkConst(Type0));
+  public static final @NotNull Term intervalToType = new PiTerm(DimTyTerm.INSTANCE, Closure.mkConst(Type0));
 
   /** Let A be argument, then <code>A i -> A j</code>. Handles index shifting. */
   public static @NotNull PiTerm familyI2J(Term term, Term i, Term j) {
-    return new PiTerm(AppTerm.make(term, i), UnaryClosure.mkConst(AppTerm.make(term, j)));
+    return new PiTerm(AppTerm.make(term, i), Closure.mkConst(AppTerm.make(term, j)));
   }
 
   public enum ID {

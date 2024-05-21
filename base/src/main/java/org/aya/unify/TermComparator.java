@@ -169,8 +169,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> subscoped(() -> {
           var var = putIndex(pi.param());
           return compare(
-            lbody.instantiate(var),
-            rbody.instantiate(var),
+            lbody.apply(var),
+            rbody.apply(var),
             pi.body().apply(var)
           );
         });
@@ -182,8 +182,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
         case Pair(LamTerm(var lbody), LamTerm(var rbody)) -> subscoped(() -> {
           var var = putIndex(DimTyTerm.INSTANCE);
           return compare(
-            lbody.instantiate(var),
-            rbody.instantiate(var),
+            lbody.apply(var),
+            rbody.apply(var),
             eq.appA(new FreeTerm(var))
           );
         });
@@ -306,7 +306,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   private boolean compareLambda(@NotNull LamTerm lambda, @NotNull Term rhs, @NotNull PiTerm type) {
     return subscoped(() -> {
       var var = putIndex(type.param());
-      var lhsBody = lambda.body().instantiate(var);
+      var lhsBody = lambda.body().apply(var);
       var rhsBody = AppTerm.make(rhs, new FreeTerm(var));
       return compare(lhsBody, rhsBody, type.body().apply(var));
     });
@@ -315,7 +315,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   private boolean compareLambda(@NotNull LamTerm lambda, @NotNull Term rhs, @NotNull EqTerm type) {
     return subscoped(() -> {
       var var = putIndex(DimTyTerm.INSTANCE);
-      var lhsBody = lambda.body().instantiate(var);
+      var lhsBody = lambda.body().apply(var);
       var free = new FreeTerm(var);
       var rhsBody = AppTerm.make(rhs, free);
       return compare(lhsBody, rhsBody, type.appA(free));
@@ -439,7 +439,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       }
       case Pair(DimTyTerm _, DimTyTerm _) -> true;
       case Pair(PiTerm(var lParam, var lBody), PiTerm(var rParam, var rBody)) -> compareTypeWith(lParam, rParam,
-        () -> false, var -> compare(lBody.instantiate(var), rBody.instantiate(var), null));
+        () -> false, var -> compare(lBody.apply(var), rBody.apply(var), null));
       case Pair(SigmaTerm(var lParams), SigmaTerm(var rParams)) ->
         compareTypesWith(lParams, rParams, () -> false, _ -> true);
       case Pair(SortTerm lhs, SortTerm rhs) -> compareSort(lhs, rhs);

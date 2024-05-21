@@ -20,11 +20,12 @@ module aya.syntax {
   exports org.aya.syntax.core.pat;
   exports org.aya.syntax.core.repr;
   exports org.aya.syntax.core.term.call;
+  exports org.aya.syntax.core.term.marker;
   exports org.aya.syntax.core.term.repr;
   exports org.aya.syntax.core.term.xtt;
   exports org.aya.syntax.core.term;
+  exports org.aya.syntax.core;
   exports org.aya.syntax.literate;
   exports org.aya.syntax.ref;
   exports org.aya.syntax;
-  exports org.aya.syntax.core.term.marker;
 }

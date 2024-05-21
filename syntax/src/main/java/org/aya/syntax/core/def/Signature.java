@@ -10,6 +10,7 @@ import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.ForLSP;
 import org.aya.util.error.WithPos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
@@ -21,6 +22,7 @@ import java.util.function.UnaryOperator;
  *
  * @apiNote All terms in signature are as bound as possible.
  */
+@ForLSP
 public record Signature<T extends Term>(
   @NotNull ImmutableSeq<WithPos<Param>> param, @NotNull T result
 ) implements AyaDocile {
@@ -42,9 +44,7 @@ public record Signature<T extends Term>(
   }
 
   public @NotNull Signature<Term> descent(@NotNull UnaryOperator<Term> f) {
-    return new Signature<>(
-      param.map(p -> p.map(q -> q.descent(f))),
-      f.apply(result));
+    return new Signature<>(param.map(p -> p.map(q -> q.descent(f))), f.apply(result));
   }
 
   /**
@@ -52,10 +52,7 @@ public record Signature<T extends Term>(
    *
    * @param vars telescope
    */
-  public @NotNull Signature<?> bindTele(@NotNull SeqView<LocalVar> vars) {
-    return bindAll(vars.reversed());
-  }
-
+  public @NotNull Signature<?> bindTele(@NotNull SeqView<LocalVar> vars) { return bindAll(vars.reversed()); }
   @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     return Doc.sep(Doc.sep(param.view().map(p -> p.data().toDoc(options))), Tokens.ARROW, result.toDoc(options));
   }

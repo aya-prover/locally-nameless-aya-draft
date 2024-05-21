@@ -13,5 +13,5 @@ import org.aya.syntax.core.term.xtt.EqTerm;
  * after a substitution (this usually happens under face restrictions (aka cofibrations)).
  */
 public sealed interface StableWHNF extends Term
-  permits ErrorTerm, PiTerm, SigmaTerm, SortTerm, TupTerm, DataCall, UnaryClosure, IntegerTerm, DimTerm, EqTerm {
+  permits ErrorTerm, PiTerm, SigmaTerm, SortTerm, TupTerm, DataCall, LamTerm, IntegerTerm, DimTerm, EqTerm {
 }

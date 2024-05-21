@@ -15,7 +15,6 @@ public sealed interface Jdg {
   @NotNull Term wellTyped();
   @NotNull Term type();
 
-  default @NotNull Jdg bind(@NotNull LocalVar var) { return map(t -> t.bind(var)); }
   default @NotNull Jdg bindTele(@NotNull SeqView<LocalVar> vars) { return map(t -> t.bindTele(vars)); }
   @NotNull Jdg map(@NotNull UnaryOperator<Term> f);
 

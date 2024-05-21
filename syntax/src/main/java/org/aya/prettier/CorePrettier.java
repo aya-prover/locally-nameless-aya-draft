@@ -11,7 +11,6 @@ import org.aya.generic.NameGenerator;
 import org.aya.generic.ParamLike;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.Compiled;
-import org.aya.syntax.compile.JitLamTerm;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
@@ -209,7 +208,6 @@ public class CorePrettier extends BasePrettier<Term> {
         var doc = Doc.sep(term(Outer.BinOp, a), EQ, term(Outer.BinOp, b));
         yield checkParen(outer, doc, Outer.BinOp);
       }
-      case JitLamTerm jit -> term(outer, jit.toLam());
       case Compiled _ -> Doc.plain("<TODO: pretty print compiled terms>");
     };
   }

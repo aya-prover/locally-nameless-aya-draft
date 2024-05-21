@@ -4,12 +4,12 @@ package org.aya.tyck.tycker;
 
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
+import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.MetaCall;
-import org.aya.syntax.core.term.marker.UnaryClosure;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
@@ -85,6 +85,6 @@ public interface Contextful {
     var genName = name + Constants.GENERATED_POSTFIX;
     var domain = freshMeta(STR."\{genName}ty", pos, MetaVar.Misc.IsType);
     var codomain = freshMeta(STR."\{genName}ret", pos, MetaVar.Misc.IsType);
-    return new PiTerm(domain, UnaryClosure.mkConst(codomain));
+    return new PiTerm(domain, Closure.mkConst(codomain));
   }
 }

@@ -10,10 +10,13 @@ import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.Compiled;
-import org.aya.syntax.compile.JitLamTerm;
+import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.call.Callable;
-import org.aya.syntax.core.term.marker.*;
+import org.aya.syntax.core.term.marker.BetaRedex;
+import org.aya.syntax.core.term.marker.Formation;
+import org.aya.syntax.core.term.marker.StableWHNF;
+import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.SourcePos;
@@ -44,12 +47,12 @@ public sealed interface Term extends Serializable, AyaDocile
    * abstract :: Name → Expr → Scope
    * </pre>
    *
-   * @see UnaryClosure#apply(Term)
-   * @see UnaryClosure#mkConst
    * @apiNote bind preserve the term former unless it's a {@link FreeTerm}.
+   * @see Closure#apply(Term)
+   * @see Closure#mkConst
    */
-  default @NotNull LamTerm bind(@NotNull LocalVar var) {
-    return new LamTerm(bindAt(var, 0));
+  default @NotNull Closure.Idx bind(@NotNull LocalVar var) {
+    return new Closure.Idx(bindAt(var, 0));
   }
 
   /**
@@ -130,29 +133,29 @@ public sealed interface Term extends Serializable, AyaDocile
   }
 
   /**
+   * For example, a {@link LamTerm}:
+   * <pre>
+   *     Γ, a : A ⊢ b : B
+   * --------------------------
+   * Γ ⊢ fn (a : A) => (b : B)
+   * </pre>
+   * {@code f} will apply to {@code b}, but the context of {@code b}: `Γ, a : A` has a new binding,
+   * therefore the implementation should be {@code f.apply(1, b)}.
+   * In the other hand, a {@link AppTerm}:
+   * <pre>
+   *  Γ ⊢ g : A → B   Γ ⊢ a : A
+   *  --------------------------
+   *         Γ ⊢ g a : B
+   *  </pre>
+   * {@code f} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
+   * so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
+   *
    * @param f a "mapper" which will apply to all sub nodes of {@link Term}.
    *          The index indicates how many new bindings are introduced.
-   *          For example, a {@link LamTerm}:
-   *          <pre>
-   *                                         Γ, a : A ⊢ b : B<br/>
-   *                                     --------------------------<br/>
-   *                                     Γ ⊢ fn (a : A) => (b : B)
-   *                                     </pre>
-   *          {@code f} will apply to {@code b}, but the context of {@code b}: `Γ, a : A` has a new binding,
-   *          therefore the implementation should be {@code f.apply(1, b)}.
-   *          In the other hand, a {@link AppTerm}:
-   *          <pre>
-   *                                     Γ ⊢ g : A → B   Γ ⊢ a : A<br/>
-   *                                     --------------------------<br/>
-   *                                            Γ ⊢ g a : B
-   *                                     </pre>
-   *          {@code f} will apply to both {@code g} and {@code a}, but the context of them have no extra binding,
-   *          so the implementation should be {@code f.apply(0, g)} and {@code f.apply(0, a)}
    * @implNote implements {@link Term#bindAt} and {@link Term#replaceAllFrom} if this term is a leaf node.
-   *           Also, {@param f} should preserve {@link UnaryClosure},
-   *           but you can turn a {@link LamTerm} to a {@link JitLamTerm} and vice versa.
+   * Also, {@param f} should preserve {@link Closure} (with possible change of the implementation).
    * @apiNote Note that {@link Term}s provided by {@param f} might contain {@link LocalTerm},
-   *          therefore your {@param f} should be able to handle them.
+   * therefore your {@param f} should be able to handle them.
    */
   @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f);
 

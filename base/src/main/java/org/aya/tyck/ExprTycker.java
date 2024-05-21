@@ -78,7 +78,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
             localCtx().put(ref, dom);
             return inherit(body, cod.apply(new FreeTerm(ref))).wellTyped();
           }).bind(ref);
-          yield new Jdg.Default(core, type);
+          yield new Jdg.Default(new LamTerm(core), type);
         }
         case EqTerm eq -> {
           var core = subscoped(() -> {
@@ -87,7 +87,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           }).bind(ref);
           checkBoundaries(eq, core, body.sourcePos(), msg ->
             new CubicalError.BoundaryDisagree(expr, msg, new UnifyInfo(state)));
-          yield new Jdg.Default(core, eq);
+          yield new Jdg.Default(new LamTerm(core), eq);
         }
         default -> fail(expr.data(), type, BadTypeError.pi(state, expr, type));
       };
