@@ -236,7 +236,7 @@ public record ShapeMatcher(
     return switch (shape) {
       case ParamShape.Any _ -> true;
       // TODO: the LocalVar cannot match anything, is that okay?
-      case ParamShape.Impl(var name, var type) -> captureIfMatches(name, new LocalVar(param.name()),
+      case ParamShape.Impl(var name, var type) -> captureIfMatches(name, LocalVar.generate(param.name()),
         () -> matchTerm(type, param.type()));
     };
   }

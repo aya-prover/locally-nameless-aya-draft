@@ -13,9 +13,9 @@ import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
+import org.aya.syntax.core.term.marker.Formation;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
-import org.aya.syntax.core.term.marker.Formation;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
@@ -445,7 +445,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       case Pair(SortTerm lhs, SortTerm rhs) -> compareSort(lhs, rhs);
       case Pair(EqTerm(var A, var a0, var a1), EqTerm(var B, var b0, var b1)) -> {
         var tyResult = subscoped(() -> {
-          var var = new FreeTerm(new LocalVar("j"));
+          var var = new FreeTerm(LocalVar.generate("j"));
           localCtx().put(var.name(), DimTyTerm.INSTANCE);
           return compare(AppTerm.make(A, var), AppTerm.make(B, var), null);
         });
@@ -458,7 +458,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   }
 
   private @NotNull LocalVar putParam(@NotNull Param param) {
-    var var = new LocalVar(param.name());
+    var var = LocalVar.generate(param.name());
     localCtx().put(var, param.type());
     return var;
   }

@@ -13,11 +13,19 @@ public record LocalVar(
   @NotNull GenerateKind generateKind
 ) implements AnyVar {
   public LocalVar(@NotNull String name) {
-    this(name, SourcePos.NONE, GenerateKind.Basic.None);
+    this(name, SourcePos.NONE);
   }
 
   public LocalVar(@NotNull String name, @NotNull SourcePos definition) {
     this(name, definition, GenerateKind.Basic.None);
+  }
+
+  public static @NotNull LocalVar generate(@NotNull String name, @NotNull SourcePos sourcePos) {
+    return new LocalVar(name, sourcePos, GenerateKind.Basic.Tyck);
+  }
+
+  public static @NotNull LocalVar generate(@NotNull String name) {
+    return generate(name, SourcePos.NONE);
   }
 
   public static @NotNull LocalVar from(@NotNull WithPos<String> id) {
@@ -30,8 +38,8 @@ public record LocalVar(
   }
 
   public static final @NotNull LocalVar IGNORED = new LocalVar("_", SourcePos.NONE);
-  @Override public boolean equals(@Nullable Object o) {return this == o;}
-  @Override public int hashCode() {return System.identityHashCode(this);}
+  @Override public boolean equals(@Nullable Object o) { return this == o; }
+  @Override public int hashCode() { return System.identityHashCode(this); }
 
   public boolean isGenerated() {
     return generateKind != GenerateKind.Basic.None;

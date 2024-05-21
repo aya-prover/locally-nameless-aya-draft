@@ -376,7 +376,7 @@ public class PatternTycker implements Problematic, Stateful {
         // TODO: I NEED A SOURCE POS!!
         pat = new Pat.Meta(MutableValue.create(), freshName, dataCall, SourcePos.NONE);
       } else {
-        var freshVar = new LocalVar(freshName);
+        var freshVar = LocalVar.generate(freshName);
         // If the type is not a DataCall, then the only available pattern is Pat.Bind
         pat = new Pat.Bind(freshVar, type);
         exprTycker.localCtx().put(freshVar, type);
@@ -485,7 +485,7 @@ public class PatternTycker implements Problematic, Stateful {
 
   /// region Helper
   private @NotNull Pat randomPat(Term param) {
-    return new Pat.Bind(new LocalVar("?"), param);
+    return new Pat.Bind(LocalVar.generate("?"), param);
   }
 
   /**

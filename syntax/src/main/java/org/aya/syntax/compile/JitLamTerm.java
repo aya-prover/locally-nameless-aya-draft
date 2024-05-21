@@ -16,7 +16,7 @@ public record JitLamTerm(@NotNull UnaryOperator<Term> lam) implements UnaryClosu
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) { return toLam().descent(f); }
 
   public @NotNull LamTerm toLam() {
-    var negativeMatter = new LocalVar("positiveMatter");
+    var negativeMatter = LocalVar.generate("positiveMatter");
     var inner = lam.apply(new FreeTerm(negativeMatter)).bind(negativeMatter);
     return new LamTerm(inner);
   }

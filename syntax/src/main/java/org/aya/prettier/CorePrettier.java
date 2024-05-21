@@ -379,7 +379,7 @@ public class CorePrettier extends BasePrettier<Term> {
     for (var param : tele) {
       var freeTy = param.type().instantiateTele(richTele.view()
         .map(x -> new FreeTerm(x.ref())));
-      richTele.append(new CoreParam(new LocalVar(param.name(), SourcePos.SER), freeTy));
+      richTele.append(new CoreParam(LocalVar.generate(param.name(), SourcePos.SER), freeTy));
     }
 
     return richTele.toImmutableSeq();
@@ -412,7 +412,7 @@ public class CorePrettier extends BasePrettier<Term> {
   }
 
   private @NotNull LocalVar generateName(@Nullable Term whty) {
-    return new LocalVar(nameGen.next(whty), SourcePos.SER);
+    return LocalVar.generate(nameGen.next(whty), SourcePos.SER);
   }
   /// endregion Name Generating
 }

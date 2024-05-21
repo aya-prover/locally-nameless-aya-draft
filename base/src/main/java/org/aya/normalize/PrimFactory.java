@@ -65,9 +65,9 @@ public class PrimFactory {
       DimTyTerm.param("r"),
       DimTyTerm.param("s"),
       new Param("A", intervalToType, true));
-    var r = new LocalVar("r");
-    var s = new LocalVar("s");
-    var A = new LocalVar("A");
+    var r = LocalVar.generate("r");
+    var s = LocalVar.generate("s");
+    var A = LocalVar.generate("A");
     var result = familyI2J(new FreeTerm(A), new FreeTerm(r), new FreeTerm(s))
       .bindTele(ImmutableSeq.of(r, s, A).view());
 
