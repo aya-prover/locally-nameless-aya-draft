@@ -10,6 +10,7 @@ import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
+import org.aya.util.ForLSP;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,9 +22,10 @@ public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
    * For pretty printing and IDE only, same for defTele and defResult.
    * This does not work well with compiled Aya.
    */
-  static @NotNull Term defType(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
+  @ForLSP static @NotNull Term defType(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
     return PiTerm.make(defTele(defVar).map(Param::type), defResult(defVar));
   }
+  @ForLSP
   static @NotNull ImmutableSeq<Param> defTele(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
     if (defVar.core != null) return defVar.core.telescope();
     // guaranteed as this is already a core term
@@ -31,7 +33,7 @@ public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
     assert signature != null : defVar.name();
     return signature.rawParams();
   }
-  @SuppressWarnings("unchecked") @Contract(pure = true)
+  @SuppressWarnings("unchecked") @ForLSP @Contract(pure = true)
   static <T extends Term> @NotNull T
   defResult(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<? extends T>> defVar) {
     if (defVar.core != null) return (T) defVar.core.result();
