@@ -57,7 +57,7 @@ public record PatClassifier(
     var classifier = new PatClassifier(tycker, pos);
     var cl = classifier.classifyN(ImmutableSeq.empty(), telescope, clauses
       .mapIndexed((i, clause) -> new Indexed<>(clause.pats().view(), i))
-      .toImmutableSeq(), 2);
+      .toImmutableSeq(), 4);
     var p = cl.partition(c -> c.cls().isEmpty());
     var missing = p.component1();
     if (missing.isNotEmpty()) tycker.fail(
@@ -121,6 +121,7 @@ public record PatClassifier(
         }
 
         var buffer = MutableList.<PatClass<Term>>create();
+        var missedCon = 0;
         // For all constructors,
         for (var con : body) {
           var fuel1 = fuel;
@@ -134,6 +135,7 @@ public record PatClassifier(
           var conHead = dataCall.conHead(con.ref);
           // The only matching cases are catch-all cases, and we skip these
           if (matches.isEmpty()) {
+            missedCon++;
             fuel1--;
             // In this case we give up and do not split on this constructor
             if (conTele.isEmpty() || fuel1 <= 0) {
@@ -146,6 +148,10 @@ public record PatClassifier(
           var classes = classifyN(subst, conTele, matches, fuel1);
           buffer.appendAll(classes.map(args ->
             new PatClass<>(new ConCall(conHead, args.term()), args.cls())));
+        }
+        // If we missed all constructors, we combine the cases to a catch-all case
+        if (missedCon >= body.size()) {
+          return ImmutableSeq.of(new PatClass<>(param.toFreshTerm(), ImmutableIntSeq.empty()));
         }
         return buffer.toImmutableSeq();
       }
