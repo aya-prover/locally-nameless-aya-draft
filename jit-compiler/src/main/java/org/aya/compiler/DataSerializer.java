@@ -49,12 +49,7 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
   @Override protected String getClassName(DataDef unit) { return unit.ref.name(); }
 
   @Override protected void buildTelescope(DataDef unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
-    var tele = unit.telescope;
-
-    buildSwitch(iTerm, IntRange.closedOpen(0, tele.size()).collect(ImmutableSeq.factory()), kase -> {
-      var serializer = new TermSerializer(this.nameGen, fromArray(teleArgsTerm, kase));
-      buildReturn(serializer.serialize(tele.get(kase).type()).result());
-    }, () -> buildPanic(null));
+    super.buildTelescope(unit.telescope, iTerm, teleArgsTerm);
   }
 
   @Override protected void buildResult(DataDef unit, @NotNull String teleArgsTerm) {

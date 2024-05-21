@@ -3,6 +3,7 @@
 package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.range.primitive.IntRange;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.core.term.Param;
@@ -59,8 +60,11 @@ public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
    */
   protected abstract void buildTelescope(T unit, @NotNull String iTerm, @NotNull String teleArgsTerm);
 
-  protected void buildTelescope(@NotNull ImmutableSeq<Param> param, @NotNull String iTerm, @NotNull String teleArgsTerm) {
-
+  protected void buildTelescope(@NotNull ImmutableSeq<Param> tele, @NotNull String iTerm, @NotNull String teleArgsTerm) {
+    buildSwitch(iTerm, IntRange.closedOpen(0, tele.size()).collect(ImmutableSeq.factory()), kase -> {
+      var serializer = new TermSerializer(this.nameGen, fromArray(teleArgsTerm, kase));
+      buildReturn(serializer.serialize(tele.get(kase).type()).result());
+    }, () -> buildPanic(null));
   }
 
   /**
