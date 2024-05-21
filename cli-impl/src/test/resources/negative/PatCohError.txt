@@ -487,3 +487,27 @@ Error: Unhandled case:
 1 error(s), 0 warning(s).
 What are you doing?
 
+IApplyConflReduce:
+In file $FILE:8:4 ->
+
+  6  │     | posneg (n : Nat) : pos n = neg n
+  7  │     
+  8  │     def abs WrongInt : Nat
+     │         ╰─╯
+  9  │     | pos (suc n) => 1
+  10 │     | pos zero => 1
+  11 │     | neg n => 0
+  12 │     | posneg n i => 0
+     │       ╰─────────────╯ confluence: this clause is substituted to `0`
+
+Error: The 4th clause matches on a path constructor. We failed to unify
+         0
+       for the arguments:
+         posneg n 0
+       Normalized:
+         pos n
+         abs (posneg n 0)
+
+1 error(s), 0 warning(s).
+What are you doing?
+

@@ -143,3 +143,68 @@ Error: This match arm does not contain any absurd pattern but it has an empty
 2 error(s), 0 warning(s).
 What are you doing?
 
+InvalidAbsurdPattern:
+In file $FILE:2:23 ->
+
+  1 │   open import Arith::Bool
+  2 │   def test Bool : Bool | ()
+    │                          ╰╯
+
+Error: Absurd pattern does not fit here because `true` is still available
+
+1 error(s), 0 warning(s).
+What are you doing?
+
+NoPattern:
+In file $FILE:4:0 ->
+
+  2 │   
+  3 │   variable A B : Type
+  4 │   def funExt (f g : A -> B) (p : forall a -> f a = g a) : f = g
+    │   ╰────────────────────────────────────────────────────────────╯
+
+Error: Unhandled case:
+         A, B, f, g, p
+
+1 error(s), 0 warning(s).
+What are you doing?
+
+NewRepoIssue597:
+In file $FILE:2:22 ->
+
+  1 │   open data Nat | O | S Nat
+  2 │   def bad Nat : Nat | S S O => O | _ => O
+    │                         ╰╯
+
+Error: There is no pattern for the parameter
+         Nat
+
+In file $FILE:2:24 ->
+
+  1 │   open data Nat | O | S Nat
+  2 │   def bad Nat : Nat | S S O => O | _ => O
+    │                           ╰╯
+
+Error: There is no parameter for the pattern
+         O
+       to match against.
+       (and in case it's a function type, you may want to move its parameters 
+       before the `:` in the signature)
+
+2 error(s), 0 warning(s).
+What are you doing?
+
+NewRepoIssue746:
+In file $FILE:4:2 ->
+
+  2 │   open data Test2 | test2
+  3 │   def test Test1 : Test1
+  4 │   | test2 => test1
+    │     ╰───╯
+
+Error: Unknown constructor
+         test2
+
+1 error(s), 0 warning(s).
+What are you doing?
+

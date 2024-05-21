@@ -62,4 +62,28 @@ public interface PatTyckError {
     | true
     | false
     """;
+
+  @Language("Aya") String testInvalidAbsurdPattern = """
+    open import Arith::Bool
+    def test Bool : Bool | ()
+    """;
+
+  @Language("Aya") String testNoPattern = """
+    open import Paths
+    
+    variable A B : Type
+    def funExt (f g : A -> B) (p : forall a -> f a = g a) : f = g
+    """;
+
+  @Language("Aya") String testNewRepoIssue597 = """
+    open data Nat | O | S Nat
+    def bad Nat : Nat | S S O => O | _ => O
+    """;
+
+  @Language("Aya") String testNewRepoIssue746 = """
+    open data Test1 | test1
+    open data Test2 | test2
+    def test Test1 : Test1
+    | test2 => test1
+    """;
 }

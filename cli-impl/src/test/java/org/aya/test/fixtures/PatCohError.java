@@ -132,4 +132,19 @@ public interface PatCohError {
     | a, 0, b, c => 0
     | a, b, 0, c => 0
     """;
+
+  @Language("Aya") String testIApplyConflReduce = """
+    open import Arith::Nat
+    open import Paths
+    open data WrongInt
+    | pos Nat
+    | neg Nat
+    | posneg (n : Nat) : pos n = neg n
+    
+    def abs WrongInt : Nat
+    | pos (suc n) => 1
+    | pos zero => 1
+    | neg n => 0
+    | posneg n i => 0
+    """;
 }
