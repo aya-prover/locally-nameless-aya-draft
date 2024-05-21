@@ -37,6 +37,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   private final @NotNull Runnable onStuck;
   private final @NotNull Runnable onDontMatch;
   private int bindCount = 0;
+  // TODO: impl inferMeta = false
+  private final boolean inferMeta = true;
 
   public PatternSerializer(
     @NotNull StringBuilder builder,
@@ -101,6 +103,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       // if the solution is still a meta, we solve it
       // this is a heavy work
       buildIfInstanceElse(tmpName, CLASS_METAPATTERM, stillMetaTerm -> {
+        // TODO: we may store all Pattern in somewhere and refer them by something like `.conArgs().get(114514)`
         var exprializer = new PatternExprializer(nameGen);
         exprializer.serialize(pat);
         var doSolveMetaResult = STR."\{CLASS_PATMATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";

@@ -10,6 +10,8 @@ import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
 
+import static org.aya.compiler.AbstractSerializer.getQualified;
+
 public interface AyaSerializer<T> {
   String STATIC_FIELD_INSTANCE = "INSTANCE";
   /**
@@ -18,12 +20,12 @@ public interface AyaSerializer<T> {
    * @see JitFnCall#instance()
    */
   String FIELD_INSTANCE = "instance";
-  String CLASS_JITCONCALL = JitConCall.class.getSimpleName();
-  String CLASS_JITDATACALL = JitDataCall.class.getSimpleName();
-  String CLASS_JITFNCALL = JitFnCall.class.getSimpleName();
-  String CLASS_IMMSEQ = ImmutableSeq.class.getName();
-  String CLASS_TERM = Term.class.getName();
-  String CLASS_PANIC = Panic.class.getName();
+  String CLASS_JITCONCALL = getQualified(JitConCall.class);
+  String CLASS_JITDATACALL = getQualified(JitDataCall.class);
+  String CLASS_JITFNCALL = getQualified(JitFnCall.class);
+  String CLASS_IMMSEQ = getQualified(ImmutableSeq.class);
+  String CLASS_TERM = getQualified(Term.class);
+  String CLASS_PANIC = getQualified(Panic.class);
 
   @Language("Java") String IMPORT_BLOCK = """
     import org.aya.syntax.compile.*;

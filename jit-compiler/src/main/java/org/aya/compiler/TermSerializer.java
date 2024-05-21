@@ -30,8 +30,12 @@ public class TermSerializer extends AbstractSerializer<Term> {
   // telescope order, it can grow, i.e. lambda
   private final @NotNull MutableList<String> instantiates;
 
-  public TermSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen, @NotNull ImmutableSeq<String> instantiates) {
-    super(builder, indent, nameGen);
+  public TermSerializer(@NotNull NameGenerator nameGen, @NotNull ImmutableSeq<String> instantiates) {
+    this(new StringBuilder(), nameGen, instantiates);
+  }
+
+  public TermSerializer(@NotNull StringBuilder builder, @NotNull NameGenerator nameGen, @NotNull ImmutableSeq<String> instantiates) {
+    super(builder, 0, nameGen);
     this.instantiates = MutableList.from(instantiates);
   }
 

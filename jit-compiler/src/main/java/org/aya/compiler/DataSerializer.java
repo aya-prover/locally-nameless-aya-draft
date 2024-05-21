@@ -12,6 +12,7 @@ import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.term.Param;
 import org.jetbrains.annotations.NotNull;
 
+// You should compile this with its constructors
 public final class DataSerializer extends JitTeleSerializer<DataDef> {
   public DataSerializer(
     @NotNull StringBuilder builder,
@@ -21,7 +22,10 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
 
   @Override public AyaSerializer<DataDef> serialize(DataDef unit) {
     buildFramework(unit, () -> {
-
+      // TODO: is it better to be synchronized ?
+      buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", () -> {
+        buildConstructors(unit);
+      }, true);
     });
 
     return this;
@@ -49,7 +53,7 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     tele.forEachIndexed((idx, p) -> {
       jumpTable.append(Tuple.of(
         Integer.toString(idx), () -> {
-          var serializer = new TermSerializer(new StringBuilder(), 0, this.nameGen, fromArray(teleArgsTerm, idx));
+          var serializer = new TermSerializer(this.nameGen, fromArray(teleArgsTerm, idx));
           buildReturn(serializer.serialize(tele.get(idx).type()).result());
         }
       ));
@@ -59,9 +63,26 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
   }
 
   @Override protected void buildResult(DataDef unit, @NotNull String teleArgsTerm) {
+    buildReturn(
+      new TermSerializer(nameGen, fromArray(teleArgsTerm, unit.telescope.size()))
+        .serialize(unit.result)
+        .result()
+    );
   }
 
+  /**
+   * @see JitData#constructors()
+   */
   private void buildConstructors(DataDef unit) {
+    var cRef = "this.constructors";
+
+    buildIf(STR."\{cRef}[0] == null", () -> {
+      unit.body.forEachIndexed((idx, con) -> {
+        buildUpdate(STR."\{cRef}[\{idx}]", getInstance(getQualified(con.ref)));
+      });
+    });
+
+    buildReturn(cRef);
   }
 
   public @NotNull String arrayFrom(@NotNull String type, @NotNull ImmutableSeq<String> elements) {

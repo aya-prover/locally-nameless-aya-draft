@@ -4,11 +4,14 @@ package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
+import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitTeleSerializer<T> extends AbstractSerializer<T> {
+  public static final String CLASS_JITCON = getQualified(JitCon.class);
+
   protected final @NotNull String superClass;
 
   protected JitTeleSerializer(

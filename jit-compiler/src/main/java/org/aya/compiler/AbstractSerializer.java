@@ -193,4 +193,17 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   protected static @NotNull String getCallInstance(@NotNull String term) {
     return STR."\{term}.\{FIELD_INSTANCE}()";
   }
+
+  /**
+   * Turn an aya symbol name to a java symbol name
+   */
+  public static @NotNull String javify(@NotNull String ayaName) {
+    // TODO: impl
+    return ayaName;
+  }
+
+  public static @NotNull String getQualified(@NotNull Class<?> clazz) {
+    // TODO: maybe wrong impl
+    return clazz.getName().replace('$', '.');
+  }
 }
