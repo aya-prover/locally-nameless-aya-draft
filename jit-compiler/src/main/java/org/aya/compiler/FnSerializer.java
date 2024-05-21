@@ -14,8 +14,7 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
     super(builder, indent, nameGen, JitFn.class.getName());
   }
 
-  @Override
-  protected void buildConstructor(FnDef unit) {
+  @Override protected void buildConstructor(FnDef unit) {
     super.buildConstructor(unit, ImmutableSeq.empty());
   }
 

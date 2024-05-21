@@ -80,12 +80,11 @@ public record PatClassifier(
           var namedParams = params.mapIndexed((i, p) ->
             new Param(String.valueOf(i), p, true));
           // ^ the licit shall not matter
-          var matches = clauses.mapIndexedNotNull((i, subPat) ->
-            switch (subPat.pat()) {
-              case Pat.Tuple tuple -> new Indexed<>(tuple.elements().view(), i);
-              case Pat.Bind _ -> new Indexed<>(namedParams.view().map(Param::toFreshPat), i);
-              default -> null;
-            });
+          var matches = clauses.mapIndexedNotNull((i, subPat) -> switch (subPat.pat()) {
+            case Pat.Tuple tuple -> new Indexed<>(tuple.elements().view(), i);
+            case Pat.Bind _ -> new Indexed<>(namedParams.view().map(Param::toFreshPat), i);
+            default -> null;
+          });
           var classes = classifyN(subst, namedParams.view(), matches, fuel);
           return classes.map(args -> new PatClass<>(new TupTerm(args.term()), args.cls()));
         }
