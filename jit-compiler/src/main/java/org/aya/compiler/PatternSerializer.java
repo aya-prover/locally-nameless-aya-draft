@@ -5,8 +5,7 @@ package org.aya.compiler;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
-import kala.collection.mutable.MutableList;
-import kala.tuple.Tuple;
+import kala.range.primitive.IntRange;
 import kala.value.primitive.MutableIntValue;
 import org.aya.generic.NameGenerator;
 import org.aya.normalize.PatMatcher;
@@ -20,7 +19,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<PatternSerializer.Matching>> {
-  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull Runnable onSucc) { }
+  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull Consumer<PatternSerializer> onSucc) { }
 
   public static final @NotNull String VARIABLE_RESULT = "result";
   public static final @NotNull String VARIABLE_STATE = "matchState";
@@ -34,8 +33,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   static final @NotNull String CLASS_PAT_JCON = Pat.JCon.class.getName();
 
   private final @NotNull String argName;
-  private final @NotNull Runnable onStuck;
-  private final @NotNull Runnable onDontMatch;
+  private final @NotNull Consumer<PatternSerializer> onStuck;
+  private final @NotNull Consumer<PatternSerializer> onMismatch;
   private int bindCount = 0;
   // TODO: impl inferMeta = false
   private final boolean inferMeta = true;
@@ -45,13 +44,13 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     int indent,
     @NotNull NameGenerator nameGen,
     @NotNull String argName,
-    @NotNull Runnable onStuck,
-    @NotNull Runnable onDontMatch
+    @NotNull Consumer<PatternSerializer> onStuck,
+    @NotNull Consumer<PatternSerializer> onMismatch
   ) {
     super(builder, indent, nameGen);
     this.argName = argName;
     this.onStuck = onStuck;
-    this.onDontMatch = onDontMatch;
+    this.onMismatch = onMismatch;
   }
 
   /// region Serializing
@@ -181,34 +180,37 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     var bindSize = unit.mapToInt(ImmutableIntSeq.factory(),
       x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
     int maxBindSize = bindSize.max();
-    var jumpTable = MutableList.of(
-      Tuple.of("-1", onDontMatch),
-      Tuple.of("0", onStuck)
-    );
 
     // TODO: fix hard code Term
     buildLocalVar("Term[]", VARIABLE_RESULT, STR."new Term[\{maxBindSize}]");
     buildLocalVar("int", VARIABLE_STATE, "0");
     buildLocalVar("boolean", VARIABLE_META_STATE, "false");
 
-    buildGoto(() -> {
-      unit.forEachIndexed((idx, clause) -> {
-        var jumpCode = idx + 1;
-        jumpTable.append(Tuple.of(Integer.toString(jumpCode), clause.onSucc));
+    buildGoto(() -> unit.forEachIndexed((idx, clause) -> {
+      var jumpCode = idx + 1;
+      doSerialize(
+        clause.patterns().view(),
+        fromArray(argName, clause.patterns.size()).view(),
+        () -> updateState(jumpCode));
 
-        doSerialize(
-          clause.patterns().view(),
-          fromArray(argName, clause.patterns.size()).view(),
-          () -> {
-            updateState(jumpCode);
-          });
+      buildIf(STR."\{VARIABLE_STATE} > 0", this::buildBreak);
+    }));
 
-        buildIf(STR."\{VARIABLE_STATE} > 0", this::buildBreak);
-      });
-    });
-
-    // if the execution arrive here, that means no clause is matched
-    buildSwitch(VARIABLE_STATE, jumpTable.toImmutableSeq());
+    // -1 ..= unit.size()
+    buildSwitch(VARIABLE_STATE, IntRange.closed(-1, unit.size()).collect(ImmutableSeq.factory()), state -> {
+      switch (state) {
+        case -1:
+          onMismatch.accept(this);
+          break;
+        case 0:
+          onStuck.accept(this);
+          break;
+        default:
+          assert state > 0;
+          unit.get(state - 1).onSucc.accept(this);
+          break;
+      }
+    }, () -> buildPanic(null));
 
     return this;
   }

@@ -2,9 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
-import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
-import kala.tuple.Tuple2;
 import org.aya.compiler.util.SerializeUtils;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitTele;
@@ -155,25 +153,6 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."}");
   }
 
-  public void buildSwitch(
-    @NotNull String term,
-    @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases
-  ) {
-    buildSwitch(term, cases, () -> {
-      buildPanic(null);
-    });
-  }
-
-  public void buildSwitch(
-    @NotNull String term,
-    @NotNull ImmutableSeq<Tuple2<String, Runnable>> cases,
-    @NotNull Runnable defaultCase) {
-    var map = ImmutableMap.from(cases);
-    buildSwitch(term, cases.map(Tuple2::component1), kase -> {
-      map.get(kase).run();
-    }, defaultCase);
-  }
-
   public void buildMethod(
     @NotNull String name,
     @NotNull ImmutableSeq<JitParam> params,
@@ -214,6 +193,8 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
       .joinToString(".");
   }
 
+  // TODO: produce name like "AYA_Data_Vec_Vec" rather than just "Vec", so that they won't conflict with our import
+  // then we can make all `CLASS_*` thing become unqualified.
   protected static @NotNull String getQualified(@NotNull JitTele ref) {
     return ref.getClass().getName();
   }

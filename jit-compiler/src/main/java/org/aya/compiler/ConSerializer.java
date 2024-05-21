@@ -20,20 +20,19 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
 
   private void buildIsAvailable(ConDef unit, @NotNull String argsTerm) {
     var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm,
-      () -> buildReturn(STR."\{CLASS_RESULT}.err(true)"),
-      () -> buildReturn(STR."\{CLASS_RESULT}.err(false)"));
+      s -> s.buildReturn(STR."\{CLASS_RESULT}.err(true)"),
+      s -> s.buildReturn(STR."\{CLASS_RESULT}.err(false)"));
 
     ser.serialize(ImmutableSeq.of(new PatternSerializer.Matching(unit.pats,
-      () -> buildReturn(STR."\{CLASS_RESULT}.ok(\{CLASS_IMMSEQ}.from(\{PatternSerializer.VARIABLE_RESULT}))"))));
+      s -> s.buildReturn(STR."\{CLASS_RESULT}.ok(\{CLASS_IMMSEQ}.from(\{PatternSerializer.VARIABLE_RESULT}))"))));
   }
 
   @Override public AyaSerializer<ConDef> serialize(ConDef unit) {
-    buildFramework(unit, () -> {
-      buildMethod("isAvailable", ImmutableSeq.of(new JitParam("args", STR."\{CLASS_TERM}[]")),
-        STR."\{CLASS_RESULT}<\{CLASS_IMMSEQ}<\{CLASS_TERM}>, \{CLASS_BOOLEAN}>", true, () -> {
-          buildIsAvailable(unit, "args");
-        });
-    });
+    buildFramework(unit, () -> buildMethod("isAvailable",
+      ImmutableSeq.of(new JitParam("args", STR."\{CLASS_TERM}[]")),
+      STR."\{CLASS_RESULT}<\{CLASS_IMMSEQ}<\{CLASS_TERM}>, \{CLASS_BOOLEAN}>", true, () -> {
+        buildIsAvailable(unit, "args");
+      }));
 
     return this;
   }

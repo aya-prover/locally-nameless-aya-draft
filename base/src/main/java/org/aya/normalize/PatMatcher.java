@@ -137,7 +137,11 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
     return PatToTerm.visit(pat);
   }
 
+  /**
+   * Perform meta solving, make sure that {@param meta} is unsolved.
+   */
   public static @NotNull ImmutableSeq<Term> doSolveMeta(@NotNull Pat pat, Pat.Meta meta) {
+    assert meta.solution().get() == null;
     // No solution, set the current pattern as solution,
     // also replace the bindings in pat as sub-meta,
     // so that we can solve this meta more.
