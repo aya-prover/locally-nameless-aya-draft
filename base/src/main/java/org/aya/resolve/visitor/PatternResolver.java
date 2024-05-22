@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.resolve.visitor;
 
-import org.aya.generic.TyckUnit;
+import org.aya.generic.stmt.TyckUnit;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.error.NameProblem;
 import org.aya.syntax.concrete.Pattern;

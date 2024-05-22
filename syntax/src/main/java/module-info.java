@@ -28,4 +28,6 @@ module aya.syntax {
   exports org.aya.syntax.literate;
   exports org.aya.syntax.ref;
   exports org.aya.syntax;
+  exports org.aya.generic.term;
+  exports org.aya.generic.stmt;
 }

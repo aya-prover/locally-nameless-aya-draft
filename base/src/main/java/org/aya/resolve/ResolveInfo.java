@@ -3,7 +3,7 @@
 package org.aya.resolve;
 
 import kala.collection.mutable.MutableMap;
-import org.aya.generic.TyckOrder;
+import org.aya.generic.stmt.TyckOrder;
 import org.aya.normalize.PrimFactory;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;

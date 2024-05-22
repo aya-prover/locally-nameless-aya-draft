@@ -3,7 +3,7 @@
 package org.aya.tyck.error;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.generic.TyckUnit;
+import org.aya.generic.stmt.TyckUnit;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.stmt.decl.Decl;

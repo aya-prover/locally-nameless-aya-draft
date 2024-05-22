@@ -4,7 +4,7 @@ package org.aya.unify;
 
 import kala.collection.mutable.MutableList;
 import org.aya.generic.NameGenerator;
-import org.aya.generic.SortKind;
+import org.aya.generic.term.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.core.def.TeleDef;

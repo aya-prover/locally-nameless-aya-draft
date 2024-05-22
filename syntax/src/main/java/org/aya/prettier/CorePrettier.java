@@ -8,7 +8,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import org.aya.generic.AyaDocile;
 import org.aya.generic.NameGenerator;
-import org.aya.generic.ParamLike;
+import org.aya.generic.term.ParamLike;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;

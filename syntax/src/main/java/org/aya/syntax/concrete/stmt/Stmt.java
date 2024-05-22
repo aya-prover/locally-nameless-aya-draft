@@ -3,7 +3,7 @@
 package org.aya.syntax.concrete.stmt;
 
 import org.aya.generic.AyaDocile;
-import org.aya.generic.TyckUnit;
+import org.aya.generic.stmt.TyckUnit;
 import org.aya.prettier.ConcretePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;

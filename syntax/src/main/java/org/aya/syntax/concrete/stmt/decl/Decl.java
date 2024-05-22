@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.concrete.stmt.decl;
 
-import org.aya.generic.TyckUnit;
+import org.aya.generic.stmt.TyckUnit;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.ref.DefVar;

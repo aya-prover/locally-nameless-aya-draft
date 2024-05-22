@@ -7,7 +7,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import kala.function.IndexedFunction;
-import org.aya.generic.SortKind;
+import org.aya.generic.term.SortKind;
 import org.aya.syntax.core.term.marker.Formation;
 import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.util.error.Panic;

@@ -5,7 +5,7 @@ package org.aya.unify;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
-import org.aya.generic.SortKind;
+import org.aya.generic.term.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;

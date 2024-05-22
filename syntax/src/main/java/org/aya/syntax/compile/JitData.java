@@ -6,7 +6,7 @@ import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitData extends JitTele {
-  protected final @NotNull JitCon[] constructors;
+  protected final JitCon @NotNull [] constructors;
 
   protected JitData(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, int conAmount) {
     super(telescopeSize, telescopeLicit, telescopeName);
@@ -16,7 +16,7 @@ public abstract class JitData extends JitTele {
   /**
    * The constructor of this data type, should initialize {@link #constructors} at the first call.
    */
-  public abstract @NotNull JitCon[] constructors();
+  public abstract @NotNull JitCon @NotNull [] constructors();
 
   public @NotNull JitDataCall of(Term... args) {
     return new JitDataCall(this, 0, args);

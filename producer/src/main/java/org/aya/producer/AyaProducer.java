@@ -18,7 +18,7 @@ import kala.function.BooleanObjBiFunction;
 import kala.value.MutableValue;
 import org.aya.generic.Constants;
 import org.aya.generic.Modifier;
-import org.aya.generic.SortKind;
+import org.aya.generic.term.SortKind;
 import org.aya.intellij.GenericNode;
 import org.aya.parser.AyaPsiElementTypes;
 import org.aya.parser.AyaPsiParser;

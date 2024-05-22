@@ -6,7 +6,7 @@ import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.NameGenerator;
-import org.aya.generic.SortKind;
+import org.aya.generic.term.SortKind;
 import org.aya.syntax.compile.*;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.term.*;
@@ -102,13 +102,9 @@ public class TermSerializer extends AbstractSerializer<Term> {
         var subst = AyaRuntimeException.onRuntime(() -> instantiates.get(instantiates.size() - idx - 1));
         builder.append(subst);
       }
-      case LamTerm lamTerm -> {
-        // TODO: instantiate with special LocalVar, and add them to {instantiates},
-        // replace those LocalVar/FreeTerm while serializing `jLambda.apply(that LocalVar)`
-        buildNew(CLASS_LAMTERM, () -> {
-          serializeClosure(lamTerm.body());
-        });
-      }
+      case LamTerm lamTerm -> buildNew(CLASS_LAMTERM, () -> {
+        serializeClosure(lamTerm.body());
+      });
       case DataCall(var ref, var ulift, var args) -> buildNew(CLASS_JITDATACALL, () -> {
         builder.append(getInstance(getQualified(ref))); sep();
         builder.append(ulift); sep();

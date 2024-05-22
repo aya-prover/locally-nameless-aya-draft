@@ -1,8 +1,9 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.generic;
+package org.aya.generic.stmt;
 
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.generic.AyaDocile;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.Def;

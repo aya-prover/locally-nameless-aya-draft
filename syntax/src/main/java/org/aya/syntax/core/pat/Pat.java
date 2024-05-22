@@ -9,7 +9,7 @@ import kala.function.CheckedFunction;
 import kala.function.CheckedSupplier;
 import kala.value.MutableValue;
 import org.aya.generic.AyaDocile;
-import org.aya.generic.Shaped;
+import org.aya.generic.stmt.Shaped;
 import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.prettier.Tokens;

@@ -3,7 +3,7 @@
 package org.aya.syntax.core.repr;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.generic.SortKind;
+import org.aya.generic.term.SortKind;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
