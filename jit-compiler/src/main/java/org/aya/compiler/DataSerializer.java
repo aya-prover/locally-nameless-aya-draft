@@ -8,19 +8,32 @@ import org.aya.syntax.compile.JitData;
 import org.aya.syntax.core.def.DataDef;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 // You should compile this with its constructors
 public final class DataSerializer extends JitTeleSerializer<DataDef> {
+  private final @NotNull Consumer<DataSerializer> conContinuation;
+
+  /**
+   * @param conContinuation should generate constructor inside of this data
+   */
   public DataSerializer(
     @NotNull StringBuilder builder,
     int indent,
-    @NotNull NameGenerator nameGen
-  ) { super(builder, indent, nameGen, JitData.class.getName()); }
+    @NotNull NameGenerator nameGen,
+    @NotNull Consumer<DataSerializer> conContinuation
+  ) {
+    super(builder, indent, nameGen, JitData.class);
+    this.conContinuation = conContinuation;
+  }
 
   @Override public AyaSerializer<DataDef> serialize(DataDef unit) {
     buildFramework(unit, () -> {
       // TODO: is it better to be synchronized ?
       buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", true,
         () -> buildConstructors(unit));
+      appendLine();
+      conContinuation.accept(this);
     });
 
     return this;

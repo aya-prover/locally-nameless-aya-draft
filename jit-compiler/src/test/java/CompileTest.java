@@ -57,28 +57,34 @@ public class CompileTest {
     var result = tyck("""
       open data Nat | O | S Nat
       open data Vec (n : Nat) Type
-      | O, A   => []
-      | S n, A => infixr :> A (Vec n A)
+      | O, A   => vnil
+      | S n, A => infixr vcons A (Vec n A)
 
       def plus (a b : Nat) : Nat elim a
       | O => b
       | S n => S (plus n b)
-      """);
+      """).filter(x -> x instanceof FnDef || x instanceof DataDef);
 
-    var vec = (DataDef) result.findFirst(def -> def.ref().name().equals("Vec")).get();
-    var out = new DataSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(vec).result();
-    System.out.println("Vec.java");
+    var out = new ModuleSerializer(new StringBuilder(), 0, new NameGenerator())
+      .serialize(result)
+      .result();
+
     System.out.println(out);
 
-    var vnil = (ConDef) result.findFirst(def -> def.ref().name().equals("[]")).get();
-    out = new ConSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(vnil).result();
-    System.out.println("vnil.java");
-    System.out.println(out);
-
-    var plus = (FnDef) result.findFirst(def -> def.ref().name().equals("plus")).get();
-    out = new FnSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(plus).result();
-    System.out.println("plus.java");
-    System.out.println(out);
+    // var vec = (DataDef) result.findFirst(def -> def.ref().name().equals("Vec")).get();
+    // var out = new DataSerializer(new StringBuilder(), 0, new NameGenerator(), _ -> {}).serialize(vec).result();
+    // System.out.println("Vec.java");
+    // System.out.println(out);
+    //
+    // var vnil = (ConDef) result.findFirst(def -> def.ref().name().equals("[]")).get();
+    // out = new ConSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(vnil).result();
+    // System.out.println("vnil.java");
+    // System.out.println(out);
+    //
+    // var plus = (FnDef) result.findFirst(def -> def.ref().name().equals("plus")).get();
+    // out = new FnSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(plus).result();
+    // System.out.println("plus.java");
+    // System.out.println(out);
   }
 
   @Test

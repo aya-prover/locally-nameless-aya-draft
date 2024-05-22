@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class ConSerializer extends JitTeleSerializer<ConDef> {
   public ConSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen) {
-    super(builder, indent, nameGen, JitCon.class.getName());
+    super(builder, indent, nameGen, JitCon.class);
   }
 
   @Override protected void buildConstructor(ConDef unit) {

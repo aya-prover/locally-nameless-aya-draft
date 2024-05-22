@@ -14,13 +14,13 @@ import org.jetbrains.annotations.NotNull;
 public abstract class JitTeleSerializer<T extends TeleDef> extends AbstractSerializer<T> {
   public static final String CLASS_JITCON = getName(JitCon.class);
 
-  protected final @NotNull String superClass;
+  protected final @NotNull Class<?> superClass;
 
   protected JitTeleSerializer(
     @NotNull StringBuilder builder,
     int indent,
     @NotNull NameGenerator nameGen,
-    @NotNull String superClass
+    @NotNull Class<?> superClass
   ) {
     super(builder, indent, nameGen);
     this.superClass = superClass;

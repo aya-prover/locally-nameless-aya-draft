@@ -50,14 +50,21 @@ public interface AyaSerializer<T> {
   String CLASS_BOOLEAN = getName(Boolean.class);
 
   @Language("Java") String IMPORT_BLOCK = """
+    import org.aya.generic.SortKind;
     import org.aya.compiler.util.*;
     import org.aya.syntax.compile.*;
+    import org.aya.syntax.ref.LocalVar;
     import org.aya.syntax.core.*;
+    import org.aya.syntax.core.pat.Pat.*;
     import org.aya.syntax.core.term.*;
     import org.aya.syntax.core.term.repr.*;
     import org.aya.syntax.core.term.call.*;
     import org.aya.syntax.core.term.xtt.*;
+    import org.aya.normalize.PatMatcher;
     import org.aya.util.error.Panic;
+
+    import kala.collection.immutable.ImmutableSeq;
+    import kala.control.Result;
     """;
 
   /**

@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class FnSerializer extends JitTeleSerializer<FnDef> {
   public FnSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen) {
-    super(builder, indent, nameGen, JitFn.class.getName());
+    super(builder, indent, nameGen, JitFn.class);
   }
 
   @Override protected void buildConstructor(FnDef unit) {

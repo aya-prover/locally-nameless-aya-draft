@@ -103,8 +103,8 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."return \{retWith};");
   }
 
-  public void buildClass(@NotNull String className, @NotNull String superClass, @NotNull Runnable continuation) {
-    appendLine(STR."class \{className} extends \{superClass} {");
+  public void buildClass(@NotNull String className, @NotNull Class<?> superClass, @NotNull Runnable continuation) {
+    appendLine(STR."static class \{className} extends \{getName(superClass)} {");
     runInside(continuation);
     appendLine("}");
   }
