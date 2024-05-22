@@ -3,16 +3,14 @@
 package org.aya.terck;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.immutable.ImmutableSet;
 import kala.collection.mutable.MutableSet;
-import kala.tuple.Tuple;
 import kala.value.MutableValue;
+import org.aya.normalize.Normalizer;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
-import org.aya.syntax.core.term.AppTerm;
-import org.aya.syntax.core.term.Param;
-import org.aya.syntax.core.term.ProjTerm;
-import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
@@ -26,6 +24,8 @@ import org.aya.util.terck.CallMatrix;
 import org.aya.util.terck.Relation;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.Consumer;
+
 /**
  * Resolve calls and build call graph of recursive functions,
  * after {@link org.aya.tyck.StmtTycker}.
@@ -37,9 +37,12 @@ public record CallResolver(
   @Override @NotNull TyckState state,
   @NotNull FnDef caller,
   @NotNull MutableSet<TeleDef> targets,
-  @NotNull MutableValue<Term.Matching> currentMatching,
+  @NotNull MutableValue<Term.Matching> currentClause,
   @NotNull CallGraph<Callable, TeleDef, Param> graph
-) implements Stateful {
+) implements Stateful, Consumer<Term.Matching> {
+  public CallResolver {
+    assert caller.body.isRight();
+  }
   public CallResolver(
     @NotNull TyckState state, @NotNull FnDef fn,
     @NotNull MutableSet<TeleDef> targets,
@@ -58,21 +61,13 @@ public record CallResolver(
   }
 
   private void fillMatrix(@NotNull Callable callable, @NotNull TeleDef callee, CallMatrix<?, TeleDef, Param> matrix) {
-    var matching = currentMatching.get();
-    var domThings = matching != null
-      // If we are in a matching, the caller is defined by pattern matching.
-      // We should compare patterns with callee arguments.
-      ? matching.patterns().zipView(caller.telescope)
-      // No matching, the caller is a simple function (not defined by pattern matching).
-      // We should compare caller telescope with callee arguments.
-      : caller.telescope.view().map(p -> Tuple.of(p.toFreshPat(), p));
-    var codomThings = callable.args().zipView(callee.telescope());
-    for (var domThing : domThings) {
-      for (var codomThing : codomThings) {
-        var relation = compare(codomThing.component1(), domThing.component1());
-        matrix.set(domThing.component2(), codomThing.component2(), relation);
-      }
-    }
+    var currentPatterns = currentClause.get();
+    assert currentPatterns != null;
+    currentPatterns.patterns().forEachWith(caller.telescope, (pat, domParam) ->
+      callable.args().forEachWith(callee.telescope(), (term, codParam) -> {
+        var relation = compare(term, pat);
+        matrix.set(domParam, codParam, relation);
+      }));
   }
 
   /** foetus dependencies */
@@ -112,11 +107,10 @@ public record CallResolver(
         yield attempt;
       }
       case Pat.Bind bind -> {
-        // LocalTerm need to be dealt with
-        // if (term instanceof RefTerm ref)
-        //   yield ref.var() == bind.bind() ? Relation.eq() : Relation.unk();
-        // if (headOf(term) instanceof RefTerm ref)
-        //   yield ref.var() == bind.bind() ? Relation.lt() : Relation.unk();
+        if (term instanceof FreeTerm(var ref))
+          yield ref == bind.bind() ? Relation.eq() : Relation.unk();
+        if (headOf(term) instanceof FreeTerm(var ref))
+          yield ref == bind.bind() ? Relation.lt() : Relation.unk();
         yield Relation.unk();
       }
       case Pat.ShapedInt intPat -> switch (term) {
@@ -141,23 +135,32 @@ public record CallResolver(
   private @NotNull Term headOf(@NotNull Term term) {
     return switch (term) {
       case AppTerm app -> headOf(app.fun());
+      case PAppTerm papp -> headOf(papp.fun());
       case ProjTerm proj -> headOf(proj.of());
       // case FieldTerm access -> headOf(access.of());
       default -> term;
     };
   }
 
-  /*
-  @Override public void accept(@NotNull Term.Matching matching) {
-    this.currentMatching.set(matching);
-    DefVisitor.super.accept(matching);
-    this.currentMatching.set(null);
+  public void check() {
+    var clauses = caller.body.getRightValue();
+    clauses.forEach(this);
   }
 
-  @Override public @NotNull Term pre(@NotNull Term term) {
-    // TODO: Rework error reporting to include the original call
-    term = new Expander.ConservativeWHNFer(new TyckState(factory), ImmutableSet.from(targets.map(Def::ref))).apply(term);
+  @Override public void accept(@NotNull Term.Matching matching) {
+    this.currentClause.set(matching);
+    var vars = Pat.collectBindings(matching.patterns().view()).view().map(Pat.CollectBind::var);
+    visitTerm(matching.body().instantiateTeleVar(vars));
+    this.currentClause.set(null);
+  }
+
+  private void visitTerm(@NotNull Term term) {
+    // TODO: Improve error reporting to include the original call
+    term = new Normalizer(state, ImmutableSet.from(targets.map(TeleDef::ref))).apply(term);
     if (term instanceof Callable call) resolveCall(call);
-    return DefVisitor.super.pre(term);
-  }*/
+    term.descent((_, child) -> {
+      visitTerm(child);
+      return child;
+    });
+  }
 }

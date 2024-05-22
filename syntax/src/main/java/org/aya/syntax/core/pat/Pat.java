@@ -50,11 +50,6 @@ public sealed interface Pat extends AyaDocile {
   void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer);
 
   record CollectBind(LocalVar var, Term type) { }
-  default ImmutableSeq<CollectBind> collectBindings() {
-    var buffer = MutableList.<CollectBind>create();
-    consumeBindings((var, type) -> buffer.append(new CollectBind(var, type)));
-    return buffer.toImmutableSeq();
-  }
 
   static @NotNull ImmutableSeq<CollectBind> collectBindings(@NotNull SeqView<Pat> pats) {
     var buffer = MutableList.<CollectBind>create();
