@@ -7,6 +7,7 @@ import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 /**
+ * TODO: move this to somewhere else, compiled aya should not depends on this module
  * Some tools that the serialized code may use
  */
 public class SerializeUtils {

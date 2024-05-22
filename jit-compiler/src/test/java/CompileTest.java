@@ -2,10 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.compiler.ConSerializer;
-import org.aya.compiler.DataSerializer;
-import org.aya.compiler.FnSerializer;
-import org.aya.compiler.PatternSerializer;
+import org.aya.compiler.*;
 import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.producer.AyaParserImpl;
@@ -14,12 +11,16 @@ import org.aya.resolve.context.EmptyContext;
 import org.aya.resolve.module.DumbModuleLoader;
 import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.ErrorTerm;
+import org.aya.syntax.core.term.LamTerm;
+import org.aya.syntax.core.term.LocalTerm;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.ModulePath;
@@ -77,6 +78,17 @@ public class CompileTest {
     var plus = (FnDef) result.findFirst(def -> def.ref().name().equals("plus")).get();
     out = new FnSerializer(new StringBuilder(), 0, new NameGenerator()).serialize(plus).result();
     System.out.println("plus.java");
+    System.out.println(out);
+  }
+
+  @Test
+  public void serLam() {
+    // \ t. (\0. 0 t)
+    var lam = new LamTerm(new Closure.Jit(t -> new LamTerm(new Closure.Idx(new AppTerm(new LocalTerm(0), t)))));
+    var out = new TermSerializer(new NameGenerator(), ImmutableSeq.empty())
+      .serialize(lam)
+      .result();
+
     System.out.println(out);
   }
 

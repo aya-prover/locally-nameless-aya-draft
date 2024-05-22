@@ -35,8 +35,13 @@ public interface AyaSerializer<T> {
   String CLASS_BOOLEAN = getQualified(Boolean.class);
 
   @Language("Java") String IMPORT_BLOCK = """
+    import org.aya.compiler.util.*;
     import org.aya.syntax.compile.*;
+    import org.aya.syntax.core.*;
     import org.aya.syntax.core.term.*;
+    import org.aya.syntax.core.term.repr.*;
+    import org.aya.syntax.core.term.call.*;
+    import org.aya.syntax.core.term.xtt.*;
     import org.aya.util.error.Panic;
     """;
 
