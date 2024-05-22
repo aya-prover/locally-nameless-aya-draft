@@ -2,15 +2,18 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.terck;
 
+import kala.collection.Set;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.ImmutableSet;
-import kala.collection.mutable.MutableSet;
 import kala.value.MutableValue;
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.pat.Pat;
-import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.AppTerm;
+import org.aya.syntax.core.term.FreeTerm;
+import org.aya.syntax.core.term.ProjTerm;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
@@ -36,7 +39,7 @@ import java.util.function.Consumer;
 public record CallResolver(
   @Override @NotNull TyckState state,
   @NotNull FnDef caller,
-  @NotNull MutableSet<TeleDef> targets,
+  @NotNull Set<TeleDef> targets,
   @NotNull MutableValue<Term.Matching> currentClause,
   @NotNull CallGraph<Callable, TeleDef> graph
 ) implements Stateful, Consumer<Term.Matching> {
@@ -45,7 +48,7 @@ public record CallResolver(
   }
   public CallResolver(
     @NotNull TyckState state, @NotNull FnDef fn,
-    @NotNull MutableSet<TeleDef> targets,
+    @NotNull Set<TeleDef> targets,
     @NotNull CallGraph<Callable, TeleDef> graph
   ) {
     this(state, fn, targets, MutableValue.create(), graph);
@@ -57,11 +60,11 @@ public record CallResolver(
     if (!targets.contains(callee)) return;
     var matrix = new CallMatrix<>(callable, caller, callee,
       caller.telescope.size(), callee.telescope().size());
-    fillMatrix(callable, callee, matrix);
+    fillMatrix(callable, matrix);
     graph.put(matrix);
   }
 
-  private void fillMatrix(@NotNull Callable callable, @NotNull TeleDef callee, CallMatrix<?, TeleDef> matrix) {
+  private void fillMatrix(@NotNull Callable callable, CallMatrix<?, TeleDef> matrix) {
     var currentPatterns = currentClause.get();
     assert currentPatterns != null;
     currentPatterns.patterns().forEachIndexed((domParamIx, pat) ->

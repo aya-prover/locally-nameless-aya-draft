@@ -12,6 +12,8 @@ public sealed interface TyckOrder {
     @Override public boolean equals(Object obj) {
       return obj instanceof Head head && head.unit() == unit();
     }
+
+    public Body toBody() { return new Body(unit); }
   }
 
   /** Need to check the full implementation of a definition */

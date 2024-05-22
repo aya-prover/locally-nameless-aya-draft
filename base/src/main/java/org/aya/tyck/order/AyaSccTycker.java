@@ -15,6 +15,7 @@ import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.term.call.Callable;
+import org.aya.syntax.ref.DefVar;
 import org.aya.terck.BadRecursion;
 import org.aya.terck.CallResolver;
 import org.aya.tyck.StmtTycker;
@@ -24,6 +25,7 @@ import org.aya.util.error.Panic;
 import org.aya.util.reporter.CountingReporter;
 import org.aya.util.reporter.Reporter;
 import org.aya.util.terck.CallGraph;
+import org.aya.util.terck.Diagonal;
 import org.aya.util.terck.MutableGraph;
 import org.aya.util.tyck.SCCTycker;
 import org.jetbrains.annotations.NotNull;
@@ -101,7 +103,10 @@ public record AyaSccTycker(
     }
   }
   private void terck(@NotNull ImmutableSeq<TyckOrder.Body> units) {
-    var recDefs = units.filter(u -> selfReferencing(resolveInfo.depGraph(), u)).map(TyckOrder::unit);
+    var recDefs = units.view()
+      .filter(u -> selfReferencing(resolveInfo.depGraph(), u))
+      .map(TyckOrder::unit)
+      .toImmutableSeq();
     if (recDefs.isEmpty()) return;
     // TODO: positivity check for data/record definitions
     var fn = recDefs.view()
@@ -117,11 +122,15 @@ public record AyaSccTycker(
     var graph = CallGraph.<Callable, TeleDef>create();
     fn.forEach(def -> new CallResolver(resolveInfo.makeTyckState(), def, targets, graph).check());
     graph.findBadRecursion().view()
-      .sorted(Comparator.comparing(a -> a.matrix().domain().ref().concrete.sourcePos()))
+      .sorted(Comparator.comparing(a -> domRef(a).concrete.sourcePos()))
       .forEach(f -> {
-        var ref = f.matrix().domain().ref();
+        var ref = domRef(f);
         fail(new BadRecursion(ref.concrete.sourcePos(), ref, f));
       });
+  }
+
+  private static @NotNull DefVar<?, ?> domRef(Diagonal<?, TeleDef> f) {
+    return f.matrix().domain().ref();
   }
 
   private void checkHeader(@NotNull TyckOrder order, @NotNull TyckUnit stmt) {
@@ -158,9 +167,8 @@ public record AyaSccTycker(
       if (test.unit() == suc.unit()) return true;
       if (hasSuc(G, book, test, suc)) return true;
     }
-    if (vertex instanceof TyckOrder.Head) {
-      return hasSuc(G, book, new TyckOrder.Body(vertex.unit()), suc);
-    }
+    if (vertex instanceof TyckOrder.Head head)
+      return hasSuc(G, book, head.toBody(), suc);
     return false;
   }
 

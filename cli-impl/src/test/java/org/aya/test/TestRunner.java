@@ -48,7 +48,7 @@ public class TestRunner {
   }
 
   @Test public void playground() throws IOException {
-    runSingleCase(TerckError.testNonTermination, System.out);
+    // runSingleCase(TerckError.testNonTermination, System.out);
   }
 
   public static void main(String... args) throws Exception {
