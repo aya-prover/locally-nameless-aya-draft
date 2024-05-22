@@ -127,8 +127,7 @@ public class CompileTest {
     // System.out.println(out);
   }
 
-  @Test
-  public void serLam() {
+  @Test public void serLam() {
     // \ t. (\0. 0 t)
     var lam = new LamTerm(new Closure.Jit(t -> new LamTerm(new Closure.Idx(new AppTerm(new LocalTerm(0), t)))));
     var out = new TermSerializer(new NameGenerator(), ImmutableSeq.empty())

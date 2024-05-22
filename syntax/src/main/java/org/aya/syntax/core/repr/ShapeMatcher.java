@@ -193,7 +193,8 @@ public record ShapeMatcher(
   }
 
   private boolean matchCon(@NotNull ConShape shape, @NotNull ConDef con) {
-    if (con.pats.isNotEmpty()) throw new Panic("Don't try to do this, ask @ice1000 why");
+    if (con.pats.isNotEmpty())
+      throw new Panic("Don't try to do this, ask @ice1000 why");
     return matchTele(shape.tele(), con.selfTele);
   }
 
