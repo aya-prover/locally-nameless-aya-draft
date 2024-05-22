@@ -65,9 +65,9 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         }
       };
       case JitFnCall(var instance, var ulift, var args) -> {
-        var result = instance.invoke(args);
-        if (result != null) yield whnf(result);
-        yield term;
+        var result = instance.invoke(term, args);
+        if (term != result) yield whnf(result);
+        yield result;
       }
       case ConCall(var head, var args)
         when head.ref().core instanceof ConDef con

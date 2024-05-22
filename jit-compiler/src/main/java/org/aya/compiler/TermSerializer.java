@@ -137,12 +137,28 @@ public class TermSerializer extends AbstractSerializer<Term> {
         // the function we referred should be serialized together, so we can invoke it directly
         // TODO: need interface
         builder.append(STR."\{getInstance(getQualified(ref))}.invoke(");
+        // serialize JitFnCall in case stuck
+        buildNew(CLASS_JITFNCALL, () -> {
+          builder.append(getInstance(getQualified(ref))); sep();
+          builder.append(ulift); sep();
+          buildArray(CLASS_TERM, args);
+        });
+
+        sep();
         buildArray(CLASS_TERM, args);
         builder.append(")");
         if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
       }
       case JitFnCall(var ref, var ulift, var args) -> {
         builder.append(STR."\{getInstance(getQualified(ref))}.invoke(");
+        // serialize JitFnCall in case stuck
+        buildNew(CLASS_JITFNCALL, () -> {
+          builder.append(getInstance(getQualified(ref))); sep();
+          builder.append(ulift); sep();
+          buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(args));
+        });
+
+        sep();
         buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(args));
         builder.append(")");
         if (ulift > 0) builder.append(STR.".elevate(\{ulift})");

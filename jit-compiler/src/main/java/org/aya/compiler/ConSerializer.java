@@ -18,7 +18,7 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
   }
 
   private void buildIsAvailable(ConDef unit, @NotNull String argsTerm) {
-    var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm,
+    var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm, true,
       s -> s.buildReturn(STR."\{CLASS_RESULT}.err(true)"),
       s -> s.buildReturn(STR."\{CLASS_RESULT}.err(false)"));
 

@@ -38,19 +38,20 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   private final @NotNull Consumer<PatternSerializer> onStuck;
   private final @NotNull Consumer<PatternSerializer> onMismatch;
   private int bindCount = 0;
-  // TODO: impl inferMeta = false
-  private final boolean inferMeta = true;
+  private final boolean inferMeta;
 
   public PatternSerializer(
     @NotNull StringBuilder builder,
     int indent,
     @NotNull NameGenerator nameGen,
     @NotNull String argName,
+    boolean inferMeta,
     @NotNull Consumer<PatternSerializer> onStuck,
     @NotNull Consumer<PatternSerializer> onMismatch
   ) {
     super(builder, indent, nameGen);
     this.argName = argName;
+    this.inferMeta = inferMeta;
     this.onStuck = onStuck;
     this.onMismatch = onMismatch;
   }
@@ -66,7 +67,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       }
       case Pat.ConLike con -> {
         var qualifiedName = getQualified(con);
-        solveMeta(pat, term, State.Mismatch, (realTerm, mCon) -> {
+        solveMeta(pat, term, (realTerm, mCon) -> {
           buildIfInstanceElse(realTerm, CLASS_JITCONCALL, State.Stuck, mTerm -> {
             buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
               State.Mismatch, () -> doSerialize(con.args().view(),
@@ -88,40 +89,48 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   /**
    * Generate meta solving code
+   * @param pat the pattern currently serialize
+   * @param term the parameter currently matched
+   * @param matchContinuation do something if it is not a meta
+   * @param continuation do something if the matching success
    */
   private void solveMeta(
     @NotNull Pat pat,
     @NotNull String term,
-    @NotNull State stateOnFail,
     @NotNull BiConsumer<String, Runnable> matchContinuation,
     @NotNull Runnable continuation
   ) {
-    var tmpName = nameGen.nextName(null);
-    buildUpdate(VARIABLE_META_STATE, "false");
-    buildLocalVar("Term", tmpName, term);
-    buildIfInstanceElse(term, CLASS_METAPATTERM, metaTerm -> {
-      buildUpdate(tmpName, STR."\{CLASS_PATMATCHER}.realSolution(\{metaTerm})");
-      // if the solution is still a meta, we solve it
-      // this is a heavy work
-      buildIfInstanceElse(tmpName, CLASS_METAPATTERM, stillMetaTerm -> {
-        // TODO: we may store all Pattern in somewhere and refer them by something like `.conArgs().get(114514)`
-        var exprializer = new PatternExprializer(nameGen);
-        exprializer.serialize(pat);
-        var doSolveMetaResult = STR."\{CLASS_PATMATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";
-        appendLine(STR."\{CLASS_SERIALIZEUTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
-        buildUpdate(VARIABLE_META_STATE, "true");
-        // at this moment, the matching is complete,
-        // but we still need to generate the code for normal matching
-        // and it will increase bindCount
+    if (inferMeta) {
+      var tmpName = nameGen.nextName(null);
+      buildUpdate(VARIABLE_META_STATE, "false");
+      buildLocalVar("Term", tmpName, term);
+      buildIfInstanceElse(term, CLASS_METAPATTERM, metaTerm -> {
+        buildUpdate(tmpName, STR."\{CLASS_PATMATCHER}.realSolution(\{metaTerm})");
+        // if the solution is still a meta, we solve it
+        // this is a heavy work
+        buildIfInstanceElse(tmpName, CLASS_METAPATTERM, stillMetaTerm -> {
+          // TODO: we may store all Pattern in somewhere and refer them by something like `.conArgs().get(114514)`
+          var exprializer = new PatternExprializer(nameGen);
+          exprializer.serialize(pat);
+          var doSolveMetaResult = STR."\{CLASS_PATMATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";
+          appendLine(STR."\{CLASS_SERIALIZEUTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
+          buildUpdate(VARIABLE_META_STATE, "true");
+          // at this moment, the matching is complete,
+          // but we still need to generate the code for normal matching
+          // and it will increase bindCount
+        }, null);
+
       }, null);
 
-    }, null);
+      buildIf(STR."! \{VARIABLE_META_STATE}", () -> matchContinuation.accept(tmpName, () -> {
+        buildUpdate(VARIABLE_META_STATE, "true");
+      }));
 
-    buildIf(STR."! \{VARIABLE_META_STATE}", () -> matchContinuation.accept(tmpName, () -> {
-      buildUpdate(VARIABLE_META_STATE, "true");
-    }));
-
-    buildIfElse(VARIABLE_META_STATE, stateOnFail, continuation);
+      buildIf(VARIABLE_META_STATE, continuation);
+      // if failed, the previous matching already sets the matchState
+    } else {
+      matchContinuation.accept(term, continuation);
+    }
   }
 
   /**
@@ -183,10 +192,9 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
     int maxBindSize = bindSize.max();
 
-    // TODO: fix hard code Term
-    buildLocalVar("Term[]", VARIABLE_RESULT, STR."new Term[\{maxBindSize}]");
+    buildLocalVar(STR."\{CLASS_TERM}[]", VARIABLE_RESULT, STR."new \{CLASS_TERM}[\{maxBindSize}]");
     buildLocalVar("int", VARIABLE_STATE, "0");
-    buildLocalVar("boolean", VARIABLE_META_STATE, "false");
+    if (inferMeta) buildLocalVar("boolean", VARIABLE_META_STATE, "false");
 
     buildGoto(() -> unit.forEachIndexed((idx, clause) -> {
       var jumpCode = idx + 1;

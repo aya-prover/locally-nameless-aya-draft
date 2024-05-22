@@ -39,6 +39,7 @@ public interface AyaSerializer<T> {
    */
   String FIELD_INSTANCE = "instance";
   String CLASS_JITCONCALL = getName(JitConCall.class);
+  String CLASS_JITFNCALL = getName(JitFnCall.class);
   String CLASS_JITDATACALL = getName(JitDataCall.class);
   String CLASS_IMMSEQ = getName(ImmutableSeq.class);
   String CLASS_TERM = getName(Term.class);

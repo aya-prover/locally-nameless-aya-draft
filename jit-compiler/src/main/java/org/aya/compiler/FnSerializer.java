@@ -18,12 +18,12 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
     super.buildConstructor(unit, ImmutableSeq.empty());
   }
 
-  private void buildInvoke(FnDef unit, @NotNull String argsTerm) {
+  private void buildInvoke(FnDef unit, @NotNull String onStuck, @NotNull String argsTerm) {
     switch (unit.body) {
       case Either.Left(var expr) -> buildReturn(serializeTermUnderTele(expr, argsTerm, unit.telescope.size()));
       case Either.Right(var clauses) -> {
-        var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm,
-          s -> s.buildReturn("null"), s -> s.buildReturn("null"));
+        var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm, false,
+          s -> s.buildReturn(onStuck), s -> s.buildReturn(onStuck));
         ser.serialize(clauses.map(matching -> new PatternSerializer.Matching(
             matching.patterns(),
             (s, bindSize) -> s.buildReturn(serializeTermUnderTele(matching.body(), PatternSerializer.VARIABLE_RESULT, bindSize))
@@ -34,10 +34,14 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
 
   @Override public AyaSerializer<FnDef> serialize(FnDef unit) {
     var argsTerm = "args";
+    var onStuckTerm = "onStuck";
+    var params = ImmutableSeq.of(
+      new JitParam(onStuckTerm, CLASS_TERM),
+      new JitParam(argsTerm, STR."\{CLASS_TERM}...")
+    );
 
-    var params = ImmutableSeq.of(new JitParam(argsTerm, STR."\{CLASS_TERM}..."));
     buildFramework(unit, () -> buildMethod("invoke", params, CLASS_TERM, true,
-      () -> buildInvoke(unit, argsTerm)));
+      () -> buildInvoke(unit, onStuckTerm, argsTerm)));
 
     return this;
   }
