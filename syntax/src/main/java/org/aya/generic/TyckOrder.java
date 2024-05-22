@@ -7,9 +7,17 @@ import org.jetbrains.annotations.NotNull;
 public sealed interface TyckOrder {
   @NotNull TyckUnit unit();
 
-  /** header order */
-  record Head(@NotNull TyckUnit unit) implements TyckOrder {}
+  /** "Need to check and obtain the type signature of a definition" */
+  record Head(@NotNull TyckUnit unit) implements TyckOrder {
+    @Override public boolean equals(Object obj) {
+      return obj instanceof Head head && head.unit() == unit();
+    }
+  }
 
-  /** body order */
-  record Body(@NotNull TyckUnit unit) implements TyckOrder {}
+  /** Need to check the full implementation of a definition */
+  record Body(@NotNull TyckUnit unit) implements TyckOrder {
+    @Override public boolean equals(Object obj) {
+      return obj instanceof Body body && body.unit() == unit();
+    }
+  }
 }

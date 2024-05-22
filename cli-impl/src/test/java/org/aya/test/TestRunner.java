@@ -41,13 +41,14 @@ public class TestRunner {
       ScopeError.class,
       PatTyckError.class,
       OperatorError.class,
+      TerckError.class,
       PatCohError.class
     ).forEachChecked(TestRunner::expectFixture);
     Files.deleteIfExists(TMP_FILE);
   }
 
   @Test public void playground() throws IOException {
-    // runSingleCase(GoalAndMeta.testNorell, System.out);
+    runSingleCase(TerckError.testNonTermination, System.out);
   }
 
   public static void main(String... args) throws Exception {

@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.tyck.order;
 
-import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.collection.mutable.MutableSet;
@@ -93,25 +92,27 @@ public record AyaSccTycker(
   private void checkUnit(@NotNull TyckOrder order) {
     if (order.unit() instanceof TeleDecl.FnDecl fn && fn.body instanceof TeleDecl.ExprBody) {
       if (selfReferencing(resolveInfo.depGraph(), order)) {
-        reporter.report(new BadRecursion(fn.sourcePos(), fn.ref, null));
+        fail(new BadRecursion(fn.sourcePos(), fn.ref, null));
         throw new SCCTyckingFailed(ImmutableSeq.of(order));
       }
       check(new TyckOrder.Body(fn));
     } else {
       check(order);
-      if (order instanceof TyckOrder.Body body)
-        terck(SeqView.of(body));
+      if (order instanceof TyckOrder.Body body) terck(ImmutableSeq.of(body));
     }
   }
-  private void terck(@NotNull SeqView<TyckOrder.Body> units) {
+  private void terck(@NotNull ImmutableSeq<TyckOrder.Body> units) {
     var recDefs = units.filter(u -> selfReferencing(resolveInfo.depGraph(), u)).map(TyckOrder::unit);
     if (recDefs.isEmpty()) return;
     // TODO: positivity check for data/record definitions
-    var fn = recDefs.filterIsInstance(TeleDecl.FnDecl.class).map(f -> f.ref.core);
+    var fn = recDefs.view()
+      .filterIsInstance(TeleDecl.FnDecl.class)
+      .map(f -> f.ref.core)
+      .toImmutableSeq();
     terckRecursiveFn(fn);
   }
 
-  private void terckRecursiveFn(@NotNull SeqView<FnDef> fn) {
+  private void terckRecursiveFn(@NotNull ImmutableSeq<FnDef> fn) {
     var targets = MutableSet.<TeleDef>from(fn);
     if (targets.isEmpty()) return;
     var graph = CallGraph.<Callable, TeleDef, Param>create();
@@ -141,18 +142,30 @@ public record AyaSccTycker(
     if (reporter.anyError()) throw new SCCTyckingFailed(ImmutableSeq.of(order));
   }
 
-  private <T> boolean
-  hasSuc(@NotNull MutableGraph<T> G, @NotNull MutableSet<T> book, @NotNull T vertex, @NotNull T suc) {
-    if (book.contains(vertex)) return false;
-    book.add(vertex);
+  /**
+   * For self-reference check only, and this is nontrivial, as when it sees a dependency on a head,
+   * it checks the upstream of the body too.
+   *
+   * @see #selfReferencing
+   */
+  private boolean hasSuc(
+    @NotNull MutableGraph<TyckOrder> G,
+    @NotNull MutableSet<TyckUnit> book,
+    @NotNull TyckOrder vertex, @NotNull TyckOrder suc
+  ) {
+    if (book.contains(vertex.unit())) return false;
+    book.add(vertex.unit());
     for (var test : G.suc(vertex)) {
-      if (test.equals(suc)) return true;
+      if (test.unit() == suc.unit()) return true;
       if (hasSuc(G, book, test, suc)) return true;
+    }
+    if (vertex instanceof TyckOrder.Head) {
+      return hasSuc(G, book, new TyckOrder.Body(vertex.unit()), suc);
     }
     return false;
   }
 
-  private <T> boolean selfReferencing(@NotNull MutableGraph<T> graph, @NotNull T unit) {
+  private boolean selfReferencing(@NotNull MutableGraph<TyckOrder> graph, @NotNull TyckOrder unit) {
     return hasSuc(graph, MutableSet.create(), unit, unit);
   }
 
