@@ -121,7 +121,7 @@ public record AyaSccTycker(
       .sorted(Comparator.comparing(a -> a.matrix().domain().ref().concrete.sourcePos()))
       .forEach(f -> {
         var ref = f.matrix().domain().ref();
-        reporter.report(new BadRecursion(ref.concrete.sourcePos(), ref, f));
+        fail(new BadRecursion(ref.concrete.sourcePos(), ref, f));
       });
   }
 

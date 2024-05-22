@@ -38,13 +38,8 @@ public record CallMatrix<Callable, Def, Param>(
     ArrayUtil.fill(matrix, Relation.unk());
   }
 
-  public int rows() {
-    return codomainTele.size();
-  }
-
-  public int cols() {
-    return domainTele.size();
-  }
+  public int rows() { return codomainTele.size(); }
+  public int cols() { return domainTele.size(); }
 
   public void set(@NotNull Param domain, @NotNull Param codomain, @NotNull Relation relation) {
     int row = codomainTele.indexOf(codomain);
@@ -77,12 +72,10 @@ public record CallMatrix<Callable, Def, Param>(
   public static <Callable, Def, Param> @NotNull CallMatrix<Callable, Def, Param> combine(
     @NotNull CallMatrix<Callable, Def, Param> A, @NotNull CallMatrix<Callable, Def, Param> B
   ) {
-    if (B.domain != A.codomain) // implies B.cols() != A.rows()
-      throw new AssertionError("The combine cannot be applied to these two call matrices");
+    // implies B.cols() != A.rows()
+    assert B.domain == A.codomain : "The combine cannot be applied to these two call matrices";
 
-    var BA = new CallMatrix<>(B.callable, A.domain, B.codomain,
-      A.domainTele, B.codomainTele);
-
+    var BA = new CallMatrix<>(B.callable, A.domain, B.codomain, A.domainTele, B.codomainTele);
     for (int i = 0; i < BA.rows(); i++)
       for (int j = 0; j < BA.cols(); j++)
         for (int k = 0; k < B.cols(); k++)
