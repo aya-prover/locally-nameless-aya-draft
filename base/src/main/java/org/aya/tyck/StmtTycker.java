@@ -183,6 +183,8 @@ public record StmtTycker(
         .map(x -> new WithPos<>(x.var().definition(),
           new Param(x.var().name(), x.type(), false)));
       ownerBinds = allBinds.map(Pat.CollectBind::var);
+      if (wellPats.allMatch(pat -> pat instanceof Pat.Bind))
+        wellPats = ImmutableSeq.empty();
     } else {
       loadTele(ownerBinds.view(), dataSig, tycker);
     }

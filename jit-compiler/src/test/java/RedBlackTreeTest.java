@@ -9,9 +9,9 @@ public class RedBlackTreeTest {
     var result = CompileTest.tyck("""
       open data Nat | O | S Nat
       open data Bool | true | false
-      open data List (A : Type)
+      open data List Type
       | nil
-      | infixr cons A (List A)
+      | A => infixr cons A (List A)
       
       open data Color | red | black
       def Decider (A : Type) => Fn (x y : A) -> Bool
@@ -52,9 +52,9 @@ public class RedBlackTreeTest {
       | rbLeaf => rbNode red rbLeaf a rbLeaf
       | rbNode c l1 a1 l2 => insert-lemma dec< a a1 c l1 l2 (dec< a1 a)
 
-      private def aux (List A) (RBTree A) (Decider A) : RBTree A
-      | nil, r, _ => r
-      | a cons l, r, dec< => aux l (repaint (insert a r dec<)) dec<
+      private def aux (l : List A) (r : RBTree A) (dec< : Decider A) : RBTree A elim l
+      | nil => r
+      | a cons l => aux l (repaint (insert a r dec<)) dec<
       def tree-sort (dec< : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec<) nil
       """).filter(x -> x instanceof FnDef || x instanceof DataDef);
 
