@@ -6,7 +6,6 @@ import kala.collection.mutable.MutableList;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.def.TeleDef;
-import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.error.SourcePos;
@@ -18,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 public record BadRecursion(
   @Override @NotNull SourcePos sourcePos, @NotNull DefVar<?, ?> name,
-  @Nullable Diagonal<Callable, TeleDef, Param> diag
+  @Nullable Diagonal<Callable, TeleDef> diag
 ) implements Problem {
   @Override public @NotNull Severity level() { return Severity.ERROR; }
   @Override public @NotNull Stage stage() { return Stage.TERCK; }

@@ -38,7 +38,7 @@ public record CallResolver(
   @NotNull FnDef caller,
   @NotNull MutableSet<TeleDef> targets,
   @NotNull MutableValue<Term.Matching> currentClause,
-  @NotNull CallGraph<Callable, TeleDef, Param> graph
+  @NotNull CallGraph<Callable, TeleDef> graph
 ) implements Stateful, Consumer<Term.Matching> {
   public CallResolver {
     assert caller.body.isRight();
@@ -46,7 +46,7 @@ public record CallResolver(
   public CallResolver(
     @NotNull TyckState state, @NotNull FnDef fn,
     @NotNull MutableSet<TeleDef> targets,
-    @NotNull CallGraph<Callable, TeleDef, Param> graph
+    @NotNull CallGraph<Callable, TeleDef> graph
   ) {
     this(state, fn, targets, MutableValue.create(), graph);
   }
@@ -55,18 +55,19 @@ public record CallResolver(
     if (!(callable.ref() instanceof DefVar<?, ?> defVar)) return;
     var callee = (TeleDef) defVar.core;
     if (!targets.contains(callee)) return;
-    var matrix = new CallMatrix<>(callable, caller, callee, caller.telescope, callee.telescope());
+    var matrix = new CallMatrix<>(callable, caller, callee,
+      caller.telescope.size(), callee.telescope().size());
     fillMatrix(callable, callee, matrix);
     graph.put(matrix);
   }
 
-  private void fillMatrix(@NotNull Callable callable, @NotNull TeleDef callee, CallMatrix<?, TeleDef, Param> matrix) {
+  private void fillMatrix(@NotNull Callable callable, @NotNull TeleDef callee, CallMatrix<?, TeleDef> matrix) {
     var currentPatterns = currentClause.get();
     assert currentPatterns != null;
-    currentPatterns.patterns().forEachWith(caller.telescope, (pat, domParam) ->
-      callable.args().forEachWith(callee.telescope(), (term, codParam) -> {
+    currentPatterns.patterns().forEachIndexed((domParamIx, pat) ->
+      callable.args().forEachIndexed((codParamIx, term) -> {
         var relation = compare(term, pat);
-        matrix.set(domParam, codParam, relation);
+        matrix.set(domParamIx, codParamIx, relation);
       }));
   }
 

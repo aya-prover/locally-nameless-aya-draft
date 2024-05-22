@@ -14,7 +14,6 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TeleDef;
-import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.terck.BadRecursion;
 import org.aya.terck.CallResolver;
@@ -115,7 +114,7 @@ public record AyaSccTycker(
   private void terckRecursiveFn(@NotNull ImmutableSeq<FnDef> fn) {
     var targets = MutableSet.<TeleDef>from(fn);
     if (targets.isEmpty()) return;
-    var graph = CallGraph.<Callable, TeleDef, Param>create();
+    var graph = CallGraph.<Callable, TeleDef>create();
     fn.forEach(def -> new CallResolver(resolveInfo.makeTyckState(), def, targets, graph).check());
     graph.findBadRecursion().view()
       .sorted(Comparator.comparing(a -> a.matrix().domain().ref().concrete.sourcePos()))
