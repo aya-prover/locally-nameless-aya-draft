@@ -85,8 +85,8 @@ public class PatternTyckTest {
       overlap def +-comm (a b: Nat): a + b = b + a
       | 0, _ => refl
       | _, 0 => refl
-      | S a, b => pmap (\\n => S n) (+-comm a b)
-      | a, S b => pmap (\\n => S n) (+-comm a b)
+      | S a, b => pmap S (+-comm a b)
+      | a, S b => pmap S (+-comm a b)
       """);
     assertTrue(result.isNotEmpty());
   }

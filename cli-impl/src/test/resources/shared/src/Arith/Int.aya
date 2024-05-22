@@ -10,7 +10,7 @@ def neg (a : Nat) => signed false a
 
 //def negate Int : Int
 //| signed b n => signed (not b) n
-//| posneg i => pinv (\j => posneg j) i
+//| posneg i => pinv posneg i
 
 def succInt Int : Int
 | signed true n => pos (suc n)

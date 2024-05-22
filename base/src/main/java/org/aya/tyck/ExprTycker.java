@@ -4,6 +4,7 @@ package org.aya.tyck;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
+import kala.collection.mutable.MutableStack;
 import kala.collection.mutable.MutableTreeSet;
 import kala.control.Result;
 import org.aya.generic.Constants;
@@ -27,6 +28,7 @@ import org.aya.tyck.tycker.Unifiable;
 import org.aya.unify.TermComparator;
 import org.aya.unify.Unifier;
 import org.aya.util.Ordering;
+import org.aya.util.Pair;
 import org.aya.util.error.Panic;
 import org.aya.util.error.SourceNode;
 import org.aya.util.error.SourcePos;
@@ -209,7 +211,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         yield new Jdg.Default(new IntegerTerm(integer, match.component2(), type), type);
       }
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-      case Expr.Ref(LocalVar ref, _) when localLet.contains(ref) -> localLet.get(ref);
+
       case Expr.Ref(var ref, _) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       case Expr.Sigma _, Expr.Pi _ -> lazyJdg(ty(expr));
       case Expr.Sort _ -> sort(expr);
@@ -246,6 +248,8 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
     @NotNull AnyVar f, @NotNull ImmutableSeq<Expr.NamedArg> args
   ) throws NotPi {
     return switch (f) {
+      case LocalVar ref when localLet.contains(ref) ->
+        generateApplication(args, localLet.get(ref));
       case LocalVar lVar -> generateApplication(args,
         new Jdg.Default(new FreeTerm(lVar), localCtx().get(lVar)));
       case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, state, (params, k) -> {
@@ -278,13 +282,24 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           var param = params.telescopeRich(paramIx, result);
           result[paramIx++] = mockTerm(param, SourcePos.NONE);
         }
+        var extraParams = MutableStack.<Pair<LocalVar, Term>>create();
         if (argIx < args.size()) {
           return generateApplication(args.drop(argIx), k.apply(result));
-        } else if (paramIx < params.telescopeSize) {
-          // TODO: eta-expand
-          throw new UnsupportedOperationException("TODO");
+        } else while (paramIx < params.telescopeSize) {
+          var param = params.telescopeRich(paramIx, result);
+          var atarashiVar = LocalVar.generate(param.name());
+          extraParams.push(new Pair<>(atarashiVar, param.type()));
+          result[paramIx++] = new FreeTerm(atarashiVar);
         }
-        return k.apply(result);
+        var generated = k.apply(result);
+        while (extraParams.isNotEmpty()) {
+          var pair = extraParams.pop();
+          generated = new Jdg.Default(
+            new LamTerm(generated.wellTyped().bind(pair.component1())),
+            new PiTerm(pair.component2(), generated.type().bind(pair.component1()))
+          );
+        }
+        return generated;
       });
       default -> throw new UnsupportedOperationException("TODO");
     };
