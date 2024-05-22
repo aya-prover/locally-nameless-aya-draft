@@ -3,7 +3,6 @@
 package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.compiler.util.SerializeUtils;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.core.term.Term;
@@ -141,15 +140,17 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."switch (\{term}) {");
     runInside(() -> {
       for (var kase : cases) {
-        appendLine(STR."case \{kase}:");
+        appendLine(STR."case \{kase}: {");
         // the continuation should return
         runInside(() -> continuation.accept(kase));
+        appendLine("}");
       }
 
-      appendLine(STR."default:");
+      appendLine("default: {");
       runInside(defaultCase);
+      appendLine("}");
     });
-    appendLine(STR."}");
+    appendLine("}");
   }
 
   public void buildMethod(

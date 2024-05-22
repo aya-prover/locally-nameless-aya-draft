@@ -51,7 +51,7 @@ public interface AyaSerializer<T> {
   String CLASS_BOOLEAN = getName(Boolean.class);
 
   @Language("Java") String IMPORT_BLOCK = """
-    import org.aya.generic.SortKind;
+    import org.aya.generic.term.SortKind;
     import org.aya.compiler.util.*;
     import org.aya.syntax.compile.*;
     import org.aya.syntax.ref.LocalVar;

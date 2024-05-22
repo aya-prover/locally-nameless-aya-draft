@@ -81,6 +81,7 @@ public class CompileTest {
 
     \{AyaSerializer.IMPORT_BLOCK}
 
+    @SuppressWarnings({"NullableProblems", "SwitchStatementWithTooFewBranches", "ConstantValue"})
     public interface baka {
     \{out}
     }
