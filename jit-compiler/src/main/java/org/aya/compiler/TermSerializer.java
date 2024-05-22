@@ -13,9 +13,10 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
+import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.core.term.marker.TyckInternal;
-import org.aya.syntax.core.term.xtt.CoeTerm;
-import org.aya.syntax.core.term.xtt.PAppTerm;
+import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -26,13 +27,13 @@ import java.util.function.Consumer;
  * Build the "constructor form" of {@link Term}, but in Java.
  */
 public class TermSerializer extends AbstractSerializer<Term> {
-  public static final String CLASS_LAMTERM = getQualified(LamTerm.class);
-  public static final String CLASS_JITLAMTERM = getQualified(Closure.Jit.class);
-  public static final String CLASS_APPTERM = getQualified(AppTerm.class);
-  public static final String CLASS_SORTTERM = getQualified(SortTerm.class);
-  public static final String CLASS_SORTKIND = getQualified(SortKind.class);
+  public static final String CLASS_LAMTERM = getName(LamTerm.class);
+  public static final String CLASS_JITLAMTERM = getName(Closure.Jit.class);
+  public static final String CLASS_APPTERM = getName(AppTerm.class);
+  public static final String CLASS_SORTTERM = getName(SortTerm.class);
+  public static final String CLASS_SORTKIND = getName(SortKind.class);
+  public static final String CLASS_PI = getName(PiTerm.class);
 
-  // telescope order, it can grow, i.e. lambda
   private final @NotNull ImmutableSeq<String> instantiates;
   private final @NotNull MutableMap<LocalVar, String> binds;
 
@@ -104,7 +105,9 @@ public class TermSerializer extends AbstractSerializer<Term> {
       case LamTerm lamTerm -> {
         // TODO: instantiate with special LocalVar, and add them to {instantiates},
         // replace those LocalVar/FreeTerm while serializing `jLambda.apply(that LocalVar)`
-        serializeLam(nameGen.nextName(null), lamTerm.body());
+        buildNew(CLASS_LAMTERM, () -> {
+          serializeClosure(lamTerm.body());
+        });
       }
       case DataCall(var ref, var ulift, var args) -> buildNew(CLASS_JITDATACALL, () -> {
         builder.append(getInstance(getQualified(ref))); sep();
@@ -130,13 +133,16 @@ public class TermSerializer extends AbstractSerializer<Term> {
         sep();
         buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(conArgs));
       });
-      case FnCall(var ref, var ulift, var args) -> buildNew(CLASS_JITFNCALL, () -> {
-        builder.append(getInstance(getQualified(ref))); sep();
-        builder.append(ulift); sep();
+      case FnCall(var ref, var ulift, var args) -> {
+        // the function we referred should be serialized together, so we can invoke it directly
+        // TODO: need interface
+        builder.append(STR."\{getInstance(getQualified(ref))}.invoke(");
         buildArray(CLASS_TERM, args);
-      });
+        builder.append(")");
+        if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
+      }
       case JitFnCall(var ref, var ulift, var args) -> {
-        builder.append(STR."\{getQualified(ref)}.invoke(");
+        builder.append(STR."\{getInstance(getQualified(ref))}.invoke(");
         buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(args));
         builder.append(")");
         if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
@@ -145,10 +151,23 @@ public class TermSerializer extends AbstractSerializer<Term> {
         builder.append(STR."\{CLASS_SORTKIND}.\{kind.name()}"); sep();
         builder.append(ulift);
       });
-      case CoeTerm _ -> { }
-      case ProjTerm _ -> { }
-      case PAppTerm _ -> { }
-      default -> throw new UnsupportedOperationException("TODO");
+      case PiTerm piTerm -> {
+        buildNew(CLASS_PI, () -> {
+          doSerialize(piTerm.param());
+          sep();
+          serializeClosure(piTerm.body());
+        });
+      }
+      case CoeTerm _ -> throw new UnsupportedOperationException("TODO");
+      case ProjTerm _ -> throw new UnsupportedOperationException("TODO");
+      case PAppTerm _ -> throw new UnsupportedOperationException("TODO");
+      case SigmaTerm sigmaTerm -> throw new UnsupportedOperationException("TODO");
+      case TupTerm tupTerm -> throw new UnsupportedOperationException("TODO");
+      case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
+      case IntegerTerm integerTerm -> throw new UnsupportedOperationException("TODO");
+      case DimTerm dimTerm -> throw new UnsupportedOperationException("TODO");
+      case DimTyTerm dimTyTerm -> throw new UnsupportedOperationException("TODO");
+      case EqTerm eqTerm -> throw new UnsupportedOperationException("TODO");
     }
   }
 
@@ -159,7 +178,11 @@ public class TermSerializer extends AbstractSerializer<Term> {
     this.binds.remove(bind);
   }
 
-  private void serializeLam(@NotNull String param, @NotNull Closure body) {
+  private void serializeClosure(@NotNull Closure body) {
+    serializeClosure(nameGen.nextName(null), body);
+  }
+
+  private void serializeClosure(@NotNull String param, @NotNull Closure body) {
     buildNew(CLASS_JITLAMTERM, () -> {
       builder.append(STR."\{param} -> ");
       with(param, t -> doSerialize(body.apply(t)));

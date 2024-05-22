@@ -12,7 +12,7 @@ import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitTeleSerializer<T extends TeleDef> extends AbstractSerializer<T> {
-  public static final String CLASS_JITCON = getQualified(JitCon.class);
+  public static final String CLASS_JITCON = getName(JitCon.class);
 
   protected final @NotNull String superClass;
 

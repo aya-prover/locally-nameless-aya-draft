@@ -27,12 +27,12 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   public static final @NotNull String VARIABLE_STATE = "matchState";
   public static final @NotNull String VARIABLE_META_STATE = "metaState";
 
-  static final @NotNull String CLASS_METAPATTERM = MetaPatTerm.class.getName();
-  static final @NotNull String CLASS_PATMATCHER = PatMatcher.class.getName();
+  static final @NotNull String CLASS_METAPATTERM = getName(MetaPatTerm.class);
+  static final @NotNull String CLASS_PATMATCHER = getName(PatMatcher.class);
   // TODO: they are inner class, which contains '$'
-  static final @NotNull String CLASS_PAT_ABSURD = Pat.Absurd.class.getName();
-  static final @NotNull String CLASS_PAT_BIND = Pat.Bind.class.getName();
-  static final @NotNull String CLASS_PAT_JCON = Pat.JCon.class.getName();
+  static final @NotNull String CLASS_PAT_ABSURD = getName(Pat.Absurd.class);
+  static final @NotNull String CLASS_PAT_BIND = getName(Pat.Bind.class);
+  static final @NotNull String CLASS_PAT_JCON = getName(Pat.JCon.class);
 
   private final @NotNull String argName;
   private final @NotNull Consumer<PatternSerializer> onStuck;

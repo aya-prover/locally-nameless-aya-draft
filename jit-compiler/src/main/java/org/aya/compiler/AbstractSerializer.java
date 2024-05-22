@@ -17,8 +17,6 @@ import java.util.function.Consumer;
 public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   public record JitParam(@NotNull String name, @NotNull String type) { }
 
-  public static final @NotNull String CLASS_SERIALIZEUTILS = SerializeUtils.class.getName();
-
   protected final @NotNull StringBuilder builder;
   protected int indent;
   protected final @NotNull NameGenerator nameGen;
@@ -221,8 +219,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return ayaName.name();
   }
 
-  public static @NotNull String getQualified(@NotNull Class<?> clazz) {
-    // TODO: maybe wrong impl
-    return clazz.getName().replace('$', '.');
+  public static @NotNull String getName(@NotNull Class<?> clazz) {
+    return clazz.getSimpleName().replace('$', '.');
   }
 }
