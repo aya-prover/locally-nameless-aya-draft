@@ -10,13 +10,13 @@ import org.jetbrains.annotations.NotNull;
 public record JitDataCall(
   @Override @NotNull JitData instance,
   @Override int ulift,
-  @Override @NotNull Term... args
+  @Override @NotNull Term... arguments
 ) implements JitCallable {
   public @NotNull JitDataCall update(Term[] dataArgs) {
-    return ArrayUtil.identical(this.args, dataArgs) ? this : new JitDataCall(instance, ulift, dataArgs);
+    return ArrayUtil.identical(this.arguments, dataArgs) ? this : new JitDataCall(instance, ulift, dataArgs);
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(ArrayUtil.map(args, x -> f.apply(0, x)));
+    return update(ArrayUtil.map(arguments, x -> f.apply(0, x)));
   }
 }

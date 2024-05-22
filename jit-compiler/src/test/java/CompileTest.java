@@ -65,7 +65,7 @@ public class CompileTest {
       open data Nat | O | S Nat
       open data Vec (n : Nat) Type
       | O, A   => vnil
-      | S n, A => infixr vcons A (Vec n A)
+      | S n, A => vcons A (Vec n A)
 
       def plus (a b : Nat) : Nat elim a
       | O => b

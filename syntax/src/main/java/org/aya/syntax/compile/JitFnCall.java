@@ -4,19 +4,20 @@ package org.aya.syntax.compile;
 
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.marker.GenericCall;
 import org.aya.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 public record JitFnCall(
   @Override @NotNull JitFn instance,
   @Override int ulift,
-  @Override @NotNull Term... args
-) implements JitCallable {
+  @Override @NotNull Term... arguments
+) implements JitCallable, GenericCall.GenericFnCall {
   public @NotNull JitFnCall update(@NotNull Term[] args) {
-    return ArrayUtil.identical(this.args, args) ? this : new JitFnCall(instance, ulift, args);
+    return ArrayUtil.identical(this.arguments, args) ? this : new JitFnCall(instance, ulift, args);
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(ArrayUtil.map(args, arg -> f.apply(0, arg)));
+    return update(ArrayUtil.map(arguments, arg -> f.apply(0, arg)));
   }
 }

@@ -14,6 +14,7 @@ import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.marker.GenericCall;
 import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.xtt.*;
@@ -129,33 +130,25 @@ public class TermSerializer extends AbstractSerializer<Term> {
         sep();
         buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(conArgs));
       });
-      case FnCall(var ref, var ulift, var args) -> {
-        // the function we referred should be serialized together, so we can invoke it directly
-        // TODO: need interface
-        builder.append(STR."\{getInstance(getQualified(ref))}.invoke(");
+      case GenericCall.GenericFnCall call -> {
+        var ref = switch (call) {
+          case JitFnCall fnCall -> getInstance(getQualified(fnCall.instance()));
+          case FnCall fnCall -> getInstance(getQualified(fnCall.ref()));
+        };
+
+        var ulift = call.ulift();
+        var args = call.args();
+
+        builder.append(STR."\{ref}.invoke(");
         // serialize JitFnCall in case stuck
         buildNew(CLASS_JITFNCALL, () -> {
-          builder.append(getInstance(getQualified(ref))); sep();
+          builder.append(ref); sep();
           builder.append(ulift); sep();
           buildArray(CLASS_TERM, args);
         });
 
         sep();
         buildArray(CLASS_TERM, args);
-        builder.append(")");
-        if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
-      }
-      case JitFnCall(var ref, var ulift, var args) -> {
-        builder.append(STR."\{getInstance(getQualified(ref))}.invoke(");
-        // serialize JitFnCall in case stuck
-        buildNew(CLASS_JITFNCALL, () -> {
-          builder.append(getInstance(getQualified(ref))); sep();
-          builder.append(ulift); sep();
-          buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(args));
-        });
-
-        sep();
-        buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(args));
         builder.append(")");
         if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
       }

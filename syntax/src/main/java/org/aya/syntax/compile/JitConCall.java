@@ -23,7 +23,7 @@ public record JitConCall(
       ArrayUtil.map(conArgs, t -> f.apply(0, t))
     );
   }
-  @Override public Term[] args() {
+  @Override public Term[] arguments() {
     var ret = new Term[ownerArgs.length + conArgs.length];
     System.arraycopy(ownerArgs, 0, ret, 0, ownerArgs.length);
     System.arraycopy(conArgs, 0, ret, ownerArgs.length, conArgs.length);
