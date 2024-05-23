@@ -135,18 +135,18 @@ public record ShapeMatcher(
   private boolean matchClause(@NotNull ClauseShape shape, @NotNull Term.Matching clause) {
     // match pats
     var patsResult = matchMany(MatchMode.OrderedEq, shape.pats(), clause.patterns(),
-      (ps, ap) -> matchPat(new MatchPat(ps, ap)));
+      this::matchPat);
     if (!patsResult) return false;
     return matchTerm(shape.body(), clause.body());
   }
 
-  record MatchPat(@NotNull PatShape shape, @NotNull Pat pat) { }
-
-  private boolean matchPat(@NotNull MatchPat matchPat) {
-    if (matchPat.shape == PatShape.Basic.Any) return true;
-    return switch (matchPat) {
-      case MatchPat(PatShape.Basic _/*Bind*/, Pat.Bind _) -> true;
-      case MatchPat(PatShape.ConLike conLike, Pat.Con con) -> {
+  private boolean matchPat(@NotNull PatShape shape, @NotNull Pat pat) {
+    if (shape == PatShape.Basic.Any) return true;
+    if (pat instanceof Pat.ShapedInt shapedInt)
+      pat = shapedInt.constructorForm();
+    return switch (new Pair<>(shape, pat)) {
+      case Pair(PatShape.Basic _/*Bind*/, Pat.Bind _) -> true;
+      case Pair(PatShape.ConLike conLike, Pat.Con con) -> {
         boolean matched = true;
 
         if (conLike instanceof PatShape.ShapedCon shapedCon) {
@@ -166,7 +166,7 @@ public record ShapeMatcher(
 
         // We don't use `matchInside` here, because the context doesn't need to reset.
         yield matchMany(MatchMode.OrderedEq, conLike.innerPats(), con.args().view(),
-          (ps, pt) -> matchPat(new MatchPat(ps, pt)));
+          this::matchPat);
       }
       default -> false;
     };
