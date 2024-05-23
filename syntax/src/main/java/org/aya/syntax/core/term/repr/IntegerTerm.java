@@ -37,8 +37,7 @@ public record IntegerTerm(
     return new ConCallLike.Head(type.ref(), ref.core.ref, 0, ImmutableSeq.empty());
   }
 
-  @Override
-  public @NotNull ImmutableSeq<Term> conArgs() {
+  @Override public @NotNull ImmutableSeq<Term> conArgs() {
     if (repr == 0) return ImmutableSeq.empty();
     var conTele = head().ref().core.selfTele;
     assert conTele.sizeEquals(1);
@@ -52,9 +51,7 @@ public record IntegerTerm(
     return this;
   }
 
-  @Override public @NotNull Term makeZero(@NotNull ConDef zero) {
-    return map(x -> 0);
-  }
+  @Override public @NotNull Term makeZero(@NotNull ConDef zero) { return map(x -> 0); }
 
   @Override public @NotNull Term makeSuc(@NotNull ConDef suc, @NotNull Term term) {
     return new ConCall(suc.dataRef, suc.ref, ImmutableSeq.empty(), 0,

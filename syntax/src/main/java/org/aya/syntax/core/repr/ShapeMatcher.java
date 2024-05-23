@@ -69,10 +69,8 @@ public record ShapeMatcher(
       RepoLike.super.fork(new Captures(MutableMap.from(map), MutableValue.create()));
     }
 
-    public void discard() {
-      // closed with unmerged changes
-      RepoLike.super.merge();
-    }
+    /** closed with unmerged changes */
+    public void discard() { RepoLike.super.merge(); }
 
     @Override public void merge() {
       var f = this.future.get();
@@ -89,9 +87,7 @@ public record ShapeMatcher(
       return choose().getOrThrow(id, () -> new Panic("Invalid moment id " + id));
     }
 
-    public void put(@NotNull MomentId id, @NotNull AnyVar var) {
-      choose().put(id, var);
-    }
+    public void put(@NotNull MomentId id, @NotNull AnyVar var) { choose().put(id, var); }
   }
 
   public ShapeMatcher() {
@@ -106,12 +102,10 @@ public record ShapeMatcher(
     if (matchDecl(new MatchDecl(shape.codeShape(), def))) {
       return Option.some(new ShapeRecognition(shape, captures.extractGlobal()));
     }
-
     return Option.none();
   }
 
-  record MatchDecl(@NotNull CodeShape shape, @NotNull Def def) {
-  }
+  record MatchDecl(@NotNull CodeShape shape, @NotNull Def def) { }
 
   private boolean matchDecl(@NotNull MatchDecl params) {
     return switch (params) {
@@ -176,7 +170,6 @@ public record ShapeMatcher(
 
         if (!matched) yield false;
 
-        // TODO: licit
         // We don't use `matchInside` here, because the context doesn't need to reset.
         yield matchMany(MatchMode.OrderedEq, conLike.innerPats(), con.args().view(),
           (ps, pt) -> matchPat(new MatchPat(ps, pt)));
@@ -291,14 +284,14 @@ public record ShapeMatcher(
     @NotNull MatchMode mode,
     @NotNull SeqLike<S> shapes,
     @NotNull SeqLike<C> cores,
-    @NotNull BiFunction<S, C, Boolean> matcher
+    @NotNull BiPredicate<S, C> matcher
   ) {
     if (mode == MatchMode.Eq && !shapes.sizeEquals(cores)) return false;
-    if (mode == MatchMode.OrderedEq) return shapes.allMatchWith(cores, matcher::apply);
+    if (mode == MatchMode.OrderedEq) return shapes.allMatchWith(cores, matcher);
     var remainingShapes = MutableLinkedList.from(shapes);
     for (var core : cores) {
       if (remainingShapes.isEmpty()) return mode == MatchMode.Sub;
-      var index = remainingShapes.indexWhere(shape -> matcher.apply(shape, core));
+      var index = remainingShapes.indexWhere(shape -> matcher.test(shape, core));
       if (index == -1) {
         if (mode != MatchMode.Sub) return false;
       } else {
