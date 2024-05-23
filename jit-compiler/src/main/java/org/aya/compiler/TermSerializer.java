@@ -100,10 +100,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
       case AppTerm appTerm -> buildNew(CLASS_APPTERM, ImmutableSeq.of(
         appTerm.fun(), appTerm.arg()
       ));
-      case LocalTerm(var idx) -> {
-        var subst = AyaRuntimeException.onRuntime(() -> instantiates.get(instantiates.size() - idx - 1));
-        builder.append(subst);
-      }
+      case LocalTerm(var idx) -> throw AyaRuntimeException.runtime(new Panic("LocalTerm"));
       case LamTerm lamTerm -> buildNew(CLASS_LAMTERM, () -> {
         serializeClosure(lamTerm.body());
       });
@@ -201,6 +198,12 @@ public class TermSerializer extends AbstractSerializer<Term> {
   }
 
   @Override public AyaSerializer<Term> serialize(Term unit) {
+    binds.clear();
+    var vars = ImmutableSeq.fill(instantiates.size(), i -> new LocalVar(STR."arg\{i}"));
+    unit = unit.instantiateTeleVar(vars.view());
+
+    vars.forEachWith(instantiates, binds::put);
+
     doSerialize(unit);
     return this;
   }

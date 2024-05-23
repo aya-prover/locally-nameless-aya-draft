@@ -56,6 +56,7 @@ public interface AyaSerializer<T> {
     import org.aya.syntax.compile.*;
     import org.aya.syntax.ref.LocalVar;
     import org.aya.syntax.core.*;
+    import org.aya.syntax.core.Closure.Jit;
     import org.aya.syntax.core.pat.Pat.*;
     import org.aya.syntax.core.term.*;
     import org.aya.syntax.core.term.repr.*;
