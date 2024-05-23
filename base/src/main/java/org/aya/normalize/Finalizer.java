@@ -21,7 +21,7 @@ public interface Finalizer {
     return switch (term) {
       case MetaCall meta -> state().computeSolution(meta, this::doZonk);
       case MetaPatTerm meta -> meta.inline(this::doZonk);
-      case MetaLitTerm meta -> meta.inline();
+      case MetaLitTerm meta -> meta.inline(this::doZonk);
       default -> term.descent(this::zonk);
     };
   }

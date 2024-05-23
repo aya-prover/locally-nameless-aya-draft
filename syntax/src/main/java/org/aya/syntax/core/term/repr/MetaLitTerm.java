@@ -15,6 +15,8 @@ import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.UnaryOperator;
+
 public record MetaLitTerm(
   @NotNull SourcePos sourcePos,
   @NotNull Object repr,
@@ -28,8 +30,8 @@ public record MetaLitTerm(
     return update(f.apply(0, type));
   }
 
-  @SuppressWarnings("unchecked") public @NotNull Term inline() {
-    if (!(type instanceof DataCall dataCall)) return this;
+  @SuppressWarnings("unchecked") public @NotNull Term inline(UnaryOperator<Term> pre) {
+    if (!(pre.apply(type) instanceof DataCall dataCall)) return this;
     return candidates.find(t -> t.component1().ref() == dataCall.ref()).flatMap(t -> {
       var recog = t.component2();
       var shape = recog.shape();

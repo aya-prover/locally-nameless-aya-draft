@@ -8,7 +8,6 @@ import kala.collection.mutable.MutableStack;
 import kala.collection.mutable.MutableTreeSet;
 import kala.control.Result;
 import org.aya.generic.Constants;
-import org.aya.normalize.error.UnsolvedLit;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.TeleDef;
@@ -236,22 +235,22 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         // find def
         var defs = state.shapeFactory().findImpl(AyaShape.LIST_SHAPE);
         if (defs.isEmpty()) yield fail(arr, new NoRuleError(expr, null));
-        // TODO: can we proceed with ambiguity with MetaLitTerm? see testLiteralAmbiguous3
-        if (defs.sizeGreaterThan(1)) yield fail(arr, new UnsolvedLit(
-          new MetaLitTerm(expr.sourcePos(), arr, defs, ErrorTerm.typeOf(arr))));
-
+        if (defs.sizeGreaterThan(1)) {
+          var tyMeta = freshMeta("arr_ty", expr.sourcePos(), MetaVar.Misc.IsType);
+          var results = elements.map(element -> inherit(element, tyMeta).wellTyped());
+          yield new Jdg.Default(new MetaLitTerm(expr.sourcePos(), results, defs, tyMeta), tyMeta);
+        }
         var match = defs.getFirst();
         var def = (DataDef) match.component1();
 
         // List (A : Type)
         var sort = TeleDef.defSignature(def.ref).telescopeRich(0);
         // the sort of type below.
-        var hole = freshMeta(sort.name(), expr.sourcePos(), new MetaVar.OfType(sort.type()));
-        var type = new DataCall(def.ref(), 0, ImmutableSeq.of(
-          hole));
+        var elementTy = freshMeta(sort.name(), expr.sourcePos(), new MetaVar.OfType(sort.type()));
 
         // do type check
-        var results = elements.map(element -> inherit(element, hole).wellTyped());
+        var results = elements.map(element -> inherit(element, elementTy).wellTyped());
+        var type = new DataCall(def.ref(), 0, ImmutableSeq.of(elementTy));
         yield new Jdg.Default(new ListTerm(results, match.component2(), type), type);
       }
       case Expr.Unresolved _ -> Panic.unreachable();
