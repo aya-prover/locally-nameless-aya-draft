@@ -63,7 +63,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
     builder.append(", ");
   }
 
-  private void buildArray(@NotNull String typeName, @NotNull ImmutableSeq<Term> terms) {
+  private void buildArray(@NotNull String typeName, int level, @NotNull ImmutableSeq<Term> terms) {
     doSerialize(STR."new \{typeName}[] { ", " }", terms);
   }
 
@@ -73,18 +73,18 @@ public class TermSerializer extends AbstractSerializer<Term> {
     // TODO: the code here is duplicated with somewhere, unify them
     if (terms.isNotEmpty()) {
       var it = terms.iterator();
-      doSerialize(it.next());
+      doSerialize(level, it.next());
 
       while (it.hasNext()) {
         sep();
-        doSerialize(it.next());
+        doSerialize(level, it.next());
       }
     }
 
     builder.append(suffix);
   }
 
-  private void doSerialize(@NotNull Term term) {
+  private void doSerialize(int level, @NotNull Term term) {
     switch (term) {
       case FreeTerm bind -> {
         // It is possible that we meet bind here,
@@ -177,6 +177,10 @@ public class TermSerializer extends AbstractSerializer<Term> {
       case EqTerm eqTerm -> throw new UnsupportedOperationException("TODO");
     }
   }
+
+  // def f (A : Type) : Fn (a : A) -> A
+  // (A : Type) : Pi(^0, IdxClosure(^1))
+  // (A : Type) : Pi(^0, JitClosure(_ -> ^1))
 
   private void with(@NotNull String subst, @NotNull Consumer<Term> continuation) {
     var bind = new LocalVar(subst);
