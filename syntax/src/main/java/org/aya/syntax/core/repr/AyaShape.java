@@ -5,19 +5,17 @@ package org.aya.syntax.core.repr;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableMap;
+import kala.control.Either;
 import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import org.aya.syntax.core.def.Def;
-import org.aya.syntax.core.repr.CodeShape.ConShape;
-import org.aya.syntax.core.repr.CodeShape.DataShape;
-import org.aya.syntax.core.repr.CodeShape.GlobalId;
-import org.aya.syntax.core.repr.CodeShape.LocalId;
+import org.aya.syntax.core.repr.CodeShape.*;
 import org.jetbrains.annotations.NotNull;
 
 import static org.aya.syntax.core.repr.CodeShape.GlobalId.SUC;
 import static org.aya.syntax.core.repr.CodeShape.GlobalId.ZERO;
-import static org.aya.syntax.core.repr.CodeShape.LocalId.DATA;
+import static org.aya.syntax.core.repr.CodeShape.LocalId.*;
 import static org.aya.syntax.core.repr.ParamShape.named;
 
 /**
@@ -44,9 +42,7 @@ public sealed interface AyaShape {
       new ConShape(SUC, ImmutableSeq.of(ParamShape.ty(TermShape.NameCall.of(DATA))))
     ));
 
-    @Override public @NotNull CodeShape codeShape() {
-      return DATA_NAT;
-    }
+    @Override public @NotNull CodeShape codeShape() { return DATA_NAT; }
   }
 
   enum AyaListShape implements AyaShape {
@@ -68,36 +64,33 @@ public sealed interface AyaShape {
     @Override public @NotNull CodeShape codeShape() { return DATA_LIST; }
   }
 
-  /*enum AyaPlusFnShape implements AyaShape {
+  enum AyaPlusFnShape implements AyaShape {
     INSTANCE;
 
     public static final @NotNull CodeShape FN_PLUS = new FnShape(
       FUNC,
       // _ : Nat -> Nat -> Nat
       ImmutableSeq.of(
-        explicit(new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty())),
-        explicit(TermShape.NameCall.of(TYPE))
-      ),
+        new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty()),
+        TermShape.NameCall.of(TYPE)
+      ).map(ParamShape::ty),
       TermShape.NameCall.of(TYPE),
       Either.right(ImmutableSeq.of(
         // | a, 0 => a
         new ClauseShape(ImmutableSeq.of(
-          new PatShape.Bind(LHS), PatShape.ShapedCtor.of(TYPE, ZERO)
+          new PatShape.Bind(LHS), PatShape.ShapedCon.of(TYPE, ZERO)
         ), TermShape.NameCall.of(LHS)),
         // | a, suc b => suc (_ a b)
         new ClauseShape(ImmutableSeq.of(
-          new PatShape.Bind(LHS), new PatShape.ShapedCtor(TYPE, SUC, ImmutableSeq.of(new PatShape.Bind(RHS)))
-        ), new TermShape.CtorCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
+          new PatShape.Bind(LHS), new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(new PatShape.Bind(RHS)))
+        ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
           TermShape.NameCall.of(LHS),
           TermShape.NameCall.of(RHS)
         )))))
       ))
     );
 
-    @Override
-    public @NotNull CodeShape codeShape() {
-      return FN_PLUS;
-    }
+    @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
   }
 
   enum AyaPlusFnLeftShape implements AyaShape {
@@ -107,30 +100,27 @@ public sealed interface AyaShape {
       FUNC,
       // _ : Nat -> Nat -> Nat
       ImmutableSeq.of(
-        explicit(new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty())),
-        explicit(TermShape.NameCall.of(TYPE))
-      ),
+        new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty()),
+        TermShape.NameCall.of(TYPE)
+      ).map(ParamShape::ty),
       TermShape.NameCall.of(TYPE),
       Either.right(ImmutableSeq.of(
         // | 0, b => b
         new ClauseShape(ImmutableSeq.of(
-          PatShape.ShapedCtor.of(TYPE, ZERO), new PatShape.Bind(RHS)
+          PatShape.ShapedCon.of(TYPE, ZERO), new PatShape.Bind(RHS)
         ), TermShape.NameCall.of(RHS)),
         // | suc a, b => _ a (suc b)
         new ClauseShape(ImmutableSeq.of(
-          new PatShape.ShapedCtor(TYPE, SUC, ImmutableSeq.of(new PatShape.Bind(LHS))), new PatShape.Bind(RHS)
-        ), new TermShape.CtorCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
+          new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(new PatShape.Bind(LHS))), new PatShape.Bind(RHS)
+        ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
           TermShape.NameCall.of(LHS),
           TermShape.NameCall.of(RHS)
         )))))
       ))
     );
 
-    @Override
-    public @NotNull CodeShape codeShape() {
-      return FN_PLUS;
-    }
-  }*/
+    @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
+  }
 
   class Factory {
     public @NotNull MutableMap<Def, ShapeRecognition> discovered = MutableLinkedHashMap.of();

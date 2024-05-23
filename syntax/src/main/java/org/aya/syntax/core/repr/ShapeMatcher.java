@@ -18,7 +18,6 @@ import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.pat.Pat;
-import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;

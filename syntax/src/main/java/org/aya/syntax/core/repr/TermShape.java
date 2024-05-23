@@ -12,9 +12,7 @@ import org.jetbrains.annotations.Nullable;
  * @author kiva
  */
 sealed public interface TermShape {
-  enum Any implements TermShape {
-    INSTANCE;
-  }
+  enum Any implements TermShape { INSTANCE }
 
   /**
    * The shape to Sort term, I am not very work well at type theory, so improve this feel free!
@@ -29,16 +27,22 @@ sealed public interface TermShape {
     @NotNull ImmutableSeq<TermShape> args();
   }
 
-  record NameCall(@NotNull CodeShape.MomentId name,
-                  @Override @NotNull ImmutableSeq<TermShape> args) implements Callable {
+  record NameCall(
+    @NotNull CodeShape.MomentId name,
+    @Override @NotNull ImmutableSeq<TermShape> args
+  ) implements Callable {
     public static @NotNull NameCall of(@NotNull CodeShape.MomentId name) {
       return new NameCall(name, ImmutableSeq.empty());
     }
   }
 
-  record ShapeCall(@NotNull CodeShape.MomentId name, @NotNull CodeShape shape,
-                   @Override @NotNull ImmutableSeq<TermShape> args) implements Callable, CodeShape.Moment { }
+  record ShapeCall(
+    @NotNull CodeShape.MomentId name, @NotNull CodeShape shape,
+    @Override @NotNull ImmutableSeq<TermShape> args
+  ) implements Callable, CodeShape.Moment { }
 
-  record ConCall(@NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId,
-                 @Override @NotNull ImmutableSeq<TermShape> args) implements Callable { }
+  record ConCall(
+    @NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId,
+    @Override @NotNull ImmutableSeq<TermShape> args
+  ) implements Callable { }
 }
