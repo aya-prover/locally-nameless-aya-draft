@@ -5,6 +5,7 @@ package org.aya.unify;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
+import org.aya.generic.stmt.Shaped;
 import org.aya.generic.term.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.JitTele;
@@ -90,7 +91,8 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return switch (new Pair<>(lhs, rhs)) {
       case Pair(FnCall lFn, FnCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
       case Pair(PrimCall lFn, PrimCall rFn) -> compareCallApprox(lFn, rFn, lFn.ref());
-      case Pair(IntegerTerm lInt, IntegerTerm rInt) -> lInt.repr() == rInt.repr() ? lInt : null;
+      case Pair(IntegerTerm lInt, IntegerTerm rInt) ->
+        lInt.repr() == ((Shaped.@NotNull Nat<Term>) rInt).repr() ? lInt : null;
       case Pair(ConCallLike lCon, ConCallLike rCon) -> compareCallApprox(lCon, rCon, lCon.ref());
       default -> null;
     };

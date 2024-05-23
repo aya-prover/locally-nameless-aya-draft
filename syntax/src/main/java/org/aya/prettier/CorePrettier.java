@@ -61,8 +61,12 @@ public class CorePrettier extends BasePrettier<Term> {
         if (options.map.get(AyaPrettierOptions.Key.InlineMetas)) yield factory.apply(outer);
         yield Doc.wrap(HOLE_LEFT, HOLE_RIGHT, factory.apply(Outer.Free));
       }
-      case MetaLitTerm lit ->
-        lit.repr() instanceof AyaDocile docile ? docile.toDoc(options) : Doc.plain(lit.repr().toString());
+      case MetaLitTerm lit -> switch (lit.repr()) {
+        case AyaDocile docile -> docile.toDoc(options);
+        case ImmutableSeq<?> seq -> Doc.wrap("[", "]",
+          Doc.commaList(seq.view().map(p -> ((AyaDocile) p).toDoc(options))));
+        case Object unknown -> Doc.plain(unknown.toString());
+      };
       case TupTerm(var items) -> Doc.parened(argsDoc(options, items.view().map(Arg::ofExplicitly)));
       case IntegerTerm shaped -> shaped.repr() == 0
         ? linkLit(0, shaped.conRef(CodeShape.GlobalId.ZERO), CON)

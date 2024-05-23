@@ -175,7 +175,7 @@ In file $FILE:7:11 ->
     │              ╰──────╯
 
 Error: Unable to solve the type of this literal:
-         ImmutableVector[ConCall[head=Head[dataRef=org.aya.syntax.ref.DefVar@5f5297e3, ref=org.aya.syntax.ref.DefVar@71166348, ulift=0, ownerArgs=ImmutableSeq[]], conArgs=ImmutableArray[]]]
+         [unit]
        I'm confused about the following candidates:
          `List`, `List2`
 

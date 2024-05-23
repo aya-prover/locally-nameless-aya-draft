@@ -70,8 +70,8 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
       // You can't match with a tycking pattern!
       case Pat.Meta _ -> throw new Panic("Illegal pattern: Pat.Meta");
       case Pat.ShapedInt lit -> switch (pre.apply(term)) {
-        case IntegerTerm litTerm -> {
-          if (!lit.compareUntyped(litTerm)) throw new Failure(State.Mismatch);
+        case IntegerTerm rit -> {
+          if (lit.repr() != rit.repr()) throw new Failure(State.Mismatch);
           yield ImmutableSeq.empty();
         }
         case ConCall con -> match(lit.constructorForm(), con);

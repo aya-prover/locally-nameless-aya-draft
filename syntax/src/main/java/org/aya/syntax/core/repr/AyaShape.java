@@ -24,11 +24,12 @@ public sealed interface AyaShape {
   @NotNull CodeShape codeShape();
 
   @NotNull AyaShape NAT_SHAPE = AyaIntShape.INSTANCE;
+  @NotNull AyaShape BOOL_SHAPE = AyaBoolShape.INSTANCE;
   @NotNull AyaShape LIST_SHAPE = AyaListShape.INSTANCE;
   @NotNull AyaShape PLUS_LEFT_SHAPE = AyaPlusFnLeftShape.INSTANCE;
   @NotNull AyaShape PLUS_RIGHT_SHAPE = AyaPlusFnShape.INSTANCE;
   @NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(
-    NAT_SHAPE, LIST_SHAPE, PLUS_LEFT_SHAPE, PLUS_RIGHT_SHAPE);
+    NAT_SHAPE, BOOL_SHAPE, LIST_SHAPE, PLUS_LEFT_SHAPE, PLUS_RIGHT_SHAPE);
 
   enum AyaIntShape implements AyaShape {
     INSTANCE;
@@ -41,6 +42,19 @@ public sealed interface AyaShape {
     ));
 
     @Override public @NotNull CodeShape codeShape() { return DATA_NAT; }
+  }
+
+  enum AyaBoolShape implements AyaShape {
+    INSTANCE;
+
+    public static final @NotNull CodeShape DATA_BOOL = new DataShape(
+      DATA,
+      ImmutableSeq.empty(), ImmutableSeq.of(
+      new ConShape(ZERO, ImmutableSeq.empty()),
+      new ConShape(SUC, ImmutableSeq.empty())
+    ));
+
+    @Override public @NotNull CodeShape codeShape() { return DATA_BOOL; }
   }
 
   enum AyaListShape implements AyaShape {

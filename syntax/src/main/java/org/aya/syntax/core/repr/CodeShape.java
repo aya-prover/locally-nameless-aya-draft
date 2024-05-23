@@ -20,6 +20,10 @@ public sealed interface CodeShape {
   /** Typed capture name, rather than plain strings */
   sealed interface MomentId { }
 
+  /**
+   * {@link #ZERO} and {@link #SUC} have two semantics: they can be used either as
+   * natural numbers (0 and successor) and booleans (false and true).
+   */
   enum GlobalId implements MomentId, Serializable {
     ZERO, SUC, NIL, CONS,
   }

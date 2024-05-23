@@ -7,6 +7,7 @@ import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableLinkedList;
 import kala.collection.mutable.MutableMap;
+import kala.control.Either;
 import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
@@ -118,17 +119,20 @@ public record ShapeMatcher(
     if (!teleResult) return false;
 
     // match body
-    return shape.body().fold(termShape -> {
-      if (!def.body.isLeft()) return false;
-      var term = def.body.getLeftValue();
-      return matchInside(() -> captures.put(shape.name(), def.ref), () -> matchTerm(termShape, term));
-    }, clauseShapes -> {
-      if (!def.body.isRight()) return false;
-      var clauses = def.body.getRightValue();
-      var mode = def.is(Modifier.Overlap) ? MatchMode.Sub : MatchMode.Eq;
-      return matchInside(() -> captures.put(shape.name(), def.ref), () ->
-        matchMany(mode, clauseShapes, clauses, this::matchClause));
-    });
+    return switch (shape.body()) {
+      case Either.Left(var termShape) -> {
+        if (!def.body.isLeft()) yield false;
+        var term = def.body.getLeftValue();
+        yield matchInside(() -> captures.put(shape.name(), def.ref), () -> matchTerm(termShape, term));
+      }
+      case Either.Right(var clauseShapes) -> {
+        if (!def.body.isRight()) yield false;
+        var clauses = def.body.getRightValue();
+        var mode = def.is(Modifier.Overlap) ? MatchMode.Sub : MatchMode.Eq;
+        yield matchInside(() -> captures.put(shape.name(), def.ref), () ->
+          matchMany(mode, clauseShapes, clauses, this::matchClause));
+      }
+    };
   }
 
   private boolean matchClause(@NotNull ClauseShape shape, @NotNull Term.Matching clause) {
@@ -258,7 +262,7 @@ public record ShapeMatcher(
    * which may add something to the captures before the match.
    * @see #captureIfMatches(MomentId, AnyVar, BooleanSupplier)
    */
-  private <S extends CodeShape.Moment, C> boolean captureIfMatches(
+  private <S extends Moment, C> boolean captureIfMatches(
     @NotNull S shape, @NotNull C core,
     @NotNull BiPredicate<S, C> matcher,
     @NotNull Function<C, DefVar<?, ?>> extract

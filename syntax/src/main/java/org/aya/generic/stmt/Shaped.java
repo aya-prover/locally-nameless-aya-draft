@@ -49,11 +49,6 @@ public interface Shaped<T> {
     @NotNull T destruct(int repr);
     int repr();
 
-    /** Untyped: compare the internal representation only */
-    default <O extends AyaDocile> boolean compareUntyped(@NotNull Shaped.Nat<O> other) {
-      return repr() == other.repr();
-    }
-
     default @Override @NotNull T constructorForm() {
       int repr = repr();
       var zero = conRef(CodeShape.GlobalId.ZERO);
@@ -63,6 +58,20 @@ public interface Shaped<T> {
     }
 
     @NotNull Shaped.Nat<T> map(@NotNull IntUnaryOperator f);
+  }
+
+  non-sealed interface Bool<T extends AyaDocile> extends Inductive<T> {
+    @NotNull T makeCon0(@NotNull ConDef con0);
+    @NotNull T makeCon1(@NotNull ConDef con1);
+    int repr();
+
+    default @Override @NotNull T constructorForm() {
+      int repr = repr();
+      var zero = conRef(CodeShape.GlobalId.ZERO);
+      if (repr == 0) return makeCon0(zero.core);
+      var suc = conRef(CodeShape.GlobalId.SUC);
+      return makeCon1(suc.core);
+    }
   }
 
   non-sealed interface List<T extends AyaDocile> extends Inductive<T> {
