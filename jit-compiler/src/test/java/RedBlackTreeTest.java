@@ -1,3 +1,5 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 import org.aya.compiler.AyaSerializer;
 import org.aya.compiler.ModuleSerializer;
 import org.aya.generic.NameGenerator;
@@ -5,13 +7,11 @@ import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
 import org.junit.jupiter.api.Test;
 
-// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
-// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 public class RedBlackTreeTest {
   @Test public void test1() {
     var result = CompileTest.tyck("""
       open data Nat | O | S Nat
-      open data Bool | true | false
+      open data Bool | True | False
       open data List Type
       | nil
       | A => infixr cons A (List A)
@@ -47,23 +47,23 @@ public class RedBlackTreeTest {
           rbNode red (rbNode black l v b) y (rbNode black c z d)
       | c, l, v, b => rbNode c l v b
 
-      def insert-lemma (dec_le : Decider A) (a a1 : A) (c : Color) (l1 l2 : RBTree A) (b : Bool) : RBTree A elim b
-      | true => balanceRight c l1 a1 (insert a l2 dec_le)
-      | false => balanceLeft c (insert a l1 dec_le) a1 l2
+      def insert_lemma (dec_le : Decider A) (a a1 : A) (c : Color) (l1 l2 : RBTree A) (b : Bool) : RBTree A elim b
+      | True => balanceRight c l1 a1 (insert a l2 dec_le)
+      | False => balanceLeft c (insert a l1 dec_le) a1 l2
 
       def insert (a : A) (node : RBTree A) (dec_le : Decider A) : RBTree A elim node
       | rbLeaf => rbNode red rbLeaf a rbLeaf
-      | rbNode c l1 a1 l2 => insert-lemma dec_le a a1 c l1 l2 (dec_le a1 a)
+      | rbNode c l1 a1 l2 => insert_lemma dec_le a a1 c l1 l2 (dec_le a1 a)
 
       private def aux (l : List A) (r : RBTree A) (dec_le : Decider A) : RBTree A elim l
       | nil => r
       | a cons l => aux l (repaint (insert a r dec_le)) dec_le
-      def tree-sort (dec_le : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec_le) nil
+      def tree_sort (dec_le : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec_le) nil
       """).filter(x -> x instanceof FnDef || x instanceof DataDef);
 
     var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator())
-        .serialize(result)
-        .result();
+      .serialize(result)
+      .result();
 
     var code = STR."""
     package AYA;
