@@ -41,12 +41,6 @@ public interface Shaped<T> {
     @SuppressWarnings("unchecked") default @NotNull DefVar<ConDef, ?> conRef(@NotNull CodeShape.GlobalId id) {
       return (DefVar<ConDef, ?>) recognition().captures().get(id);
     }
-
-    default <O> boolean compareShape(BiPredicate<Term, Term> comparator, @NotNull Inductive<O> other) {
-      if (recognition().shape() != other.recognition().shape()) return false;
-      if (other.getClass() != getClass()) return false;
-      return comparator.test(type(), other.type());
-    }
   }
 
   non-sealed interface Nat<T extends AyaDocile> extends Inductive<T> {

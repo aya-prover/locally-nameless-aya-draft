@@ -13,6 +13,7 @@ import org.aya.syntax.core.term.TupTerm;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.tyck.pat.BindEater;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,7 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
           // ^ arguments for data should not be matched
         }
         case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
+        case ListTerm list -> match(con, list.constructorForm());
         default -> throw new Failure(State.Stuck);
       };
       // TODO

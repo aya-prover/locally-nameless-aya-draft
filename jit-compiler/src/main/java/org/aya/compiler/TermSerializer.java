@@ -17,6 +17,7 @@ import org.aya.syntax.core.term.call.PrimCall;
 import org.aya.syntax.core.term.marker.GenericCall;
 import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
@@ -170,6 +171,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
       case TupTerm tupTerm -> throw new UnsupportedOperationException("TODO");
       case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
       case IntegerTerm integerTerm -> throw new UnsupportedOperationException("TODO");
+      case ListTerm listTerm -> throw new UnsupportedOperationException("TODO");
       case DimTerm dimTerm -> throw new UnsupportedOperationException("TODO");
       case DimTyTerm dimTyTerm -> throw new UnsupportedOperationException("TODO");
       case EqTerm eqTerm -> throw new UnsupportedOperationException("TODO");

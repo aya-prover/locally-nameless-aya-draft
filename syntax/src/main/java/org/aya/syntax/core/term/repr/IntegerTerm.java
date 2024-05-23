@@ -29,8 +29,7 @@ public record IntegerTerm(
     assert repr >= 0;
   }
 
-  @Override
-  public @NotNull ConCall.Head head() {
+  @Override public @NotNull ConCall.Head head() {
     var ref = repr == 0
       ? conRef(CodeShape.GlobalId.ZERO)
       : conRef(CodeShape.GlobalId.SUC);

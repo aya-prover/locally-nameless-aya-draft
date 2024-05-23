@@ -65,9 +65,7 @@ public sealed interface AyaShape {
         )) // List A
       ));
 
-    @Override public @NotNull CodeShape codeShape() {
-      return DATA_LIST;
-    }
+    @Override public @NotNull CodeShape codeShape() { return DATA_LIST; }
   }
 
   /*enum AyaPlusFnShape implements AyaShape {

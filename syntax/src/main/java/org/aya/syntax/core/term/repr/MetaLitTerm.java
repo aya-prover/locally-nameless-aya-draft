@@ -9,9 +9,9 @@ import kala.tuple.Tuple2;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
-import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,12 +28,14 @@ public record MetaLitTerm(
     return update(f.apply(0, type));
   }
 
-  public @NotNull Term inline() {
+  @SuppressWarnings("unchecked") public @NotNull Term inline() {
     if (!(type instanceof DataCall dataCall)) return this;
     return candidates.find(t -> t.component1().ref() == dataCall.ref()).flatMap(t -> {
-      var shape = t.component2().shape();
-      if (shape == AyaShape.NAT_SHAPE) return Option.some(new IntegerTerm((int) repr, t.component2(), dataCall));
-      // if (shape == AyaShape.LIST_SHAPE) return Option.some(new ListTerm((ImmutableSeq<Term>) repr, t.component2(), dataCall));
+      var recog = t.component2();
+      var shape = recog.shape();
+      if (shape == AyaShape.NAT_SHAPE) return Option.some(new IntegerTerm((int) repr, recog, dataCall));
+      if (shape == AyaShape.LIST_SHAPE)
+        return Option.some(new ListTerm((ImmutableSeq<Term>) repr, recog, dataCall));
       return Option.<Term>none();
     }).getOrDefault(this);
   }

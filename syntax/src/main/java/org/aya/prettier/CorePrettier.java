@@ -19,6 +19,7 @@ import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
@@ -184,16 +185,16 @@ public class CorePrettier extends BasePrettier<Term> {
       }
       // case ClassCall classCall -> visitArgsCalls(classCall.ref(), CLAZZ, classCall.orderedArgs(), outer);
       case DataCall dataCall -> visitCoreCalls(dataCall.ref(), dataCall.args(), outer, optionImplicit());
-      // case ListTerm shaped -> {
-      //   var subterms = shaped.repr().map(x -> term(Outer.Free, x));
-      //   var nil = shaped.ctorRef(CodeShape.GlobalId.NIL);
-      //   var cons = shaped.ctorRef(CodeShape.GlobalId.CONS);
-      //   yield Doc.sep(
-      //     linkListLit(Doc.symbol("["), nil, CON),
-      //     Doc.join(linkListLit(Doc.COMMA, cons, CON), subterms),
-      //     linkListLit(Doc.symbol("]"), nil, CON)
-      //   );
-      // }
+      case ListTerm shaped -> {
+        var subterms = shaped.repr().map(x -> term(Outer.Free, x));
+        var nil = shaped.conRef(CodeShape.GlobalId.NIL);
+        var cons = shaped.conRef(CodeShape.GlobalId.CONS);
+        yield Doc.sep(
+          linkListLit(Doc.symbol("["), nil, CON),
+          Doc.join(linkListLit(Doc.COMMA, cons, CON), subterms),
+          linkListLit(Doc.symbol("]"), nil, CON)
+        );
+      }
       // case StringTerm(var str) -> Doc.plain("\"" + StringUtil.escapeStringCharacters(str) + "\"");
       case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.fun()),
         SeqView.of(new Arg<>(app.arg(), true)), outer, optionImplicit());
