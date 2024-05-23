@@ -47,8 +47,7 @@ public sealed interface RuleReducer extends Callable.Tele {
     @NotNull ImmutableSeq<Term> dataArgs,
     @Override @NotNull ImmutableSeq<Term> conArgs
   ) implements RuleReducer, ConCallLike {
-    @Override
-    public @NotNull ConCallLike.Head head() {
+    @Override public @NotNull ConCallLike.Head head() {
       return new Head(rule.ref().core.dataRef, rule.ref(), this.ulift, dataArgs);
     }
 

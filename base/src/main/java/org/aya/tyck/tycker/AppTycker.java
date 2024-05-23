@@ -8,11 +8,9 @@ import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.call.ConCall;
-import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.core.term.call.FnCall;
-import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
@@ -40,11 +38,15 @@ public interface AppTycker {
       var signature = TeleDef.defSignature(fnVar);
       return makeArgs.applyChecked(signature, args -> {
         var shape = state.shapeFactory().find(fnVar.core);
-        // TODO
-        return new Jdg.Default(
-          new FnCall(fnVar, 0, ImmutableArray.from(args)),
-          signature.result(args)
-        );
+        var argsSeq = ImmutableArray.from(args);
+        var result = signature.result(args);
+        if (shape.isDefined()) {
+          var operator = AyaShape.ofFn(fnVar, shape.get());
+          if (operator != null) {
+            return new Jdg.Default(new RuleReducer.Fn(operator, 0, argsSeq), result);
+          }
+        }
+        return new Jdg.Default(new FnCall(fnVar, 0, argsSeq), result);
       });
     } else if (core instanceof DataDef || concrete instanceof TeleDecl.DataDecl) {
       var dataVar = (DefVar<DataDef, TeleDecl.DataDecl>) defVar;

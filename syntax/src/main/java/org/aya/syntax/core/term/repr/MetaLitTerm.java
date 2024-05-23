@@ -35,7 +35,7 @@ public record MetaLitTerm(
     return candidates.find(t -> t.component1().ref() == dataCall.ref()).flatMap(t -> {
       var recog = t.component2();
       var shape = recog.shape();
-      if (shape == AyaShape.NAT_SHAPE || shape == AyaShape.BOOL_SHAPE)
+      if (shape == AyaShape.NAT_SHAPE)
         return Option.some(new IntegerTerm((int) repr, recog, dataCall));
       if (shape == AyaShape.LIST_SHAPE)
         return Option.some(new ListTerm((ImmutableSeq<Term>) repr, recog, dataCall));

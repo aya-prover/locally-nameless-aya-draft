@@ -23,6 +23,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
+import org.aya.util.Pair;
 import org.aya.util.RepoLike;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -88,7 +89,7 @@ public record ShapeMatcher(
   }
 
   public ShapeMatcher() {
-    this(Captures.create(), MutableMap.create(), ImmutableMap.empty());
+    this(ImmutableMap.empty());
   }
 
   public ShapeMatcher(@NotNull ImmutableMap<DefVar<?, ?>, ShapeRecognition> discovered) {
@@ -119,19 +120,15 @@ public record ShapeMatcher(
     if (!teleResult) return false;
 
     // match body
-    return switch (shape.body()) {
-      case Either.Left(var termShape) -> {
-        if (!def.body.isLeft()) yield false;
-        var term = def.body.getLeftValue();
-        yield matchInside(() -> captures.put(shape.name(), def.ref), () -> matchTerm(termShape, term));
-      }
-      case Either.Right(var clauseShapes) -> {
-        if (!def.body.isRight()) yield false;
-        var clauses = def.body.getRightValue();
+    return switch (new Pair<>(shape.body(), def.body)) {
+      case Pair(Either.Left(var termShape), Either.Left(var term)) ->
+        matchInside(() -> captures.put(shape.name(), def.ref), () -> matchTerm(termShape, term));
+      case Pair(Either.Right(var clauseShapes), Either.Right(var clauses)) -> {
         var mode = def.is(Modifier.Overlap) ? MatchMode.Sub : MatchMode.Eq;
         yield matchInside(() -> captures.put(shape.name(), def.ref), () ->
           matchMany(mode, clauseShapes, clauses, this::matchClause));
       }
+      default -> false;
     };
   }
 
