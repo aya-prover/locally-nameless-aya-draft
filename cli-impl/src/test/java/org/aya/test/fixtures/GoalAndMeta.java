@@ -65,4 +65,14 @@ public interface GoalAndMeta {
     // https://cstheory.stackexchange.com/a/49160/50892
     def test (a : _) (B : Type) (b : B) (p : a = b) : I => 0
     """;
+
+  @Language("Aya") String testLiteralAmbiguous3 = """
+    open data List (A : Type) | nil | cons A (List A)
+    open data List2 (A : Type) | nil2 | cons2 A (List2 A)
+    open data Unit | unit
+    
+    // TODO: make this work
+    def good : List Unit => [ ]
+    def bad => [ unit ]
+    """;
 }

@@ -166,3 +166,40 @@ Error: Unsolved meta _
 2 error(s), 0 warning(s).
 What are you doing?
 
+LiteralAmbiguous3:
+In file $FILE:6:24 ->
+
+  4 │   
+  5 │   // TODO: make this work
+  6 │   def good : List Unit => [ ]
+    │                           ╰─╯
+
+Error: Unable to solve the type of this literal:
+         [  ]
+       I'm confused about the following candidates:
+         `List`, `List2`
+
+In file $FILE:7:11 ->
+
+  5 │   // TODO: make this work
+  6 │   def good : List Unit => [ ]
+  7 │   def bad => [ unit ]
+    │              ╰──────╯
+
+Error: Unable to solve the type of this literal:
+         [ unit ]
+       I'm confused about the following candidates:
+         `List`, `List2`
+
+In file $FILE:7:4 ->
+
+  5 │   // TODO: make this work
+  6 │   def good : List Unit => [ ]
+  7 │   def bad => [ unit ]
+    │       ╰─╯
+
+Error: Unsolved meta _
+
+3 error(s), 0 warning(s).
+What are you doing?
+
