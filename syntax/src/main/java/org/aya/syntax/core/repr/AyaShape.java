@@ -28,50 +28,10 @@ import static org.aya.syntax.core.repr.CodeShape.GlobalId.ZERO;
 import static org.aya.syntax.core.repr.CodeShape.LocalId.*;
 
 /**
- * @author kiva
+ * @author kiva, ice1000
  */
-public sealed interface AyaShape {
-  @NotNull CodeShape codeShape();
-
-  @NotNull AyaShape NAT_SHAPE = AyaIntShape.INSTANCE;
-  @NotNull AyaShape LIST_SHAPE = AyaListShape.INSTANCE;
-  @NotNull AyaShape PLUS_LEFT_SHAPE = AyaPlusFnLeftShape.INSTANCE;
-  @NotNull AyaShape PLUS_RIGHT_SHAPE = AyaPlusFnShape.INSTANCE;
-  @NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(
-    NAT_SHAPE, LIST_SHAPE, PLUS_LEFT_SHAPE, PLUS_RIGHT_SHAPE);
-
-  static Shaped.Applicable<Term, ConDef, TeleDecl.DataCon> ofCon(
-    @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
-    @NotNull ShapeRecognition paramRecog,
-    @NotNull DataCall paramType
-  ) {
-    if (paramRecog.shape() == AyaShape.NAT_SHAPE) {
-      return new IntegerOps.ConRule(ref, paramRecog, paramType);
-    }
-    return null;
-  }
-
-  static @Nullable Shaped.Applicable<Term, FnDef, TeleDecl.FnDecl> ofFn(
-    @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref,
-    @NotNull ShapeRecognition recog
-  ) {
-    var core = ref.core;
-    if (core == null) return null;
-
-    if (recog.shape() == AyaShape.PLUS_LEFT_SHAPE || recog.shape() == AyaShape.PLUS_RIGHT_SHAPE) {
-      if (!(core.result instanceof DataCall paramType)) return null;
-      var dataDef = paramType.ref().core;
-      assert dataDef != null : "How?";
-
-      return new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.Add);
-    }
-
-    return null;
-  }
-
-  enum AyaIntShape implements AyaShape {
-    INSTANCE;
-
+public enum AyaShape {
+  NAT_SHAPE {
     public static final @NotNull CodeShape DATA_NAT = new DataShape(
       DATA,
       ImmutableSeq.empty(), ImmutableSeq.of(
@@ -80,13 +40,8 @@ public sealed interface AyaShape {
     ));
 
     @Override public @NotNull CodeShape codeShape() { return DATA_NAT; }
-  }
-
-  enum AyaListShape implements AyaShape {
-    INSTANCE;
-
-    public static final @NotNull LocalId A = new LocalId("A");
-
+  },
+  LIST_SHAPE {
     public static final @NotNull CodeShape DATA_LIST = new DataShape(
       DATA,
       ImmutableSeq.of(new TermShape.Sort(null, 0)),
@@ -99,16 +54,13 @@ public sealed interface AyaShape {
       ));
 
     @Override public @NotNull CodeShape codeShape() { return DATA_LIST; }
-  }
-
-  enum AyaPlusFnShape implements AyaShape {
-    INSTANCE;
-
+  },
+  PLUS_LEFT_SHAPE {
     public static final @NotNull CodeShape FN_PLUS = new FnShape(
       FUNC,
       // _ : Nat -> Nat -> Nat
       ImmutableSeq.of(
-        new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty()),
+        new TermShape.ShapeCall(TYPE, NAT_SHAPE.codeShape(), ImmutableSeq.empty()),
         TermShape.NameCall.of(TYPE)
       ),
       TermShape.NameCall.of(TYPE),
@@ -130,16 +82,13 @@ public sealed interface AyaShape {
     );
 
     @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
-  }
-
-  enum AyaPlusFnLeftShape implements AyaShape {
-    INSTANCE;
-
+  },
+  PLUS_RIGHT_SHAPE {
     public static final @NotNull CodeShape FN_PLUS = new FnShape(
       FUNC,
       // _ : Nat -> Nat -> Nat
       ImmutableSeq.of(
-        new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty()),
+        new TermShape.ShapeCall(TYPE, NAT_SHAPE.codeShape(), ImmutableSeq.empty()),
         TermShape.NameCall.of(TYPE)
       ),
       TermShape.NameCall.of(TYPE),
@@ -160,9 +109,40 @@ public sealed interface AyaShape {
     );
 
     @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
+  };
+
+  @NotNull abstract CodeShape codeShape();
+
+  public static Shaped.Applicable<Term, ConDef, TeleDecl.DataCon> ofCon(
+    @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
+    @NotNull ShapeRecognition paramRecog,
+    @NotNull DataCall paramType
+  ) {
+    if (paramRecog.shape() == AyaShape.NAT_SHAPE) {
+      return new IntegerOps.ConRule(ref, paramRecog, paramType);
+    }
+    return null;
   }
 
-  class Factory {
+  public static @Nullable Shaped.Applicable<Term, FnDef, TeleDecl.FnDecl> ofFn(
+    @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref,
+    @NotNull ShapeRecognition recog
+  ) {
+    var core = ref.core;
+    if (core == null) return null;
+
+    if (recog.shape() == AyaShape.PLUS_LEFT_SHAPE || recog.shape() == AyaShape.PLUS_RIGHT_SHAPE) {
+      if (!(core.result instanceof DataCall paramType)) return null;
+      var dataDef = paramType.ref().core;
+      assert dataDef != null : "How?";
+
+      return new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.Add);
+    }
+
+    return null;
+  }
+
+  public static class Factory {
     public @NotNull MutableMap<DefVar<?, ?>, ShapeRecognition> discovered = MutableLinkedHashMap.of();
 
     public @NotNull ImmutableSeq<Tuple2<Def, ShapeRecognition>> findImpl(@NotNull AyaShape shape) {
@@ -184,9 +164,10 @@ public sealed interface AyaShape {
 
     /** Discovery of shaped literals */
     public void bonjour(@NotNull Def def) {
-      AyaShape.LITERAL_SHAPES.view()
-        .flatMap(shape -> new ShapeMatcher(ImmutableMap.from(discovered)).match(shape, def))
-        .forEach(shape -> bonjour(def, shape));
+      for (var shape : AyaShape.values()) {
+        new ShapeMatcher(ImmutableMap.from(discovered)).match(shape, def)
+          .ifDefined(recog -> bonjour(def, recog));
+      }
     }
 
     public void importAll(@NotNull Factory other) {
