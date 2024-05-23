@@ -14,6 +14,7 @@ import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.marker.Formation;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.DefVar;
@@ -279,12 +280,21 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       // fallback case
       case ConCallLike lCon -> switch (rhs) {
         case ConCallLike rCon -> compareCallApprox(lCon, rCon, lCon.ref());
-        // case ListTerm rhs -> compareUntyped(lhs, rhs.constructorForm(), lr, rl);
+        case ListTerm rList -> compareUntyped(lhs, rList.constructorForm());
+        default -> null;
+      };
+      case ListTerm list -> switch (rhs) {
+        case ListTerm rist -> {
+          if (!list.compareUntyped(rist, (l, r) ->
+            compare(l, r, null))) yield null;
+          yield list.type();
+        }
+        case ConCall rCon -> compareUntyped(list.constructorForm(), rCon);
         default -> null;
       };
       case MetaLitTerm mlt -> switch (rhs) {
         case IntegerTerm mrt -> compareMetaLitWithLit(mlt, mrt.repr(), mrt.type());
-        // case ListTerm mrt -> compareMetaLitWithLit(mlt, mrt.repr(), mrt.type());
+        case ListTerm mrt -> compareMetaLitWithLit(mlt, mrt.repr(), mrt.type());
         case ConCall _ -> throw new UnsupportedOperationException("TODO (I have no time to implement this)");
         case MetaLitTerm mrt -> compareMetaLitWithLit(mlt, mrt.repr(), mrt.type());
         default -> null;

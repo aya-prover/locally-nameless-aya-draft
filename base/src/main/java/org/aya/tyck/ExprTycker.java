@@ -8,13 +8,16 @@ import kala.collection.mutable.MutableStack;
 import kala.collection.mutable.MutableTreeSet;
 import kala.control.Result;
 import org.aya.generic.Constants;
+import org.aya.normalize.error.UnsolvedLit;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.def.TeleDef;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -226,7 +229,31 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
       }
       case Expr.Let let -> checkLet(let, this::synthesize);
       case Expr.Error err -> new Jdg.Default(new ErrorTerm(err), ErrorTerm.typeOf(err));
-      case Expr.Array array -> throw new UnsupportedOperationException("TODO");
+      case Expr.Array arr when arr.arrayBlock().isRight() -> {
+        var arrayBlock = arr.arrayBlock().getRightValue();
+        var elements = arrayBlock.exprList();
+
+        // find def
+        var defs = state.shapeFactory().findImpl(AyaShape.LIST_SHAPE);
+        if (defs.isEmpty()) yield fail(arr, new NoRuleError(expr, null));
+        // TODO: can we proceed with ambiguity with MetaLitTerm? see testLiteralAmbiguous3
+        if (defs.sizeGreaterThan(1)) yield fail(arr, new UnsolvedLit(
+          new MetaLitTerm(expr.sourcePos(), arr, defs, ErrorTerm.typeOf(arr))));
+
+        var match = defs.getFirst();
+        var def = (DataDef) match.component1();
+
+        // List (A : Type)
+        var sort = TeleDef.defSignature(def.ref).telescopeRich(0);
+        // the sort of type below.
+        var hole = freshMeta(sort.name(), expr.sourcePos(), new MetaVar.OfType(sort.type()));
+        var type = new DataCall(def.ref(), 0, ImmutableSeq.of(
+          hole));
+
+        // do type check
+        var results = elements.map(element -> inherit(element, hole).wellTyped());
+        yield new Jdg.Default(new ListTerm(results, match.component2(), type), type);
+      }
       case Expr.Unresolved _ -> Panic.unreachable();
       default -> fail(expr.data(), new NoRuleError(expr, null));
     };
