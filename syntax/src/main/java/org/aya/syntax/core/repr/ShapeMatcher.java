@@ -142,12 +142,9 @@ public record ShapeMatcher(
   record MatchPat(@NotNull PatShape shape, @NotNull Pat pat) { }
 
   private boolean matchPat(@NotNull MatchPat matchPat) {
-    if (matchPat.shape == PatShape.Any.INSTANCE) return true;
+    if (matchPat.shape == PatShape.Basic.Any) return true;
     return switch (matchPat) {
-      case MatchPat(PatShape.Bind(var name), Pat.Bind bind) -> {
-        captures.put(name, bind.bind());
-        yield true;
-      }
+      case MatchPat(PatShape.Basic _/*Bind*/, Pat.Bind _) -> true;
       case MatchPat(PatShape.ConLike conLike, Pat.Con con) -> {
         boolean matched = true;
 

@@ -25,11 +25,10 @@ public sealed interface AyaShape {
 
   @NotNull AyaShape NAT_SHAPE = AyaIntShape.INSTANCE;
   @NotNull AyaShape LIST_SHAPE = AyaListShape.INSTANCE;
-  /*
-    @NotNull AyaShape PLUS_LEFT_SHAPE = AyaPlusFnLeftShape.INSTANCE;
-    @NotNull AyaShape PLUS_RIGHT_SHAPE = AyaPlusFnShape.INSTANCE;
-  */
-  @NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(NAT_SHAPE, LIST_SHAPE/*, PLUS_RIGHT_SHAPE*/);
+  @NotNull AyaShape PLUS_LEFT_SHAPE = AyaPlusFnLeftShape.INSTANCE;
+  @NotNull AyaShape PLUS_RIGHT_SHAPE = AyaPlusFnShape.INSTANCE;
+  @NotNull ImmutableSeq<AyaShape> LITERAL_SHAPES = ImmutableSeq.of(
+    NAT_SHAPE, LIST_SHAPE, PLUS_LEFT_SHAPE, PLUS_RIGHT_SHAPE);
 
   enum AyaIntShape implements AyaShape {
     INSTANCE;
@@ -77,15 +76,17 @@ public sealed interface AyaShape {
       Either.right(ImmutableSeq.of(
         // | a, 0 => a
         new ClauseShape(ImmutableSeq.of(
-          new PatShape.Bind(LHS), PatShape.ShapedCon.of(TYPE, ZERO)
-        ), TermShape.NameCall.of(LHS)),
+          PatShape.Basic.Bind, PatShape.ShapedCon.of(TYPE, ZERO)
+        ), new TermShape.DeBruijn(0)),
         // | a, suc b => suc (_ a b)
         new ClauseShape(ImmutableSeq.of(
-          new PatShape.Bind(LHS), new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(new PatShape.Bind(RHS)))
-        ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
-          TermShape.NameCall.of(LHS),
-          TermShape.NameCall.of(RHS)
-        )))))
+          PatShape.Basic.Bind, new PatShape.ShapedCon(TYPE, SUC,
+            ImmutableSeq.of(PatShape.Basic.Bind))
+        ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC,
+          ImmutableSeq.of(
+            new TermShape.DeBruijn(1),
+            new TermShape.DeBruijn(0)
+          )))))
       ))
     );
 
@@ -106,14 +107,15 @@ public sealed interface AyaShape {
       Either.right(ImmutableSeq.of(
         // | 0, b => b
         new ClauseShape(ImmutableSeq.of(
-          PatShape.ShapedCon.of(TYPE, ZERO), new PatShape.Bind(RHS)
-        ), TermShape.NameCall.of(RHS)),
+          PatShape.ShapedCon.of(TYPE, ZERO), PatShape.Basic.Bind
+        ), new TermShape.DeBruijn(0)),
         // | suc a, b => _ a (suc b)
         new ClauseShape(ImmutableSeq.of(
-          new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(new PatShape.Bind(LHS))), new PatShape.Bind(RHS)
+          new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(PatShape.Basic.Bind)),
+          PatShape.Basic.Bind
         ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
-          TermShape.NameCall.of(LHS),
-          TermShape.NameCall.of(RHS)
+          new TermShape.DeBruijn(1),
+          new TermShape.DeBruijn(0)
         )))))
       ))
     );

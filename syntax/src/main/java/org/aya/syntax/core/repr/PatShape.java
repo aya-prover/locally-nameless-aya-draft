@@ -9,9 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * @author kiva
  */
 public sealed interface PatShape {
-  enum Any implements PatShape { INSTANCE }
-  record Bind(@NotNull CodeShape.LocalId name) implements PatShape, CodeShape.Moment { }
-
+  enum Basic implements PatShape { Any, Bind }
   sealed interface ConLike extends PatShape permits Con, ShapedCon {
     @NotNull ImmutableSeq<PatShape> innerPats();
   }

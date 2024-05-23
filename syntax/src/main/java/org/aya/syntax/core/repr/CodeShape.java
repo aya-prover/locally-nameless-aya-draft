@@ -13,7 +13,7 @@ import java.io.Serializable;
  */
 public sealed interface CodeShape {
   /** A capture group, see {@link ConShape} and {@link ShapeMatcher#captures()} */
-  sealed interface Moment permits ConShape, DataShape, FnShape, PatShape.Bind, TermShape.ShapeCall {
+  sealed interface Moment permits ConShape, DataShape, FnShape, TermShape.ShapeCall {
     @NotNull MomentId name();
   }
 
@@ -25,8 +25,6 @@ public sealed interface CodeShape {
   }
 
   record LocalId(@NotNull String name) implements MomentId {
-    public static final @NotNull LocalId LHS = new LocalId("lhs");
-    public static final @NotNull LocalId RHS = new LocalId("rhs");
     public static final @NotNull LocalId DATA = new LocalId("Data");
     public static final @NotNull LocalId FUNC = new LocalId("Func");
     public static final @NotNull LocalId TYPE = new LocalId("Type0");
