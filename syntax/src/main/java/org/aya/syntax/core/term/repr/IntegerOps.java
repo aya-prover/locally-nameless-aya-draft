@@ -8,7 +8,6 @@ import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TeleDef;
-import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
@@ -36,24 +35,14 @@ public sealed interface IntegerOps<Core extends TeleDef, Concrete extends TeleDe
     @Override @NotNull ShapeRecognition paramRecognition,
     @Override @NotNull DataCall paramType
   ) implements IntegerOps<ConDef, TeleDecl.DataCon> {
-    public boolean isZero() {
-      return paramRecognition.captures().get(CodeShape.GlobalId.ZERO) == ref;
-    }
-
-    @Override
-    public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
-      if (isZero()) {
-        assert args.isEmpty();
-        return new IntegerTerm(0, paramRecognition, paramType);
-      }
+    @Override public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
+      // zero
+      if (args.isEmpty()) return new IntegerTerm(0, paramRecognition, paramType);
 
       // suc
       assert args.sizeEquals(1);
       var arg = args.get(0);
-      if (arg instanceof IntegerTerm intTerm) {
-        return intTerm.map(x -> x + 1);
-      }
-
+      if (arg instanceof IntegerTerm intTerm) return intTerm.map(x -> x + 1);
       return null;
     }
   }
@@ -66,14 +55,11 @@ public sealed interface IntegerOps<Core extends TeleDef, Concrete extends TeleDe
       Add, SubTrunc
     }
 
-    @Override
-    public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
+    @Override public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
       return switch (kind) {
         case Add -> {
           assert args.sizeEquals(2);
-          var a = args.get(0);
-          var b = args.get(1);
-          if (a instanceof IntegerTerm ita && b instanceof IntegerTerm itb) {
+          if (args.get(0) instanceof IntegerTerm ita && args.get(1) instanceof IntegerTerm itb) {
             yield ita.map(x -> x + itb.repr());
           }
 
@@ -81,9 +67,7 @@ public sealed interface IntegerOps<Core extends TeleDef, Concrete extends TeleDe
         }
         case SubTrunc -> {
           assert args.sizeEquals(2);
-          var a = args.get(0);
-          var b = args.get(1);
-          if (a instanceof IntegerTerm ita && b instanceof IntegerTerm itb) {
+          if (args.get(0) instanceof IntegerTerm ita && args.get(1) instanceof IntegerTerm itb) {
             yield ita.map(x -> Math.max(x - itb.repr(), 0));
           }
 
