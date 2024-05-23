@@ -3,6 +3,7 @@
 package org.aya.syntax.core.repr;
 
 import kala.collection.SeqLike;
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableLinkedList;
@@ -17,7 +18,9 @@ import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.repr.CodeShape.*;
+import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
@@ -30,7 +33,6 @@ import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -148,8 +150,8 @@ public record ShapeMatcher(
   private boolean matchPat(@NotNull MatchPat matchPat) {
     if (matchPat.shape == PatShape.Any.INSTANCE) return true;
     return switch (matchPat) {
-      case MatchPat(PatShape.Bind(var name), Pat.Bind ignored) -> {
-        captures.put(name, ignored.bind());
+      case MatchPat(PatShape.Bind(var name), Pat.Bind bind) -> {
+        captures.put(name, bind.bind());
         yield true;
       }
       case MatchPat(PatShape.ConLike conLike, Pat.Con con) -> {
@@ -186,16 +188,20 @@ public record ShapeMatcher(
   }
 
   private boolean matchCon(@NotNull ConShape shape, @NotNull ConDef con) {
+    SeqView<Term> subst;
     if (con.pats.isNotEmpty())
-      throw new Panic("Don't try to do this, ask @ice1000 why");
-    return matchTele(shape.tele(), con.selfTele);
+      // subst = con.pats.view().map(PatToTerm::visit);
+      return false;
+    else subst = con.ownerTele.view().map(p -> new FreeTerm(p.name()));
+    var conTele = Param.substTele(con.selfTele.view(), subst).toImmutableSeq();
+    return matchTele(shape.tele(), conTele);
   }
 
   private boolean matchTerm(@NotNull TermShape shape, @NotNull Term term) {
     return switch (shape) {
-      case TermShape.Any any -> true;
-      // case TermShape.NameCall call when call.args().isEmpty() && term instanceof FreeTerm ref ->
-      //   captures.resolve(call.name()) == ref.var();
+      case TermShape.Any _ -> true;
+      case TermShape.NameCall call when call.args().isEmpty() && term instanceof FreeTerm(var ref) ->
+        captures.resolve(call.name()) == ref;
       case TermShape.Callable call when term instanceof Callable callable -> {
         boolean success = switch (call) {
           case TermShape.NameCall nameCall -> captures.resolve(nameCall.name()) == callable.ref();
@@ -229,7 +235,7 @@ public record ShapeMatcher(
   private boolean matchParam(@NotNull ParamShape shape, @NotNull Param param) {
     return switch (shape) {
       case ParamShape.Any _ -> true;
-      // TODO: the LocalVar cannot match anything, is that okay?
+      // TODO: the LocalVar cannot match anything, which is not okay.
       case ParamShape.Impl(var name, var type) -> captureIfMatches(name, LocalVar.generate(param.name()),
         () -> matchTerm(type, param.type()));
     };
