@@ -12,10 +12,7 @@ import org.aya.syntax.compile.JitFnCall;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.ConCall;
-import org.aya.syntax.core.term.call.FnCall;
-import org.aya.syntax.core.term.call.MetaCall;
-import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.marker.BetaRedex;
 import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.syntax.core.term.xtt.CoeTerm;
@@ -35,6 +32,9 @@ import static org.aya.normalize.PatMatcher.State.Stuck;
 /**
  * Unlike in pre-v0.30 Aya, we use only one normalizer, only doing head reduction,
  * and we merge conservative normalizer and the whnf normalizer.
+ * <p>
+ * Even though it has a field {@link #state}, do not make it extend {@link org.aya.tyck.tycker.Stateful},
+ * because there is a method called whnf in it, which clashes with the one here.
  */
 public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar> opaque)
   implements UnaryOperator<Term> {
@@ -68,6 +68,14 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         var result = instance.invoke(term, args);
         if (term != result) yield whnf(result);
         yield result;
+      }
+      case RuleReducer reduceRule -> {
+        var result = reduceRule.rule().apply(reduceRule.args());
+        if (result != null) yield apply(result);
+        // We can't handle it, try to delegate to FnCall
+        yield reduceRule instanceof RuleReducer.Fn fnRule
+          ? whnf(fnRule.toFnCall())
+          : reduceRule;
       }
       case ConCall(var head, var args)
         when head.ref().core instanceof ConDef con

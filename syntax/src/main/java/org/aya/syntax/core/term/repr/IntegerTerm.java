@@ -8,11 +8,12 @@ import org.aya.generic.stmt.Shaped;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
-import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.core.term.call.RuleReducer;
+import org.aya.syntax.core.term.marker.StableWHNF;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.IntUnaryOperator;
@@ -54,10 +55,8 @@ public record IntegerTerm(
   @Override public @NotNull Term makeZero(@NotNull ConDef zero) { return map(x -> 0); }
 
   @Override public @NotNull Term makeSuc(@NotNull ConDef suc, @NotNull Term term) {
-    return new ConCall(suc.dataRef, suc.ref, ImmutableSeq.empty(), 0,
-      ImmutableSeq.of(term));
-    // return new RuleReducer.Con(new IntegerOps.ConRule(suc.ref, recognition, type),
-    //   0, ImmutableSeq.empty(), ImmutableSeq.of(term));
+    return new RuleReducer.Con(new IntegerOps.ConRule(suc.ref, recognition, type),
+      0, ImmutableSeq.empty(), ImmutableSeq.of(term));
   }
 
   @Override public @NotNull Term destruct(int repr) {
