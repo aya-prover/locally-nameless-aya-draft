@@ -217,6 +217,7 @@ public class CorePrettier extends BasePrettier<Term> {
         yield checkParen(outer, doc, Outer.BinOp);
       }
       case Compiled _ -> Doc.plain("<TODO: pretty print compiled terms>");
+      case RuleReducer.Fn fn -> term(outer, fn.toFnCall());
     };
   }
 

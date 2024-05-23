@@ -41,8 +41,10 @@ public sealed interface CodeShape {
     @NotNull Either<TermShape, ImmutableSeq<ClauseShape>> body
   ) implements CodeShape, Moment { }
 
-  record ClauseShape(@NotNull ImmutableSeq<PatShape> pats, @NotNull TermShape body) implements CodeShape {
-  }
+  record ClauseShape(
+    @NotNull ImmutableSeq<PatShape> pats,
+    @NotNull TermShape body
+  ) implements CodeShape { }
 
   record DataShape(
     @NotNull MomentId name,

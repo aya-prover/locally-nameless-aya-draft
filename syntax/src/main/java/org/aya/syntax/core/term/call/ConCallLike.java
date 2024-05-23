@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>Of course, {@link ConCall} behaves like a {@link ConCall}</li>
  * </ul>
  */
-public sealed interface ConCallLike extends Callable.Tele permits ConCall, IntegerTerm {
+public sealed interface ConCallLike extends Callable.Tele permits ConCall, RuleReducer.Con, IntegerTerm {
   /**
    * @param ownerArgs the arguments to the owner/patterns, NOT the data type parameters!!
    */
