@@ -63,7 +63,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
     builder.append(", ");
   }
 
-  private void buildArray(@NotNull String typeName, int level, @NotNull ImmutableSeq<Term> terms) {
+  private void buildArray(@NotNull String typeName, @NotNull ImmutableSeq<Term> terms) {
     doSerialize(STR."new \{typeName}[] { ", " }", terms);
   }
 
@@ -73,18 +73,18 @@ public class TermSerializer extends AbstractSerializer<Term> {
     // TODO: the code here is duplicated with somewhere, unify them
     if (terms.isNotEmpty()) {
       var it = terms.iterator();
-      doSerialize(level, it.next());
+      doSerialize(it.next());
 
       while (it.hasNext()) {
         sep();
-        doSerialize(level, it.next());
+        doSerialize(it.next());
       }
     }
 
     builder.append(suffix);
   }
 
-  private void doSerialize(int level, @NotNull Term term) {
+  private void doSerialize(@NotNull Term term) {
     switch (term) {
       case FreeTerm bind -> {
         // It is possible that we meet bind here,
