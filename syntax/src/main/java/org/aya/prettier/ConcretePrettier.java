@@ -357,7 +357,8 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         yield Doc.cat(Doc.sepNonEmpty(prelude),
           switch (decl.body) {
             case TeleDecl.ExprBody(var expr) -> Doc.cat(Doc.spaced(FN_DEFINED_AS), term(Outer.Free, expr));
-            case TeleDecl.BlockBody(var clauses, ImmutableSeq<WithPos<LocalVar>> elims) -> Doc.vcat(Doc.sep(KW_ELIM,
+            case TeleDecl.BlockBody(var clauses, ImmutableSeq<WithPos<LocalVar>> elims) -> Doc.vcat(
+              Doc.cat(Doc.spaced(KW_ELIM),
                 Doc.commaList(elims.map(i -> varDoc(i.data())))),
               Doc.nest(2, visitClauses(clauses)));
           },
