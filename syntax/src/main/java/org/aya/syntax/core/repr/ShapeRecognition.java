@@ -9,4 +9,4 @@ import org.jetbrains.annotations.NotNull;
 public record ShapeRecognition(
   @NotNull AyaShape shape,
   @NotNull ImmutableMap<CodeShape.GlobalId, DefVar<?, ?>> captures
-) {}
+) { }

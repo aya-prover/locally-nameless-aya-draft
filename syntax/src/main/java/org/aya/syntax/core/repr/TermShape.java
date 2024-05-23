@@ -22,6 +22,7 @@ sealed public interface TermShape {
    * @author hoshino
    */
   record Sort(@Nullable SortKind kind, int ulift) implements TermShape { }
+  record DeBruijn(int index) implements TermShape { }
 
   sealed interface Callable extends TermShape {
     @NotNull ImmutableSeq<TermShape> args();

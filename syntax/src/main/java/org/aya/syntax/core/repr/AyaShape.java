@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import static org.aya.syntax.core.repr.CodeShape.GlobalId.SUC;
 import static org.aya.syntax.core.repr.CodeShape.GlobalId.ZERO;
 import static org.aya.syntax.core.repr.CodeShape.LocalId.*;
-import static org.aya.syntax.core.repr.ParamShape.named;
 
 /**
  * @author kiva
@@ -39,7 +38,7 @@ public sealed interface AyaShape {
       DATA,
       ImmutableSeq.empty(), ImmutableSeq.of(
       new ConShape(ZERO, ImmutableSeq.empty()),
-      new ConShape(SUC, ImmutableSeq.of(ParamShape.ty(TermShape.NameCall.of(DATA))))
+      new ConShape(SUC, ImmutableSeq.of(TermShape.NameCall.of(DATA)))
     ));
 
     @Override public @NotNull CodeShape codeShape() { return DATA_NAT; }
@@ -52,12 +51,12 @@ public sealed interface AyaShape {
 
     public static final @NotNull CodeShape DATA_LIST = new DataShape(
       DATA,
-      ImmutableSeq.of(named(A, new TermShape.Sort(null, 0))),
+      ImmutableSeq.of(new TermShape.Sort(null, 0)),
       ImmutableSeq.of(
         new ConShape(GlobalId.NIL, ImmutableSeq.empty()),
         new ConShape(GlobalId.CONS, ImmutableSeq.of(
-          ParamShape.ty(TermShape.NameCall.of(A)),
-          ParamShape.ty(new TermShape.NameCall(DATA, ImmutableSeq.of(TermShape.NameCall.of(A))))
+          new TermShape.DeBruijn(0),
+          new TermShape.NameCall(DATA, ImmutableSeq.of(new TermShape.DeBruijn(1)))
         )) // List A
       ));
 
@@ -73,7 +72,7 @@ public sealed interface AyaShape {
       ImmutableSeq.of(
         new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty()),
         TermShape.NameCall.of(TYPE)
-      ).map(ParamShape::ty),
+      ),
       TermShape.NameCall.of(TYPE),
       Either.right(ImmutableSeq.of(
         // | a, 0 => a
@@ -102,7 +101,7 @@ public sealed interface AyaShape {
       ImmutableSeq.of(
         new TermShape.ShapeCall(TYPE, AyaIntShape.DATA_NAT, ImmutableSeq.empty()),
         TermShape.NameCall.of(TYPE)
-      ).map(ParamShape::ty),
+      ),
       TermShape.NameCall.of(TYPE),
       Either.right(ImmutableSeq.of(
         // | 0, b => b

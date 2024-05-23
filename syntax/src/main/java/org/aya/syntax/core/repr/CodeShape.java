@@ -13,20 +13,18 @@ import java.io.Serializable;
  */
 public sealed interface CodeShape {
   /** A capture group, see {@link ConShape} and {@link ShapeMatcher#captures()} */
-  sealed interface Moment permits ConShape, DataShape, FnShape, ParamShape.Impl, PatShape.Bind, TermShape.ShapeCall {
+  sealed interface Moment permits ConShape, DataShape, FnShape, PatShape.Bind, TermShape.ShapeCall {
     @NotNull MomentId name();
   }
 
   /** Typed capture name, rather than plain strings */
-  sealed interface MomentId {
-  }
+  sealed interface MomentId { }
 
   enum GlobalId implements MomentId, Serializable {
     ZERO, SUC, NIL, CONS,
   }
 
   record LocalId(@NotNull String name) implements MomentId {
-    public static final @NotNull LocalId IGNORED = new LocalId("_");
     public static final @NotNull LocalId LHS = new LocalId("lhs");
     public static final @NotNull LocalId RHS = new LocalId("rhs");
     public static final @NotNull LocalId DATA = new LocalId("Data");
@@ -36,22 +34,22 @@ public sealed interface CodeShape {
 
   record FnShape(
     @NotNull MomentId name,
-    @NotNull ImmutableSeq<ParamShape> tele,
+    @NotNull ImmutableSeq<TermShape> tele,
     @NotNull TermShape result,
     @NotNull Either<TermShape, ImmutableSeq<ClauseShape>> body
-  ) implements CodeShape, Moment {}
+  ) implements CodeShape, Moment { }
 
   record ClauseShape(@NotNull ImmutableSeq<PatShape> pats, @NotNull TermShape body) implements CodeShape {
   }
 
   record DataShape(
     @NotNull MomentId name,
-    @NotNull ImmutableSeq<ParamShape> tele,
+    @NotNull ImmutableSeq<TermShape> tele,
     @NotNull ImmutableSeq<ConShape> cons
-  ) implements CodeShape, Moment {}
+  ) implements CodeShape, Moment { }
 
   record ConShape(
     @NotNull GlobalId name,
-    @NotNull ImmutableSeq<ParamShape> tele
-  ) implements CodeShape, Moment {}
+    @NotNull ImmutableSeq<TermShape> tele
+  ) implements CodeShape, Moment { }
 }
