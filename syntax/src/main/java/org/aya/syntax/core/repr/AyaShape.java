@@ -12,6 +12,7 @@ import kala.tuple.Tuple2;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static org.aya.syntax.core.repr.CodeShape.GlobalId.SUC;
 import static org.aya.syntax.core.repr.CodeShape.GlobalId.ZERO;
@@ -146,7 +147,8 @@ public sealed interface AyaShape {
         .toImmutableSeq();
     }
 
-    public @NotNull Option<ShapeRecognition> find(@NotNull Def def) {
+    public @NotNull Option<ShapeRecognition> find(@Nullable Def def) {
+      if (def == null) return Option.none();
       return discovered.getOption(def);
     }
 

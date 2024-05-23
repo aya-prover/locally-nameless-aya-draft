@@ -38,10 +38,14 @@ public interface AppTycker {
     if (core instanceof FnDef || concrete instanceof TeleDecl.FnDecl) {
       var fnVar = (DefVar<FnDef, TeleDecl.FnDecl>) defVar;
       var signature = TeleDef.defSignature(fnVar);
-      return makeArgs.applyChecked(signature, args -> new Jdg.Default(
-        new FnCall(fnVar, 0, ImmutableArray.from(args)),
-        signature.result(args)
-      ));
+      return makeArgs.applyChecked(signature, args -> {
+        var shape = state.shapeFactory().find(fnVar.core);
+        // TODO
+        return new Jdg.Default(
+          new FnCall(fnVar, 0, ImmutableArray.from(args)),
+          signature.result(args)
+        );
+      });
     } else if (core instanceof DataDef || concrete instanceof TeleDecl.DataDecl) {
       var dataVar = (DefVar<DataDef, TeleDecl.DataDecl>) defVar;
       var signature = TeleDef.defSignature(dataVar);
