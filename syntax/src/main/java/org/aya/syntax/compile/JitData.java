@@ -2,9 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
+import org.aya.syntax.core.def.DataDefLike;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class JitData extends JitTele {
+public abstract non-sealed class JitData extends JitTeleDef implements DataDefLike {
   protected final JitCon @NotNull [] constructors;
 
   protected JitData(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, int conAmount) {

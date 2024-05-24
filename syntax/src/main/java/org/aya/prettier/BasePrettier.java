@@ -89,18 +89,19 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return visitCalls(assoc, fn, this::term, outer, args, showImplicits);
   }
 
-  @SuppressWarnings("unchecked") public @NotNull Doc visitCoreCalls(
-    @NotNull DefVar<?, ?> var, @NotNull SeqLike<Term> args,
+  public @NotNull Doc visitCoreCalls(
+    @NotNull AnyDef var, @NotNull SeqLike<Term> args,
     @NotNull Outer outer, boolean showImplicits
   ) {
     var preArgs = args.toImmutableSeq();
 
-    ImmutableSeq<Param> licit =
+    ImmutableSeq<Param> licit;
       // Because the signature of DataCon is selfTele, so we only need to deal with core con
-      (var.core instanceof ConDef con) ? con.selfTele
-        : (var.concrete instanceof Decl || var.core instanceof Def)
-          ? Def.defTele((DefVar<? extends Def, ? extends Decl>) var)
-          : ImmutableSeq.empty();
+    if (var instanceof SubLevelDef sub) licit = sub.selfTele;
+    else if (var instanceof TyckDef tyck) licit = Objects.requireNonNull(tyck.ref().signature).rawParams();
+    else {
+      throw new UnsupportedOperationException("TODO");
+    }
 
     // licited args, note that this may not include all [var] args since [preArgs.size()] may less than [licit.size()]
     // this is safe since the core call is always fully applied, that is, no missing implicit arguments.
@@ -295,10 +296,19 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return Doc.linkRef(Doc.styled(color, ref.name()), linkIdOf(ref));
   }
 
+  private static @NotNull Doc linkRef(@NotNull AnyDef ref, @NotNull Style color) {
+    return Doc.linkRef(Doc.styled(color, ref.name()), linkIdOf(ref));
+  }
+
   public static @NotNull Link linkIdOf(@NotNull AnyVar ref) {
     return linkIdOf(null, ref);
   }
 
+  public static @NotNull Link linkIdOf(@NotNull AnyDef ref) {
+    return linkIdOf(null, ref);
+  }
+
+  // TODO: can we generalize the following two functions?
   public static @NotNull Link linkIdOf(@Nullable ModulePath currentFileModule, @NotNull AnyVar ref) {
     if (ref instanceof DefVar<?, ?> defVar) {
       var location = Link.loc(QualifiedID.join(defVar.qualifiedName()));
@@ -311,11 +321,20 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return Link.loc(ref.hashCode());
   }
 
-  public static @NotNull Doc linkLit(int literal, @NotNull AnyVar ref, @NotNull Style color) {
+  public static @NotNull Link linkIdOf(@Nullable ModulePath currentFileModule, @NotNull AnyDef ref) {
+    var location = Link.loc(QualifiedID.join(ref.qualifiedName()));
+    // referring to the `ref` in its own module
+    if (currentFileModule == null || ref.fileModule().sameElements(currentFileModule))
+      return location;
+    // referring to the `ref` in another module
+    return Link.cross(ref.fileModule().module(), location);
+  }
+
+  public static @NotNull Doc linkLit(int literal, @NotNull AnyDef ref, @NotNull Style color) {
     return Doc.linkRef(Doc.styled(color, Doc.plain(String.valueOf(literal))), linkIdOf(ref));
   }
 
-  public static @NotNull Doc linkListLit(Doc display, @NotNull AnyVar ref, @NotNull Style color) {
+  public static @NotNull Doc linkListLit(Doc display, @NotNull AnyDef ref, @NotNull Style color) {
     return Doc.linkDef(Doc.styled(color, display), linkIdOf(ref));
   }
 
@@ -324,8 +343,14 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   }
 
   public static @NotNull Doc refVar(DefVar<?, ?> ref) {
-    var style = chooseStyle(ref.concrete);
+    var style = chooseStyle(ref);
     return style != null ? linkRef(ref, style) : varDoc(ref);
+  }
+
+  public static @NotNull Doc refVar(AnyDef ref) {
+    var style = chooseStyle(ref);
+    assert style != null;
+    return linkRef(ref, style);
   }
 
   public static @NotNull Doc defVar(DefVar<?, ?> ref) {
@@ -341,9 +366,9 @@ public abstract class BasePrettier<Term extends AyaDocile> {
       case DataDecl _ -> DATA;
       case DataCon _ -> CON;
       case PrimDecl _ -> PRIM;
-      case FnDef _ -> FN;
-      case DataDef _ -> DATA;
-      case ConDef _ -> CON;
+      case FnDefLike _ -> FN;
+      case DataDefLike _ -> DATA;
+      case ConDefLike _ -> CON;
       case PrimDef _ -> PRIM;
       /*
       case ClassDecl d -> CLAZZ;

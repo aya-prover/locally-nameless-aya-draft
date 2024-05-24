@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Top-level definitions.
  */
-public sealed abstract class TopLevelDef<Ret extends Term> implements Def permits DataDef, FnDef, PrimDef {
+public sealed abstract class TopLevelDef<Ret extends Term> implements TyckDef permits DataDef, FnDef, PrimDef {
   public final @NotNull ImmutableSeq<Param> telescope;
   public final @NotNull Ret result;
 

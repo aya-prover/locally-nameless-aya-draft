@@ -34,13 +34,11 @@ public interface PatToTerm {
         case Pat.Tuple tuple -> new TupTerm(tuple.elements().map(this));
         case Pat.Meta meta -> new MetaPatTerm(meta);
         case Pat.ShapedInt si -> si.toTerm();
-        // TODO
-        case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
       };
     }
   }
   private static ConCallLike.@NotNull Head conHead(Pat.Con con) {
-    return new ConCallLike.Head(con.data().ref(), con.ref(), 0, con.data().args());
+    return new ConCallLike.Head(con.ref(), 0, con.data().args());
   }
 
   record Binary(@NotNull LocalCtx ctx, @NotNull Unary unary) implements BiFunction<Pat, Pat, Term> {
@@ -95,15 +93,13 @@ public interface PatToTerm {
           ctx.put(bind.bind(), bind.type());
           yield ImmutableSeq.of(new FreeTerm(bind.bind()));
         }
-        case Pat.Con con when con.ref().core.equality != null ->
+        case Pat.Con con when con.ref().isEq() ->
           list(con.args().view().dropLast(1), BOUNDARIES)
             .map(args -> new ConCall(conHead(con), args));
         case Pat.Con con -> list(con.args().view())
           .map(args -> new ConCall(conHead(con), args));
         case Pat.Tuple tuple -> list(tuple.elements().view())
           .map(args -> new TupTerm(args));
-        // TODO
-        case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
       };
     }
   }

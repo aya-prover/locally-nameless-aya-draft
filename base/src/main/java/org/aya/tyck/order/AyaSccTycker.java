@@ -13,7 +13,7 @@ import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.FnBody;
 import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.ref.DefVar;
 import org.aya.terck.BadRecursion;
@@ -41,7 +41,7 @@ public record AyaSccTycker(
   @NotNull StmtTycker tycker,
   @NotNull CountingReporter reporter,
   @NotNull ResolveInfo resolveInfo,
-  @NotNull MutableList<@NotNull Def> wellTyped
+  @NotNull MutableList<@NotNull TyckDef> wellTyped
 ) implements SCCTycker<TyckOrder, AyaSccTycker.SCCTyckingFailed>, Problematic {
   public static @NotNull AyaSccTycker create(ResolveInfo info, @NotNull Reporter outReporter) {
     var counting = CountingReporter.delegate(outReporter);
@@ -117,9 +117,9 @@ public record AyaSccTycker(
   }
 
   private void terckRecursiveFn(@NotNull ImmutableSeq<FnDef> fn) {
-    var targets = MutableSet.<Def>from(fn);
+    var targets = MutableSet.<TyckDef>from(fn);
     if (targets.isEmpty()) return;
-    var graph = CallGraph.<Callable, Def>create();
+    var graph = CallGraph.<Callable, TyckDef>create();
     fn.forEach(def -> new CallResolver(resolveInfo.makeTyckState(), def, targets, graph).check());
     graph.findBadRecursion().view()
       .sorted(Comparator.comparing(a -> domRef(a).concrete.sourcePos()))
@@ -129,7 +129,7 @@ public record AyaSccTycker(
       });
   }
 
-  private static @NotNull DefVar<?, ?> domRef(Diagonal<?, Def> f) {
+  private static @NotNull DefVar<?, ?> domRef(Diagonal<?, TyckDef> f) {
     return f.matrix().domain().ref();
   }
 

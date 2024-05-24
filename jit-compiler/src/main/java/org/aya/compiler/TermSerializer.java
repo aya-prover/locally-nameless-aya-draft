@@ -2,19 +2,16 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
-import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.term.SortKind;
-import org.aya.syntax.compile.*;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.PrimCall;
-import org.aya.syntax.core.term.marker.CallLike;
 import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;

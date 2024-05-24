@@ -5,11 +5,10 @@ package org.aya.syntax.core.term.repr;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.generic.stmt.Shaped;
-import org.aya.syntax.core.def.ConDef;
+import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.RuleReducer;
@@ -23,27 +22,26 @@ import java.util.function.IntUnaryOperator;
  */
 public record IntegerTerm(
   @Override int repr,
-  @Override @NotNull ShapeRecognition recognition,
+  @NotNull ConDefLike zero,
+  @NotNull ConDefLike suc,
   @Override @NotNull DataCall type
 ) implements StableWHNF, Shaped.Nat<Term>, ConCallLike {
   public IntegerTerm {
     assert repr >= 0;
   }
 
-  @Override public @NotNull ConCall.Head head() {
-    var ref = repr == 0
-      ? conRef(CodeShape.GlobalId.ZERO)
-      : conRef(CodeShape.GlobalId.SUC);
+  public IntegerTerm(int repr, @NotNull ShapeRecognition recog, @NotNull DataCall type) {
+    this(repr, recog.getCon(CodeShape.GlobalId.ZERO), recog.getCon(CodeShape.GlobalId.SUC), type);
+  }
 
-    return new ConCallLike.Head(type.ref(), ref.core.ref, 0, ImmutableSeq.empty());
+  @Override
+  public @NotNull ConCallLike.Head head() {
+    return new ConCallLike.Head(repr == 0 ? zero : suc, 0, ImmutableSeq.empty());
   }
 
   @Override public @NotNull ImmutableSeq<Term> conArgs() {
     if (repr == 0) return ImmutableSeq.empty();
-    var conTele = head().ref().core.selfTele;
-    assert conTele.sizeEquals(1);
-
-    return ImmutableSeq.of(new IntegerTerm(repr - 1, recognition, type));
+    return ImmutableSeq.of(new IntegerTerm(repr - 1, zero, suc, type));
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) { return this; }
@@ -52,18 +50,18 @@ public record IntegerTerm(
     return this;
   }
 
-  @Override public @NotNull Term makeZero(@NotNull ConDef zero) { return map(x -> 0); }
-
-  @Override public @NotNull Term makeSuc(@NotNull ConDef suc, @NotNull Term term) {
-    return new RuleReducer.Con(new IntegerOps.ConRule(suc.ref, recognition, type),
+  @Override public @NotNull IntegerTerm makeZero() { return map(_ -> 0); }
+  @Override public @NotNull Term makeSuc(@NotNull Term term) {
+    return new RuleReducer.Con(new IntegerOps.ConRule(suc, makeZero(), type),
       0, ImmutableSeq.empty(), ImmutableSeq.of(term));
   }
 
   @Override public @NotNull Term destruct(int repr) {
-    return new IntegerTerm(repr, this.recognition, this.type);
+    return new IntegerTerm(repr, zero, suc, type);
   }
 
   @Override public @NotNull IntegerTerm map(@NotNull IntUnaryOperator f) {
-    return new IntegerTerm(f.applyAsInt(repr), recognition, type);
+    return new IntegerTerm(f.applyAsInt(repr), zero, suc, type);
   }
+  @Override public int ulift() { return type.ulift(); }
 }

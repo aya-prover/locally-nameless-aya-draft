@@ -2,11 +2,12 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.generic;
 
-import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.Callable;
-import org.aya.syntax.core.term.xtt.*;
+import org.aya.syntax.core.term.xtt.CoeTerm;
+import org.aya.syntax.core.term.xtt.DimTyTerm;
+import org.aya.syntax.core.term.xtt.EqTerm;
+import org.aya.syntax.core.term.xtt.PAppTerm;
 import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.SourcePos;
@@ -44,7 +45,6 @@ public class NameGenerator {
         if (solution == null) yield null;
         yield nameOf(PatToTerm.visit(solution));
       }
-      case Callable data -> data.ref().name();
       case PiTerm _ -> "Pi";
       case SigmaTerm _ -> "Sigma";
       case DimTyTerm _ -> "Dim";
@@ -53,7 +53,6 @@ public class NameGenerator {
       case PAppTerm a -> nameOf(a.fun());
       case EqTerm _ -> "Eq";
       case CoeTerm _ -> "coe";
-      case Compiled _ -> "C";
       default -> null;
     };
   }

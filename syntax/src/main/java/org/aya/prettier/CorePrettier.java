@@ -10,7 +10,6 @@ import org.aya.generic.AyaDocile;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.term.ParamLike;
 import org.aya.pretty.doc.Doc;
-import org.aya.syntax.compile.Compiled;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
@@ -69,8 +68,8 @@ public class CorePrettier extends BasePrettier<Term> {
       };
       case TupTerm(var items) -> Doc.parened(argsDoc(options, items.view().map(Arg::ofExplicitly)));
       case IntegerTerm shaped -> shaped.repr() == 0
-        ? linkLit(0, shaped.conRef(CodeShape.GlobalId.ZERO), CON)
-        : linkLit(shaped.repr(), shaped.conRef(CodeShape.GlobalId.SUC), CON);
+        ? linkLit(0, shaped.zero(), CON)
+        : linkLit(shaped.repr(), shaped.suc(), CON);
       case ConCallLike conCall -> visitCoreCalls(conCall.ref(), conCall.conArgs(), outer, optionImplicit());
       case FnCall fnCall -> visitCoreCalls(fnCall.ref(), fnCall.args(), outer, optionImplicit());
       case SigmaTerm(var params) -> {
@@ -92,7 +91,7 @@ public class CorePrettier extends BasePrettier<Term> {
         var body = pair.component2().instantiateTele(paramRef);
         Doc bodyDoc;
         // Syntactic eta-contraction
-        if (body instanceof Callable call && call.ref() instanceof DefVar<?, ?> defVar) {
+        if (body instanceof Callable.Tele call) {
           var args = visibleArgsOf(call).view();
           while (params.isNotEmpty() && args.isNotEmpty()) {
             if (checkUneta(args, params.getLast())) {
@@ -102,7 +101,7 @@ public class CorePrettier extends BasePrettier<Term> {
           }
           // if (call instanceof FieldTerm access) bodyDoc = visitAccessHead(access);
           // else {
-          bodyDoc = visitCoreCalls(defVar, args,
+          bodyDoc = visitCoreCalls(call.ref(), args,
             params.isEmpty() ? outer : Outer.Free,
             optionImplicit());
           // }
@@ -147,8 +146,8 @@ public class CorePrettier extends BasePrettier<Term> {
         // if (head instanceof RefTerm.Field fieldRef) yield visitArgsCalls(fieldRef.ref(), MEMBER, args, outer);
         var implicits = optionImplicit();
         // Infix def-calls
-        if (head instanceof Callable call && call.ref() instanceof DefVar<?, ?> var) {
-          yield visitCoreCalls(var, call.args().view().appendedAll(args), outer, implicits);
+        if (head instanceof Callable.Tele call) {
+          yield visitCoreCalls(call.ref(), call.args().view().appendedAll(args), outer, implicits);
         }
         yield visitCoreApp(null, term(Outer.AppHead, head), args.view(), outer, implicits);
       }
@@ -191,8 +190,8 @@ public class CorePrettier extends BasePrettier<Term> {
       case DataCall dataCall -> visitCoreCalls(dataCall.ref(), dataCall.args(), outer, optionImplicit());
       case ListTerm shaped -> {
         var subterms = shaped.repr().map(x -> term(Outer.Free, x));
-        var nil = shaped.conRef(CodeShape.GlobalId.NIL);
-        var cons = shaped.conRef(CodeShape.GlobalId.CONS);
+        var nil = shaped.nil();
+        var cons = shaped.cons();
         yield Doc.sep(
           linkListLit(Doc.symbol("["), nil, CON),
           Doc.join(linkListLit(Doc.COMMA, cons, CON), subterms),
@@ -216,7 +215,6 @@ public class CorePrettier extends BasePrettier<Term> {
         var doc = Doc.sep(term(Outer.BinOp, a), EQ, term(Outer.BinOp, b));
         yield checkParen(outer, doc, Outer.BinOp);
       }
-      case Compiled _ -> Doc.plain("<TODO: pretty print compiled terms>");
       case RuleReducer.Fn fn -> term(outer, fn.toFnCall());
     };
   }
@@ -259,15 +257,13 @@ public class CorePrettier extends BasePrettier<Term> {
       case Pat.Tuple tuple -> Doc.licit(licit,
         Doc.commaList(tuple.elements().view().map(sub -> pat(sub, true, Outer.Free))));
       case Pat.ShapedInt lit -> Doc.bracedUnless(lit.repr() == 0
-          ? linkLit(0, lit.conRef(CodeShape.GlobalId.ZERO), CON)
-          : linkLit(lit.repr(), lit.conRef(CodeShape.GlobalId.SUC), CON),
+          ? linkLit(0, lit.zero(), CON)
+          : linkLit(lit.repr(), lit.suc(), CON),
         licit);
-      // TODO
-      case Pat.JCon jCon -> throw new UnsupportedOperationException("TODO");
     };
   }
 
-  public @NotNull Doc def(@NotNull Def predef) {
+  public @NotNull Doc def(@NotNull TyckDef predef) {
     return switch (predef) {
       case PrimDef def -> primDoc(def.ref());
       case FnDef def -> {

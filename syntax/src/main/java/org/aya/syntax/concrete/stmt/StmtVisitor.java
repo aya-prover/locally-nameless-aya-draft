@@ -8,7 +8,7 @@ import kala.value.LazyValue;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.decl.*;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
@@ -41,8 +41,8 @@ public interface StmtVisitor extends Consumer<Stmt> {
   ) { visitVar(pos, var, type); }
 
   @SuppressWarnings("unchecked") private @Nullable Term varType(@Nullable AnyVar var) {
-    if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof Def)
-      return Def.defType((DefVar<? extends Def, ? extends Decl>) defVar);
+    if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof TyckDef)
+      return TyckDef.defType((DefVar<? extends TyckDef, ? extends Decl>) defVar);
     return null;
   }
 

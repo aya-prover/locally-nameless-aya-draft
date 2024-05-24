@@ -12,14 +12,10 @@ import org.aya.prettier.BasePrettier;
 import org.aya.prettier.CorePrettier;
 import org.aya.prettier.Tokens;
 import org.aya.pretty.doc.Doc;
-import org.aya.syntax.compile.JitCon;
-import org.aya.syntax.concrete.stmt.decl.DataCon;
-import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.repr.ShapeRecognition;
+import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
-import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GenerateKind;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -31,7 +27,9 @@ import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.IntUnaryOperator;
+import java.util.function.UnaryOperator;
 
 /**
  * Patterns in the core syntax.
@@ -111,54 +109,23 @@ public sealed interface Pat extends AyaDocile {
     }
   }
 
-  sealed interface ConLike extends Pat {
-    @NotNull ImmutableSeq<Pat> args();
-
-    @Override
-    default void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
-      args().forEach(arg -> arg.consumeBindings(consumer));
-    }
-  }
-
-
   record Con(
-    @NotNull DefVar<ConDef, DataCon> ref,
+    @NotNull ConDefLike ref,
     @Override @NotNull ImmutableSeq<Pat> args,
-    @Nullable ShapeRecognition typeRecog,
     @NotNull DataCall data
-  ) implements ConLike {
-    public @NotNull Pat.Con update(@NotNull ImmutableSeq<Pat> args) {
-      return this.args.sameElements(args, true) ? this : new Con(ref, args, typeRecog, data);
+  ) implements Pat {
+    public @NotNull Con update(@NotNull ImmutableSeq<Pat> args) {
+      return this.args.sameElements(args, true) ? this : new Con(ref, args, data);
     }
 
     @Override public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
       return update(args.map(patOp));
     }
+    @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) {
+      args.forEach(e -> e.consumeBindings(consumer));
+    }
 
     @Override public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
-      return update(args.map(x -> x.inline(bind)));
-    }
-  }
-
-  /**
-   * A constructor pattern, but compiled data,
-   * that means {@link org.aya.syntax.compile.JitConCall} can match this pattern
-   * instead of {@link org.aya.syntax.core.term.call.ConCallLike}
-   * @param ref
-   * @param args
-   */
-  record JCon(@NotNull JitCon ref, @Override @NotNull ImmutableSeq<Pat> args) implements ConLike {
-    public @NotNull Pat.JCon update(@NotNull ImmutableSeq<Pat> args) {
-      return this.args.sameElements(args, true) ? this : new JCon(ref, args);
-    }
-
-    @Override
-    public @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp) {
-      return update(args.map(patOp));
-    }
-
-    @Override
-    public @NotNull Pat inline(@NotNull BiConsumer<LocalVar, Term> bind) {
       return update(args.map(x -> x.inline(bind)));
     }
   }
@@ -210,11 +177,12 @@ public sealed interface Pat extends AyaDocile {
 
   record ShapedInt(
     @Override int repr,
-    @Override @NotNull ShapeRecognition recognition,
+    @NotNull ConDefLike zero,
+    @NotNull ConDefLike suc,
     @NotNull DataCall type
   ) implements Pat, Shaped.Nat<Pat> {
     public ShapedInt update(DataCall type) {
-      return type == type() ? this : new ShapedInt(repr, recognition, type);
+      return type == type() ? this : new ShapedInt(repr, zero, suc, type);
     }
 
     @Override public @NotNull ShapedInt descent(@NotNull UnaryOperator<Pat> f, @NotNull UnaryOperator<Term> g) {
@@ -226,21 +194,21 @@ public sealed interface Pat extends AyaDocile {
       return this;
     }
     @Override public void consumeBindings(@NotNull BiConsumer<LocalVar, Term> consumer) { }
-    @Override public @NotNull Pat makeZero(@NotNull ConDef zero) {
-      return new Pat.Con(zero.ref, ImmutableSeq.empty(), recognition, type);
+    @Override public @NotNull Con makeZero() {
+      return new Pat.Con(zero, ImmutableSeq.empty(), type);
     }
 
-    @Override public @NotNull Pat makeSuc(@NotNull ConDef suc, @NotNull Pat pat) {
-      return new Pat.Con(suc.ref, ImmutableSeq.of(pat), recognition, type);
+    @Override public @NotNull Con makeSuc(@NotNull Pat pat) {
+      return new Pat.Con(suc, ImmutableSeq.of(pat), type);
     }
 
-    @Override public @NotNull Pat destruct(int repr) {
-      return new Pat.ShapedInt(repr, recognition, type);
+    @Override public @NotNull ShapedInt destruct(int repr) {
+      return new ShapedInt(repr, zero, suc, type);
     }
 
-    public @NotNull Term toTerm() { return new IntegerTerm(repr, recognition, type); }
+    public @NotNull Term toTerm() { return new IntegerTerm(repr, zero, suc, type); }
     @Override public @NotNull ShapedInt map(@NotNull IntUnaryOperator f) {
-      return new ShapedInt(f.applyAsInt(repr), recognition, type);
+      return new ShapedInt(f.applyAsInt(repr), zero, suc, type);
     }
   }
 

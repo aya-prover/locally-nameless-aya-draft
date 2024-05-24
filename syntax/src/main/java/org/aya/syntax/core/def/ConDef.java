@@ -16,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author ice1000, kiva
  */
-public final class ConDef extends SubLevelDef {
+public final class ConDef extends SubLevelDef implements ConDefLike {
   public final @NotNull DefVar<DataDef, DataDecl> dataRef;
   public final @NotNull DefVar<ConDef, DataCon> ref;
   public final @NotNull ImmutableSeq<Pat> pats;
@@ -39,8 +39,9 @@ public final class ConDef extends SubLevelDef {
     this.ref = ref;
   }
 
-  public @NotNull DefVar<ConDef, DataCon> ref() { return ref; }
+  @Override public @NotNull DefVar<ConDef, DataCon> ref() { return ref; }
   @Override public @NotNull ImmutableSeq<Param> telescope() {
     return fullTelescope().toImmutableSeq();
   }
+  @Override public boolean isEq() { return equality != null; }
 }

@@ -4,7 +4,8 @@ package org.aya.prettier;
 
 import org.aya.pretty.doc.Doc;
 
-import static org.aya.prettier.BasePrettier.*;
+import static org.aya.prettier.BasePrettier.KEYWORD;
+import static org.aya.prettier.BasePrettier.PRIM;
 
 public final class Tokens {
 

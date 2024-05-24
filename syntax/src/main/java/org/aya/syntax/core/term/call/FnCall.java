@@ -4,18 +4,27 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.FnDef;
+import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.marker.CallLike;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 public record FnCall(
-  @Override @NotNull DefVar<FnDef, FnDecl> ref,
+  @Override @NotNull FnDefLike ref,
   @Override int ulift,
   @Override @NotNull ImmutableSeq<@NotNull Term> args
-) implements Callable.Tele, CallLike.FnCallLike {
+) implements Callable.Tele {
+  public FnCall(
+    @NotNull DefVar<? extends FnDef, ? extends FnDecl> ref,
+    int ulift,
+    @NotNull ImmutableSeq<@NotNull Term> args
+  ) {
+    this(ref.core, ulift, args);
+  }
+
   public @NotNull FnCall update(@NotNull ImmutableSeq<Term> args) {
     return args.sameElements(args(), true) ? this : new FnCall(ref, ulift, args);
   }

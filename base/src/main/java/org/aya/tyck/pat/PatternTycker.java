@@ -150,7 +150,7 @@ public class PatternTycker implements Problematic, Stateful {
 
         // check if this Con is a ShapedCon
         var typeRecog = state().shapeFactory().find(conRef.core.dataRef.core).getOrNull();
-        yield new Pat.Con(realCon.conHead.ref(), patterns, typeRecog, realCon.data());
+        yield new Pat.Con(realCon.conHead.ref(), patterns, realCon.data());
       }
       case Pattern.Bind(var bind, var tyRef) -> {
         exprTycker.localCtx().put(bind, type);

@@ -4,7 +4,9 @@ package org.aya.syntax.compile;
 
 import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
+import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +29,21 @@ public abstract class JitTele {
     this.telescopeSize = telescopeSize;
     this.telescopeLicit = telescopeLicit;
     this.telescopeNames = telescopeNames;
+  }
+
+  public @NotNull Term makePi() {
+    return new PiBuilder().make(0);
+  }
+
+  private class PiBuilder {
+    private final Term[] args = new Term[telescopeSize];
+    public @NotNull Term make(int i) {
+      return i == telescopeSize ? result(args) :
+        new PiTerm(telescope(i, args), new Closure.Jit(arg -> {
+          args[i] = arg;
+          return make(i + 1);
+        }));
+    }
   }
 
   public static class LocallyNameless extends JitTele {

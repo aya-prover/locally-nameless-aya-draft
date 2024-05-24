@@ -46,7 +46,7 @@ public record StmtTycker(
   private @NotNull ExprTycker mkTycker() {
     return new ExprTycker(new TyckState(shapeFactory, primFactory), new LocalCtx(), new LocalLet(), reporter);
   }
-  public @NotNull Def check(Decl predecl) {
+  public @NotNull TyckDef check(Decl predecl) {
     ExprTycker tycker = null;
     if (predecl instanceof Decl decl) {
       if (decl.ref().signature == null) tycker = checkHeader(decl);

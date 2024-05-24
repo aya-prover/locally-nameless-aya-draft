@@ -12,7 +12,6 @@ import org.aya.resolve.context.EmptyContext;
 import org.aya.resolve.module.DumbModuleLoader;
 import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.compile.JitCon;
-import org.aya.syntax.compile.JitConCall;
 import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.core.Closure;
@@ -40,7 +39,7 @@ public class CompileTest {
 
     var cls0 = ImmutableSeq.<Pat>of(
       new Pat.Bind(new LocalVar("A"), ErrorTerm.DUMMY),
-      new Pat.Con(S, ImmutableSeq.of(new Pat.Bind(new LocalVar("n"), ErrorTerm.DUMMY)), null, null)
+      new Pat.Con(S, ImmutableSeq.of(new Pat.Bind(new LocalVar("n"), ErrorTerm.DUMMY)), null)
     );
 
     var builder = new StringBuilder();

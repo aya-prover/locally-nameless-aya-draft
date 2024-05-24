@@ -5,13 +5,9 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Result;
 import org.aya.compiler.util.SerializeUtils;
-import org.aya.syntax.compile.JitConCall;
-import org.aya.syntax.compile.JitDataCall;
-import org.aya.syntax.compile.JitFnCall;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 

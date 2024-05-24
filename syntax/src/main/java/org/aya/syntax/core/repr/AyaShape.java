@@ -8,18 +8,15 @@ import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableMap;
 import kala.control.Either;
 import kala.control.Option;
-import kala.tuple.Tuple;
-import kala.tuple.Tuple2;
 import org.aya.generic.stmt.Shaped;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.FnDecl;
-import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.Def;
-import org.aya.syntax.core.def.FnDef;
+import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.repr.IntegerOps;
+import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,57 +111,52 @@ public enum AyaShape {
 
   @NotNull abstract CodeShape codeShape();
 
-  public static Shaped.Applicable<Term, ConDef, DataCon> ofCon(
+  public static Shaped.Applicable<Term, ConDefLike> ofCon(
     @NotNull DefVar<ConDef, DataCon> ref,
     @NotNull ShapeRecognition paramRecog,
     @NotNull DataCall paramType
   ) {
     if (paramRecog.shape() == AyaShape.NAT_SHAPE) {
-      return new IntegerOps.ConRule(ref, paramRecog, paramType);
+      return new IntegerOps.ConRule(ref.core, new IntegerTerm(0, paramRecog, paramType), paramType);
     }
     return null;
   }
 
-  public static @Nullable Shaped.Applicable<Term, FnDef, FnDecl> ofFn(
+  public static @Nullable Shaped.Applicable<Term, FnDefLike> ofFn(
     @NotNull DefVar<FnDef, FnDecl> ref,
     @NotNull ShapeRecognition recog
   ) {
     var core = ref.core;
     if (core == null) return null;
-
     if (recog.shape() == AyaShape.PLUS_LEFT_SHAPE || recog.shape() == AyaShape.PLUS_RIGHT_SHAPE) {
-      if (!(core.result instanceof DataCall paramType)) return null;
-      var dataDef = paramType.ref().core;
-      assert dataDef != null : "How?";
-
-      return new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.Add);
+      return new IntegerOps.FnRule(core, IntegerOps.FnRule.Kind.Add);
     }
-
     return null;
   }
 
+  public record FindImpl(@NotNull TyckDef def, @NotNull ShapeRecognition recog) { }
   public static class Factory {
     public @NotNull MutableMap<DefVar<?, ?>, ShapeRecognition> discovered = MutableLinkedHashMap.of();
 
-    public @NotNull ImmutableSeq<Tuple2<Def, ShapeRecognition>> findImpl(@NotNull AyaShape shape) {
+    public @NotNull ImmutableSeq<FindImpl> findImpl(@NotNull AyaShape shape) {
       return discovered.view()
-        .map((a, b) -> Tuple.of((Def) a.core, b))
-        .filter(t -> t.component2().shape() == shape)
+        .map((a, b) -> new FindImpl((TyckDef) a.core, b))
+        .filter(t -> t.recog.shape() == shape)
         .toImmutableSeq();
     }
 
-    public @NotNull Option<ShapeRecognition> find(@Nullable Def def) {
+    public @NotNull Option<ShapeRecognition> find(@Nullable TyckDef def) {
       if (def == null) return Option.none();
       return discovered.getOption(def.ref());
     }
 
-    public void bonjour(@NotNull Def def, @NotNull ShapeRecognition shape) {
+    public void bonjour(@NotNull TyckDef def, @NotNull ShapeRecognition shape) {
       // TODO[literal]: what if a def has multiple shapes?
       discovered.put(def.ref(), shape);
     }
 
     /** Discovery of shaped literals */
-    public void bonjour(@NotNull Def def) {
+    public void bonjour(@NotNull TyckDef def) {
       for (var shape : AyaShape.values()) {
         new ShapeMatcher(ImmutableMap.from(discovered)).match(shape, def)
           .ifDefined(recog -> bonjour(def, recog));

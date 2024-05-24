@@ -4,13 +4,9 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.concrete.stmt.decl.DataCon;
-import org.aya.syntax.concrete.stmt.decl.DataDecl;
-import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.repr.IntegerTerm;
-import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -26,22 +22,21 @@ public sealed interface ConCallLike extends Callable.Tele permits ConCall, RuleR
    * @param ownerArgs the arguments to the owner/patterns, NOT the data type parameters!!
    */
   record Head(
-    @NotNull DefVar<DataDef, DataDecl> dataRef,
-    @NotNull DefVar<ConDef, DataCon> ref,
+    @NotNull ConDefLike ref,
     int ulift,
     @NotNull ImmutableSeq<@NotNull Term> ownerArgs
   ) {
     public @NotNull Head descent(@NotNull IndexedFunction<Term, Term> f) {
       var args = Callable.descent(ownerArgs, f);
       if (args.sameElements(ownerArgs, true)) return this;
-      return new Head(dataRef, ref, ulift, args);
+      return new Head(ref, ulift, args);
     }
   }
 
   @NotNull ConCallLike.Head head();
   @NotNull ImmutableSeq<Term> conArgs();
 
-  @Override default @NotNull DefVar<ConDef, DataCon> ref() { return head().ref; }
+  @Override default @NotNull ConDefLike ref() { return head().ref; }
 
   @Override default @NotNull ImmutableSeq<@NotNull Term> args() {
     return head().ownerArgs().concat(conArgs());

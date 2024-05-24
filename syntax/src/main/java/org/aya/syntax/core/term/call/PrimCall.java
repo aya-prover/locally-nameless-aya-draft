@@ -11,8 +11,7 @@ import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 public record PrimCall(
-  @Override @NotNull DefVar<PrimDef, PrimDecl> ref,
-  @NotNull PrimDef.ID id,
+  @Override @NotNull PrimDef ref,
   @Override int ulift,
   @Override @NotNull ImmutableSeq<@NotNull Term> args
 ) implements Callable.Tele {
@@ -28,6 +27,6 @@ public record PrimCall(
     @NotNull DefVar<@NotNull PrimDef, PrimDecl> ref,
     int ulift, @NotNull ImmutableSeq<@NotNull Term> args
   ) {
-    this(ref, ref.core.id, ulift, args);
+    this(ref.core, ulift, args);
   }
 }

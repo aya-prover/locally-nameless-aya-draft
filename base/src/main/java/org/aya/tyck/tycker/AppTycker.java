@@ -35,7 +35,7 @@ public interface AppTycker {
 
     if (core instanceof FnDef || concrete instanceof FnDecl) {
       var fnVar = (DefVar<FnDef, FnDecl>) defVar;
-      var signature = Def.defSignature(fnVar);
+      var signature = TyckDef.defSignature(fnVar);
       return makeArgs.applyChecked(signature, args -> {
         var shape = state.shapeFactory().find(fnVar.core);
         var argsSeq = ImmutableArray.from(args);
@@ -50,14 +50,14 @@ public interface AppTycker {
       });
     } else if (core instanceof DataDef || concrete instanceof DataDecl) {
       var dataVar = (DefVar<DataDef, DataDecl>) defVar;
-      var signature = Def.defSignature(dataVar);
+      var signature = TyckDef.defSignature(dataVar);
       return makeArgs.applyChecked(signature, args -> new Jdg.Default(
         new DataCall(dataVar, 0, ImmutableArray.from(args)),
         signature.result(args)
       ));
     } else if (core instanceof PrimDef || concrete instanceof PrimDecl) {
       var primVar = (DefVar<PrimDef, PrimDecl>) defVar;
-      var signature = Def.defSignature(primVar);
+      var signature = TyckDef.defSignature(primVar);
       return makeArgs.applyChecked(signature, args -> new Jdg.Default(
         state.primFactory().unfold(new PrimCall(primVar, 0, ImmutableArray.from(args)), state),
         signature.result(args)
@@ -68,7 +68,7 @@ public interface AppTycker {
       assert conCore != null;
       var dataVar = conCore.dataRef;
 
-      var fullSignature = Def.defSignature(conVar);   // ownerTele + selfTele
+      var fullSignature = TyckDef.defSignature(conVar);   // ownerTele + selfTele
       var ownerTele = conCore.ownerTele;
 
       return makeArgs.applyChecked(fullSignature, args -> {
@@ -90,7 +90,7 @@ public interface AppTycker {
           })
           .getOrNull();
         if (shape != null) return new Jdg.Default(shape, type);
-        var wellTyped = new ConCall(dataVar, conVar, ownerArgs, 0, conArgs);
+        var wellTyped = new ConCall(conVar.core, ownerArgs, 0, conArgs);
         return new Jdg.Default(wellTyped, type);
       });
     }

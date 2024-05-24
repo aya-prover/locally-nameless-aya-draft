@@ -103,10 +103,10 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
     return switch (predecl) {
       case DataDecl decl -> {
         var ctx = resolveTopLevelDecl(decl, context);
-        var innerCtx = resolveChildren(decl, ctx, d -> d.body.view(), (ctor, mCtx) -> {
-          ctor.ref().module = mCtx.modulePath();
-          ctor.ref().fileModule = resolveInfo.thisModule().modulePath();
-          mCtx.defineSymbol(ctor.ref(), Stmt.Accessibility.Public, ctor.sourcePos());
+        var innerCtx = resolveChildren(decl, ctx, d -> d.body.view(), (con, mCtx) -> {
+          con.ref().module = mCtx.modulePath();
+          con.ref().fileModule = resolveInfo.thisModule().modulePath();
+          mCtx.defineSymbol(con.ref(), Stmt.Accessibility.Public, con.sourcePos());
         });
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }

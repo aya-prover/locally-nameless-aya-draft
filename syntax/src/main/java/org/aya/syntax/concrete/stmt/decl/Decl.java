@@ -9,7 +9,7 @@ import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.binop.OpDecl;
@@ -22,7 +22,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Concrete telescopic definition, corresponding to {@link Def}.
+ * Concrete telescopic definition, corresponding to {@link TyckDef}.
  *
  * @author re-xyr
  * @see Decl
@@ -59,6 +59,6 @@ public sealed abstract class Decl implements SourceNode, Stmt, TyckUnit, OpDecl
     modifyResult(f);
   }
 
-  @Contract(pure = true) public abstract @NotNull DefVar<? extends Def, ?> ref();
+  @Contract(pure = true) public abstract @NotNull DefVar<? extends TyckDef, ?> ref();
   public SeqView<LocalVar> teleVars() { return telescope.view().map(Expr.Param::ref); }
 }

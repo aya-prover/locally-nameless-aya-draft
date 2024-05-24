@@ -5,10 +5,8 @@ package org.aya.syntax.core.term.repr;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
 import kala.function.IndexedFunction;
-import kala.tuple.Tuple2;
-import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.AyaShape;
-import org.aya.syntax.core.repr.ShapeRecognition;
+import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.marker.TyckInternal;
@@ -20,7 +18,7 @@ import java.util.function.UnaryOperator;
 public record MetaLitTerm(
   @NotNull SourcePos sourcePos,
   @NotNull Object repr,
-  @NotNull ImmutableSeq<Tuple2<Def, ShapeRecognition>> candidates,
+  @NotNull ImmutableSeq<AyaShape.FindImpl> candidates,
   @NotNull Term type
 ) implements TyckInternal {
   public @NotNull MetaLitTerm update(@NotNull Term type) {
@@ -32,13 +30,21 @@ public record MetaLitTerm(
 
   @SuppressWarnings("unchecked") public @NotNull Term inline(UnaryOperator<Term> pre) {
     if (!(pre.apply(type) instanceof DataCall dataCall)) return this;
-    return candidates.find(t -> t.component1().ref() == dataCall.ref()).flatMap(t -> {
-      var recog = t.component2();
+    return candidates.find(t ->
+      /* TODO: use TyckingDef rather than compare two Def objects */
+      t.def() == dataCall.ref()).flatMap(t -> {
+      var recog = t.recog();
       var shape = recog.shape();
       if (shape == AyaShape.NAT_SHAPE)
-        return Option.some(new IntegerTerm((int) repr, recog, dataCall));
+        return Option.some(new IntegerTerm((int) repr,
+          recog.getCon(CodeShape.GlobalId.ZERO),
+          recog.getCon(CodeShape.GlobalId.SUC),
+          dataCall));
       if (shape == AyaShape.LIST_SHAPE)
-        return Option.some(new ListTerm((ImmutableSeq<Term>) repr, recog, dataCall));
+        return Option.some(new ListTerm((ImmutableSeq<Term>) repr,
+          recog.getCon(CodeShape.GlobalId.NIL),
+          recog.getCon(CodeShape.GlobalId.CONS),
+          dataCall));
       return Option.<Term>none();
     }).getOrDefault(this);
   }

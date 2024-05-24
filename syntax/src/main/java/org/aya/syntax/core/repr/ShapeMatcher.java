@@ -15,8 +15,8 @@ import kala.value.MutableValue;
 import org.aya.generic.Modifier;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.aya.syntax.core.term.*;
@@ -96,14 +96,14 @@ public record ShapeMatcher(
     this(Captures.create(), MutableMap.create(), discovered);
   }
 
-  public Option<ShapeRecognition> match(@NotNull AyaShape shape, @NotNull Def def) {
+  public Option<ShapeRecognition> match(@NotNull AyaShape shape, @NotNull TyckDef def) {
     if (matchDecl(new MatchDecl(shape.codeShape(), def))) {
       return Option.some(new ShapeRecognition(shape, captures.extractGlobal()));
     }
     return Option.none();
   }
 
-  record MatchDecl(@NotNull CodeShape shape, @NotNull Def def) { }
+  record MatchDecl(@NotNull CodeShape shape, @NotNull TyckDef def) { }
 
   private boolean matchDecl(@NotNull MatchDecl params) {
     return switch (params) {
@@ -159,7 +159,7 @@ public record ShapeMatcher(
           var realShapedCon = recognition.captures().getOrThrow(shapedCon.conId(), () ->
             new Panic("Invalid moment id: " + shapedCon.conId() + " in recognition" + recognition));
 
-          matched = realShapedCon == con.ref();
+          matched = realShapedCon.core == con.ref();
         }
 
         if (!matched) yield false;
@@ -189,18 +189,18 @@ public record ShapeMatcher(
       case TermShape.NameCall call when call.args().isEmpty() && term instanceof FreeTerm(var ref) ->
         captures.resolve(call.name()) == ref;
       case TermShape.DeBruijn(var index) -> term instanceof LocalTerm(var jndex) && index == jndex;
-      case TermShape.Callable call when term instanceof Callable callable -> {
+      case TermShape.Callable call when term instanceof Callable.Tele callable -> {
         boolean success = switch (call) {
           case TermShape.NameCall nameCall -> captures.resolve(nameCall.name()) == callable.ref();
           case TermShape.ShapeCall shapeCall -> {
-            if (callable.ref() instanceof DefVar<?, ?> defVar) {
-              yield captureIfMatches(shapeCall.name(), defVar, () ->
-                discovered.getOption(defVar).map(x -> x.shape().codeShape()).getOrNull() == shapeCall.shape());
+            if (callable.ref() instanceof TyckDef tyckDef) {
+              yield captureIfMatches(shapeCall.name(), tyckDef.ref(), () ->
+                discovered.getOption(tyckDef.ref()).map(x -> x.shape().codeShape()).getOrNull() == shapeCall.shape());
             }
 
             yield false;
           }
-          case TermShape.ConCall conCall -> resolveCon(conCall.dataId(), conCall.conId()) == callable.ref();
+          case TermShape.ConCall conCall -> resolveCon(conCall.dataId(), conCall.conId()).core == callable.ref();
         };
 
         if (!success) yield false;

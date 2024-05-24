@@ -9,8 +9,8 @@ import org.aya.generic.stmt.Shaped;
 import org.aya.generic.term.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.JitTele;
-import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.AnyDef;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.marker.Formation;
@@ -18,7 +18,6 @@ import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
 import org.aya.syntax.core.term.xtt.*;
-import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.MetaVar;
@@ -102,11 +101,10 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    * Compare the arguments of two callable ONLY, this method will NOT try to normalize and then compare (while the old project does).
    */
   private @Nullable Term compareCallApprox(
-    @NotNull Callable.Tele lhs, @NotNull Callable.Tele rhs,
-    @NotNull DefVar<? extends Def, ? extends Decl> typeProvider
+    @NotNull Callable.Tele lhs, @NotNull Callable.Tele rhs, @NotNull AnyDef typeProvider
   ) {
     if (lhs.ref() != rhs.ref()) return null;
-    return compareMany(lhs.args(), rhs.args(), lhs.ulift(), Def.defSignature(typeProvider));
+    return compareMany(lhs.args(), rhs.args(), lhs.ulift(), TyckDef.defSignature(typeProvider));
   }
 
   private <R> R swapped(@NotNull Supplier<R> callback) {
@@ -278,7 +276,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       case DimTerm l -> rhs instanceof DimTerm r && l == r ? l : null;
       case MetaCall mCall -> solveMeta(mCall, rhs, null);
       // By typing invariant, they should have the same type, so no need to check for repr equality.
-      case IntegerTerm(var lepr, _, var ty) -> rhs instanceof IntegerTerm(var repr, _, _) && lepr == repr ? ty : null;
+      case IntegerTerm(var lepr, _, _, var ty) -> rhs instanceof IntegerTerm rInt && lepr == rInt.repr() ? ty : null;
       // fallback case
       case ConCallLike lCon -> switch (rhs) {
         case ConCallLike rCon -> compareCallApprox(lCon, rCon, lCon.ref());
@@ -449,7 +447,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return switch (new Pair<>(preLhs, (Formation) preRhs)) {
       case Pair(DataCall lhs, DataCall rhs) -> {
         if (lhs.ref() != rhs.ref()) yield false;
-        yield compareMany(lhs.args(), rhs.args(), lhs.ulift(), Def.defSignature(lhs.ref())) != null;
+        yield compareMany(lhs.args(), rhs.args(), lhs.ulift(), TyckDef.defSignature(lhs.ref())) != null;
       }
       case Pair(DimTyTerm _, DimTyTerm _) -> true;
       case Pair(PiTerm(var lParam, var lBody), PiTerm(var rParam, var rBody)) -> compareTypeWith(lParam, rParam,

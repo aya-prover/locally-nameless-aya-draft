@@ -114,7 +114,7 @@ public record PatClassifier(
           var ml = MutableArrayList.<PatClass<Term>>create(classes.size() + 1);
           ml.appendAll(classes);
           var maxInt = lits.max(Comparator.comparing(p -> p.pat().repr())).pat();
-          var onePlus = new IntegerTerm(maxInt.repr() + 1, maxInt.recognition(), maxInt.type());
+          var onePlus = maxInt.map(x -> x + 1);
           ml.append(new PatClass<>(onePlus, binds));
           return ml.toImmutableSeq();
         }
@@ -131,7 +131,7 @@ public record PatClassifier(
           var matches = clauses.mapIndexedNotNull((ix, subPat) ->
             // Convert to constructor form
             matches(conTele, con, ix, subPat));
-          var conHead = dataCall.conHead(con.ref);
+          var conHead = dataCall.conHead(con);
           // The only matching cases are catch-all cases, and we skip these
           if (matches.isEmpty()) {
             missedCon++;
@@ -160,10 +160,10 @@ public record PatClassifier(
   }
 
   private static @Nullable Indexed<SeqView<Pat>> matches(
-    SeqView<Param> conTele, ConDef ctor, int ix, Indexed<Pat> subPat
+    SeqView<Param> conTele, ConDef con, int ix, Indexed<Pat> subPat
   ) {
     return switch (subPat.pat() instanceof Pat.ShapedInt i ? i.constructorForm() : subPat.pat()) {
-      case Pat.Con c when c.ref() == ctor.ref() -> new Indexed<>(c.args().view(), ix);
+      case Pat.Con c when c.ref() == con -> new Indexed<>(c.args().view(), ix);
       case Pat.Bind _ -> new Indexed<>(conTele.map(Param::toFreshPat), ix);
       default -> null;
     };

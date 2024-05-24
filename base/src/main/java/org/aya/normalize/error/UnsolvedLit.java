@@ -18,7 +18,7 @@ public record UnsolvedLit(
       Doc.english("Unable to solve the type of this literal:"),
       Doc.par(1, lit.toDoc(options)),
       Doc.plain("I'm confused about the following candidates:"),
-      Doc.par(1, Doc.join(Doc.plain(", "), lit.candidates().map(d -> Doc.code(d.component1().ref().name()))))
+      Doc.par(1, Doc.join(Doc.plain(", "), lit.candidates().map(d -> Doc.code(d.def().ref().name()))))
     );
   }
 

@@ -1,8 +1,8 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.syntax.compile;
+package org.aya.syntax.core.def;
 
-import org.aya.syntax.core.term.Term;
+import org.aya.syntax.compile.JitData;
 
-public sealed interface Compiled extends Term permits JitCallable {
+public sealed interface DataDefLike extends AnyDef permits DataDef, JitData {
 }

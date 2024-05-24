@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public final class FnDef extends TopLevelDef<Term> {
+public final class FnDef extends TopLevelDef<Term> implements FnDefLike {
   public final @NotNull EnumSet<Modifier> modifiers;
   public final @NotNull DefVar<FnDef, FnDecl> ref;
   public final @NotNull Either<Term, ImmutableSeq<Term.Matching>> body;
@@ -38,5 +38,5 @@ public final class FnDef extends TopLevelDef<Term> {
   }
 
   public boolean is(@NotNull Modifier mod) { return modifiers.contains(mod); }
-  public @NotNull DefVar<FnDef, FnDecl> ref() { return ref; }
+  @Override public @NotNull DefVar<FnDef, FnDecl> ref() { return ref; }
 }

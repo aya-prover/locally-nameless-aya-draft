@@ -4,12 +4,12 @@ package org.aya.resolve.module;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.ResolveInfo;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface ModuleCallback<E extends Exception> {
   // TODO[ice]: why param1 is needed?
-  void onModuleTycked(@NotNull ResolveInfo moduleResolve, @NotNull ImmutableSeq<Def> defs)
+  void onModuleTycked(@NotNull ResolveInfo moduleResolve, @NotNull ImmutableSeq<TyckDef> defs)
     throws E;
 }

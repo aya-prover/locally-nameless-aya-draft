@@ -4,42 +4,37 @@ package org.aya.syntax.core.term.repr;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.stmt.Shaped;
-import org.aya.syntax.concrete.stmt.decl.DataCon;
-import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.FnDecl;
-import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.Def;
-import org.aya.syntax.core.repr.ShapeRecognition;
+import org.aya.syntax.core.def.AnyDef;
+import org.aya.syntax.core.def.ConDefLike;
+import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.Serializable;
 
 /**
  * IntegerOps acts like a DefVar with special reduce rule. So it is not a {@link Term}.
  *
  * @see org.aya.syntax.core.term.call.RuleReducer
  */
-public sealed interface IntegerOps<Core extends Def, Concrete extends Decl>
-  extends Shaped.Applicable<Term, Core, Concrete> {
-  @Override default @NotNull Term type() {
-    var core = ref().core;
-    assert core != null;
-    return Def.defType(ref());
+public sealed interface IntegerOps<Def extends AnyDef> extends Shaped.Applicable<Term, Def> {
+  @Override
+  default @NotNull Term type() {
+    // TODO
+    throw new UnsupportedOperationException("TODO");
+    // var core = ref().core;
+    // assert core != null;
+    // return Def.defType(ref());
   }
 
   record ConRule(
-    @Override @NotNull DefVar<ConDef, DataCon> ref,
-    @Override @NotNull ShapeRecognition paramRecognition,
+    @Override @NotNull ConDefLike ref,
+    @NotNull IntegerTerm zero,
     @Override @NotNull DataCall paramType
-  ) implements IntegerOps<ConDef, DataCon> {
+  ) implements IntegerOps<ConDefLike> {
     @Override public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
       // zero
-      if (args.isEmpty()) return new IntegerTerm(0, paramRecognition, paramType);
+      if (args.isEmpty()) return zero;
 
       // suc
       assert args.sizeEquals(1);
@@ -50,14 +45,15 @@ public sealed interface IntegerOps<Core extends Def, Concrete extends Decl>
   }
 
   record FnRule(
-    @Override @NotNull DefVar<FnDef, FnDecl> ref,
+    @Override @NotNull FnDefLike ref,
     @NotNull Kind kind
-  ) implements IntegerOps<FnDef, FnDecl> {
-    public enum Kind implements Serializable {
+  ) implements IntegerOps<FnDefLike> {
+    public enum Kind {
       Add, SubTrunc
     }
 
-    @Override public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
+    @Override
+    public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
       return switch (kind) {
         case Add -> {
           assert args.sizeEquals(2);

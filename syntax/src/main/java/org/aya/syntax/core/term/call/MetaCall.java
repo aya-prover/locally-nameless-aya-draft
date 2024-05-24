@@ -4,7 +4,10 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.core.term.*;
+import org.aya.syntax.core.term.AppTerm;
+import org.aya.syntax.core.term.PiTerm;
+import org.aya.syntax.core.term.SortTerm;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.ref.MetaVar;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
  * @param args can grow!! See {@link AppTerm#make()}
  */
 public record MetaCall(
-  @Override @NotNull MetaVar ref,
+  @NotNull MetaVar ref,
   @Override @NotNull ImmutableSeq<Term> args
 ) implements Callable, TyckInternal {
   public static @NotNull Term app(MetaVar ref, Term rhs, ImmutableSeq<Term> args) {

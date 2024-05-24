@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author kiva
  */
-public final class DataDef extends TopLevelDef<SortTerm> {
+public final class DataDef extends TopLevelDef<SortTerm> implements DataDefLike {
   public final @NotNull DefVar<DataDef, DataDecl> ref;
   public final @NotNull ImmutableSeq<ConDef> body;
 

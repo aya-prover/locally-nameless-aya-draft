@@ -4,13 +4,10 @@ package org.aya.generic.stmt;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.AyaDocile;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.repr.CodeShape;
-import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,9 +19,9 @@ import java.util.function.IntUnaryOperator;
  * <ul>
  *   <li>impl your Shape, see {@link org.aya.syntax.core.term.repr.IntegerTerm},
  *   and do everything you should after you creating a {@link Term}/{@link org.aya.syntax.core.pat.Pat}.</l1>
- *   <li>impl TermComparator, see {@link TermComparator#doCompareUntyped(Term, Term)}</li>
- *   <li>impl PatMatcher, see {@link org.aya.core.pat.PatMatcher#match(Pat, Term)}</li>
- *   <li>impl PatUnifier, see {@link org.aya.core.pat.PatUnify#unify(Pat, Pat)}</li>
+ *   <li>impl TermComparator, see {@code TermComparator.doCompareUntyped(Term, Term)}</li>
+ *   <li>impl PatMatcher, see {@code PatMatcher#match(Pat, Term)}</li>
+ *   <li>impl PatUnifier, see {@link org.aya.syntax.core.pat.PatToTerm}</li>
  * </ul>
  *
  * @param <T>
@@ -34,49 +31,40 @@ public interface Shaped<T> {
 
   sealed interface Inductive<T> extends Shaped<T> {
     @Override @NotNull DataCall type();
-    @NotNull ShapeRecognition recognition();
     @NotNull T constructorForm();
-
-    @SuppressWarnings("unchecked") default @NotNull DefVar<ConDef, ?> conRef(@NotNull CodeShape.GlobalId id) {
-      return (DefVar<ConDef, ?>) recognition().captures().get(id);
-    }
   }
 
   non-sealed interface Nat<T extends AyaDocile> extends Inductive<T> {
-    @NotNull T makeZero(@NotNull ConDef zero);
-    @NotNull T makeSuc(@NotNull ConDef suc, @NotNull T t);
+    @NotNull T makeZero();
+    @NotNull T makeSuc(@NotNull T t);
     @NotNull T destruct(int repr);
     int repr();
 
     default @Override @NotNull T constructorForm() {
       int repr = repr();
-      var zero = conRef(CodeShape.GlobalId.ZERO);
-      var suc = conRef(CodeShape.GlobalId.SUC);
-      if (repr == 0) return makeZero(zero.core);
-      return makeSuc(suc.core, destruct(repr - 1));
+      if (repr == 0) return makeZero();
+      return makeSuc(destruct(repr - 1));
     }
 
     @NotNull Shaped.Nat<T> map(@NotNull IntUnaryOperator f);
   }
 
   non-sealed interface Bool<T extends AyaDocile> extends Inductive<T> {
-    @NotNull T makeCon0(@NotNull ConDef con0);
-    @NotNull T makeCon1(@NotNull ConDef con1);
+    @NotNull T makeCon0();
+    @NotNull T makeCon1();
     int repr();
 
     default @Override @NotNull T constructorForm() {
       int repr = repr();
-      var zero = conRef(CodeShape.GlobalId.ZERO);
-      if (repr == 0) return makeCon0(zero.core);
-      var suc = conRef(CodeShape.GlobalId.SUC);
-      return makeCon1(suc.core);
+      if (repr == 0) return makeCon0();
+      return makeCon1();
     }
   }
 
   non-sealed interface List<T extends AyaDocile> extends Inductive<T> {
     @NotNull ImmutableSeq<T> repr();
-    @NotNull T makeNil(@NotNull ConDef nil, @NotNull Term type);
-    @NotNull T makeCons(@NotNull ConDef cons, @NotNull Term type, T x, T xs);
+    @NotNull T makeNil(@NotNull Term type);
+    @NotNull T makeCons(@NotNull Term type, T x, T xs);
     @NotNull T destruct(@NotNull ImmutableSeq<T> repr);
 
     /**
@@ -96,12 +84,10 @@ public interface Shaped<T> {
     }
 
     @Override default @NotNull T constructorForm() {
-      var nil = conRef(CodeShape.GlobalId.NIL).core;
-      var cons = conRef(CodeShape.GlobalId.CONS).core;
       var dataArg = type().args().getFirst(); // Check?
       var elements = repr();
-      if (elements.isEmpty()) return makeNil(nil, dataArg);
-      return makeCons(cons, dataArg, elements.getFirst(),
+      if (elements.isEmpty()) return makeNil(dataArg);
+      return makeCons(dataArg, elements.getFirst(),
         destruct(elements.drop(1)));
     }
   }
@@ -111,11 +97,8 @@ public interface Shaped<T> {
    * {@link org.aya.syntax.core.def.FnDef}, {@link ConDef}, and probably {@link org.aya.syntax.core.def.DataDef}.
    * See also <code>RuleReducer</code>.
    */
-  interface Applicable<T extends AyaDocile, Core extends AyaDocile, Concrete extends Decl> extends Shaped<T> {
-    /**
-     * The underlying ref
-     */
-    @NotNull DefVar<Core, Concrete> ref();
+  interface Applicable<T extends Term, Def extends AnyDef> extends Shaped<T> {
+    @NotNull Def ref();
 
     /**
      * Applying arguments.

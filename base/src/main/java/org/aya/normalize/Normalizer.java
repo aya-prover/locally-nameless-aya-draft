@@ -8,7 +8,6 @@ import kala.control.Either;
 import kala.control.Option;
 import kala.control.Result;
 import org.aya.generic.Modifier;
-import org.aya.syntax.compile.JitFnCall;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;

@@ -5,9 +5,8 @@ package org.aya.syntax.core.term.call;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
-import org.aya.syntax.concrete.stmt.decl.DataDecl;
 import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +18,15 @@ public record ConCall(
   @Override @NotNull ConCall.Head head,
   @Override @NotNull ImmutableSeq<Term> conArgs
 ) implements ConCallLike {
+  public ConCall(
+    @NotNull DefVar<? extends ConDef, ? extends DataCon> ref,
+    int ulift,
+    @NotNull ImmutableSeq<@NotNull Term> ownerArgs,
+    @NotNull ImmutableSeq<@NotNull Term> conArgs
+  ) {
+    this(new Head(ref.core, ulift, ownerArgs), conArgs);
+  }
+
   public @NotNull ConCall update(@NotNull Head head, @NotNull ImmutableSeq<Term> conArgs) {
     return head == head() && conArgs.sameElements(conArgs(), true) ? this : new ConCall(head, conArgs);
   }
@@ -28,16 +36,15 @@ public record ConCall(
   }
 
   public ConCall(
-    @NotNull DefVar<DataDef, DataDecl> dataRef,
-    @NotNull DefVar<ConDef, DataCon> ref,
-    @NotNull ImmutableSeq<@NotNull Term> dataArgs,
+    @NotNull ConDefLike ref,
+    @NotNull ImmutableSeq<@NotNull Term> ownerArgs,
     int ulift,
     @NotNull ImmutableSeq<@NotNull Term> conArgs
   ) {
-    this(new Head(dataRef, ref, ulift, dataArgs), conArgs);
+    this(new Head(ref, ulift, ownerArgs), conArgs);
   }
 
   @Override public @NotNull Tele doElevate(int level) {
-    return new ConCall(new Head(head.dataRef(), head.ref(), head.ulift() + level, head.ownerArgs()), conArgs);
+    return new ConCall(new Head(head.ref(), head.ulift() + level, head.ownerArgs()), conArgs);
   }
 }

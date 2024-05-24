@@ -8,7 +8,7 @@ import kala.collection.immutable.ImmutableSet;
 import kala.value.MutableValue;
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.FreeTerm;
@@ -19,7 +19,6 @@ import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.xtt.PAppTerm;
-import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.tycker.Stateful;
 import org.aya.util.terck.CallGraph;
@@ -39,24 +38,23 @@ import java.util.function.Consumer;
 public record CallResolver(
   @Override @NotNull TyckState state,
   @NotNull FnDef caller,
-  @NotNull Set<Def> targets,
+  @NotNull Set<TyckDef> targets,
   @NotNull MutableValue<Term.Matching> currentClause,
-  @NotNull CallGraph<Callable, Def> graph
+  @NotNull CallGraph<Callable, TyckDef> graph
 ) implements Stateful, Consumer<Term.Matching> {
   public CallResolver {
     assert caller.body.isRight();
   }
   public CallResolver(
     @NotNull TyckState state, @NotNull FnDef fn,
-    @NotNull Set<Def> targets,
-    @NotNull CallGraph<Callable, Def> graph
+    @NotNull Set<TyckDef> targets,
+    @NotNull CallGraph<Callable, TyckDef> graph
   ) {
     this(state, fn, targets, MutableValue.create(), graph);
   }
 
   private void resolveCall(@NotNull Callable callable) {
-    if (!(callable.ref() instanceof DefVar<?, ?> defVar)) return;
-    var callee = (Def) defVar.core;
+    if (!(callable.ref() instanceof TyckDef callee)) return;
     if (!targets.contains(callee)) return;
     var matrix = new CallMatrix<>(callable, caller, callee,
       caller.telescope.size(), callee.telescope().size());
@@ -64,7 +62,7 @@ public record CallResolver(
     graph.put(matrix);
   }
 
-  private void fillMatrix(@NotNull Callable callable, CallMatrix<?, Def> matrix) {
+  private void fillMatrix(@NotNull Callable callable, CallMatrix<?, TyckDef> matrix) {
     var currentPatterns = currentClause.get();
     assert currentPatterns != null;
     currentPatterns.patterns().forEachIndexed((domParamIx, pat) ->
@@ -82,7 +80,7 @@ public record CallResolver(
           var ref = con2.ref();
           var conArgs = con2.conArgs();
 
-          if (ref != con.ref() || !conArgs.sizeEquals(con.args())) yield Relation.unk();
+          if (ref != con.ref().core || !conArgs.sizeEquals(con.args())) yield Relation.unk();
           var attempt = compareConArgs(conArgs, con);
           // Reduce arguments and compare again. This may cause performance issues (but not observed yet [2022-11-07]),
           // see https://github.com/agda/agda/issues/2403 for more information.
@@ -118,11 +116,8 @@ public record CallResolver(
         yield Relation.unk();
       }
       case Pat.ShapedInt intPat -> switch (term) {
-        case IntegerTerm intTerm -> {
-          // ice: by well-typedness, we don't need to compareShape
-          if (intTerm.recognition().shape() != intPat.recognition().shape()) yield Relation.unk();
-          yield Relation.fromCompare(Integer.compare(intTerm.repr(), intPat.repr()));
-        }
+        // ice: by well-typedness, we don't need to compareShape
+        case IntegerTerm intTerm -> Relation.fromCompare(Integer.compare(intTerm.repr(), intPat.repr()));
         case ConCall con -> compare(con, intPat.constructorForm());
         default -> compare(term, intPat.constructorForm());
       };
@@ -160,7 +155,7 @@ public record CallResolver(
 
   private void visitTerm(@NotNull Term term) {
     // TODO: Improve error reporting to include the original call
-    term = new Normalizer(state, ImmutableSet.from(targets.map(Def::ref))).apply(term);
+    term = new Normalizer(state, ImmutableSet.from(targets.map(TyckDef::ref))).apply(term);
     if (term instanceof Callable call) resolveCall(call);
     term.descent((_, child) -> {
       visitTerm(child);
