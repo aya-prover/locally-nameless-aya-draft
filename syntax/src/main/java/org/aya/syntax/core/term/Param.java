@@ -9,7 +9,6 @@ import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.ref.LocalVar;
-import org.aya.util.Arg;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

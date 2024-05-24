@@ -2,8 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
-import kala.collection.immutable.ImmutableArray;
-import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitData extends JitTele {

@@ -3,7 +3,6 @@
 package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.DataDecl;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.SortTerm;
@@ -27,11 +26,6 @@ public final class DataDef extends TopLevelDef<SortTerm> {
     ref.core = this;
     this.ref = ref;
     this.body = body;
-  }
-
-  public static @NotNull DefVar<DataDef, DataDecl> fromCtor(@NotNull DefVar<ConDef, DataCon> conHead) {
-    if (conHead.core != null) return conHead.core.dataRef;
-    else return conHead.concrete.dataRef;
   }
 
   public @NotNull DefVar<DataDef, DataDecl> ref() { return ref; }

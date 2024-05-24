@@ -4,7 +4,6 @@ package org.aya.syntax.compile;
 
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class JitFn extends JitTele {
   protected JitFn(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName) {

@@ -5,7 +5,6 @@ package org.aya.syntax.compile;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.Term;
-import org.aya.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 public record JitConCall(

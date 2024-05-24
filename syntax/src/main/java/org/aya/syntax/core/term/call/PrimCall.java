@@ -21,7 +21,7 @@ public record PrimCall(
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return new PrimCall(ref, ulift, Callable.descent(args, f));
+    return update(Callable.descent(args, f));
   }
 
   public PrimCall(

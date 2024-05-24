@@ -242,10 +242,6 @@ public class CorePrettier extends BasePrettier<Term> {
   //     linkRef(term.ref(), MEMBER));
   // }
 
-  public @NotNull Doc pat(@NotNull Arg<Pat> pat, @NotNull Outer outer) {
-    return pat(pat.term(), pat.explicit(), outer);
-  }
-
   public @NotNull Doc pat(@NotNull Pat pat, boolean licit, Outer outer) {
     return switch (pat) {
       case Pat.Meta meta -> {
@@ -375,9 +371,6 @@ public class CorePrettier extends BasePrettier<Term> {
   ) implements ParamLike<Term> {
     @Override public boolean explicit() { return true; }
 
-    @Override public @NotNull ParamLike<Term> map(@NotNull UnaryOperator<Term> mapper) {
-      return new CoreParam(ref, mapper.apply(type));
-    }
   }
 
   private @NotNull ImmutableSeq<ParamLike<Term>> enrich(@NotNull SeqLike<Param> tele) {
