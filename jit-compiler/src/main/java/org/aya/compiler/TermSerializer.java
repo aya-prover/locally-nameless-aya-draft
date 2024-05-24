@@ -6,7 +6,9 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.term.SortKind;
+import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.core.Closure;
+import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
@@ -104,13 +106,6 @@ public class TermSerializer extends AbstractSerializer<Term> {
         sep();
         buildImmutableSeq(CLASS_TERM, args);
       });
-      case JitDataCall(var ref, var ulift, var args) -> buildNew(CLASS_JITDATACALL, () -> {
-        builder.append(getInstance(getQualified(ref)));
-        sep();
-        builder.append(ulift);
-        sep();
-        buildImmutableSeq(CLASS_TERM, args);
-      });
       case ConCall(var head, var args) -> buildNew(CLASS_JITCONCALL, () -> {
         builder.append(getInstance(getQualified(head.ref())));
         sep();
@@ -120,19 +115,10 @@ public class TermSerializer extends AbstractSerializer<Term> {
         sep();
         buildImmutableSeq(CLASS_TERM, args);
       });
-      case JitConCall(var instance, var ulift, var ownerArgs, var conArgs) -> buildNew(CLASS_JITCONCALL, () -> {
-        builder.append(getInstance(getQualified(instance)));
-        sep();
-        builder.append(ulift);
-        sep();
-        buildImmutableSeq(CLASS_TERM, ownerArgs);
-        sep();
-        buildImmutableSeq(CLASS_TERM, conArgs);
-      });
-      case CallLike.FnCallLike call -> {
-        var ref = switch (call) {
-          case JitFnCall fnCall -> getInstance(getQualified(fnCall.instance()));
-          case FnCall fnCall -> getInstance(getQualified(fnCall.ref()));
+      case FnCall call -> {
+        var ref = switch (call.ref()) {
+          case JitFn jit -> getInstance(getQualified(jit));
+          case FnDef def -> getInstance(getQualified(def.ref));
         };
 
         var ulift = call.ulift();
@@ -176,14 +162,18 @@ public class TermSerializer extends AbstractSerializer<Term> {
         doSerialize(a).sep();
         doSerialize(b);
       });
+      case EqTerm(var A, var a, var b) -> buildNew(getName(EqTerm.class), () -> {
+        serializeClosure(A).sep();
+        doSerialize(a).sep();
+        doSerialize(b);
+      });
+      case DimTyTerm _ -> builder.append(getName(DimTyTerm.class)).append(".INSTANCE");
+      case DimTerm dim -> builder.append(getName(DimTerm.class)).append(".").append(dim.name());
       case SigmaTerm sigmaTerm -> throw new UnsupportedOperationException("TODO");
       case TupTerm tupTerm -> throw new UnsupportedOperationException("TODO");
       case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
       case IntegerTerm integerTerm -> throw new UnsupportedOperationException("TODO");
       case ListTerm listTerm -> throw new UnsupportedOperationException("TODO");
-      case DimTerm dimTerm -> throw new UnsupportedOperationException("TODO");
-      case DimTyTerm _ -> throw new UnsupportedOperationException("TODO");
-      case EqTerm eqTerm -> throw new UnsupportedOperationException("TODO");
       default -> throw new IllegalStateException("Unexpected value: " + term);
     }
     return this;

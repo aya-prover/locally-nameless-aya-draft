@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.def;
 
+import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.DataDecl;
@@ -44,4 +45,9 @@ public final class ConDef extends SubLevelDef implements ConDefLike {
     return fullTelescope().toImmutableSeq();
   }
   @Override public boolean isEq() { return equality != null; }
+  @Override public @NotNull Term equality(Term[] args, boolean is0) {
+    ImmutableSeq<Term> view = ImmutableArray.Unsafe.wrap(args);
+    assert equality != null;
+    return (is0 ? equality.a() : equality.b()).instantiateTele(view.view());
+  }
 }

@@ -6,9 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Result;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.xtt.EqTerm;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract non-sealed class JitCon extends JitTeleDef implements ConDefLike {
   public final JitData dataType;
@@ -17,9 +15,6 @@ public abstract non-sealed class JitCon extends JitTeleDef implements ConDefLike
     super(telescopeSize, telescopeLicit, telescopeName);
     this.dataType = dataType;
   }
-
-  public abstract boolean isEq();
-  public abstract EqTerm equality(Term[] args);
 
   /**
    * Whether this constructor is available of data type

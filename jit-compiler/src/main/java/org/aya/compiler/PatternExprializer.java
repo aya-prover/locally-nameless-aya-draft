@@ -41,7 +41,7 @@ public class PatternExprializer extends AbstractSerializer<Pat> {
         // but the meta solver will eat all LocalVar so that it will be happy.
         builder.append(STR."new \{PatternSerializer.CLASS_PAT_BIND}(new LocalVar(\"\{bind.bind().name()}\"), ErrorTerm.DUMMY)");
       }
-      case Pat.ConLike con -> {
+      case Pat.Con con -> {
         var instance = PatternSerializer.getQualified(con);
 
         builder.append(STR."new \{PatternSerializer.CLASS_PAT_JCON}(\{getInstance(instance)}, ");

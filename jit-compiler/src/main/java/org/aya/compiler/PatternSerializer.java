@@ -10,6 +10,8 @@ import kala.value.primitive.MutableIntValue;
 import org.aya.generic.NameGenerator;
 import org.aya.normalize.PatMatcher;
 import org.aya.normalize.PatMatcher.State;
+import org.aya.syntax.compile.JitCon;
+import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.util.error.Panic;
@@ -20,7 +22,7 @@ import java.util.function.Consumer;
 
 public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<PatternSerializer.Matching>> {
   @FunctionalInterface
-  public interface SuccessContinuation extends BiConsumer<PatternSerializer, Integer> {}
+  public interface SuccessContinuation extends BiConsumer<PatternSerializer, Integer> { }
   public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull SuccessContinuation onSucc) { }
 
   public static final @NotNull String VARIABLE_RESULT = "result";
@@ -32,7 +34,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   // TODO: they are inner class, which contains '$'
   static final @NotNull String CLASS_PAT_ABSURD = getName(Pat.Absurd.class);
   static final @NotNull String CLASS_PAT_BIND = getName(Pat.Bind.class);
-  static final @NotNull String CLASS_PAT_JCON = getName(Pat.JCon.class);
 
   private final @NotNull String argName;
   private final @NotNull Consumer<PatternSerializer> onStuck;
@@ -65,17 +66,15 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         onMatchBind(term);
         continuation.run();
       }
-      case Pat.ConLike con -> {
+      case Pat.Con con -> {
         var qualifiedName = getQualified(con);
-        solveMeta(pat, term, (realTerm, mCon) -> {
-          buildIfInstanceElse(realTerm, CLASS_JITCONCALL, State.Stuck, mTerm -> {
+        solveMeta(pat, term, (realTerm, mCon) ->
+          buildIfInstanceElse(realTerm, CLASS_JITCONCALL, State.Stuck, mTerm ->
             buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
               State.Mismatch, () -> doSerialize(con.args().view(),
                 fromImmutableSeq(STR."\{mTerm}.conArgs()",
                   con.args().size()).view(),
-                mCon));
-          });
-        }, continuation);
+                mCon))), continuation);
       }
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException("TODO");    // TODO
@@ -89,10 +88,11 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   /**
    * Generate meta solving code
-   * @param pat the pattern currently serialize
-   * @param term the parameter currently matched
+   *
+   * @param pat               the pattern currently serialize
+   * @param term              the parameter currently matched
    * @param matchContinuation do something if it is not a meta
-   * @param continuation do something if the matching success
+   * @param continuation      do something if the matching success
    */
   private void solveMeta(
     @NotNull Pat pat,
@@ -122,9 +122,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
       }, null);
 
-      buildIf(STR."! \{VARIABLE_META_STATE}", () -> matchContinuation.accept(tmpName, () -> {
-        buildUpdate(VARIABLE_META_STATE, "true");
-      }));
+      buildIf(STR."! \{VARIABLE_META_STATE}", () -> matchContinuation.accept(tmpName, () ->
+        buildUpdate(VARIABLE_META_STATE, "true")));
 
       buildIf(VARIABLE_META_STATE, continuation);
       // if failed, the previous matching already sets the matchState
@@ -178,10 +177,10 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     return acc.get();
   }
 
-  static @NotNull String getQualified(@NotNull Pat.ConLike conLike) {
-    return switch (conLike) {
-      case Pat.Con con -> getQualified(con.ref());
-      case Pat.JCon jCon -> getQualified(jCon.ref());
+  static @NotNull String getQualified(@NotNull Pat.Con conLike) {
+    return switch (conLike.ref()) {
+      case JitCon jit -> getQualified(jit);
+      case ConDef def -> getQualified(def.ref);
     };
   }
 

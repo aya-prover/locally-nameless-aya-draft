@@ -30,7 +30,6 @@ import org.aya.tyck.Jdg;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.ctx.LocalLet;
 import org.aya.tyck.error.PatternProblem;
-import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
 import org.aya.util.Arg;
@@ -139,8 +138,7 @@ public class PatternTycker implements Problematic, Stateful {
         var var = con.resolved().data();
         var realCon = selectCon(type, var, pattern);
         if (realCon == null) yield randomPat(type);
-        var conRef = realCon.conHead.ref();
-        var conCore = conRef.core;
+        var conCore = realCon.conHead.ref();
 
         // It is possible that `con.params()` is empty.
         var patterns = tyckInner(
@@ -149,7 +147,7 @@ public class PatternTycker implements Problematic, Stateful {
           pattern);
 
         // check if this Con is a ShapedCon
-        var typeRecog = state().shapeFactory().find(conRef.core.dataRef.core).getOrNull();
+        var typeRecog = state().shapeFactory().find(conCore.core.dataRef.core).getOrNull();
         yield new Pat.Con(realCon.conHead.ref(), patterns, realCon.data());
       }
       case Pattern.Bind(var bind, var tyRef) -> {
@@ -162,7 +160,7 @@ public class PatternTycker implements Problematic, Stateful {
       case Pattern.Number(var number) -> {
         var ty = whnf(type);
         if (ty instanceof DataCall dataCall) {
-          var data = dataCall.ref().core;
+          var data = dataCall.ref();
           var shape = state().shapeFactory().find(data);
           if (shape.isDefined() && shape.get().shape() == AyaShape.NAT_SHAPE)
             yield new Pat.ShapedInt(number, shape.get(), dataCall);
@@ -175,7 +173,7 @@ public class PatternTycker implements Problematic, Stateful {
         //       a PatternDesugarer is recommended.
         var ty = whnf(type);
         if (ty instanceof DataCall dataCall) {
-          var data = dataCall.ref().core;
+          var data = dataCall.ref();
           var shape = state().shapeFactory().find(data);
           if (shape.isDefined() && shape.get().shape() == AyaShape.LIST_SHAPE)
             // yield doTyck(new Pattern.FakeShapedList(pos, el, shape.get(), dataCall)
@@ -431,13 +429,7 @@ public class PatternTycker implements Problematic, Stateful {
       return null;
     }
 
-    var dataRef = dataCall.ref();
-    var core = dataRef.core;
-    if (core == null && name == null) {
-      // We are checking an absurd pattern, but the data is not yet fully checked
-      throw TyckOrderError.notYetTycked(dataRef);
-    }
-    assert core != null;
+    var core = dataCall.ref();
 
     // If name != null, only one iteration of this loop is not skipped
     for (var con : core.body) {

@@ -109,8 +109,8 @@ public record Synthesizer(
           // the type of projOf.{index - 1} may refer to the previous parameters
           .instantiateTele(ProjTerm.projSubst(of, index).view());
       }
-      case IntegerTerm(_, _, var ty) -> ty;
-      case ListTerm(_, _, var ty) -> ty;
+      case IntegerTerm lit -> lit.type();
+      case ListTerm list -> list.type();
       case Callable.Tele teleCall -> TyckDef.defSignature(teleCall.ref())
         .result(teleCall.args().toArray(Term[]::new))
         .elevate(teleCall.ulift());
@@ -132,7 +132,6 @@ public record Synthesizer(
       case DimTerm _ -> DimTyTerm.INSTANCE;
       case DimTyTerm _ -> SortTerm.ISet;
       case MetaLitTerm mlt -> mlt.type();
-      case Compiled compiled -> throw new UnsupportedOperationException("TODO: synth compiled term");
     };
   }
 

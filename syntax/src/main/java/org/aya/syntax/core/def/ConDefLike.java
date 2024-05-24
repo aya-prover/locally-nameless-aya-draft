@@ -3,8 +3,11 @@
 package org.aya.syntax.core.def;
 
 import org.aya.syntax.compile.JitCon;
+import org.aya.syntax.core.term.Term;
+import org.jetbrains.annotations.NotNull;
 
 public sealed interface ConDefLike extends AnyDef permits JitCon, ConDef {
   /** @return true if this is a path constructor */
   boolean isEq();
+  @NotNull Term equality(Term[] args, boolean is0);
 }

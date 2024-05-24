@@ -119,7 +119,7 @@ public record AyaSccTycker(
   private void terckRecursiveFn(@NotNull ImmutableSeq<FnDef> fn) {
     var targets = MutableSet.<TyckDef>from(fn);
     if (targets.isEmpty()) return;
-    var graph = CallGraph.<Callable, TyckDef>create();
+    var graph = CallGraph.<Callable.Tele, TyckDef>create();
     fn.forEach(def -> new CallResolver(resolveInfo.makeTyckState(), def, targets, graph).check());
     graph.findBadRecursion().view()
       .sorted(Comparator.comparing(a -> domRef(a).concrete.sourcePos()))

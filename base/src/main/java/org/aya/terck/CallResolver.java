@@ -40,7 +40,7 @@ public record CallResolver(
   @NotNull FnDef caller,
   @NotNull Set<TyckDef> targets,
   @NotNull MutableValue<Term.Matching> currentClause,
-  @NotNull CallGraph<Callable, TyckDef> graph
+  @NotNull CallGraph<Callable.Tele, TyckDef> graph
 ) implements Stateful, Consumer<Term.Matching> {
   public CallResolver {
     assert caller.body.isRight();
@@ -48,12 +48,12 @@ public record CallResolver(
   public CallResolver(
     @NotNull TyckState state, @NotNull FnDef fn,
     @NotNull Set<TyckDef> targets,
-    @NotNull CallGraph<Callable, TyckDef> graph
+    @NotNull CallGraph<Callable.Tele, TyckDef> graph
   ) {
     this(state, fn, targets, MutableValue.create(), graph);
   }
 
-  private void resolveCall(@NotNull Callable callable) {
+  private void resolveCall(@NotNull Callable.Tele callable) {
     if (!(callable.ref() instanceof TyckDef callee)) return;
     if (!targets.contains(callee)) return;
     var matrix = new CallMatrix<>(callable, caller, callee,
@@ -80,7 +80,7 @@ public record CallResolver(
           var ref = con2.ref();
           var conArgs = con2.conArgs();
 
-          if (ref != con.ref().core || !conArgs.sizeEquals(con.args())) yield Relation.unk();
+          if (ref != con.ref() || !conArgs.sizeEquals(con.args())) yield Relation.unk();
           var attempt = compareConArgs(conArgs, con);
           // Reduce arguments and compare again. This may cause performance issues (but not observed yet [2022-11-07]),
           // see https://github.com/agda/agda/issues/2403 for more information.
@@ -156,7 +156,7 @@ public record CallResolver(
   private void visitTerm(@NotNull Term term) {
     // TODO: Improve error reporting to include the original call
     term = new Normalizer(state, ImmutableSet.from(targets.map(TyckDef::ref))).apply(term);
-    if (term instanceof Callable call) resolveCall(call);
+    if (term instanceof Callable.Tele call) resolveCall(call);
     term.descent((_, child) -> {
       visitTerm(child);
       return child;

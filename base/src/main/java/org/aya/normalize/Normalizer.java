@@ -8,7 +8,7 @@ import kala.control.Either;
 import kala.control.Option;
 import kala.control.Result;
 import org.aya.generic.Modifier;
-import org.aya.syntax.core.def.ConDef;
+import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
@@ -16,10 +16,8 @@ import org.aya.syntax.core.term.marker.BetaRedex;
 import org.aya.syntax.core.term.marker.StableWHNF;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
-import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.literate.CodeOptions;
 import org.aya.syntax.ref.AnyVar;
-import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.TyckState;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -53,17 +51,16 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         var result = app.make();
         yield result == app ? result : whnf(result);
       }
-      case FnCall(var ref, int ulift, var args)
-        when ref.core != null && !isOpaque(ref) -> switch (ref.core.body) {
+      case FnCall(FnDef ref, int ulift, var args) when !isOpaque(ref) -> switch (ref.body) {
         case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
         case Either.Right(var clauses) -> {
-          var result = tryUnfoldClauses(clauses, args, ulift, ref.core.is(Modifier.Overlap));
+          var result = tryUnfoldClauses(clauses, args, ulift, ref.is(Modifier.Overlap));
           // we may get stuck
           if (result.isEmpty()) yield term;
           yield whnf(result.get());
         }
       };
-      case JitFnCall(var instance, var ulift, var args) -> {
+      case FnCall(JitFn instance, var ulift, var args) -> {
         var result = instance.invoke(term, (Term[]) args.toArray()).elevate(ulift);
         if (term != result) yield whnf(result);
         yield result;
@@ -76,16 +73,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
           ? whnf(fnRule.toFnCall())
           : reduceRule;
       }
-      case ConCall(var head, var args)
-        when head.ref().core instanceof ConDef con
-        && con.equality instanceof EqTerm eq
-        && args.getLast() instanceof DimTerm dim -> {
-        var boundary = switch (dim) {
-          case I0 -> eq.a();
-          case I1 -> eq.b();
-        };
-        yield boundary.instantiateTele(args.view());
-      }
+      case ConCall(var head, var args) when head.ref().isEq() && args.getLast() instanceof DimTerm dim ->
+        head.ref().equality(args.toArray(Term[]::new), dim == DimTerm.I0);
       case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);
@@ -102,15 +91,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     };
   }
 
-  private boolean isOpaque(@NotNull AnyVar var) {
-    // I don't use `||` and `&&` here because that make the expression too long.
-    if (opaque.contains(var)) return true;
-
-    if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof FnDef fnDef) {
-      return fnDef.is(Modifier.Opaque);
-    }
-
-    return false;
+  private boolean isOpaque(@NotNull FnDef fn) {
+    return opaque.contains(fn.ref) || fn.is(Modifier.Opaque);
   }
 
   public @NotNull Option<Term> tryUnfoldClauses(

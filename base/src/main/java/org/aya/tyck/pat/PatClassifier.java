@@ -17,10 +17,8 @@ import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.error.ClausesProblem;
-import org.aya.tyck.error.TyckOrderError;
 import org.aya.tyck.tycker.AbstractTycker;
 import org.aya.tyck.tycker.Problematic;
 import org.aya.tyck.tycker.Stateful;
@@ -98,7 +96,6 @@ public record PatClassifier(
           clauses.noneMatch(subPat -> subPat.pat() instanceof Pat.Con || subPat.pat() instanceof Pat.ShapedInt)
         ) break;
         var data = dataCall.ref();
-        if (data.core == null) throw TyckOrderError.notYetTycked(data);
         var body = data.core.body;
 
         // Special optimization for literals
@@ -114,7 +111,7 @@ public record PatClassifier(
           var ml = MutableArrayList.<PatClass<Term>>create(classes.size() + 1);
           ml.appendAll(classes);
           var maxInt = lits.max(Comparator.comparing(p -> p.pat().repr())).pat();
-          var onePlus = maxInt.map(x -> x + 1);
+          var onePlus = maxInt.map(x -> x + 1).toTerm();
           ml.append(new PatClass<>(onePlus, binds));
           return ml.toImmutableSeq();
         }
