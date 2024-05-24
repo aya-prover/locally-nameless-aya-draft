@@ -5,7 +5,8 @@ package org.aya.syntax.core.term.call;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.generic.stmt.Shaped;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
+import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.Term;
@@ -22,11 +23,11 @@ public sealed interface RuleReducer extends Callable.Tele {
    * @param args
    */
   record Fn(
-    @Override @NotNull Shaped.Applicable<Term, FnDef, Decl.FnDecl> rule,
+    @Override @NotNull Shaped.Applicable<Term, FnDef, FnDecl> rule,
     @Override int ulift,
     @Override @NotNull ImmutableSeq<Term> args
   ) implements RuleReducer {
-    @Override public @NotNull DefVar<FnDef, Decl.FnDecl> ref() { return rule.ref(); }
+    @Override public @NotNull DefVar<FnDef, FnDecl> ref() { return rule.ref(); }
     private @NotNull RuleReducer.Fn update(@NotNull ImmutableSeq<Term> args) {
       return args.sameElements(this.args, true)
         ? this : new Fn(rule, ulift, args);
@@ -42,7 +43,7 @@ public sealed interface RuleReducer extends Callable.Tele {
    * A special {@link ConCall} which can be reduced to something interesting.
    */
   record Con(
-    @NotNull Shaped.Applicable<Term, ConDef, Decl.DataCon> rule,
+    @NotNull Shaped.Applicable<Term, ConDef, DataCon> rule,
     int ulift,
     @NotNull ImmutableSeq<Term> dataArgs,
     @Override @NotNull ImmutableSeq<Term> conArgs

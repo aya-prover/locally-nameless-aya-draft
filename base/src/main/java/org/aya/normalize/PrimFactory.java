@@ -7,7 +7,7 @@ import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
 import kala.tuple.Tuple;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.term.*;
@@ -49,10 +49,10 @@ public class PrimFactory {
   public record PrimSeed(
     @NotNull ID name,
     @NotNull Unfolder unfold,
-    @NotNull Function<@NotNull DefVar<PrimDef, Decl.PrimDecl>, @NotNull PrimDef> supplier,
+    @NotNull Function<@NotNull DefVar<PrimDef, PrimDecl>, @NotNull PrimDef> supplier,
     @NotNull ImmutableSeq<@NotNull ID> dependency
   ) {
-    public @NotNull PrimDef supply(@NotNull DefVar<PrimDef, Decl.PrimDecl> ref) {
+    public @NotNull PrimDef supply(@NotNull DefVar<PrimDef, PrimDecl> ref) {
       return supplier.apply(ref);
     }
   }
@@ -158,7 +158,7 @@ public class PrimFactory {
     ref -> new PrimDef(ref, SortTerm.ISet, ID.I),
     ImmutableSeq.empty());
 
-  public @NotNull PrimDef factory(@NotNull ID name, @NotNull DefVar<PrimDef, Decl.PrimDecl> ref) {
+  public @NotNull PrimDef factory(@NotNull ID name, @NotNull DefVar<PrimDef, PrimDecl> ref) {
     assert suppressRedefinition() || !have(name);
     var rst = seeds.get(name).supply(ref);
     defs.put(name, rst);
@@ -184,7 +184,7 @@ public class PrimFactory {
   /** whether redefinition should be treated as error */
   @ForLSP public boolean suppressRedefinition() { return false; }
 
-  public @NotNull PrimDef getOrCreate(@NotNull ID name, @NotNull DefVar<PrimDef, Decl.PrimDecl> ref) {
+  public @NotNull PrimDef getOrCreate(@NotNull ID name, @NotNull DefVar<PrimDef, PrimDecl> ref) {
     return getOption(name).getOrElse(() -> factory(name, ref));
   }
 

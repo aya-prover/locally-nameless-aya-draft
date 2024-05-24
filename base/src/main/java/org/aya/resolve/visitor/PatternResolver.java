@@ -7,7 +7,8 @@ import org.aya.resolve.context.Context;
 import org.aya.resolve.error.NameProblem;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.ModuleName;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
+import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.ref.AnyVar;
@@ -77,9 +78,9 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
     if (myMaybe == null) return null;
     if (myMaybe instanceof DefVar<?, ?> def && (
       def.core instanceof ConDef
-        || def.concrete instanceof Decl.DataCon
+        || def.concrete instanceof DataCon
         || def.core instanceof PrimDef
-        || def.concrete instanceof Decl.PrimDecl
+        || def.concrete instanceof PrimDecl
     )) return def;
 
     return null;

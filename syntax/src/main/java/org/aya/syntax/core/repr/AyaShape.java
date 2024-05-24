@@ -11,7 +11,8 @@ import kala.control.Option;
 import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import org.aya.generic.stmt.Shaped;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
+import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
@@ -113,8 +114,8 @@ public enum AyaShape {
 
   @NotNull abstract CodeShape codeShape();
 
-  public static Shaped.Applicable<Term, ConDef, Decl.DataCon> ofCon(
-    @NotNull DefVar<ConDef, Decl.DataCon> ref,
+  public static Shaped.Applicable<Term, ConDef, DataCon> ofCon(
+    @NotNull DefVar<ConDef, DataCon> ref,
     @NotNull ShapeRecognition paramRecog,
     @NotNull DataCall paramType
   ) {
@@ -124,8 +125,8 @@ public enum AyaShape {
     return null;
   }
 
-  public static @Nullable Shaped.Applicable<Term, FnDef, Decl.FnDecl> ofFn(
-    @NotNull DefVar<FnDef, Decl.FnDecl> ref,
+  public static @Nullable Shaped.Applicable<Term, FnDef, FnDecl> ofFn(
+    @NotNull DefVar<FnDef, FnDecl> ref,
     @NotNull ShapeRecognition recog
   ) {
     var core = ref.core;

@@ -6,6 +6,7 @@ import org.aya.syntax.concrete.stmt.Command;
 import org.aya.syntax.concrete.stmt.Generalize;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.SourceNode;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,7 @@ public sealed interface TyckUnit extends SourceNode permits Stmt, Decl {
   }
   static boolean needTyck(@NotNull TyckUnit unit, @NotNull ModulePath currentMod) {
     return switch (unit) {
-      case Decl.PrimDecl prim -> prim.ref().isInModule(currentMod) && prim.signature == null;
+      case PrimDecl prim -> prim.ref().isInModule(currentMod) && prim.signature == null;
       case Decl decl -> decl.ref().isInModule(currentMod) && decl.ref().core == null;
       case Generalize _, Command _ -> false;
     };

@@ -4,7 +4,7 @@ package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.error.SourcePos;
@@ -29,7 +29,7 @@ public sealed interface UnifyError extends TyckError {
 
 
   record ConReturn(
-    @NotNull Decl.DataCon con,
+    @NotNull DataCon con,
     @NotNull UnifyInfo.Comparison comparison,
     @NotNull UnifyInfo info
   ) implements UnifyError {

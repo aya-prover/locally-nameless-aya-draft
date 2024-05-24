@@ -14,7 +14,7 @@ import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitConCall;
 import org.aya.syntax.compile.JitFn;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
@@ -34,7 +34,7 @@ import java.nio.file.Path;
 
 public class CompileTest {
   @Test public void test0() {
-    DefVar<ConDef, Decl.DataCon> S = DefVar.empty("S");
+    DefVar<ConDef, DataCon> S = DefVar.empty("S");
     S.module = ModulePath.of("Data", "Nat", "Nat");
 
     var cls0 = ImmutableSeq.<Pat>of(

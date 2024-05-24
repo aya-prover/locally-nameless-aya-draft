@@ -22,7 +22,7 @@ import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.StmtVisitor;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.*;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
@@ -138,15 +138,15 @@ public record SyntaxHighlight(
     return switch (var) {
       case GeneralizedVar _ -> DefKind.Generalized;
       case DefVar<?, ?> defVar -> {
-        if (defVar.concrete instanceof Decl.FnDecl || defVar.core instanceof FnDef)
+        if (defVar.concrete instanceof FnDecl || defVar.core instanceof FnDef)
           yield DefKind.Fn;
 //        else if (defVar.concrete instanceof TeleDecl.ClassMember || defVar.core instanceof MemberDef)
 //          yield DefKind.Member;
-        else if (defVar.concrete instanceof Decl.DataDecl || defVar.core instanceof DataDef)
+        else if (defVar.concrete instanceof DataDecl || defVar.core instanceof DataDef)
           yield DefKind.Data;
-        else if (defVar.concrete instanceof Decl.DataCon || defVar.core instanceof ConDef)
+        else if (defVar.concrete instanceof DataCon || defVar.core instanceof ConDef)
           yield DefKind.Con;
-        else if (defVar.concrete instanceof Decl.PrimDecl || defVar.core instanceof PrimDef)
+        else if (defVar.concrete instanceof PrimDecl || defVar.core instanceof PrimDef)
           yield DefKind.Prim;
 //        else if (defVar.concrete instanceof ClassDecl || defVar.core instanceof ClassDef)
 //          yield DefKind.Clazz;

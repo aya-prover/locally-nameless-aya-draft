@@ -14,7 +14,7 @@ import org.aya.pretty.doc.Link;
 import org.aya.pretty.doc.Style;
 import org.aya.pretty.style.AyaStyleKey;
 import org.aya.syntax.concrete.stmt.QualifiedID;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.*;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.ref.*;
@@ -337,10 +337,10 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return switch (obj) {
       case DefVar<?, ?> d when d.concrete != null -> chooseStyle(d.concrete);
       case DefVar<?, ?> d -> chooseStyle(d.core);
-      case Decl.FnDecl _ -> FN;
-      case Decl.DataDecl _ -> DATA;
-      case Decl.DataCon _ -> CON;
-      case Decl.PrimDecl _ -> PRIM;
+      case FnDecl _ -> FN;
+      case DataDecl _ -> DATA;
+      case DataCon _ -> CON;
+      case PrimDecl _ -> PRIM;
       case FnDef _ -> FN;
       case DataDef _ -> DATA;
       case ConDef _ -> CON;

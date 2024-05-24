@@ -7,7 +7,7 @@ import kala.control.Option;
 import kala.value.LazyValue;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.*;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
@@ -94,13 +94,13 @@ public interface StmtVisitor extends Consumer<Stmt> {
       case Decl decl -> {
         if (decl instanceof Decl telescopic) visitTelescopic(telescopic);
         switch (decl) {
-          case Decl.DataDecl data -> data.body.forEach(this);
+          case DataDecl data -> data.body.forEach(this);
           // case ClassDecl clazz -> clazz.members.forEach(this);
-          case Decl.FnDecl fn -> fn.body.forEach(this::visitExpr, cl -> cl.forEach(this::visitExpr,
+          case FnDecl fn -> fn.body.forEach(this::visitExpr, cl -> cl.forEach(this::visitExpr,
             this::visitPattern));
-          case Decl.DataCon con -> con.patterns.forEach(cl -> visitPattern(cl.term()));
+          case DataCon con -> con.patterns.forEach(cl -> visitPattern(cl.term()));
           // case TeleDecl.ClassMember field -> field.body = field.body.map(this);
-          case Decl.PrimDecl _ -> { }
+          case PrimDecl _ -> { }
         }
       }
       case Command command -> {

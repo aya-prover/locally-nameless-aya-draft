@@ -4,7 +4,7 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.marker.CallLike;
@@ -12,7 +12,7 @@ import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 public record FnCall(
-  @Override @NotNull DefVar<FnDef, Decl.FnDecl> ref,
+  @Override @NotNull DefVar<FnDef, FnDecl> ref,
   @Override int ulift,
   @Override @NotNull ImmutableSeq<@NotNull Term> args
 ) implements Callable.Tele, CallLike.FnCallLike {

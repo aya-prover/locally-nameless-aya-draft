@@ -6,7 +6,7 @@ import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.CheckedBiFunction;
 import org.aya.syntax.compile.JitTele;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.*;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.Term;
@@ -33,8 +33,8 @@ public interface AppTycker {
     var core = defVar.core;
     var concrete = defVar.concrete;
 
-    if (core instanceof FnDef || concrete instanceof Decl.FnDecl) {
-      var fnVar = (DefVar<FnDef, Decl.FnDecl>) defVar;
+    if (core instanceof FnDef || concrete instanceof FnDecl) {
+      var fnVar = (DefVar<FnDef, FnDecl>) defVar;
       var signature = Def.defSignature(fnVar);
       return makeArgs.applyChecked(signature, args -> {
         var shape = state.shapeFactory().find(fnVar.core);
@@ -48,22 +48,22 @@ public interface AppTycker {
         }
         return new Jdg.Default(new FnCall(fnVar, 0, argsSeq), result);
       });
-    } else if (core instanceof DataDef || concrete instanceof Decl.DataDecl) {
-      var dataVar = (DefVar<DataDef, Decl.DataDecl>) defVar;
+    } else if (core instanceof DataDef || concrete instanceof DataDecl) {
+      var dataVar = (DefVar<DataDef, DataDecl>) defVar;
       var signature = Def.defSignature(dataVar);
       return makeArgs.applyChecked(signature, args -> new Jdg.Default(
         new DataCall(dataVar, 0, ImmutableArray.from(args)),
         signature.result(args)
       ));
-    } else if (core instanceof PrimDef || concrete instanceof Decl.PrimDecl) {
-      var primVar = (DefVar<PrimDef, Decl.PrimDecl>) defVar;
+    } else if (core instanceof PrimDef || concrete instanceof PrimDecl) {
+      var primVar = (DefVar<PrimDef, PrimDecl>) defVar;
       var signature = Def.defSignature(primVar);
       return makeArgs.applyChecked(signature, args -> new Jdg.Default(
         state.primFactory().unfold(new PrimCall(primVar, 0, ImmutableArray.from(args)), state),
         signature.result(args)
       ));
-    } else if (core instanceof ConDef || concrete instanceof Decl.DataCon) {
-      var conVar = (DefVar<ConDef, Decl.DataCon>) defVar;
+    } else if (core instanceof ConDef || concrete instanceof DataCon) {
+      var conVar = (DefVar<ConDef, DataCon>) defVar;
       var conCore = conVar.core;
       assert conCore != null;
       var dataVar = conCore.dataRef;

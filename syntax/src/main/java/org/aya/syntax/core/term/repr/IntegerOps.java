@@ -4,7 +4,9 @@ package org.aya.syntax.core.term.repr;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.stmt.Shaped;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.Def;
@@ -31,10 +33,10 @@ public sealed interface IntegerOps<Core extends Def, Concrete extends Decl>
   }
 
   record ConRule(
-    @Override @NotNull DefVar<ConDef, Decl.DataCon> ref,
+    @Override @NotNull DefVar<ConDef, DataCon> ref,
     @Override @NotNull ShapeRecognition paramRecognition,
     @Override @NotNull DataCall paramType
-  ) implements IntegerOps<ConDef, Decl.DataCon> {
+  ) implements IntegerOps<ConDef, DataCon> {
     @Override public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
       // zero
       if (args.isEmpty()) return new IntegerTerm(0, paramRecognition, paramType);
@@ -48,9 +50,9 @@ public sealed interface IntegerOps<Core extends Def, Concrete extends Decl>
   }
 
   record FnRule(
-    @Override @NotNull DefVar<FnDef, Decl.FnDecl> ref,
+    @Override @NotNull DefVar<FnDef, FnDecl> ref,
     @NotNull Kind kind
-  ) implements IntegerOps<FnDef, Decl.FnDecl> {
+  ) implements IntegerOps<FnDef, FnDecl> {
     public enum Kind implements Serializable {
       Add, SubTrunc
     }

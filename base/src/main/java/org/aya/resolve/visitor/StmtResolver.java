@@ -11,7 +11,7 @@ import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.visitor.ExprResolver.Where;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.*;
 import org.aya.util.error.Panic;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
@@ -51,28 +51,28 @@ public interface StmtResolver {
    */
   private static void resolveDecl(@NotNull ResolvingStmt.ResolvingDecl predecl, @NotNull ResolveInfo info) {
     switch (predecl) {
-      case ResolvingStmt.TopDecl(Decl.FnDecl decl, var ctx) -> {
-        var where = decl.body instanceof Decl.BlockBody ? Where.Head : Where.FnSimple;
+      case ResolvingStmt.TopDecl(FnDecl decl, var ctx) -> {
+        var where = decl.body instanceof FnBody.BlockBody ? Where.Head : Where.FnSimple;
         // Generalized works for simple bodies and signatures
         var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, decl, where);
         switch (decl.body) {
-          case Decl.BlockBody(var cls, var elims) -> {
+          case FnBody.BlockBody(var cls, var elims) -> {
             // introducing generalized variable is not allowed in clauses, hence we insert them before body resolving
             insertGeneralizedVars(decl, resolver);
             var clausesResolver = resolver.deriveRestrictive();
             clausesResolver.reference().append(new TyckOrder.Head(decl));
-            decl.body = new Decl.BlockBody(cls.map(clausesResolver::clause), elims);
+            decl.body = new FnBody.BlockBody(cls.map(clausesResolver::clause), elims);
             addReferences(info, new TyckOrder.Body(decl), clausesResolver);
           }
-          case Decl.ExprBody(var expr) -> {
+          case FnBody.ExprBody(var expr) -> {
             var body = expr.descent(resolver);
             insertGeneralizedVars(decl, resolver);
-            decl.body = new Decl.ExprBody(body);
+            decl.body = new FnBody.ExprBody(body);
             addReferences(info, new TyckOrder.Head(decl), resolver);
           }
         }
       }
-      case ResolvingStmt.TopDecl(Decl.DataDecl data, var ctx) -> {
+      case ResolvingStmt.TopDecl(DataDecl data, var ctx) -> {
         var resolver = resolveDeclSignature(ExprResolver.LAX, info, ctx, data, Where.Head);
         insertGeneralizedVars(data, resolver);
         data.body.forEach(con -> {
@@ -89,7 +89,7 @@ public interface StmtResolver {
         addReferences(info, new TyckOrder.Body(data), resolver.reference().view()
           .concat(data.body.map(TyckOrder.Body::new)));
       }
-      case ResolvingStmt.TopDecl(Decl.PrimDecl decl, var ctx) -> {
+      case ResolvingStmt.TopDecl(PrimDecl decl, var ctx) -> {
         resolveDeclSignature(ExprResolver.RESTRICTIVE, info, ctx, decl, Where.Head);
         addReferences(info, new TyckOrder.Body(decl), SeqView.empty());
       }

@@ -3,7 +3,8 @@
 package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
+import org.aya.syntax.concrete.stmt.decl.DataDecl;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
@@ -16,8 +17,8 @@ import org.jetbrains.annotations.Nullable;
  * @author ice1000, kiva
  */
 public final class ConDef extends SubLevelDef {
-  public final @NotNull DefVar<DataDef, Decl.DataDecl> dataRef;
-  public final @NotNull DefVar<ConDef, Decl.DataCon> ref;
+  public final @NotNull DefVar<DataDef, DataDecl> dataRef;
+  public final @NotNull DefVar<ConDef, DataCon> ref;
   public final @NotNull ImmutableSeq<Pat> pats;
   public final @Nullable EqTerm equality;
 
@@ -26,7 +27,7 @@ public final class ConDef extends SubLevelDef {
    * @param selfTele  Ditto
    */
   public ConDef(
-    @NotNull DefVar<DataDef, Decl.DataDecl> dataRef, @NotNull DefVar<ConDef, Decl.DataCon> ref,
+    @NotNull DefVar<DataDef, DataDecl> dataRef, @NotNull DefVar<ConDef, DataCon> ref,
     @NotNull ImmutableSeq<Pat> pats, @Nullable EqTerm equality, @NotNull ImmutableSeq<Param> ownerTele,
     @NotNull ImmutableSeq<Param> selfTele, @NotNull Term result, boolean coerce
   ) {
@@ -38,7 +39,7 @@ public final class ConDef extends SubLevelDef {
     this.ref = ref;
   }
 
-  public @NotNull DefVar<ConDef, Decl.DataCon> ref() { return ref; }
+  public @NotNull DefVar<ConDef, DataCon> ref() { return ref; }
   @Override public @NotNull ImmutableSeq<Param> telescope() {
     return fullTelescope().toImmutableSeq();
   }

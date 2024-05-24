@@ -7,6 +7,7 @@ import org.aya.ide.util.XYXY;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.StmtVisitor;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.util.error.PosedConsumer;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;

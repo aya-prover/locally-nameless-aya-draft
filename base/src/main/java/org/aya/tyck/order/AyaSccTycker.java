@@ -10,6 +10,8 @@ import org.aya.generic.stmt.TyckOrder;
 import org.aya.generic.stmt.TyckUnit;
 import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.FnBody;
+import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.call.Callable;
@@ -89,7 +91,7 @@ public record AyaSccTycker(
   }
 
   private void checkUnit(@NotNull TyckOrder order) {
-    if (order.unit() instanceof Decl.FnDecl fn && fn.body instanceof Decl.ExprBody) {
+    if (order.unit() instanceof FnDecl fn && fn.body instanceof FnBody.ExprBody) {
       if (selfReferencing(resolveInfo.depGraph(), order)) {
         fail(new BadRecursion(fn.sourcePos(), fn.ref, null));
         throw new SCCTyckingFailed(ImmutableSeq.of(order));
@@ -108,7 +110,7 @@ public record AyaSccTycker(
     if (recDefs.isEmpty()) return;
     // TODO: positivity check for data/record definitions
     var fn = recDefs.view()
-      .filterIsInstance(Decl.FnDecl.class)
+      .filterIsInstance(FnDecl.class)
       .map(f -> f.ref.core)
       .toImmutableSeq();
     terckRecursiveFn(fn);

@@ -13,8 +13,11 @@ import org.aya.ide.util.ModuleVar;
 import org.aya.ide.util.XY;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.StmtVisitor;
+import org.aya.syntax.concrete.stmt.decl.DataCon;
+import org.aya.syntax.concrete.stmt.decl.DataDecl;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
@@ -77,8 +80,8 @@ public interface Resolver {
 
   static @NotNull SeqView<DefVar<?, ?>> withChildren(@NotNull Decl def) {
     return switch (def) {
-      case Decl.DataDecl data ->
-        SeqView.<DefVar<?, ?>>of(data.ref).appendedAll(data.body.map(Decl.DataCon::ref));
+      case DataDecl data ->
+        SeqView.<DefVar<?, ?>>of(data.ref).appendedAll(data.body.map(DataCon::ref));
       // case ClassDecl struct ->
       //   SeqView.<DefVar<?, ?>>of(struct.ref).appendedAll(struct.members.map(TeleDecl.ClassMember::ref));
       default -> SeqView.of(def.ref());

@@ -13,7 +13,10 @@ import org.aya.resolve.error.NameProblem;
 import org.aya.resolve.error.PrimResolveError;
 import org.aya.resolve.module.ModuleLoader;
 import org.aya.syntax.concrete.stmt.*;
+import org.aya.syntax.concrete.stmt.decl.DataDecl;
 import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.FnDecl;
+import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
@@ -98,7 +101,7 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
 
   private @NotNull ResolvingStmt resolveDecl(@NotNull Decl predecl, @NotNull ModuleContext context) {
     return switch (predecl) {
-      case Decl.DataDecl decl -> {
+      case DataDecl decl -> {
         var ctx = resolveTopLevelDecl(decl, context);
         var innerCtx = resolveChildren(decl, ctx, d -> d.body.view(), (ctor, mCtx) -> {
           ctor.ref().module = mCtx.modulePath();
@@ -119,12 +122,12 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
       //   });
       //   resolveOpInfo(decl, innerCtx);
       // }
-      case Decl.FnDecl decl -> {
+      case FnDecl decl -> {
         var innerCtx = resolveTopLevelDecl(decl, context);
         resolveOpInfo(decl);
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
-      case Decl.PrimDecl decl -> {
+      case PrimDecl decl -> {
         var factory = resolveInfo.primFactory();
         var name = decl.ref.name();
         var sourcePos = decl.sourcePos();

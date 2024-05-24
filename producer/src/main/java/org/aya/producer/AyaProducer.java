@@ -29,8 +29,7 @@ import org.aya.producer.error.ParseError;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.*;
-import org.aya.syntax.concrete.stmt.decl.DeclInfo;
-import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.concrete.stmt.decl.*;
 import org.aya.syntax.ref.GeneralizedVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.ModulePath;
@@ -278,7 +277,7 @@ public record AyaProducer(
     return new DeclParseData(node, info, nameOrInfix.map(x -> x.name.data()).getOrNull(), modifier);
   }
 
-  public @Nullable Decl.FnDecl fnDecl(@NotNull GenericNode<?> node) {
+  public @Nullable FnDecl fnDecl(@NotNull GenericNode<?> node) {
     var info = declInfo(node, ModifierParser.FN_FILTER);
     var name = info.checkName(this);
     if (name == null) return null;
@@ -292,24 +291,24 @@ public record AyaProducer(
     if (dynamite == null) return null;
     var inline = info.modifier.misc(ModifierParser.CModifier.Inline);
     var overlap = info.modifier.misc(ModifierParser.CModifier.Overlap);
-    if (dynamite instanceof Decl.BlockBody && inline != null) {
+    if (dynamite instanceof FnBody.BlockBody && inline != null) {
       reporter.report(new BadModifierWarn(inline, Modifier.Inline));
     }
-    if (dynamite instanceof Decl.ExprBody && overlap != null) {
+    if (dynamite instanceof FnBody.ExprBody && overlap != null) {
       reporter.report(new ModifierProblem(overlap, ModifierParser.CModifier.Overlap, ModifierProblem.Reason.Duplicative));
     }
 
     var ty = typeOrNull(node.peekChild(TYPE));
-    var fnDecl = new Decl.FnDecl(info.info, fnMods, name, tele, ty, dynamite);
+    var fnDecl = new FnDecl(info.info, fnMods, name, tele, ty, dynamite);
     if (info.modifier.isExample()) fnDecl.isExample = true;
     return fnDecl;
   }
 
-  public @Nullable Decl.FnBody fnBody(@NotNull ImmutableSeq<LocalVar> vars, @NotNull GenericNode<?> node) {
+  public @Nullable FnBody fnBody(@NotNull ImmutableSeq<LocalVar> vars, @NotNull GenericNode<?> node) {
     var expr = node.peekChild(EXPR);
     var implies = node.peekChild(IMPLIES);
     if (expr == null && implies != null) return error(implies, "Expect function body");
-    if (expr != null) return new Decl.ExprBody(expr(expr));
+    if (expr != null) return new FnBody.ExprBody(expr(expr));
     var body = node.childrenOfType(BARRED_CLAUSE)
       .map(this::bareOrBarredClause).toImmutableSeq();
     var elims = node.childrenOfType(WEAK_ID)
@@ -317,7 +316,7 @@ public record AyaProducer(
       .map(id -> new WithPos<>(id.sourcePos(),
         vars.find(v -> v.name().equals(id.data())).getOrDefault(LocalVar.IGNORED)))
       .toImmutableSeq();
-    return new Decl.BlockBody(body, elims);
+    return new FnBody.BlockBody(body, elims);
   }
 
   private void giveMeOpen(@NotNull ModifierParser.Modifiers modiSet, @NotNull Decl decl, @NotNull MutableList<Stmt> additional) {
@@ -334,20 +333,20 @@ public record AyaProducer(
     ));
   }
 
-  public @Nullable Decl.DataDecl dataDecl(GenericNode<?> node, @NotNull MutableList<Stmt> additional) {
+  public @Nullable DataDecl dataDecl(GenericNode<?> node, @NotNull MutableList<Stmt> additional) {
     var body = node.childrenOfType(DATA_BODY).mapNotNull(this::dataBody).toImmutableSeq();
     var tele = telescope(node.childrenOfType(TELE));
     var info = declInfo(node, ModifierParser.DECL_FILTER);
     var name = info.checkName(this);
     if (name == null) return null;
     var ty = typeOrNull(node.peekChild(TYPE));
-    var decl = new Decl.DataDecl(info.info, name, tele, ty, body);
+    var decl = new DataDecl(info.info, name, tele, ty, body);
     if (info.modifier.isExample()) decl.isExample = true;
     giveMeOpen(info.modifier, decl, additional);
     return decl;
   }
 
-  public @Nullable Decl.DataCon dataBody(@NotNull GenericNode<?> node) {
+  public @Nullable DataCon dataBody(@NotNull GenericNode<?> node) {
     var dataConClause = node.peekChild(DATA_CON_CLAUSE);
     if (dataConClause != null) return dataCtor(
       patterns(dataConClause.child(PATTERNS).child(COMMA_SEP)),
@@ -385,11 +384,11 @@ public record AyaProducer(
     return null;
   }
 
-  public @Nullable Decl.PrimDecl primDecl(@NotNull GenericNode<?> node) {
+  public @Nullable PrimDecl primDecl(@NotNull GenericNode<?> node) {
     var nameEl = node.peekChild(PRIM_NAME);
     if (nameEl == null) return error(node.childrenView().getFirst(), "Expect a primitive's name");
     var id = weakId(nameEl.child(WEAK_ID));
-    return new Decl.PrimDecl(
+    return new PrimDecl(
       id.sourcePos(),
       sourcePosOf(node),
       id.data(),
@@ -398,7 +397,7 @@ public record AyaProducer(
     );
   }
 
-  public @Nullable Decl.DataCon dataCtor(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns, @NotNull GenericNode<?> node) {
+  public @Nullable DataCon dataCtor(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns, @NotNull GenericNode<?> node) {
     var info = declInfo(node, ModifierParser.SUBDECL_FILTER);
     var name = info.checkName(this);
     if (name == null) return null;
@@ -407,7 +406,7 @@ public record AyaProducer(
     var ty = node.peekChild(TYPE);
     // var par = partial(partial, partial != null ? sourcePosOf(partial) : info.info.sourcePos());
     var coe = node.peekChild(KW_COERCE) != null;
-    return new Decl.DataCon(info.info, name, patterns, tele, coe, ty == null ? null : type(ty));
+    return new DataCon(info.info, name, patterns, tele, coe, ty == null ? null : type(ty));
   }
 
   public @NotNull ImmutableSeq<Expr.Param> telescope(SeqView<? extends GenericNode<?>> telescope) {
