@@ -65,7 +65,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         }
       };
       case JitFnCall(var instance, var ulift, var args) -> {
-        var result = instance.invoke(term, args);
+        var result = instance.invoke(term, (Term[]) args.toArray()).elevate(ulift);
         if (term != result) yield whnf(result);
         yield result;
       }

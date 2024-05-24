@@ -100,10 +100,10 @@ public class CompileTest {
       var O = (JitCon) fieldO.get(null);
       var S = (JitCon) fieldS.get(null);
       var plus = (JitFn) fieldPlus.get(null);
-      var zero = new JitConCall(O, 0, new Term[0], new Term[0]);
-      var one = new JitConCall(S, 0, new Term[0], new Term[] { zero });
-      var two = new JitConCall(S, 0, new Term[0], new Term[] { one });
-      var three = new JitConCall(S, 0, new Term[0], new Term[] { two });
+      var zero = new JitConCall(O, 0, ImmutableSeq.empty(), ImmutableSeq.empty());
+      var one = new JitConCall(S, 0, ImmutableSeq.empty(), ImmutableSeq.of(zero));
+      var two = new JitConCall(S, 0, ImmutableSeq.empty(), ImmutableSeq.of(one));
+      var three = new JitConCall(S, 0, ImmutableSeq.empty(), ImmutableSeq.of(two));
 
       var mResult = plus.invoke(zero, two, three);
       System.out.println(mResult.debuggerOnlyToDoc().debugRender());

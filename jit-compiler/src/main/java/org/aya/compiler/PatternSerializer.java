@@ -71,7 +71,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
           buildIfInstanceElse(realTerm, CLASS_JITCONCALL, State.Stuck, mTerm -> {
             buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
               State.Mismatch, () -> doSerialize(con.args().view(),
-                fromArray(STR."\{mTerm}.conArgs()",
+                fromImmutableSeq(STR."\{mTerm}.conArgs()",
                   con.args().size()).view(),
                 mCon));
           });

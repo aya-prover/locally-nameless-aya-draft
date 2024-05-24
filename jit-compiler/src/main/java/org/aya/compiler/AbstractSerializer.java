@@ -121,6 +121,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return ImmutableSeq.fill(size, idx -> STR."\{term}[\{idx}]");
   }
 
+  public @NotNull ImmutableSeq<String> fromImmutableSeq(@NotNull String term, int size) {
+    return ImmutableSeq.fill(size, idx -> STR."\{term}.get(\{idx})");
+  }
+
   public void appendLine(@NotNull String string) {
     fillIndent();
     builder.append(string);

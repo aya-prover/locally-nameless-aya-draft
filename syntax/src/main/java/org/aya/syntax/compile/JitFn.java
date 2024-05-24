@@ -12,12 +12,7 @@ public abstract class JitFn extends JitTele {
   }
 
   /**
-   * TODO: we may accept a default value, and return it if stuck
    * Unfold this function
    */
   public abstract @NotNull Term invoke(Term stuck, Term... args);
-
-  public @NotNull JitFnCall of(Term... args) {
-    return new JitFnCall(this, 0, args);
-  }
 }

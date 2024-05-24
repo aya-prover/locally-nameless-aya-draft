@@ -14,12 +14,13 @@ import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.call.PrimCall;
-import org.aya.syntax.core.term.marker.GenericCall;
+import org.aya.syntax.core.term.marker.CallLike;
 import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.IterableUtil;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,20 +66,17 @@ public class TermSerializer extends AbstractSerializer<Term> {
     doSerialize(STR."new \{typeName}[] { ", " }", terms);
   }
 
+  private void buildImmutableSeq(@NotNull String typeName, @NotNull ImmutableSeq<Term> terms) {
+    if (terms.isEmpty()) {
+      builder.append(STR."\{CLASS_IMMSEQ}.empty()");
+    } else {
+      doSerialize(STR."\{CLASS_IMMSEQ}.<\{typeName}>of(", ")", terms);
+    }
+  }
+
   private void doSerialize(@NotNull String prefix, @NotNull String suffix, @NotNull ImmutableSeq<Term> terms) {
     builder.append(prefix);
-
-    // TODO: the code here is duplicated with somewhere, unify them
-    if (terms.isNotEmpty()) {
-      var it = terms.iterator();
-      doSerialize(it.next());
-
-      while (it.hasNext()) {
-        sep();
-        doSerialize(it.next());
-      }
-    }
-
+    IterableUtil.forEach(terms, this::sep, this::doSerialize);
     builder.append(suffix);
   }
 
@@ -103,30 +101,38 @@ public class TermSerializer extends AbstractSerializer<Term> {
         serializeClosure(lamTerm.body());
       });
       case DataCall(var ref, var ulift, var args) -> buildNew(CLASS_JITDATACALL, () -> {
-        builder.append(getInstance(getQualified(ref))); sep();
-        builder.append(ulift); sep();
-        buildArray(CLASS_TERM, args);
+        builder.append(getInstance(getQualified(ref)));
+        sep();
+        builder.append(ulift);
+        sep();
+        buildImmutableSeq(CLASS_TERM, args);
       });
       case JitDataCall(var ref, var ulift, var args) -> buildNew(CLASS_JITDATACALL, () -> {
-        builder.append(getInstance(getQualified(ref))); sep();
-        builder.append(ulift); sep();
-        buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(args));
+        builder.append(getInstance(getQualified(ref)));
+        sep();
+        builder.append(ulift);
+        sep();
+        buildImmutableSeq(CLASS_TERM, args);
       });
       case ConCall(var head, var args) -> buildNew(CLASS_JITCONCALL, () -> {
-        builder.append(getInstance(getQualified(head.ref()))); sep();
-        builder.append(head.ulift()); sep();
-        buildArray(CLASS_TERM, head.ownerArgs());
+        builder.append(getInstance(getQualified(head.ref())));
         sep();
-        buildArray(CLASS_TERM, args);
+        builder.append(head.ulift());
+        sep();
+        buildImmutableSeq(CLASS_TERM, head.ownerArgs());
+        sep();
+        buildImmutableSeq(CLASS_TERM, args);
       });
       case JitConCall(var instance, var ulift, var ownerArgs, var conArgs) -> buildNew(CLASS_JITCONCALL, () -> {
-        builder.append(getInstance(getQualified(instance))); sep();
-        builder.append(ulift); sep();
-        buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(ownerArgs));
+        builder.append(getInstance(getQualified(instance)));
         sep();
-        buildArray(CLASS_TERM, ImmutableArray.Unsafe.wrap(conArgs));
+        builder.append(ulift);
+        sep();
+        buildImmutableSeq(CLASS_TERM, ownerArgs);
+        sep();
+        buildImmutableSeq(CLASS_TERM, conArgs);
       });
-      case GenericCall.GenericFnCall call -> {
+      case CallLike.FnCallLike call -> {
         var ref = switch (call) {
           case JitFnCall fnCall -> getInstance(getQualified(fnCall.instance()));
           case FnCall fnCall -> getInstance(getQualified(fnCall.ref()));
@@ -138,9 +144,11 @@ public class TermSerializer extends AbstractSerializer<Term> {
         builder.append(STR."\{ref}.invoke(");
         // serialize JitFnCall in case stuck
         buildNew(CLASS_JITFNCALL, () -> {
-          builder.append(ref); sep();
-          builder.append(ulift); sep();
-          buildArray(CLASS_TERM, args);
+          builder.append(ref);
+          sep();
+          builder.append(ulift);
+          sep();
+          buildImmutableSeq(CLASS_TERM, args);
         });
 
         sep();
@@ -179,7 +187,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
       case DimTerm dimTerm -> throw new UnsupportedOperationException("TODO");
       case DimTyTerm _ -> throw new UnsupportedOperationException("TODO");
       case EqTerm eqTerm -> throw new UnsupportedOperationException("TODO");
-      default -> throw new UnsupportedOperationException("TODO");
+      default -> throw new IllegalStateException("Unexpected value: " + term);
     }
     return this;
   }

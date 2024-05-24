@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
+import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Result;
 import org.aya.syntax.core.term.Term;
@@ -21,8 +22,4 @@ public abstract class JitCon extends JitTele {
    * @return a match result, a sequence of substitution if success
    */
   protected abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
-
-  public @NotNull JitConCall of(Term[] ownerArgs, Term... args) {
-    return new JitConCall(this, 0, ownerArgs, args);
-  }
 }

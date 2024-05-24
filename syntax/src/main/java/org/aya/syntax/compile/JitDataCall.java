@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
+import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.ArrayUtil;
@@ -10,13 +11,14 @@ import org.jetbrains.annotations.NotNull;
 public record JitDataCall(
   @Override @NotNull JitData instance,
   @Override int ulift,
-  @Override @NotNull Term... arguments
+  @Override @NotNull ImmutableSeq<Term> args
 ) implements JitCallable {
-  public @NotNull JitDataCall update(Term[] dataArgs) {
-    return ArrayUtil.identical(this.arguments, dataArgs) ? this : new JitDataCall(instance, ulift, dataArgs);
+  public @NotNull JitDataCall update(ImmutableSeq<Term> args) {
+    return this.args.sameElements(args, true)
+      ? this : new JitDataCall(instance, ulift, args);
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(ArrayUtil.map(arguments, x -> f.apply(0, x)));
+    return update(args.map(x -> f.apply(0, x)));
   }
 }

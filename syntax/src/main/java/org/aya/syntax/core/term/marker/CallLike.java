@@ -10,11 +10,11 @@ import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.FnCall;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface GenericCall permits JitCallable, Callable.Common, GenericCall.GenericFnCall {
+public sealed interface CallLike permits JitCallable, Callable.Common, CallLike.FnCallLike {
   @NotNull ImmutableSeq<@NotNull Term> args();
   int ulift();
 
-  sealed interface GenericFnCall extends GenericCall permits JitFnCall, FnCall {
+  sealed interface FnCallLike extends CallLike permits JitFnCall, FnCall {
 
   }
 }
