@@ -334,12 +334,9 @@ In file $FILE:28:12 ->
 
 Error: The 2nd and the 3rd clauses are not confluent because we failed to unify
          suc 513
+         (Normalized: 514)
        and
          515
-       In particular, we failed to unify
-         513
-       with
-         514
 
 11 error(s), 0 warning(s).
 What are you doing?
