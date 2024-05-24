@@ -4,11 +4,11 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.core.term.marker.CallLike;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.core.term.marker.CallLike;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @see AppTerm#make()
  */
-public sealed interface Callable extends Term permits Callable.Common, MetaCall {
+public sealed interface Callable extends Term permits Callable.Tele, MetaCall {
   @NotNull AnyVar ref();
   @NotNull ImmutableSeq<@NotNull Term> args();
 
@@ -27,14 +27,8 @@ public sealed interface Callable extends Term permits Callable.Common, MetaCall 
   /**
    * Call to a {@link Decl}.
    */
-  sealed interface Tele extends Common permits ConCallLike, DataCall, FnCall, PrimCall, RuleReducer {
+  sealed interface Tele extends Callable, CallLike permits ConCallLike, DataCall, FnCall, PrimCall, RuleReducer {
     @Override @NotNull DefVar<? extends Def, ? extends Decl> ref();
     int ulift();
-  }
-
-  sealed interface Common extends Callable, CallLike permits Tele {
-    @Override @NotNull DefVar<? extends Def, ? extends Decl> ref();
-    @Override int ulift();
-    @Override @NotNull ImmutableSeq<@NotNull Term> args();
   }
 }

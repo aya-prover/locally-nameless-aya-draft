@@ -10,7 +10,7 @@ import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.FnCall;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface CallLike permits JitCallable, Callable.Common, CallLike.FnCallLike {
+public sealed interface CallLike permits JitCallable, Callable.Tele, CallLike.FnCallLike {
   @NotNull ImmutableSeq<@NotNull Term> args();
   int ulift();
 
