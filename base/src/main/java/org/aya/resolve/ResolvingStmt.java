@@ -4,7 +4,6 @@ package org.aya.resolve;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.context.Context;
-import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.Generalize;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
@@ -38,7 +37,7 @@ import org.jetbrains.annotations.NotNull;
 public sealed interface ResolvingStmt {
   sealed interface ResolvingDecl extends ResolvingStmt { }
 
-  record TopDecl(@NotNull TeleDecl<?> stmt, @NotNull Context context) implements ResolvingDecl { }
+  record TopDecl(@NotNull TeleDecl stmt, @NotNull Context context) implements ResolvingDecl { }
   record MiscDecl(@NotNull Decl stmt) implements ResolvingDecl { }
   record GenStmt(@NotNull Generalize stmt) implements ResolvingStmt { }
   record ModStmt(@NotNull ImmutableSeq<@NotNull ResolvingStmt> resolved) implements ResolvingStmt { }

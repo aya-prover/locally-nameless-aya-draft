@@ -49,7 +49,7 @@ public record StmtTycker(
   }
   public @NotNull Def check(Decl predecl) {
     ExprTycker tycker = null;
-    if (predecl instanceof TeleDecl<?> decl) {
+    if (predecl instanceof TeleDecl decl) {
       if (decl.signature == null) tycker = checkHeader(decl);
     }
 
@@ -110,13 +110,13 @@ public record StmtTycker(
         var sig = data.signature;
         assert sig != null;
         for (var kon : data.body) checkHeader(kon);
-        yield new DataDef(data.ref, sig.rawParams(), sig.result(),
+        yield new DataDef(data.ref, sig.rawParams(), (SortTerm) sig.result(),
           data.body.map(kon -> kon.ref.core));
       }
     };
   }
 
-  public ExprTycker checkHeader(@NotNull TeleDecl<?> decl) {
+  public ExprTycker checkHeader(@NotNull TeleDecl decl) {
     var tycker = mkTycker();
     switch (decl) {
       case TeleDecl.DataCon con -> checkKitsune(con, tycker);
@@ -131,7 +131,7 @@ public record StmtTycker(
         var sort = SortTerm.Type0;
         if (signature.result() instanceof SortTerm userSort) sort = userSort;
         else fail(BadTypeError.univ(tycker.state, result, signature.result()));
-        data.signature = new Signature<>(signature.param(), sort);
+        data.signature = new Signature(signature.param(), sort);
       }
       case TeleDecl.FnDecl fn -> {
         var teleTycker = new TeleTycker.Default(tycker);
@@ -189,7 +189,7 @@ public record StmtTycker(
       loadTele(ownerBinds.view(), dataSig, tycker);
     }
 
-    var teleTycker = new TeleTycker.Con(tycker, dataSig.result());
+    var teleTycker = new TeleTycker.Con(tycker, (SortTerm) dataSig.result());
     var selfTele = teleTycker.checkTele(conDecl.telescope);
     var selfTeleVars = conDecl.teleVars();
 
@@ -220,7 +220,7 @@ public record StmtTycker(
     var boundDataCall = (DataCall) tycker.zonk(freeDataCall).bindTele(selfTeleVars);
     if (boundaries != null) boundaries = (EqTerm) tycker.zonk(boundaries).bindTele(selfTeleVars);
     var boundariesWithDummy = boundaries != null ? boundaries : ErrorTerm.DUMMY;
-    var selfSig = new Signature<>(tycker.zonk(selfTele), new TupTerm(
+    var selfSig = new Signature(tycker.zonk(selfTele), new TupTerm(
       // This is a silly hack that allows two terms to appear in the result of a Signature
       // I considered using `AppTerm` but that is more disgraceful
       ImmutableSeq.of(boundDataCall, boundariesWithDummy))).bindTele(ownerBinds.view());
@@ -229,7 +229,7 @@ public record StmtTycker(
     if (boundaries != null) boundaries = (EqTerm) selfSigResult.get(1);
 
     // The signature of con should be full (the same as [konCore.telescope()])
-    conDecl.signature = new Signature<>(ownerTele.concat(selfSig.param()), boundDataCall);
+    conDecl.signature = new Signature(ownerTele.concat(selfSig.param()), boundDataCall);
     ref.core = new ConDef(dataRef, ref, wellPats, boundaries,
       ownerTele.map(WithPos::data),
       selfSig.rawParams(),
@@ -244,7 +244,7 @@ public record StmtTycker(
     var core = prim.ref.core;
     if (prim.telescope.isEmpty() && prim.result == null) {
       var pos = prim.sourcePos();
-      prim.signature = new Signature<>(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
+      prim.signature = new Signature(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
       return;
     }
     if (prim.telescope.isNotEmpty()) {

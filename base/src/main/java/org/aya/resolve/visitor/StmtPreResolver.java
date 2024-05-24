@@ -176,7 +176,7 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
 
   private <D extends Decl> @NotNull ModuleContext
   resolveTopLevelDecl(@NotNull D decl, @NotNull ModuleContext context) {
-    var ctx = decl instanceof TeleDecl<?> td && td.isExample ? exampleContext(context) : context;
+    var ctx = decl instanceof TeleDecl td && td.isExample ? exampleContext(context) : context;
     decl.ref().module = ctx.modulePath();
     decl.ref().fileModule = resolveInfo.thisModule().modulePath();
     ctx.defineSymbol(decl.ref(), decl.accessibility(), decl.sourcePos());

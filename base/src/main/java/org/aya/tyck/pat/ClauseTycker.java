@@ -60,10 +60,10 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   public record Worker(
     @NotNull ClauseTycker parent,
     @NotNull ImmutableSeq<LocalVar> vars,
-    @NotNull Signature<?> signature,
+    @NotNull Signature signature,
     @NotNull ImmutableSeq<Pattern.Clause> clauses,
     @NotNull ImmutableSeq<WithPos<LocalVar>> elims,
-    @NotNull boolean isFn
+    boolean isFn
   ) {
     public @NotNull TyckResult check(@NotNull SourcePos overallPos) {
       var lhsResult = parent.checkAllLhs(computeIndices(), signature, clauses.view(), isFn);
@@ -89,7 +89,8 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   }
 
   public @NotNull ImmutableSeq<LhsResult> checkAllLhs(
-    @Nullable ImmutableIntSeq indices, @NotNull Signature<?> signature, @NotNull SeqView<Pattern.Clause> clauses, boolean isFn
+    @Nullable ImmutableIntSeq indices, @NotNull Signature signature,
+    @NotNull SeqView<Pattern.Clause> clauses, boolean isFn
   ) {
     return clauses.map(c -> checkLhs(signature, indices, c, isFn)).toImmutableSeq();
   }
@@ -130,7 +131,7 @@ public record ClauseTycker(@NotNull ExprTycker exprTycker) implements Problemati
   }
 
   public @NotNull LhsResult checkLhs(
-    @NotNull Signature<? extends Term> signature,
+    @NotNull Signature signature,
     @Nullable ImmutableIntSeq indices,
     @NotNull Pattern.Clause clause,
     boolean isFn

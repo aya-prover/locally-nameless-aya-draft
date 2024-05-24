@@ -12,7 +12,6 @@ import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.visitor.ExprResolver.Where;
 import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.term.Term;
 import org.aya.util.error.Panic;
 import org.aya.util.reporter.Problem;
 import org.aya.util.reporter.Reporter;
@@ -117,7 +116,8 @@ public interface StmtResolver {
       // case TeleDecl.ClassMember field -> {}
     }
   }
-  private static void resolveMemberSignature(TeleDecl<?> con, ExprResolver bodyResolver, MutableValue<@NotNull Context> mCtx) {
+  private static void
+  resolveMemberSignature(TeleDecl con, ExprResolver bodyResolver, MutableValue<@NotNull Context> mCtx) {
     bodyResolver.enter(Where.Head);
     con.telescope = con.telescope.map(param -> bodyResolver.bind(param, mCtx));
     // If changed to method reference, `bodyResolver.enter(mCtx.get())` will be evaluated eagerly
@@ -139,7 +139,7 @@ public interface StmtResolver {
   private static @NotNull ExprResolver
   resolveDeclSignature(
     @NotNull ExprResolver.Options options, @NotNull ResolveInfo info,
-    @NotNull Context ctx, TeleDecl<?> stmt, Where where
+    @NotNull Context ctx, TeleDecl stmt, Where where
   ) {
     var resolver = new ExprResolver(ctx, options);
     resolver.enter(where);
@@ -153,8 +153,8 @@ public interface StmtResolver {
     return newResolver;
   }
 
-  private static <RetTy extends Term> void insertGeneralizedVars(
-    @NotNull TeleDecl<RetTy> decl, @NotNull ExprResolver resolver
+  private static void insertGeneralizedVars(
+    @NotNull TeleDecl decl, @NotNull ExprResolver resolver
   ) {
     decl.telescope = decl.telescope.prependedAll(resolver.allowedGeneralizes().valuesView());
   }

@@ -43,7 +43,7 @@ public interface StmtVisitor extends Consumer<Stmt> {
 
   @SuppressWarnings("unchecked") private @Nullable Term varType(@Nullable AnyVar var) {
     if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof TeleDef)
-      return TeleDef.defType((DefVar<? extends TeleDef, ? extends TeleDecl<?>>) defVar);
+      return TeleDef.defType((DefVar<? extends TeleDef, ? extends TeleDecl>) defVar);
     return null;
   }
 
@@ -82,7 +82,7 @@ public interface StmtVisitor extends Consumer<Stmt> {
       }
       case Decl decl -> {
         visit(decl.bindBlock());
-        if (decl instanceof TeleDecl<?> teleDecl) {
+        if (decl instanceof TeleDecl teleDecl) {
           visitVarDecl(decl.sourcePos(), decl.ref(), lazyType(decl.ref()));
           teleDecl.telescope.forEach(p -> visitVarDecl(p.sourcePos(), p.ref(), withTermType(p)));
         }
@@ -93,7 +93,7 @@ public interface StmtVisitor extends Consumer<Stmt> {
   default void accept(@NotNull Stmt stmt) {
     switch (stmt) {
       case Decl decl -> {
-        if (decl instanceof TeleDecl<?> telescopic) visitTelescopic(telescopic);
+        if (decl instanceof TeleDecl telescopic) visitTelescopic(telescopic);
         switch (decl) {
           case TeleDecl.DataDecl data -> data.body.forEach(this);
           // case ClassDecl clazz -> clazz.members.forEach(this);
@@ -162,7 +162,7 @@ public interface StmtVisitor extends Consumer<Stmt> {
     expr.forEach(this::visitExpr);
   }
 
-  default void visitTelescopic(@NotNull TeleDecl<?> telescopic) {
+  default void visitTelescopic(@NotNull TeleDecl telescopic) {
     telescopic.telescope.forEach(param -> param.forEach(this::visitExpr));
     if (telescopic.result != null) visitExpr(telescopic.result);
   }

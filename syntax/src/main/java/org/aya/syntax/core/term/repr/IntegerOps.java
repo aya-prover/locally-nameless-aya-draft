@@ -22,7 +22,7 @@ import java.io.Serializable;
  *
  * @see org.aya.syntax.core.term.call.RuleReducer
  */
-public sealed interface IntegerOps<Core extends TeleDef, Concrete extends TeleDecl<?>>
+public sealed interface IntegerOps<Core extends TeleDef, Concrete extends TeleDecl>
   extends Shaped.Applicable<Term, Core, Concrete> {
   @Override default @NotNull Term type() {
     var core = ref().core;

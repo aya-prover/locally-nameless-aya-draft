@@ -22,27 +22,26 @@ public sealed interface TeleDef extends Def permits SubLevelDef, TopLevelDef {
    * For pretty printing and IDE only, same for defTele and defResult.
    * This does not work well with compiled Aya.
    */
-  @ForLSP static @NotNull Term defType(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
+  @ForLSP static @NotNull Term defType(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl> defVar) {
     return PiTerm.make(defTele(defVar).map(Param::type), defResult(defVar));
   }
-  @ForLSP
-  static @NotNull ImmutableSeq<Param> defTele(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
+  @ForLSP static @NotNull ImmutableSeq<Param>
+  defTele(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl> defVar) {
     if (defVar.core != null) return defVar.core.telescope();
     // guaranteed as this is already a core term
     var signature = defVar.concrete.signature;
     assert signature != null : defVar.name();
     return signature.rawParams();
   }
-  @SuppressWarnings("unchecked") @ForLSP @Contract(pure = true)
-  static <T extends Term> @NotNull T
-  defResult(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<? extends T>> defVar) {
-    if (defVar.core != null) return (T) defVar.core.result();
+  @ForLSP @Contract(pure = true)
+  static @NotNull Term defResult(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl> defVar) {
+    if (defVar.core != null) return defVar.core.result();
       // guaranteed as this is already a core term
     else return Objects.requireNonNull(defVar.concrete.signature).result();
   }
   //endregion
 
-  static @NotNull JitTele defSignature(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> defVar) {
+  static @NotNull JitTele defSignature(@NotNull DefVar<? extends TeleDef, ? extends TeleDecl> defVar) {
     if (defVar.core != null) return new JitTele.LocallyNameless(defVar.core.telescope(), defVar.core.result());
     // guaranteed as this is already a core term
     var signature = defVar.concrete.signature;

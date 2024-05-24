@@ -23,28 +23,28 @@ import java.util.function.UnaryOperator;
  * @apiNote All terms in signature are as bound as possible.
  */
 @ForLSP
-public record Signature<T extends Term>(
-  @NotNull ImmutableSeq<WithPos<Param>> param, @NotNull T result
+public record Signature(
+  @NotNull ImmutableSeq<WithPos<Param>> param, @NotNull Term result
 ) implements AyaDocile {
   public @NotNull ImmutableSeq<Param> rawParams() { return param.map(WithPos::data); }
-  public @NotNull Signature<?> bindAt(@NotNull LocalVar var, int index) {
+  public @NotNull Signature bindAt(@NotNull LocalVar var, int index) {
     var boundParam = param.mapIndexed((i, p) ->
       p.replace(p.data().descent(t -> t.bindAt(var, index + i))));
     // bindAt may not preserve type here, consider [result] is a [FreeTerm].
     var boundResult = result.bindAt(var, param.size() + index);
-    return new Signature<>(boundParam, boundResult);
+    return new Signature(boundParam, boundResult);
   }
 
   /**
    * @see #bindTele(SeqView)
    */
-  public @NotNull Signature<?> bindAll(@NotNull SeqView<LocalVar> vars) {
+  public @NotNull Signature bindAll(@NotNull SeqView<LocalVar> vars) {
     // omg, construct [vars.size()] objects!!
-    return vars.<Signature<?>>foldLeftIndexed(this, (idx, acc, var) -> acc.bindAt(var, idx));
+    return vars.foldLeftIndexed(this, (idx, acc, var) -> acc.bindAt(var, idx));
   }
 
-  public @NotNull Signature<Term> descent(@NotNull UnaryOperator<Term> f) {
-    return new Signature<>(param.map(p -> p.map(q -> q.descent(f))), f.apply(result));
+  public @NotNull Signature descent(@NotNull UnaryOperator<org.aya.syntax.core.term.Term> f) {
+    return new Signature(param.map(p -> p.map(q -> q.descent(f))), f.apply(result));
   }
 
   /**
@@ -52,7 +52,7 @@ public record Signature<T extends Term>(
    *
    * @param vars telescope
    */
-  public @NotNull Signature<?> bindTele(@NotNull SeqView<LocalVar> vars) { return bindAll(vars.reversed()); }
+  public @NotNull Signature bindTele(@NotNull SeqView<LocalVar> vars) { return bindAll(vars.reversed()); }
   @Override public @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     return Doc.sep(Doc.sep(param.view().map(p -> p.data().toDoc(options))), Tokens.ARROW, result.toDoc(options));
   }

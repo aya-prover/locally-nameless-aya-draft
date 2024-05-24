@@ -103,7 +103,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    */
   private @Nullable Term compareCallApprox(
     @NotNull Callable.Tele lhs, @NotNull Callable.Tele rhs,
-    @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<?>> typeProvider
+    @NotNull DefVar<? extends TeleDef, ? extends TeleDecl> typeProvider
   ) {
     if (lhs.ref() != rhs.ref()) return null;
     return compareMany(lhs.args(), rhs.args(), lhs.ulift(), TeleDef.defSignature(typeProvider));

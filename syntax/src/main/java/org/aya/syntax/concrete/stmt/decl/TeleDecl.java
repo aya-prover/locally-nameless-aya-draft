@@ -10,9 +10,6 @@ import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.core.def.*;
-import org.aya.syntax.core.term.SortTerm;
-import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
@@ -34,11 +31,11 @@ import java.util.function.UnaryOperator;
  * @author re-xyr
  * @see Decl
  */
-public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
+public sealed abstract class TeleDecl implements Decl {
   public @Nullable WithPos<Expr> result;
   // will change after resolve
   public @NotNull ImmutableSeq<Expr.Param> telescope;
-  public @Nullable Signature<RetTy> signature;
+  public @Nullable Signature signature;
   public @NotNull DeclInfo info;
   public boolean isExample;
 
@@ -60,14 +57,14 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
     modifyResult(f);
   }
 
-  @Contract(pure = true) public abstract @NotNull DefVar<? extends TeleDef, ? extends TeleDecl<RetTy>> ref();
+  @Contract(pure = true) public abstract @NotNull DefVar<? extends TeleDef, ? extends TeleDecl> ref();
   @Override public @NotNull DeclInfo info() { return info; }
   public SeqView<LocalVar> teleVars() { return telescope.view().map(Expr.Param::ref); }
 
   /**
    * @implNote {@link TeleDecl#signature} is always null.
    */
-  public static final class DataCon extends TeleDecl<DataCall> {
+  public static final class DataCon extends TeleDecl {
     public final @NotNull DefVar<ConDef, DataCon> ref;
     public DefVar<DataDef, DataDecl> dataRef;
     public @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns;
@@ -102,7 +99,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
    * @author kiva
    * @see DataDef
    */
-  public static final class DataDecl extends TeleDecl<SortTerm> {
+  public static final class DataDecl extends TeleDecl {
     public final @NotNull DefVar<DataDef, DataDecl> ref;
     public final @NotNull ImmutableSeq<DataCon> body;
     /** Yet type-checked constructors */
@@ -165,7 +162,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
    * @author re-xyr
    * @see FnDef
    */
-  public static final class FnDecl extends TeleDecl<Term> {
+  public static final class FnDecl extends TeleDecl {
     public final @NotNull EnumSet<Modifier> modifiers;
     public final @NotNull DefVar<FnDef, FnDecl> ref;
     public @NotNull FnBody body;
@@ -199,7 +196,7 @@ public sealed abstract class TeleDecl<RetTy extends Term> implements Decl {
    * which means it's unspecified in the concrete syntax.
    * @see PrimDef
    */
-  public static final class PrimDecl extends TeleDecl<Term> {
+  public static final class PrimDecl extends TeleDecl {
     public final @NotNull DefVar<PrimDef, PrimDecl> ref;
 
     public PrimDecl(

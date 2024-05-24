@@ -89,7 +89,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     return visitCalls(assoc, fn, this::term, outer, args, showImplicits);
   }
 
-  public @NotNull Doc visitCoreCalls(
+  @SuppressWarnings("unchecked") public @NotNull Doc visitCoreCalls(
     @NotNull DefVar<?, ?> var, @NotNull SeqLike<Term> args,
     @NotNull Outer outer, boolean showImplicits
   ) {
@@ -98,8 +98,8 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     ImmutableSeq<Param> licit =
       // Because the signature of DataCon is selfTele, so we only need to deal with core con
       (var.core instanceof ConDef con) ? con.selfTele
-        : (var.concrete instanceof TeleDecl<?> || var.core instanceof TeleDef)
-          ? TeleDef.defTele((DefVar<? extends TeleDef, ? extends TeleDecl<?>>) var)
+        : (var.concrete instanceof TeleDecl || var.core instanceof TeleDef)
+          ? TeleDef.defTele((DefVar<? extends TeleDef, ? extends TeleDecl>) var)
           : ImmutableSeq.empty();
 
     // licited args, note that this may not include all [var] args since [preArgs.size()] may less than [licit.size()]
@@ -116,7 +116,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
    * Pretty-print an application in a smart way.
    * If an infix operator is applied by two arguments, we use operator syntax.
    *
-   * @param assoc Assoc of the applied function (if it is a operator)
+   * @param assoc Assoc of the applied function (if it is an operator)
    * @param fn    The applied function, pretty-printed.
    * @param fmt   Mostly just {@link #term(Outer, AyaDocile)}, but can be overridden.
    * @param <T>   Mostly <code>Term</code>.

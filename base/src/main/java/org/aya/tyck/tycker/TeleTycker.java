@@ -33,14 +33,14 @@ public sealed interface TeleTycker extends Contextful {
    * @return a locally nameless signature computed from what's in the localCtx.
    */
   @Contract(pure = true)
-  default @NotNull Signature<Term> checkSignature(
+  default @NotNull Signature checkSignature(
     @NotNull ImmutableSeq<Expr.Param> cTele,
     @NotNull WithPos<Expr> result
   ) {
     var locals = cTele.view().map(Expr.Param::ref).toImmutableSeq();
     var checkedParam = checkTele(cTele);
     var checkedResult = checkType(result).bindTele(locals.view());
-    return new Signature<>(checkedParam, checkedResult);
+    return new Signature(checkedParam, checkedResult);
   }
 
   /**
@@ -89,8 +89,9 @@ public sealed interface TeleTycker extends Contextful {
   @Contract(mutates = "param3")
   static void loadTele(
     @NotNull SeqView<LocalVar> binds,
-    @NotNull Signature<?> signature,
-    @NotNull ExprTycker tycker) {
+    @NotNull Signature signature,
+    @NotNull ExprTycker tycker
+  ) {
     assert binds.sizeEquals(signature.param());
     var tele = MutableList.<LocalVar>create();
 

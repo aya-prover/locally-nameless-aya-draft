@@ -134,14 +134,14 @@ public record AyaSccTycker(
   }
 
   private void checkHeader(@NotNull TyckOrder order, @NotNull TyckUnit stmt) {
-    if (stmt instanceof TeleDecl<?> decl) tycker.checkHeader(decl);
+    if (stmt instanceof TeleDecl decl) tycker.checkHeader(decl);
     if (reporter.anyError()) throw new SCCTyckingFailed(ImmutableSeq.of(order));
   }
 
   private void checkBody(@NotNull TyckOrder order, @NotNull TyckUnit stmt) {
     if (stmt instanceof Decl decl) {
       var def = tycker.check(decl);
-      if (!(decl instanceof TeleDecl<?> tele && tele.isExample)) {
+      if (!(decl instanceof TeleDecl tele && tele.isExample)) {
         // In case I'm not an example, remember me and recognize my shape
         wellTyped.append(def);
         tycker.shapeFactory().bonjour(def);
