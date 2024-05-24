@@ -32,9 +32,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
   public static final String CLASS_LAMTERM = getName(LamTerm.class);
   public static final String CLASS_JITLAMTERM = getName(Closure.Jit.class);
   public static final String CLASS_APPTERM = getName(AppTerm.class);
-  public static final String CLASS_SORTTERM = getName(SortTerm.class);
   public static final String CLASS_SORTKIND = getName(SortKind.class);
-  public static final String CLASS_PI = getName(PiTerm.class);
 
   private final @NotNull ImmutableSeq<String> instantiates;
   private final @NotNull MutableMap<LocalVar, String> binds;
@@ -84,7 +82,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
     builder.append(suffix);
   }
 
-  private void doSerialize(@NotNull Term term) {
+  private TermSerializer doSerialize(@NotNull Term term) {
     switch (term) {
       case FreeTerm bind -> {
         // It is possible that we meet bind here,
@@ -150,29 +148,40 @@ public class TermSerializer extends AbstractSerializer<Term> {
         builder.append(")");
         if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
       }
-      case SortTerm(var kind, var ulift) -> buildNew(CLASS_SORTTERM, () -> {
+      case SortTerm(var kind, var ulift) -> buildNew(getName(SortTerm.class), () -> {
         builder.append(STR."\{CLASS_SORTKIND}.\{kind.name()}"); sep();
         builder.append(ulift);
       });
-      case PiTerm piTerm -> {
-        buildNew(CLASS_PI, () -> {
-          doSerialize(piTerm.param());
-          sep();
-          serializeClosure(piTerm.body());
-        });
-      }
-      case CoeTerm _ -> throw new UnsupportedOperationException("TODO");
-      case ProjTerm _ -> throw new UnsupportedOperationException("TODO");
-      case PAppTerm _ -> throw new UnsupportedOperationException("TODO");
+      case PiTerm (var param, var body) -> buildNew(getName(PiTerm.class), () -> {
+        doSerialize(param).sep();
+        serializeClosure(body);
+      });
+      case CoeTerm(var type, var r, var s) -> buildNew(getName(CoeTerm.class), () -> {
+        serializeClosure(type).sep();
+        doSerialize(r).sep();
+        doSerialize(s);
+      });
+      case ProjTerm(var of, var ix) -> buildNew(getName(ProjTerm.class), () -> {
+        doSerialize(of).sep();
+        builder.append(ix);
+      });
+      case PAppTerm(var fun, var arg, var a, var b) -> buildNew(getName(PAppTerm.class), () -> {
+        doSerialize(fun).sep();
+        doSerialize(arg).sep();
+        doSerialize(a).sep();
+        doSerialize(b);
+      });
       case SigmaTerm sigmaTerm -> throw new UnsupportedOperationException("TODO");
       case TupTerm tupTerm -> throw new UnsupportedOperationException("TODO");
       case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
       case IntegerTerm integerTerm -> throw new UnsupportedOperationException("TODO");
       case ListTerm listTerm -> throw new UnsupportedOperationException("TODO");
       case DimTerm dimTerm -> throw new UnsupportedOperationException("TODO");
-      case DimTyTerm dimTyTerm -> throw new UnsupportedOperationException("TODO");
+      case DimTyTerm _ -> throw new UnsupportedOperationException("TODO");
       case EqTerm eqTerm -> throw new UnsupportedOperationException("TODO");
+      default -> throw new UnsupportedOperationException("TODO");
     }
+    return this;
   }
 
   // def f (A : Type) : Fn (a : A) -> A
@@ -186,8 +195,9 @@ public class TermSerializer extends AbstractSerializer<Term> {
     this.binds.remove(bind);
   }
 
-  private void serializeClosure(@NotNull Closure body) {
+  private TermSerializer serializeClosure(@NotNull Closure body) {
     serializeClosure(nameGen.nextName(null), body);
+    return this;
   }
 
   private void serializeClosure(@NotNull String param, @NotNull Closure body) {
