@@ -3,10 +3,8 @@
 
 import com.javax0.sourcebuddy.Compiler;
 import kala.collection.immutable.ImmutableSeq;
-import kala.range.primitive.IntRange;
 import org.aya.compiler.*;
 import org.aya.generic.NameGenerator;
-import org.aya.normalize.Normalizer;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.ResolveInfo;
@@ -16,32 +14,27 @@ import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitConCall;
 import org.aya.syntax.compile.JitFn;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.syntax.ref.ModulePath;
-import org.aya.tyck.TyckState;
 import org.aya.util.error.SourceFile;
 import org.aya.util.reporter.ThrowingReporter;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class CompileTest {
   @Test public void test0() {
-    DefVar<ConDef, TeleDecl.DataCon> S = DefVar.empty("S");
+    DefVar<ConDef, Decl.DataCon> S = DefVar.empty("S");
     S.module = ModulePath.of("Data", "Nat", "Nat");
 
     var cls0 = ImmutableSeq.<Pat>of(

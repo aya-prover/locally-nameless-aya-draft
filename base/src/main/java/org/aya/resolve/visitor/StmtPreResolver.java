@@ -14,7 +14,6 @@ import org.aya.resolve.error.PrimResolveError;
 import org.aya.resolve.module.ModuleLoader;
 import org.aya.syntax.concrete.stmt.*;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
@@ -99,7 +98,7 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
 
   private @NotNull ResolvingStmt resolveDecl(@NotNull Decl predecl, @NotNull ModuleContext context) {
     return switch (predecl) {
-      case TeleDecl.DataDecl decl -> {
+      case Decl.DataDecl decl -> {
         var ctx = resolveTopLevelDecl(decl, context);
         var innerCtx = resolveChildren(decl, ctx, d -> d.body.view(), (ctor, mCtx) -> {
           ctor.ref().module = mCtx.modulePath();
@@ -120,12 +119,12 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
       //   });
       //   resolveOpInfo(decl, innerCtx);
       // }
-      case TeleDecl.FnDecl decl -> {
+      case Decl.FnDecl decl -> {
         var innerCtx = resolveTopLevelDecl(decl, context);
         resolveOpInfo(decl);
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
-      case TeleDecl.PrimDecl decl -> {
+      case Decl.PrimDecl decl -> {
         var factory = resolveInfo.primFactory();
         var name = decl.ref.name();
         var sourcePos = decl.sourcePos();
@@ -176,7 +175,7 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
 
   private <D extends Decl> @NotNull ModuleContext
   resolveTopLevelDecl(@NotNull D decl, @NotNull ModuleContext context) {
-    var ctx = decl instanceof TeleDecl td && td.isExample ? exampleContext(context) : context;
+    var ctx = decl.isExample ? exampleContext(context) : context;
     decl.ref().module = ctx.modulePath();
     decl.ref().fileModule = resolveInfo.thisModule().modulePath();
     ctx.defineSymbol(decl.ref(), decl.accessibility(), decl.sourcePos());

@@ -7,7 +7,7 @@ import org.aya.generic.NameGenerator;
 import org.aya.generic.term.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.Compiled;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.core.term.call.MetaCall;
@@ -112,7 +112,7 @@ public record Synthesizer(
       }
       case IntegerTerm(_, _, var ty) -> ty;
       case ListTerm(_, _, var ty) -> ty;
-      case Callable.Tele teleCall -> TeleDef.defSignature(teleCall.ref())
+      case Callable.Tele teleCall -> Def.defSignature(teleCall.ref())
         .result(teleCall.args().toArray(Term[]::new))
         .elevate(teleCall.ulift());
 

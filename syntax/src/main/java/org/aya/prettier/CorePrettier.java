@@ -11,7 +11,7 @@ import org.aya.generic.NameGenerator;
 import org.aya.generic.term.ParamLike;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.Compiled;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
@@ -337,7 +337,7 @@ public class CorePrettier extends BasePrettier<Term> {
   }
 
   private @NotNull Doc visitCon(
-    @NotNull DefVar<? extends ConDef, ? extends TeleDecl.DataCon> ref,
+    @NotNull DefVar<? extends ConDef, ? extends Decl.DataCon> ref,
     @NotNull ImmutableSeq<ParamLike<Term>> richSelfTele,
     boolean coerce
   ) {

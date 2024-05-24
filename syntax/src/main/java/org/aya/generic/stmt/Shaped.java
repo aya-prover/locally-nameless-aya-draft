@@ -4,9 +4,8 @@ package org.aya.generic.stmt;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.AyaDocile;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
@@ -112,7 +111,7 @@ public interface Shaped<T> {
    * {@link org.aya.syntax.core.def.FnDef}, {@link ConDef}, and probably {@link org.aya.syntax.core.def.DataDef}.
    * See also <code>RuleReducer</code>.
    */
-  interface Applicable<T extends AyaDocile, Core extends Def, Concrete extends TeleDecl> extends Shaped<T> {
+  interface Applicable<T extends AyaDocile, Core extends AyaDocile, Concrete extends Decl> extends Shaped<T> {
     /**
      * The underlying ref
      */

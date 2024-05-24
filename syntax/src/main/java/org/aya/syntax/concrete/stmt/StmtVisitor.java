@@ -8,8 +8,7 @@ import kala.value.LazyValue;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
@@ -42,8 +41,8 @@ public interface StmtVisitor extends Consumer<Stmt> {
   ) { visitVar(pos, var, type); }
 
   @SuppressWarnings("unchecked") private @Nullable Term varType(@Nullable AnyVar var) {
-    if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof TeleDef)
-      return TeleDef.defType((DefVar<? extends TeleDef, ? extends TeleDecl>) defVar);
+    if (var instanceof DefVar<?, ?> defVar && defVar.core instanceof Def)
+      return Def.defType((DefVar<? extends Def, ? extends Decl>) defVar);
     return null;
   }
 
@@ -82,7 +81,7 @@ public interface StmtVisitor extends Consumer<Stmt> {
       }
       case Decl decl -> {
         visit(decl.bindBlock());
-        if (decl instanceof TeleDecl teleDecl) {
+        if (decl instanceof Decl teleDecl) {
           visitVarDecl(decl.sourcePos(), decl.ref(), lazyType(decl.ref()));
           teleDecl.telescope.forEach(p -> visitVarDecl(p.sourcePos(), p.ref(), withTermType(p)));
         }
@@ -93,15 +92,15 @@ public interface StmtVisitor extends Consumer<Stmt> {
   default void accept(@NotNull Stmt stmt) {
     switch (stmt) {
       case Decl decl -> {
-        if (decl instanceof TeleDecl telescopic) visitTelescopic(telescopic);
+        if (decl instanceof Decl telescopic) visitTelescopic(telescopic);
         switch (decl) {
-          case TeleDecl.DataDecl data -> data.body.forEach(this);
+          case Decl.DataDecl data -> data.body.forEach(this);
           // case ClassDecl clazz -> clazz.members.forEach(this);
-          case TeleDecl.FnDecl fn -> fn.body.forEach(this::visitExpr, cl -> cl.forEach(this::visitExpr,
+          case Decl.FnDecl fn -> fn.body.forEach(this::visitExpr, cl -> cl.forEach(this::visitExpr,
             this::visitPattern));
-          case TeleDecl.DataCon con -> con.patterns.forEach(cl -> visitPattern(cl.term()));
+          case Decl.DataCon con -> con.patterns.forEach(cl -> visitPattern(cl.term()));
           // case TeleDecl.ClassMember field -> field.body = field.body.map(this);
-          case TeleDecl.PrimDecl _ -> { }
+          case Decl.PrimDecl _ -> { }
         }
       }
       case Command command -> {
@@ -162,7 +161,7 @@ public interface StmtVisitor extends Consumer<Stmt> {
     expr.forEach(this::visitExpr);
   }
 
-  default void visitTelescopic(@NotNull TeleDecl telescopic) {
+  default void visitTelescopic(@NotNull Decl telescopic) {
     telescopic.telescope.forEach(param -> param.forEach(this::visitExpr));
     if (telescopic.result != null) visitExpr(telescopic.result);
   }

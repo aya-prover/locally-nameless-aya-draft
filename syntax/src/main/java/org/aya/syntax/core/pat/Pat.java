@@ -15,7 +15,7 @@ import org.aya.prettier.CorePrettier;
 import org.aya.prettier.Tokens;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.JitCon;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
@@ -124,7 +124,7 @@ public sealed interface Pat extends AyaDocile {
 
 
   record Con(
-    @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
+    @NotNull DefVar<ConDef, Decl.DataCon> ref,
     @Override @NotNull ImmutableSeq<Pat> args,
     @Nullable ShapeRecognition typeRecog,
     @NotNull DataCall data

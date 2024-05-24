@@ -6,8 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.marker.CallLike;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
@@ -26,15 +25,15 @@ public sealed interface Callable extends Term permits Callable.Common, MetaCall 
   }
 
   /**
-   * Call to a {@link TeleDecl}.
+   * Call to a {@link Decl}.
    */
   sealed interface Tele extends Common permits ConCallLike, DataCall, FnCall, PrimCall, RuleReducer {
-    @Override @NotNull DefVar<? extends TeleDef, ? extends TeleDecl> ref();
+    @Override @NotNull DefVar<? extends Def, ? extends Decl> ref();
     int ulift();
   }
 
   sealed interface Common extends Callable, CallLike permits Tele {
-    @Override @NotNull DefVar<? extends TeleDef, ? extends Decl> ref();
+    @Override @NotNull DefVar<? extends Def, ? extends Decl> ref();
     @Override int ulift();
     @Override @NotNull ImmutableSeq<@NotNull Term> args();
   }

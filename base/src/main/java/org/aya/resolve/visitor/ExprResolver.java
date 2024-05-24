@@ -15,7 +15,7 @@ import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.error.GeneralizedNotAvailableError;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GeneralizedVar;
@@ -205,7 +205,7 @@ public record ExprResolver(
       default -> reference.append(new TyckOrder.Head(unit));
       case FnPattern -> {
         reference.append(new TyckOrder.Body(unit));
-        if (unit instanceof TeleDecl.DataCon con) {
+        if (unit instanceof Decl.DataCon con) {
           reference.append(new TyckOrder.Body(con.dataRef.concrete));
         }
       }

@@ -18,7 +18,6 @@ import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.*;
 import org.aya.syntax.concrete.stmt.Stmt.Accessibility;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.Arg;
@@ -347,7 +346,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
           visitBindBlock(decl.bindBlock())
         );
       }*/
-      case TeleDecl.FnDecl decl -> {
+      case Decl.FnDecl decl -> {
         var prelude = declPrelude(decl);
         prelude.appendAll(Seq.from(decl.modifiers).view().map(this::visitModifier));
         prelude.append(KW_DEF);
@@ -356,8 +355,8 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         appendResult(prelude, decl.result);
         yield Doc.cat(Doc.sepNonEmpty(prelude),
           switch (decl.body) {
-            case TeleDecl.ExprBody(var expr) -> Doc.cat(Doc.spaced(FN_DEFINED_AS), term(Outer.Free, expr));
-            case TeleDecl.BlockBody(var clauses, ImmutableSeq<WithPos<LocalVar>> elims) -> Doc.vcat(
+            case Decl.ExprBody(var expr) -> Doc.cat(Doc.spaced(FN_DEFINED_AS), term(Outer.Free, expr));
+            case Decl.BlockBody(var clauses, ImmutableSeq<WithPos<LocalVar>> elims) -> Doc.vcat(
               Doc.cat(Doc.spaced(KW_ELIM),
                 Doc.commaList(elims.map(i -> varDoc(i.data())))),
               Doc.nest(2, visitClauses(clauses)));
@@ -365,7 +364,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
           visitBindBlock(decl.bindBlock())
         );
       }
-      case TeleDecl.DataDecl decl -> {
+      case Decl.DataDecl decl -> {
         var prelude = declPrelude(decl);
         prelude.append(KW_DATA);
         prelude.append(defVar(decl.ref));
@@ -389,7 +388,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
         });
         yield Doc.sepNonEmpty(doc);
       }*/
-      case TeleDecl.DataCon con -> {
+      case Decl.DataCon con -> {
         var ret = con.result == null ? Doc.empty() : Doc.sep(HAS_TYPE, term(Outer.Free, con.result));
         var doc = Doc.sepNonEmpty(coe(con.coerce), defVar(con.ref), visitTele(con.telescope), ret);
         if (con.patterns.isNotEmpty()) {
@@ -397,7 +396,7 @@ public class ConcretePrettier extends BasePrettier<Expr> {
             pattern(pat.map(WithPos::data), Outer.Free))), FN_DEFINED_AS, doc);
         } else yield Doc.sep(BAR, doc);
       }
-      case TeleDecl.PrimDecl primDecl -> primDoc(primDecl.ref);
+      case Decl.PrimDecl primDecl -> primDoc(primDecl.ref);
     };
   }
 

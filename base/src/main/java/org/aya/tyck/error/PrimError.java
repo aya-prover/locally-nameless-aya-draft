@@ -3,13 +3,13 @@
 package org.aya.tyck.error;
 
 import org.aya.pretty.doc.Doc;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.util.error.SourcePos;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface PrimError extends TyckError {
-  record NoResultType(@NotNull TeleDecl.PrimDecl prim) implements PrimError {
+  record NoResultType(@NotNull Decl.PrimDecl prim) implements PrimError {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.sep(Doc.code(prim.toDoc(options)), Doc.english("is expected to have a return type"));
     }
@@ -18,7 +18,7 @@ public sealed interface PrimError extends TyckError {
   }
 
   record BadSignature(
-    @NotNull TeleDecl.PrimDecl prim,
+    @NotNull Decl.PrimDecl prim,
     @NotNull UnifyInfo.Comparison comparison,
     @NotNull UnifyInfo info
   ) implements PrimError {

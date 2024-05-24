@@ -4,10 +4,10 @@ package org.aya.syntax.core.term.repr;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.stmt.Shaped;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
@@ -22,19 +22,19 @@ import java.io.Serializable;
  *
  * @see org.aya.syntax.core.term.call.RuleReducer
  */
-public sealed interface IntegerOps<Core extends TeleDef, Concrete extends TeleDecl>
+public sealed interface IntegerOps<Core extends Def, Concrete extends Decl>
   extends Shaped.Applicable<Term, Core, Concrete> {
   @Override default @NotNull Term type() {
     var core = ref().core;
     assert core != null;
-    return TeleDef.defType(ref());
+    return Def.defType(ref());
   }
 
   record ConRule(
-    @Override @NotNull DefVar<ConDef, TeleDecl.DataCon> ref,
+    @Override @NotNull DefVar<ConDef, Decl.DataCon> ref,
     @Override @NotNull ShapeRecognition paramRecognition,
     @Override @NotNull DataCall paramType
-  ) implements IntegerOps<ConDef, TeleDecl.DataCon> {
+  ) implements IntegerOps<ConDef, Decl.DataCon> {
     @Override public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
       // zero
       if (args.isEmpty()) return new IntegerTerm(0, paramRecognition, paramType);
@@ -48,9 +48,9 @@ public sealed interface IntegerOps<Core extends TeleDef, Concrete extends TeleDe
   }
 
   record FnRule(
-    @Override @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref,
+    @Override @NotNull DefVar<FnDef, Decl.FnDecl> ref,
     @NotNull Kind kind
-  ) implements IntegerOps<FnDef, TeleDecl.FnDecl> {
+  ) implements IntegerOps<FnDef, Decl.FnDecl> {
     public enum Kind implements Serializable {
       Add, SubTrunc
     }

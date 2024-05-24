@@ -5,7 +5,7 @@ package org.aya.syntax.core.def;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.aya.generic.Modifier;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
@@ -16,11 +16,11 @@ import java.util.function.Function;
 
 public final class FnDef extends TopLevelDef<Term> {
   public final @NotNull EnumSet<Modifier> modifiers;
-  public final @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref;
+  public final @NotNull DefVar<FnDef, Decl.FnDecl> ref;
   public final @NotNull Either<Term, ImmutableSeq<Term.Matching>> body;
 
   public FnDef(
-    @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref, @NotNull ImmutableSeq<Param> telescope,
+    @NotNull DefVar<FnDef, Decl.FnDecl> ref, @NotNull ImmutableSeq<Param> telescope,
     @NotNull Term result,
     @NotNull EnumSet<Modifier> modifiers,
     @NotNull Either<Term, ImmutableSeq<Term.Matching>> body
@@ -38,5 +38,5 @@ public final class FnDef extends TopLevelDef<Term> {
   }
 
   public boolean is(@NotNull Modifier mod) { return modifiers.contains(mod); }
-  public @NotNull DefVar<FnDef, TeleDecl.FnDecl> ref() { return ref; }
+  public @NotNull DefVar<FnDef, Decl.FnDecl> ref() { return ref; }
 }

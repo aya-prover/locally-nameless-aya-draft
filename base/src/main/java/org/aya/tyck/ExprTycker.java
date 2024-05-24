@@ -10,7 +10,7 @@ import kala.control.Result;
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.DataCall;
@@ -244,7 +244,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         var def = (DataDef) match.component1();
 
         // List (A : Type)
-        var sort = TeleDef.defSignature(def.ref).telescopeRich(0);
+        var sort = Def.defSignature(def.ref).telescopeRich(0);
         // the sort of type below.
         var elementTy = freshMeta(sort.name(), expr.sourcePos(), new MetaVar.OfType(sort.type()));
 

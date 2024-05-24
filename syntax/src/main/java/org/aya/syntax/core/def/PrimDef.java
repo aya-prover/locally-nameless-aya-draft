@@ -3,9 +3,8 @@
 package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.Closure;
-import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
@@ -22,7 +21,7 @@ import static org.aya.syntax.core.term.SortTerm.Type0;
 
 public final class PrimDef extends TopLevelDef<Term> {
   public PrimDef(
-    @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref,
+    @NotNull DefVar<@NotNull PrimDef, Decl.@NotNull PrimDecl> ref,
     @NotNull ImmutableSeq<Param> telescope,
     @NotNull Term result, @NotNull ID name
   ) {
@@ -32,7 +31,7 @@ public final class PrimDef extends TopLevelDef<Term> {
     ref.core = this;
   }
 
-  public PrimDef(@NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref, @NotNull Term result, @NotNull ID name) {
+  public PrimDef(@NotNull DefVar<@NotNull PrimDef, Decl.@NotNull PrimDecl> ref, @NotNull Term result, @NotNull ID name) {
     this(ref, ImmutableSeq.empty(), result, name);
   }
 
@@ -83,10 +82,10 @@ public final class PrimDef extends TopLevelDef<Term> {
     ID(@NotNull String id) { this.id = id; }
   }
 
-  public final @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref;
+  public final @NotNull DefVar<@NotNull PrimDef, Decl.@NotNull PrimDecl> ref;
   public final @NotNull ID id;
 
-  public @NotNull DefVar<@NotNull PrimDef, TeleDecl.@NotNull PrimDecl> ref() {
+  public @NotNull DefVar<@NotNull PrimDef, Decl.@NotNull PrimDecl> ref() {
     return ref;
   }
 }

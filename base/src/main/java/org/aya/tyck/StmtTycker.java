@@ -10,7 +10,6 @@ import org.aya.normalize.PrimFactory;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
@@ -49,12 +48,12 @@ public record StmtTycker(
   }
   public @NotNull Def check(Decl predecl) {
     ExprTycker tycker = null;
-    if (predecl instanceof TeleDecl decl) {
+    if (predecl instanceof Decl decl) {
       if (decl.signature == null) tycker = checkHeader(decl);
     }
 
     return switch (predecl) {
-      case TeleDecl.FnDecl fnDecl -> {
+      case Decl.FnDecl fnDecl -> {
         assert fnDecl.signature != null;
 
         var factory = FnDef.factory(body ->
@@ -65,7 +64,7 @@ public record StmtTycker(
         var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
         yield switch (fnDecl.body) {
-          case TeleDecl.ExprBody(var expr) -> {
+          case Decl.ExprBody(var expr) -> {
             var signature = fnDecl.signature;
             // In the ordering, we guarantee that expr bodied fn are always checked as a whole
             assert tycker != null;
@@ -76,7 +75,7 @@ public record StmtTycker(
             fnDecl.signature = fnDecl.signature.descent(tycker::zonk);
             yield factory.apply(Either.left(tycker.zonk(result.wellTyped())));
           }
-          case TeleDecl.BlockBody(var clauses, var elims) -> {
+          case Decl.BlockBody(var clauses, var elims) -> {
             var signature = fnDecl.signature;
             // we do not load signature here, so we need a fresh ExprTycker
             var clauseTycker = new ClauseTycker.Worker(new ClauseTycker(tycker = mkTycker()),
@@ -104,9 +103,9 @@ public record StmtTycker(
           }
         };
       }
-      case TeleDecl.DataCon con -> Objects.requireNonNull(con.ref.core);   // see checkHeader
-      case TeleDecl.PrimDecl prim -> Objects.requireNonNull(prim.ref.core);
-      case TeleDecl.DataDecl data -> {
+      case Decl.DataCon con -> Objects.requireNonNull(con.ref.core);   // see checkHeader
+      case Decl.PrimDecl prim -> Objects.requireNonNull(prim.ref.core);
+      case Decl.DataDecl data -> {
         var sig = data.signature;
         assert sig != null;
         for (var kon : data.body) checkHeader(kon);
@@ -116,12 +115,12 @@ public record StmtTycker(
     };
   }
 
-  public ExprTycker checkHeader(@NotNull TeleDecl decl) {
+  public ExprTycker checkHeader(@NotNull Decl decl) {
     var tycker = mkTycker();
     switch (decl) {
-      case TeleDecl.DataCon con -> checkKitsune(con, tycker);
-      case TeleDecl.PrimDecl prim -> checkPrim(tycker, prim);
-      case TeleDecl.DataDecl data -> {
+      case Decl.DataCon con -> checkKitsune(con, tycker);
+      case Decl.PrimDecl prim -> checkPrim(tycker, prim);
+      case Decl.DataDecl data -> {
         var teleTycker = new TeleTycker.Default(tycker);
         var result = data.result;
         if (result == null) result = new WithPos<>(data.sourcePos(), new Expr.Type(0));
@@ -133,13 +132,13 @@ public record StmtTycker(
         else fail(BadTypeError.univ(tycker.state, result, signature.result()));
         data.signature = new Signature(signature.param(), sort);
       }
-      case TeleDecl.FnDecl fn -> {
+      case Decl.FnDecl fn -> {
         var teleTycker = new TeleTycker.Default(tycker);
         var result = fn.result;
         if (result == null) result = new WithPos<>(fn.sourcePos(), new Expr.Hole(false, null));
         fn.signature = teleTycker.checkSignature(fn.telescope, result);
         // For ExprBody, they will be zonked later
-        if (fn.body instanceof TeleDecl.BlockBody) {
+        if (fn.body instanceof Decl.BlockBody) {
           tycker.solveMetas();
           fn.signature = fn.signature.descent(tycker::zonk);
         }
@@ -153,7 +152,7 @@ public record StmtTycker(
    *
    * @apiNote invoke this method after loading the telescope of data!
    */
-  private void checkKitsune(@NotNull TeleDecl.DataCon dataCon, @NotNull ExprTycker tycker) {
+  private void checkKitsune(@NotNull Decl.DataCon dataCon, @NotNull ExprTycker tycker) {
     var ref = dataCon.ref;
     if (ref.core != null) return;
     var conDecl = ref.concrete;
@@ -236,7 +235,7 @@ public record StmtTycker(
       boundDataCall, false);
   }
 
-  private void checkPrim(@NotNull ExprTycker tycker, TeleDecl.PrimDecl prim) {
+  private void checkPrim(@NotNull ExprTycker tycker, Decl.PrimDecl prim) {
     var teleTycker = new TeleTycker.Default(tycker);
     // This directly corresponds to the tycker.localCtx = new LocalCtx();
     //  at the end of this case clause.

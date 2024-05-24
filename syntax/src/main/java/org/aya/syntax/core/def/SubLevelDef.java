@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Coconstructors or constructors, in contrast to {@link TopLevelDef}.
  */
-public sealed abstract class SubLevelDef implements TeleDef permits ConDef {
+public sealed abstract class SubLevelDef implements Def permits ConDef {
   public final @NotNull ImmutableSeq<Param> ownerTele;
   public final @NotNull ImmutableSeq<Param> selfTele;
   public final @NotNull Term result;

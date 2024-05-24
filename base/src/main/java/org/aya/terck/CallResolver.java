@@ -8,7 +8,7 @@ import kala.collection.immutable.ImmutableSet;
 import kala.value.MutableValue;
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.FreeTerm;
@@ -39,24 +39,24 @@ import java.util.function.Consumer;
 public record CallResolver(
   @Override @NotNull TyckState state,
   @NotNull FnDef caller,
-  @NotNull Set<TeleDef> targets,
+  @NotNull Set<Def> targets,
   @NotNull MutableValue<Term.Matching> currentClause,
-  @NotNull CallGraph<Callable, TeleDef> graph
+  @NotNull CallGraph<Callable, Def> graph
 ) implements Stateful, Consumer<Term.Matching> {
   public CallResolver {
     assert caller.body.isRight();
   }
   public CallResolver(
     @NotNull TyckState state, @NotNull FnDef fn,
-    @NotNull Set<TeleDef> targets,
-    @NotNull CallGraph<Callable, TeleDef> graph
+    @NotNull Set<Def> targets,
+    @NotNull CallGraph<Callable, Def> graph
   ) {
     this(state, fn, targets, MutableValue.create(), graph);
   }
 
   private void resolveCall(@NotNull Callable callable) {
     if (!(callable.ref() instanceof DefVar<?, ?> defVar)) return;
-    var callee = (TeleDef) defVar.core;
+    var callee = (Def) defVar.core;
     if (!targets.contains(callee)) return;
     var matrix = new CallMatrix<>(callable, caller, callee,
       caller.telescope.size(), callee.telescope().size());
@@ -64,7 +64,7 @@ public record CallResolver(
     graph.put(matrix);
   }
 
-  private void fillMatrix(@NotNull Callable callable, CallMatrix<?, TeleDef> matrix) {
+  private void fillMatrix(@NotNull Callable callable, CallMatrix<?, Def> matrix) {
     var currentPatterns = currentClause.get();
     assert currentPatterns != null;
     currentPatterns.patterns().forEachIndexed((domParamIx, pat) ->
@@ -160,7 +160,7 @@ public record CallResolver(
 
   private void visitTerm(@NotNull Term term) {
     // TODO: Improve error reporting to include the original call
-    term = new Normalizer(state, ImmutableSet.from(targets.map(TeleDef::ref))).apply(term);
+    term = new Normalizer(state, ImmutableSet.from(targets.map(Def::ref))).apply(term);
     if (term instanceof Callable call) resolveCall(call);
     term.descent((_, child) -> {
       visitTerm(child);

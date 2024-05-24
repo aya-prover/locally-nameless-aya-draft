@@ -10,10 +10,8 @@ import org.aya.generic.stmt.TyckOrder;
 import org.aya.generic.stmt.TyckUnit;
 import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.call.Callable;
 import org.aya.syntax.ref.DefVar;
 import org.aya.terck.BadRecursion;
@@ -91,7 +89,7 @@ public record AyaSccTycker(
   }
 
   private void checkUnit(@NotNull TyckOrder order) {
-    if (order.unit() instanceof TeleDecl.FnDecl fn && fn.body instanceof TeleDecl.ExprBody) {
+    if (order.unit() instanceof Decl.FnDecl fn && fn.body instanceof Decl.ExprBody) {
       if (selfReferencing(resolveInfo.depGraph(), order)) {
         fail(new BadRecursion(fn.sourcePos(), fn.ref, null));
         throw new SCCTyckingFailed(ImmutableSeq.of(order));
@@ -110,16 +108,16 @@ public record AyaSccTycker(
     if (recDefs.isEmpty()) return;
     // TODO: positivity check for data/record definitions
     var fn = recDefs.view()
-      .filterIsInstance(TeleDecl.FnDecl.class)
+      .filterIsInstance(Decl.FnDecl.class)
       .map(f -> f.ref.core)
       .toImmutableSeq();
     terckRecursiveFn(fn);
   }
 
   private void terckRecursiveFn(@NotNull ImmutableSeq<FnDef> fn) {
-    var targets = MutableSet.<TeleDef>from(fn);
+    var targets = MutableSet.<Def>from(fn);
     if (targets.isEmpty()) return;
-    var graph = CallGraph.<Callable, TeleDef>create();
+    var graph = CallGraph.<Callable, Def>create();
     fn.forEach(def -> new CallResolver(resolveInfo.makeTyckState(), def, targets, graph).check());
     graph.findBadRecursion().view()
       .sorted(Comparator.comparing(a -> domRef(a).concrete.sourcePos()))
@@ -129,19 +127,19 @@ public record AyaSccTycker(
       });
   }
 
-  private static @NotNull DefVar<?, ?> domRef(Diagonal<?, TeleDef> f) {
+  private static @NotNull DefVar<?, ?> domRef(Diagonal<?, Def> f) {
     return f.matrix().domain().ref();
   }
 
   private void checkHeader(@NotNull TyckOrder order, @NotNull TyckUnit stmt) {
-    if (stmt instanceof TeleDecl decl) tycker.checkHeader(decl);
+    if (stmt instanceof Decl decl) tycker.checkHeader(decl);
     if (reporter.anyError()) throw new SCCTyckingFailed(ImmutableSeq.of(order));
   }
 
   private void checkBody(@NotNull TyckOrder order, @NotNull TyckUnit stmt) {
     if (stmt instanceof Decl decl) {
       var def = tycker.check(decl);
-      if (!(decl instanceof TeleDecl tele && tele.isExample)) {
+      if (!(decl instanceof Decl tele && tele.isExample)) {
         // In case I'm not an example, remember me and recognize my shape
         wellTyped.append(def);
         tycker.shapeFactory().bonjour(def);

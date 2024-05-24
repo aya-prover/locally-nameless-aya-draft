@@ -10,9 +10,8 @@ import org.aya.resolve.error.NameProblem;
 import org.aya.resolve.error.OperatorError;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.BindBlock;
-import org.aya.syntax.concrete.stmt.Command;
 import org.aya.syntax.concrete.stmt.QualifiedID;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.ref.DefVar;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.Panic;
@@ -69,13 +68,13 @@ public interface StmtBinder {
    */
   static void resolveBind(@NotNull Context ctx, @NotNull ResolvingStmt stmt, @NotNull ResolveInfo info) {
     switch (stmt) {
-      case TopDecl(TeleDecl.DataDecl decl, var innerCtx) -> {
+      case TopDecl(Decl.DataDecl decl, var innerCtx) -> {
         decl.body.forEach(con -> resolveBind(innerCtx, new MiscDecl(con), info));
         visitBind(ctx, decl.ref, decl.bindBlock(), info);
       }
-      case TopDecl(TeleDecl.FnDecl fn, var innerCtx) -> visitBind(innerCtx, fn.ref, fn.bindBlock(), info);
-      case MiscDecl(TeleDecl.DataCon con) -> visitBind(ctx, con.ref, con.bindBlock(), info);
-      case TopDecl(TeleDecl.PrimDecl _, _), GenStmt _ -> { }
+      case TopDecl(Decl.FnDecl fn, var innerCtx) -> visitBind(innerCtx, fn.ref, fn.bindBlock(), info);
+      case MiscDecl(Decl.DataCon con) -> visitBind(ctx, con.ref, con.bindBlock(), info);
+      case TopDecl(Decl.PrimDecl _, _), GenStmt _ -> { }
       case TopDecl _, MiscDecl _ -> Panic.unreachable();
       case ModStmt(var stmts) -> resolveBind(stmts, info);
       // case TeleDecl.ClassMember field -> visitBind(field.ref, field.bindBlock(), info);

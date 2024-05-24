@@ -5,8 +5,8 @@ package org.aya.syntax.ref;
 import kala.collection.Map;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
+import org.aya.generic.AyaDocile;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.core.def.Def;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
 import org.jetbrains.annotations.Contract;
@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
 
-public final class DefVar<Core extends Def, Concrete extends Decl> implements AnyVar {
+public final class DefVar<Core extends AyaDocile, Concrete extends Decl> implements AnyVar {
   private final @NotNull String name;
   /** Initialized in parsing, so it might be null for deserialized user definitions. */
   public @UnknownNullability Concrete concrete;
@@ -49,13 +49,13 @@ public final class DefVar<Core extends Def, Concrete extends Decl> implements An
   }
 
   /** Used in user definitions. */
-  public static <Core extends Def, Concrete extends Decl>
+  public static <Core extends AyaDocile, Concrete extends Decl>
   @NotNull DefVar<Core, Concrete> concrete(@NotNull Concrete concrete, @NotNull String name) {
     return new DefVar<>(concrete, null, name);
   }
 
   /** Used in the serialization of core and primitive definitions. */
-  public static <Core extends Def, Concrete extends Decl>
+  public static <Core extends AyaDocile, Concrete extends Decl>
   @NotNull DefVar<Core, Concrete> empty(@NotNull String name) {
     return new DefVar<>(null, null, name);
   }

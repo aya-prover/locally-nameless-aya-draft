@@ -9,7 +9,6 @@ import org.aya.ide.Resolver;
 import org.aya.ide.syntax.SyntaxDeclAction;
 import org.aya.syntax.concrete.stmt.Command;
 import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 

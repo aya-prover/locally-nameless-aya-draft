@@ -4,14 +4,14 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
+import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 public record PrimCall(
-  @Override @NotNull DefVar<PrimDef, TeleDecl.PrimDecl> ref,
+  @Override @NotNull DefVar<PrimDef, Decl.PrimDecl> ref,
   @NotNull PrimDef.ID id,
   @Override int ulift,
   @Override @NotNull ImmutableSeq<@NotNull Term> args
@@ -25,7 +25,7 @@ public record PrimCall(
   }
 
   public PrimCall(
-    @NotNull DefVar<@NotNull PrimDef, TeleDecl.PrimDecl> ref,
+    @NotNull DefVar<@NotNull PrimDef, Decl.PrimDecl> ref,
     int ulift, @NotNull ImmutableSeq<@NotNull Term> args
   ) {
     this(ref, ref.core.id, ulift, args);

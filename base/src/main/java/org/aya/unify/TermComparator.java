@@ -9,8 +9,8 @@ import org.aya.generic.stmt.Shaped;
 import org.aya.generic.term.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.syntax.compile.JitTele;
-import org.aya.syntax.concrete.stmt.decl.TeleDecl;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.marker.Formation;
@@ -103,10 +103,10 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
    */
   private @Nullable Term compareCallApprox(
     @NotNull Callable.Tele lhs, @NotNull Callable.Tele rhs,
-    @NotNull DefVar<? extends TeleDef, ? extends TeleDecl> typeProvider
+    @NotNull DefVar<? extends Def, ? extends Decl> typeProvider
   ) {
     if (lhs.ref() != rhs.ref()) return null;
-    return compareMany(lhs.args(), rhs.args(), lhs.ulift(), TeleDef.defSignature(typeProvider));
+    return compareMany(lhs.args(), rhs.args(), lhs.ulift(), Def.defSignature(typeProvider));
   }
 
   private <R> R swapped(@NotNull Supplier<R> callback) {
@@ -449,7 +449,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     return switch (new Pair<>(preLhs, (Formation) preRhs)) {
       case Pair(DataCall lhs, DataCall rhs) -> {
         if (lhs.ref() != rhs.ref()) yield false;
-        yield compareMany(lhs.args(), rhs.args(), lhs.ulift(), TeleDef.defSignature(lhs.ref())) != null;
+        yield compareMany(lhs.args(), rhs.args(), lhs.ulift(), Def.defSignature(lhs.ref())) != null;
       }
       case Pair(DimTyTerm _, DimTyTerm _) -> true;
       case Pair(PiTerm(var lParam, var lBody), PiTerm(var rParam, var rBody)) -> compareTypeWith(lParam, rParam,

@@ -6,12 +6,12 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.range.primitive.IntRange;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitCon;
-import org.aya.syntax.core.def.TeleDef;
+import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class JitTeleSerializer<T extends TeleDef> extends AbstractSerializer<T> {
+public abstract class JitTeleSerializer<T extends Def> extends AbstractSerializer<T> {
   public static final String CLASS_JITCON = getName(JitCon.class);
 
   protected final @NotNull Class<?> superClass;
