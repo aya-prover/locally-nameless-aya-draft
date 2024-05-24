@@ -49,34 +49,35 @@ public record StmtTycker(
   public @NotNull Def check(Decl predecl) {
     ExprTycker tycker = null;
     if (predecl instanceof Decl decl) {
-      if (decl.signature == null) tycker = checkHeader(decl);
+      if (decl.ref().signature == null) tycker = checkHeader(decl);
     }
 
     return switch (predecl) {
       case FnDecl fnDecl -> {
-        assert fnDecl.signature != null;
+        var fnRef = fnDecl.ref;
+        assert fnRef.signature != null;
 
         var factory = FnDef.factory(body ->
           // DO NOT extract the below `fnDecl.signature` to a local var,
           // we need it to be captured in `fnDecl` so we can assign them later.
-          new FnDef(fnDecl.ref, fnDecl.signature.rawParams(),
-            fnDecl.signature.result(), fnDecl.modifiers, body));
+          new FnDef(fnRef, fnRef.signature.rawParams(),
+            fnRef.signature.result(), fnDecl.modifiers, body));
         var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
         yield switch (fnDecl.body) {
           case FnBody.ExprBody(var expr) -> {
-            var signature = fnDecl.signature;
+            var signature = fnRef.signature;
             // In the ordering, we guarantee that expr bodied fn are always checked as a whole
             assert tycker != null;
             var result = tycker.inherit(expr, tycker.whnf(signature.result().instantiateTeleVar(teleVars.view())))
               // we still need to bind [result.type()] in case it was a hole
               .bindTele(teleVars.view());
             tycker.solveMetas();
-            fnDecl.signature = fnDecl.signature.descent(tycker::zonk);
+            fnRef.signature = fnRef.signature.descent(tycker::zonk);
             yield factory.apply(Either.left(tycker.zonk(result.wellTyped())));
           }
           case FnBody.BlockBody(var clauses, var elims) -> {
-            var signature = fnDecl.signature;
+            var signature = fnRef.signature;
             // we do not load signature here, so we need a fresh ExprTycker
             var clauseTycker = new ClauseTycker.Worker(new ClauseTycker(tycker = mkTycker()),
               teleVars, signature, clauses, elims, true);
@@ -106,7 +107,7 @@ public record StmtTycker(
       case DataCon con -> Objects.requireNonNull(con.ref.core);   // see checkHeader
       case PrimDecl prim -> Objects.requireNonNull(prim.ref.core);
       case DataDecl data -> {
-        var sig = data.signature;
+        var sig = data.ref.signature;
         assert sig != null;
         for (var kon : data.body) checkHeader(kon);
         yield new DataDef(data.ref, sig.rawParams(), (SortTerm) sig.result(),
@@ -130,17 +131,18 @@ public record StmtTycker(
         var sort = SortTerm.Type0;
         if (signature.result() instanceof SortTerm userSort) sort = userSort;
         else fail(BadTypeError.univ(tycker.state, result, signature.result()));
-        data.signature = new Signature(signature.param(), sort);
+        data.ref.signature = new Signature(signature.param(), sort);
       }
       case FnDecl fn -> {
         var teleTycker = new TeleTycker.Default(tycker);
         var result = fn.result;
         if (result == null) result = new WithPos<>(fn.sourcePos(), new Expr.Hole(false, null));
-        fn.signature = teleTycker.checkSignature(fn.telescope, result);
+        var fnRef = fn.ref;
+        fnRef.signature = teleTycker.checkSignature(fn.telescope, result);
         // For ExprBody, they will be zonked later
         if (fn.body instanceof FnBody.BlockBody) {
           tycker.solveMetas();
-          fn.signature = fn.signature.descent(tycker::zonk);
+          fnRef.signature = fnRef.signature.descent(tycker::zonk);
         }
       }
     }
@@ -157,12 +159,10 @@ public record StmtTycker(
     if (ref.core != null) return;
     var conDecl = ref.concrete;
     var dataRef = dataCon.dataRef;
-    var dataDecl = dataRef.concrete;
-    assert dataDecl != null && conDecl != null : "no concrete";
-    var dataSig = dataDecl.signature;
+    var dataSig = dataRef.signature;
     assert dataSig != null : "the header of data should be tycked";
     var ownerTele = dataSig.param().map(x -> x.descent((_, p) -> p.implicitize()));
-    var ownerBinds = dataDecl.telescope.map(Expr.Param::ref);
+    var ownerBinds = dataRef.concrete.telescope.map(Expr.Param::ref);
     // dataTele already in localCtx
     // The result that a con should be, unless it is a Path result
     var freeDataCall = new DataCall(dataRef, 0, ownerBinds.map(FreeTerm::new));
@@ -228,7 +228,7 @@ public record StmtTycker(
     if (boundaries != null) boundaries = (EqTerm) selfSigResult.get(1);
 
     // The signature of con should be full (the same as [konCore.telescope()])
-    conDecl.signature = new Signature(ownerTele.concat(selfSig.param()), boundDataCall);
+    ref.signature = new Signature(ownerTele.concat(selfSig.param()), boundDataCall);
     ref.core = new ConDef(dataRef, ref, wellPats, boundaries,
       ownerTele.map(WithPos::data),
       selfSig.rawParams(),
@@ -240,10 +240,11 @@ public record StmtTycker(
     // This directly corresponds to the tycker.localCtx = new LocalCtx();
     //  at the end of this case clause.
     assert tycker.localCtx().isEmpty();
-    var core = prim.ref.core;
+    var primRef = prim.ref;
+    var core = primRef.core;
     if (prim.telescope.isEmpty() && prim.result == null) {
       var pos = prim.sourcePos();
-      prim.signature = new Signature(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
+      primRef.signature = new Signature(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
       return;
     }
     if (prim.telescope.isNotEmpty()) {
@@ -260,7 +261,7 @@ public record StmtTycker(
       PiTerm.make(core.telescope.view().map(Param::type), core.result),
       null, prim.entireSourcePos(),
       msg -> new PrimError.BadSignature(prim, msg, new UnifyInfo(tycker.state)));
-    prim.signature = tele.descent(tycker::zonk);
+    primRef.signature = tele.descent(tycker::zonk);
     tycker.solveMetas();
     tycker.setLocalCtx(new LocalCtx());
   }

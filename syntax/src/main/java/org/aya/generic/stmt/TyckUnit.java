@@ -17,7 +17,7 @@ public sealed interface TyckUnit extends SourceNode permits Stmt, Decl {
   }
   static boolean needTyck(@NotNull TyckUnit unit, @NotNull ModulePath currentMod) {
     return switch (unit) {
-      case PrimDecl prim -> prim.ref().isInModule(currentMod) && prim.signature == null;
+      case PrimDecl prim -> prim.ref.isInModule(currentMod) && prim.ref.signature == null;
       case Decl decl -> decl.ref().isInModule(currentMod) && decl.ref().core == null;
       case Generalize _, Command _ -> false;
     };

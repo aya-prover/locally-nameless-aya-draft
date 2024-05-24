@@ -10,7 +10,6 @@ import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.core.def.Def;
-import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.binop.OpDecl;
@@ -33,7 +32,6 @@ public sealed abstract class Decl implements SourceNode, Stmt, TyckUnit, OpDecl
   public @Nullable WithPos<Expr> result;
   // will change after resolve
   public @NotNull ImmutableSeq<Expr.Param> telescope;
-  public @Nullable Signature signature;
   public @NotNull DeclInfo info;
   public boolean isExample;
 

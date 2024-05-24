@@ -37,18 +37,14 @@ public final class PrimDef extends TopLevelDef<Term> {
 
   @Override public @NotNull ImmutableSeq<Param> telescope() {
     if (telescope.isEmpty()) return telescope;
-    if (ref.concrete != null) {
-      var signature = ref.concrete.signature;
-      if (signature != null) return signature.param().map(WithPos::data);
-    }
+    var signature = ref.signature;
+    if (signature != null) return signature.param().map(WithPos::data);
     return telescope;
   }
 
   @Override public @NotNull Term result() {
-    if (ref.concrete != null) {
-      var signature = ref.concrete.signature;
-      if (signature != null) return signature.result();
-    }
+    var signature = ref.signature;
+    if (signature != null) return signature.result();
     return result;
   }
 

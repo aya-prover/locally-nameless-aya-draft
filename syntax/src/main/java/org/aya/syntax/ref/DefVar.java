@@ -7,6 +7,7 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.AyaDocile;
 import org.aya.syntax.concrete.stmt.decl.Decl;
+import org.aya.syntax.core.def.Signature;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
 import org.jetbrains.annotations.Contract;
@@ -18,7 +19,8 @@ public final class DefVar<Core extends AyaDocile, Concrete extends Decl> impleme
   private final @NotNull String name;
   /** Initialized in parsing, so it might be null for deserialized user definitions. */
   public @UnknownNullability Concrete concrete;
-  /** Initialized in type checking or core deserialization, so it might be null for unchecked user definitions. */
+  public @Nullable Signature signature;
+  /** Initialized in type checking, so it might be null for unchecked user definitions. */
   public @UnknownNullability Core core;
   /** Initialized in the resolver or core deserialization */
   public @Nullable ModulePath module;

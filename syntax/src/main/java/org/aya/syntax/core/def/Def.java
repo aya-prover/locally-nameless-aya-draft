@@ -36,7 +36,7 @@ public sealed interface Def extends AyaDocile permits SubLevelDef, TopLevelDef {
   defTele(@NotNull DefVar<? extends Def, ? extends Decl> defVar) {
     if (defVar.core != null) return defVar.core.telescope();
     // guaranteed as this is already a core term
-    var signature = defVar.concrete.signature;
+    var signature = defVar.signature;
     assert signature != null : defVar.name();
     return signature.rawParams();
   }
@@ -44,14 +44,14 @@ public sealed interface Def extends AyaDocile permits SubLevelDef, TopLevelDef {
   static @NotNull Term defResult(@NotNull DefVar<? extends Def, ? extends Decl> defVar) {
     if (defVar.core != null) return defVar.core.result();
       // guaranteed as this is already a core term
-    else return Objects.requireNonNull(defVar.concrete.signature).result();
+    else return Objects.requireNonNull(defVar.signature).result();
   }
   //endregion
 
   static @NotNull JitTele defSignature(@NotNull DefVar<? extends Def, ? extends Decl> defVar) {
     if (defVar.core != null) return new JitTele.LocallyNameless(defVar.core.telescope(), defVar.core.result());
     // guaranteed as this is already a core term
-    var signature = defVar.concrete.signature;
+    var signature = defVar.signature;
     assert signature != null : defVar.name();
     return new JitTele.LocallyNameless(signature.rawParams(), signature.result());
   }
