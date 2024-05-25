@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.cli.single;
 
@@ -17,8 +17,8 @@ import org.aya.syntax.GenericAyaFile;
 import org.aya.syntax.GenericAyaParser;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.Decl;
-import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.PrimDef;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.util.FileUtil;
 import org.aya.util.error.SourceFile;
 import org.aya.util.error.SourceFileLocator;
@@ -99,7 +99,7 @@ public sealed interface SingleAyaFile extends GenericAyaFile {
   }
 
   private static @NotNull String nameOf(int i, AyaDocile item) {
-    return item instanceof Def def ? def.ref().name()
+    return item instanceof TyckDef def ? def.ref().name()
       : item instanceof Decl decl ? decl.ref().name() : String.valueOf(i);
   }
 

@@ -152,7 +152,8 @@ public record ShapeMatcher(
             throw new Panic("Invalid name: " + shapedCon.dataId());
           }
 
-          var recognition = discovered.getOrThrow(defVar, () -> new Panic("Not a shaped data"));
+          // TODO[shaped]
+          var recognition = discovered.getOrThrow((AnyDef) defVar.core, () -> new Panic("Not a shaped data"));
           var realShapedCon = recognition.captures().getOrThrow(shapedCon.conId(), () ->
             new Panic("Invalid moment id: " + shapedCon.conId() + " in recognition" + recognition));
 
@@ -192,7 +193,7 @@ public record ShapeMatcher(
           case TermShape.ShapeCall shapeCall -> {
             if (callable.ref() instanceof TyckDef tyckDef) {
               yield captureIfMatches(shapeCall.name(), tyckDef.ref(), () ->
-                discovered.getOption(tyckDef.ref()).map(x -> x.shape().codeShape()).getOrNull() == shapeCall.shape());
+                discovered.getOption(tyckDef).map(x -> x.shape().codeShape()).getOrNull() == shapeCall.shape());
             }
 
             yield false;
@@ -288,8 +289,7 @@ public record ShapeMatcher(
 
   private @NotNull DefVar<?, ?> resolveCon(@NotNull MomentId data, @NotNull CodeShape.GlobalId conId) {
     if (!(captures.resolve(data) instanceof DefVar<?, ?> defVar)) throw new Panic("Not a data");
-    var recog = discovered.getOrThrow(defVar,
-      () -> new Panic("Not a recognized data"));
+    var recog = discovered.getOrThrow((AnyDef) defVar.core, () -> new Panic("Not a recognized data"));
     return recog.captures().getOrThrow(conId, () -> new Panic("No such con"));
   }
 

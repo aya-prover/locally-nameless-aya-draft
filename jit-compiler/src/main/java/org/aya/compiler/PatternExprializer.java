@@ -44,7 +44,7 @@ public class PatternExprializer extends AbstractSerializer<Pat> {
       case Pat.Con con -> {
         var instance = PatternSerializer.getQualified(con);
 
-        builder.append(STR."new \{PatternSerializer.CLASS_PAT_JCON}(\{getInstance(instance)}, ");
+        builder.append(STR."new \{PatternSerializer.CLASS_PAT_CON}(\{getInstance(instance)}, ");
         serialize(con.args());
         builder.append(")");
       }

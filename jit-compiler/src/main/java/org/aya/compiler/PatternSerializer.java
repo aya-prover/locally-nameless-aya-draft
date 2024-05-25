@@ -29,11 +29,12 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   public static final @NotNull String VARIABLE_STATE = "matchState";
   public static final @NotNull String VARIABLE_META_STATE = "metaState";
 
-  static final @NotNull String CLASS_METAPATTERM = getName(MetaPatTerm.class);
-  static final @NotNull String CLASS_PATMATCHER = getName(PatMatcher.class);
+  static final @NotNull String CLASS_META_PAT = getName(MetaPatTerm.class);
+  static final @NotNull String CLASS_PAT_MATCHER = getName(PatMatcher.class);
   // TODO: they are inner class, which contains '$'
   static final @NotNull String CLASS_PAT_ABSURD = getName(Pat.Absurd.class);
   static final @NotNull String CLASS_PAT_BIND = getName(Pat.Bind.class);
+  static final @NotNull String CLASS_PAT_CON = getName(Pat.Con.class);
 
   private final @NotNull String argName;
   private final @NotNull Consumer<PatternSerializer> onStuck;
@@ -62,7 +63,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   private void doSerialize(@NotNull Pat pat, @NotNull String term, @NotNull Runnable continuation) {
     switch (pat) {
       case Pat.Absurd _ -> buildIfElse("Panic.unreachable()", State.Stuck, continuation);
-      case Pat.Bind bind -> {
+      case Pat.Bind _ -> {
         onMatchBind(term);
         continuation.run();
       }
@@ -104,16 +105,16 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       var tmpName = nameGen.nextName(null);
       buildUpdate(VARIABLE_META_STATE, "false");
       buildLocalVar("Term", tmpName, term);
-      buildIfInstanceElse(term, CLASS_METAPATTERM, metaTerm -> {
-        buildUpdate(tmpName, STR."\{CLASS_PATMATCHER}.realSolution(\{metaTerm})");
+      buildIfInstanceElse(term, CLASS_META_PAT, metaTerm -> {
+        buildUpdate(tmpName, STR."\{CLASS_PAT_MATCHER}.realSolution(\{metaTerm})");
         // if the solution is still a meta, we solve it
         // this is a heavy work
-        buildIfInstanceElse(tmpName, CLASS_METAPATTERM, stillMetaTerm -> {
+        buildIfInstanceElse(tmpName, CLASS_META_PAT, stillMetaTerm -> {
           // TODO: we may store all Pattern in somewhere and refer them by something like `.conArgs().get(114514)`
           var exprializer = new PatternExprializer(nameGen);
           exprializer.serialize(pat);
-          var doSolveMetaResult = STR."\{CLASS_PATMATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";
-          appendLine(STR."\{CLASS_SERIALIZEUTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
+          var doSolveMetaResult = STR."\{CLASS_PAT_MATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";
+          appendLine(STR."\{CLASS_SER_UTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
           buildUpdate(VARIABLE_META_STATE, "true");
           // at this moment, the matching is complete,
           // but we still need to generate the code for normal matching

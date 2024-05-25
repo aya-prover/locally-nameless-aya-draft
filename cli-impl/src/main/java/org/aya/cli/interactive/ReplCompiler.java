@@ -26,7 +26,7 @@ import org.aya.resolve.visitor.ExprResolver;
 import org.aya.syntax.GenericAyaFile;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.literate.CodeOptions.NormalizeMode;
 import org.aya.syntax.ref.ModulePath;
@@ -125,7 +125,7 @@ public class ReplCompiler {
   }
 
   /** @param text the text of code to compile, witch might either be a `program` or an `expr`. */
-  public @NotNull Either<ImmutableSeq<Def>, Term> compileToContext(@NotNull String text, @NotNull NormalizeMode normalizeMode) {
+  public @NotNull Either<ImmutableSeq<TyckDef>, Term> compileToContext(@NotNull String text, @NotNull NormalizeMode normalizeMode) {
     if (text.isBlank()) return Either.left(ImmutableSeq.empty());
     return compileToContext(parser -> parser.repl(text), normalizeMode);
   }
@@ -135,7 +135,7 @@ public class ReplCompiler {
    *
    * @see org.aya.cli.single.SingleFileCompiler#compile
    */
-  public @NotNull Either<ImmutableSeq<Def>, Term> compileToContext(
+  public @NotNull Either<ImmutableSeq<TyckDef>, Term> compileToContext(
     @NotNull CheckedFunction<AyaParserImpl, Either<ImmutableSeq<Stmt>, WithPos<Expr>>, IOException> parsing,
     @NotNull NormalizeMode normalizeMode
   ) {
@@ -144,7 +144,7 @@ public class ReplCompiler {
       var programOrExpr = parsing.apply(parser);
       return programOrExpr.map(
         program -> {
-          var newDefs = MutableValue.<ImmutableSeq<Def>>create();
+          var newDefs = MutableValue.<ImmutableSeq<TyckDef>>create();
           var resolveInfo = loader.resolveModule(primFactory, shapeFactory, opSet, context.fork(), program, loader);
           resolveInfo.shapeFactory().discovered = shapeFactory.fork().discovered;
           loader.tyckModule(resolveInfo, ((_, defs) -> newDefs.set(defs)));

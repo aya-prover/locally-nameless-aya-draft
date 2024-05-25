@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.cli.library.source;
 
@@ -14,7 +14,7 @@ import org.aya.syntax.AyaFiles;
 import org.aya.syntax.GenericAyaFile;
 import org.aya.syntax.GenericAyaParser;
 import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.FileUtil;
 import org.aya.util.error.SourceFile;
@@ -42,7 +42,7 @@ public record LibrarySource(
   boolean isLiterate,
   @NotNull MutableList<LibrarySource> imports,
   @NotNull MutableValue<ImmutableSeq<Stmt>> program,
-  @NotNull MutableValue<ImmutableSeq<Def>> tycked,
+  @NotNull MutableValue<ImmutableSeq<TyckDef>> tycked,
   @NotNull MutableValue<ResolveInfo> resolveInfo,
   @NotNull MutableValue<LiterateData> literateData
 ) implements GenericAyaFile {
@@ -67,7 +67,7 @@ public record LibrarySource(
     return owner.locator().displayName(underlyingFile);
   }
 
-  public void notifyTycked(@NotNull ResolveInfo moduleResolve, @NotNull ImmutableSeq<Def> tycked) {
+  public void notifyTycked(@NotNull ResolveInfo moduleResolve, @NotNull ImmutableSeq<TyckDef> tycked) {
     this.resolveInfo.set(moduleResolve);
     this.tycked.set(tycked);
     if (isLiterate) {

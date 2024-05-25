@@ -17,7 +17,7 @@ import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.DataDecl;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
@@ -32,7 +32,7 @@ import java.util.Objects;
 
 public interface Resolver {
   /** resolve a symbol by its qualified name in the whole library */
-  static @NotNull Option<@NotNull Def> resolveDef(
+  static @NotNull Option<@NotNull TyckDef> resolveDef(
     @NotNull LibraryOwner owner,
     @NotNull ImmutableSeq<String> module,
     @NotNull String name
@@ -70,9 +70,9 @@ public interface Resolver {
     });
   }
 
-  private static @NotNull SeqView<Def> withChildren(@NotNull Def def) {
+  private static @NotNull SeqView<TyckDef> withChildren(@NotNull TyckDef def) {
     return switch (def) {
-      case DataDef data -> SeqView.<Def>of(data).appendedAll(data.body);
+      case DataDef data -> SeqView.<TyckDef>of(data).appendedAll(data.body);
       // case ClassDef struct -> SeqView.<Def>of(struct).appendedAll(struct.members);
       default -> SeqView.of(def);
     };
