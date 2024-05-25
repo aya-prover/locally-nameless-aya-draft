@@ -11,7 +11,6 @@ import kala.collection.mutable.MutableList;
 import kala.control.Result;
 import org.aya.normalize.PatMatcher;
 import org.aya.pretty.doc.Doc;
-import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
@@ -157,7 +156,7 @@ public record PatClassifier(
   }
 
   private static @Nullable Indexed<SeqView<Pat>> matches(
-    SeqView<Param> conTele, ConDef con, int ix, Indexed<Pat> subPat
+    SeqView<Param> conTele, ConDefLike con, int ix, Indexed<Pat> subPat
   ) {
     return switch (subPat.pat() instanceof Pat.ShapedInt i ? i.constructorForm() : subPat.pat()) {
       case Pat.Con c when c.ref() == con -> new Indexed<>(c.args().view(), ix);
