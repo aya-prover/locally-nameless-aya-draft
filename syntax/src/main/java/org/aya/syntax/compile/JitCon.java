@@ -23,9 +23,5 @@ public abstract non-sealed class JitCon extends JitTeleDef implements ConDefLike
    * @return a match result, a sequence of substitution if success
    */
   public abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
-
-  @Override
-  public @NotNull DataDefLike dataRef() {
-    return dataType;
-  }
+  @Override public @NotNull DataDefLike dataRef() { return dataType; }
 }

@@ -51,8 +51,5 @@ public final class ConDef extends SubLevelDef implements ConDefLike {
     return (is0 ? equality.a() : equality.b()).instantiateTele(view.view());
   }
 
-  @Override
-  public @NotNull DataDefLike dataRef() {
-    return dataRef.core;
-  }
+  @Override public @NotNull DataDefLike dataRef() { return dataRef.core; }
 }

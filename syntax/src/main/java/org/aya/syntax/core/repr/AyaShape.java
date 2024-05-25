@@ -163,8 +163,6 @@ public enum AyaShape {
       }
     }
 
-    public void importAll(@NotNull Factory other) {
-      discovered.putAll(other.discovered);
-    }
+    public void importAll(@NotNull Factory other) { discovered.putAll(other.discovered); }
   }
 }

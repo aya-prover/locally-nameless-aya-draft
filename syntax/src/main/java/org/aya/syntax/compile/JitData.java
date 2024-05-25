@@ -21,9 +21,11 @@ public abstract non-sealed class JitData extends JitTeleDef implements DataDefLi
    */
   public abstract @NotNull JitCon @NotNull [] constructors();
 
-  @Override
-  public @NotNull ImmutableSeq<ConDefLike> body() {
-    // We should use `constructors()` rather than `constructor`, since `constructors()` will initialize them
+  /**
+   * @implNote We should use `constructors()` rather than `constructors`,
+   * since `constructors()` will initialize them
+   */
+  @Override public @NotNull ImmutableSeq<ConDefLike> body() {
     return ImmutableArray.Unsafe.wrap(constructors());
   }
 }
