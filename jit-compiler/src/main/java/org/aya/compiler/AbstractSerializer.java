@@ -7,6 +7,7 @@ import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.core.def.AnyDef;
+import org.aya.syntax.core.def.TyckAnyDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
@@ -210,7 +211,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   protected static @NotNull String getQualified(@NotNull AnyDef def) {
     return switch (def) {
       case JitDef jitDef -> getJitQualified(jitDef);
-      case TyckDef tyckDef -> getCoreQualified(tyckDef.ref());
+      case TyckAnyDef<?> tyckDef -> getCoreQualified(tyckDef.ref);
     };
   }
 

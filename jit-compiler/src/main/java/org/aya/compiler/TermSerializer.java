@@ -114,7 +114,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
       case FnCall call -> {
         var ref = switch (call.ref()) {
           case JitFn jit -> getInstance(getQualified(jit));
-          case FnDef def -> getInstance(getCoreQualified(def.ref));
+          case FnDef.Delegate def -> getInstance(getCoreQualified(def.ref));
         };
 
         var ulift = call.ulift();

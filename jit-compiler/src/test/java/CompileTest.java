@@ -17,7 +17,6 @@ import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.AppTerm;
