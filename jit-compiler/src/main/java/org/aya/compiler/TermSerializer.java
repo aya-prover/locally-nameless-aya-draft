@@ -92,9 +92,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
         appTerm.fun(), appTerm.arg()
       ));
       case LocalTerm(var idx) -> throw AyaRuntimeException.runtime(new Panic("LocalTerm"));
-      case LamTerm lamTerm -> buildNew(CLASS_LAMTERM, () -> {
-        serializeClosure(lamTerm.body());
-      });
+      case LamTerm lamTerm -> buildNew(CLASS_LAMTERM, () -> serializeClosure(lamTerm.body()));
       case DataCall(var ref, var ulift, var args) -> buildNew(CLASS_JITDATACALL, () -> {
         builder.append(getInstance(getQualified(ref)));
         sep();

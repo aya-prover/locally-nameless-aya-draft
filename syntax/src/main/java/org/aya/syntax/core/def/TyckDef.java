@@ -12,11 +12,8 @@ import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.ModulePath;
-import org.aya.util.binop.Assoc;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 

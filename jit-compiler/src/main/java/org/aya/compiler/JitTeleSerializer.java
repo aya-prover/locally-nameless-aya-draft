@@ -80,9 +80,8 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
    */
   protected void buildTelescope(T unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
     @NotNull ImmutableSeq<Param> tele = unit.telescope();
-    buildSwitch(iTerm, IntRange.closedOpen(0, tele.size()).collect(ImmutableSeq.factory()), kase -> {
-      buildReturn(serializeTermUnderTele(tele.get(kase).type(), teleArgsTerm, kase));
-    }, () -> buildPanic(null));
+    buildSwitch(iTerm, IntRange.closedOpen(0, tele.size()).collect(ImmutableSeq.factory()), kase ->
+      buildReturn(serializeTermUnderTele(tele.get(kase).type(), teleArgsTerm, kase)), () -> buildPanic(null));
   }
 
   /**

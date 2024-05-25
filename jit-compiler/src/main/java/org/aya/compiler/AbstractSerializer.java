@@ -8,7 +8,6 @@ import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.TyckAnyDef;
-import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;

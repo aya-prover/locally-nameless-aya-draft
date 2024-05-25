@@ -30,9 +30,8 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
   @Override public AyaSerializer<ConDef> serialize(ConDef unit) {
     buildFramework(unit, () -> buildMethod("isAvailable",
       ImmutableSeq.of(new JitParam("args", TYPE_IMMTERMSEQ)),
-      STR."\{CLASS_RESULT}<\{CLASS_IMMSEQ}<\{CLASS_TERM}>, \{CLASS_BOOLEAN}>", true, () -> {
-        buildIsAvailable(unit, "args");
-      }));
+      STR."\{CLASS_RESULT}<\{CLASS_IMMSEQ}<\{CLASS_TERM}>, \{CLASS_BOOLEAN}>", true,
+      () -> buildIsAvailable(unit, "args")));
 
     return this;
   }

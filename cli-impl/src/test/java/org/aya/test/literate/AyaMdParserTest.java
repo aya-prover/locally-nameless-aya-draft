@@ -18,7 +18,6 @@ import org.aya.util.FileUtil;
 import org.aya.util.error.Global;
 import org.aya.util.error.SourceFile;
 import org.aya.util.reporter.BufferReporter;
-import org.aya.util.reporter.CollectingReporter;
 import org.aya.util.reporter.IgnoringReporter;
 import org.aya.util.reporter.ThrowingReporter;
 import org.jetbrains.annotations.NotNull;

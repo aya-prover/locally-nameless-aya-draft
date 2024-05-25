@@ -9,7 +9,6 @@ import kala.control.Option;
 import org.aya.normalize.PatMatcher;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
-import org.aya.syntax.core.term.FreeTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalCtx;
