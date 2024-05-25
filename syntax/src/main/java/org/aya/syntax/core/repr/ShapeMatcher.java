@@ -112,8 +112,8 @@ public record ShapeMatcher(
 
   private boolean matchFn(@NotNull FnShape shape, @NotNull FnDef def) {
     // match signature
-    var teleResult = matchTele(shape.tele(), def.telescope)
-      && matchTerm(shape.result(), def.result);
+    var teleResult = matchTele(shape.tele(), def.telescope())
+      && matchTerm(shape.result(), def.result());
     if (!teleResult) return false;
 
     // match body
@@ -170,7 +170,7 @@ public record ShapeMatcher(
   }
 
   private boolean matchData(@NotNull DataShape shape, @NotNull DataDef data) {
-    if (!matchTele(shape.tele(), data.telescope)) return false;
+    if (!matchTele(shape.tele(), data.telescope())) return false;
     return matchInside(() -> captures.put(shape.name(), data.ref),
       () -> matchMany(MatchMode.Eq, shape.cons(), data.body,
         (s, c) -> captureIfMatches(s, c, this::matchCon, ConDef::ref)));

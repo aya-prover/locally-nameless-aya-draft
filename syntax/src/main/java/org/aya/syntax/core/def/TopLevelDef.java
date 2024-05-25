@@ -5,23 +5,22 @@ package org.aya.syntax.core.def;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Top-level definitions.
  */
-public sealed abstract class TopLevelDef<Ret extends Term> implements TyckDef permits DataDef, FnDef, PrimDef {
-  public final @NotNull ImmutableSeq<Param> telescope;
-  public final @NotNull Ret result;
-
-  protected TopLevelDef(
-    @NotNull ImmutableSeq<Param> telescope,
-    @NotNull Ret result
-  ) {
-    this.telescope = telescope;
-    this.result = result;
+public sealed abstract class TopLevelDef implements TyckDef permits DataDef, FnDef, PrimDef {
+  @Override public @NotNull ImmutableSeq<Param> telescope() {
+    var signature = ref().signature;
+    assert signature != null;
+    return signature.param().map(WithPos::data);
   }
 
-  @Override public @NotNull ImmutableSeq<Param> telescope() { return telescope; }
-  @Override public @NotNull Ret result() { return result; }
+  @Override public @NotNull Term result() {
+    var signature = ref().signature;
+    assert signature != null;
+    return signature.result();
+  }
 }

@@ -20,7 +20,7 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
 
   private void buildInvoke(FnDef unit, @NotNull String onStuck, @NotNull String argsTerm) {
     switch (unit.body) {
-      case Either.Left(var expr) -> buildReturn(serializeTermUnderTele(expr, argsTerm, unit.telescope.size()));
+      case Either.Left(var expr) -> buildReturn(serializeTermUnderTele(expr, argsTerm, unit.telescope().size()));
       case Either.Right(var clauses) -> {
         var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm, false,
           s -> s.buildReturn(onStuck), s -> s.buildReturn(onStuck));

@@ -10,11 +10,9 @@ import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.term.Param;
-import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.ModulePath;
-import org.aya.util.ForLSP;
 import org.aya.util.binop.Assoc;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
@@ -33,18 +31,10 @@ public sealed interface TyckDef extends AyaDocile, AnyDef permits SubLevelDef, T
   }
 
   //region Pretty & IDE only APIs
-  /**
-   * For pretty printing and IDE only, same for defTele and defResult.
-   * This does not work well with compiled Aya.
-   */
-  @ForLSP static @NotNull Term defType(@NotNull DefVar<? extends TyckDef, ? extends Decl> defVar) {
-    var signature = Objects.requireNonNull(defVar.signature);
-    return PiTerm.make(signature.rawParams().map(Param::type), signature.result());
-  }
 
   static @NotNull Term defType(@NotNull AnyDef var) {
     return switch (var) {
-      case TyckDef tyckDef -> defType(tyckDef.ref());
+      case TyckDef tyckDef -> Objects.requireNonNull(tyckDef.ref().signature).makePi();
       case JitDef jitDef -> jitDef.makePi();
     };
   }

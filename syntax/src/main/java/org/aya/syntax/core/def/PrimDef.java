@@ -19,13 +19,17 @@ import java.util.Objects;
 
 import static org.aya.syntax.core.term.SortTerm.Type0;
 
-public final class PrimDef extends TopLevelDef<Term> {
+public final class PrimDef extends TopLevelDef {
+  public final @NotNull ImmutableSeq<Param> telescope;
+  public final @NotNull Term result;
+
   public PrimDef(
     @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref,
     @NotNull ImmutableSeq<Param> telescope,
     @NotNull Term result, @NotNull ID name
   ) {
-    super(telescope, result);
+    this.telescope = telescope;
+    this.result = result;
     this.ref = ref;
     this.id = name;
     ref.core = this;

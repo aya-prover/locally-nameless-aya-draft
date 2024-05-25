@@ -4,7 +4,6 @@ package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.DataDecl;
-import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.SortTerm;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
@@ -14,24 +13,19 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author kiva
  */
-public final class DataDef extends TopLevelDef<SortTerm> implements DataDefLike {
+public final class DataDef extends TopLevelDef implements DataDefLike {
   public final @NotNull DefVar<DataDef, DataDecl> ref;
   public final @NotNull ImmutableSeq<ConDef> body;
 
-  public DataDef(
-    @NotNull DefVar<DataDef, DataDecl> ref, @NotNull ImmutableSeq<Param> telescope,
-    SortTerm result, @NotNull ImmutableSeq<ConDef> body
-  ) {
-    super(telescope, result);
+  public DataDef(@NotNull DefVar<DataDef, DataDecl> ref, @NotNull ImmutableSeq<ConDef> body) {
     ref.core = this;
     this.ref = ref;
     this.body = body;
   }
 
-  public @NotNull DefVar<DataDef, DataDecl> ref() { return ref; }
-
-  @Override
-  public @NotNull ImmutableSeq<ConDefLike> body() {
-    return ImmutableSeq.narrow(body);
+  @Override public @NotNull SortTerm result() {
+    return (SortTerm) super.result();
   }
+  public @NotNull DefVar<DataDef, DataDecl> ref() { return ref; }
+  @Override public @NotNull ImmutableSeq<ConDefLike> body() { return ImmutableSeq.narrow(body); }
 }

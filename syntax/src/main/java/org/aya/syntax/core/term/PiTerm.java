@@ -84,8 +84,7 @@ public record PiTerm(@NotNull Term param, @NotNull Closure body) implements Stab
     return pi;
   }
 
-  @ForLSP
-  public static @NotNull Term make(@NotNull SeqLike<@NotNull Term> telescope, @NotNull Term body) {
-    return telescope.view().foldRight(body, (param, cod) -> new PiTerm(param, new Closure.Idx(cod)));
+  @ForLSP public static @NotNull Term make(@NotNull SeqView<@NotNull Term> telescope, @NotNull Term body) {
+    return telescope.foldRight(body, (param, cod) -> new PiTerm(param, new Closure.Idx(cod)));
   }
 }

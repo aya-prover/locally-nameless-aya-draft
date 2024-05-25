@@ -57,11 +57,7 @@ public record StmtTycker(
         var fnRef = fnDecl.ref;
         assert fnRef.signature != null;
 
-        var factory = FnDef.factory(body ->
-          // DO NOT extract the below `fnDecl.signature` to a local var,
-          // we need it to be captured in `fnDecl` so we can assign them later.
-          new FnDef(fnRef, fnRef.signature.rawParams(),
-            fnRef.signature.result(), fnDecl.modifiers, body));
+        var factory = FnDef.factory(body -> new FnDef(fnRef, fnDecl.modifiers, body));
         var teleVars = fnDecl.telescope.map(Expr.Param::ref);
 
         yield switch (fnDecl.body) {
@@ -110,8 +106,7 @@ public record StmtTycker(
         var sig = data.ref.signature;
         assert sig != null;
         for (var kon : data.body) checkHeader(kon);
-        yield new DataDef(data.ref, sig.rawParams(), (SortTerm) sig.result(),
-          data.body.map(kon -> kon.ref.core));
+        yield new DataDef(data.ref, data.body.map(kon -> kon.ref.core));
       }
     };
   }
@@ -244,7 +239,7 @@ public record StmtTycker(
     var core = primRef.core;
     if (prim.telescope.isEmpty() && prim.result == null) {
       var pos = prim.sourcePos();
-      primRef.signature = new Signature(core.telescope.map(param -> new WithPos<>(pos, param)), core.result);
+      primRef.signature = new Signature(core.telescope().map(param -> new WithPos<>(pos, param)), core.result());
       return;
     }
     if (prim.telescope.isNotEmpty()) {

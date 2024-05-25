@@ -57,7 +57,7 @@ public record CallResolver(
     if (!(callable.ref() instanceof TyckDef callee)) return;
     if (!targets.contains(callee)) return;
     var matrix = new CallMatrix<>(callable, caller, callee,
-      caller.telescope.size(), callee.telescope().size());
+      caller.telescope().size(), callee.telescope().size());
     fillMatrix(callable, matrix);
     graph.put(matrix);
   }

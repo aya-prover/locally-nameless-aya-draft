@@ -275,7 +275,7 @@ public class CorePrettier extends BasePrettier<Term> {
           defVar(def.ref()),
           visitTele(tele),
           HAS_TYPE,
-          term(Outer.Free, def.result)
+          term(Outer.Free, def.result())
         });
         var line1sep = Doc.sepNonEmpty(line1);
         yield def.body.fold(
@@ -312,7 +312,7 @@ public class CorePrettier extends BasePrettier<Term> {
           defVar(def.ref()),
           visitTele(richDataTele),
           HAS_TYPE,
-          term(Outer.Free, def.result));
+          term(Outer.Free, def.result()));
         var cons = def.body.view().map(con ->
           // we need to instantiate the tele of con, but we can't modify the CtorDef
           visitCon(con.ref, enrich(con.selfTele.mapIndexed((i, p) -> {

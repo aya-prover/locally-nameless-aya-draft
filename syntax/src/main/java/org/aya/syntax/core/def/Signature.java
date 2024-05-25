@@ -8,6 +8,7 @@ import org.aya.generic.AyaDocile;
 import org.aya.prettier.Tokens;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.term.Param;
+import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.ForLSP;
@@ -45,6 +46,10 @@ public record Signature(
 
   public @NotNull Signature descent(@NotNull UnaryOperator<org.aya.syntax.core.term.Term> f) {
     return new Signature(param.map(p -> p.map(q -> q.descent(f))), f.apply(result));
+  }
+
+  public @NotNull Term makePi() {
+    return PiTerm.make(param.map(x -> x.data().type()).view(), result);
   }
 
   /**

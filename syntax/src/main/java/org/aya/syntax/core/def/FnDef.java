@@ -6,7 +6,6 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.aya.generic.Modifier;
 import org.aya.syntax.concrete.stmt.decl.FnDecl;
-import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
@@ -14,18 +13,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public final class FnDef extends TopLevelDef<Term> implements FnDefLike {
+public final class FnDef extends TopLevelDef implements FnDefLike {
   public final @NotNull EnumSet<Modifier> modifiers;
   public final @NotNull DefVar<FnDef, FnDecl> ref;
   public final @NotNull Either<Term, ImmutableSeq<Term.Matching>> body;
 
   public FnDef(
-    @NotNull DefVar<FnDef, FnDecl> ref, @NotNull ImmutableSeq<Param> telescope,
-    @NotNull Term result,
+    @NotNull DefVar<FnDef, FnDecl> ref,
     @NotNull EnumSet<Modifier> modifiers,
     @NotNull Either<Term, ImmutableSeq<Term.Matching>> body
   ) {
-    super(telescope, result);
     ref.core = this;
     this.ref = ref;
     this.modifiers = modifiers;
