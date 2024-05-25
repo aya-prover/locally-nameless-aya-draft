@@ -13,10 +13,7 @@ import kala.tuple.Tuple;
 import kala.tuple.Tuple2;
 import kala.value.MutableValue;
 import org.aya.generic.Modifier;
-import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.def.TyckDef;
+import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.aya.syntax.core.term.*;
@@ -40,7 +37,7 @@ public record ShapeMatcher(
   @NotNull Captures captures,
   @NotNull MutableMap<AnyVar, AnyVar> teleSubst,
   // --------
-  @NotNull ImmutableMap<DefVar<?, ?>, ShapeRecognition> discovered
+  @NotNull ImmutableMap<AnyDef, ShapeRecognition> discovered
 ) {
 
   public record Captures(
@@ -92,7 +89,7 @@ public record ShapeMatcher(
     this(ImmutableMap.empty());
   }
 
-  public ShapeMatcher(@NotNull ImmutableMap<DefVar<?, ?>, ShapeRecognition> discovered) {
+  public ShapeMatcher(@NotNull ImmutableMap<AnyDef, ShapeRecognition> discovered) {
     this(Captures.create(), MutableMap.create(), discovered);
   }
 

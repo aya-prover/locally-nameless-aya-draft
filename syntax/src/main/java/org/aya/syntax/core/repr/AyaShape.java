@@ -134,25 +134,25 @@ public enum AyaShape {
     return null;
   }
 
-  public record FindImpl(@NotNull TyckDef def, @NotNull ShapeRecognition recog) { }
+  public record FindImpl(@NotNull AnyDef def, @NotNull ShapeRecognition recog) { }
   public static class Factory {
-    public @NotNull MutableMap<DefVar<?, ?>, ShapeRecognition> discovered = MutableLinkedHashMap.of();
+    public @NotNull MutableMap<AnyDef, ShapeRecognition> discovered = MutableLinkedHashMap.of();
 
     public @NotNull ImmutableSeq<FindImpl> findImpl(@NotNull AyaShape shape) {
       return discovered.view()
-        .map((a, b) -> new FindImpl((TyckDef) a.core, b))
+        .map(FindImpl::new)
         .filter(t -> t.recog.shape() == shape)
         .toImmutableSeq();
     }
 
-    public @NotNull Option<ShapeRecognition> find(@Nullable TyckDef def) {
+    public @NotNull Option<ShapeRecognition> find(@Nullable AnyDef def) {
       if (def == null) return Option.none();
-      return discovered.getOption(def.ref());
+      return discovered.getOption(def);
     }
 
     public void bonjour(@NotNull TyckDef def, @NotNull ShapeRecognition shape) {
       // TODO[literal]: what if a def has multiple shapes?
-      discovered.put(def.ref(), shape);
+      discovered.put(def, shape);
     }
 
     /** Discovery of shaped literals */
