@@ -12,6 +12,7 @@ import kala.control.Result;
 import org.aya.normalize.PatMatcher;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.core.def.ConDef;
+import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.term.*;
@@ -95,8 +96,7 @@ public record PatClassifier(
           // there are no clauses starting with a constructor pattern -- we don't need a split!
           clauses.noneMatch(subPat -> subPat.pat() instanceof Pat.Con || subPat.pat() instanceof Pat.ShapedInt)
         ) break;
-        var data = dataCall.ref();
-        var body = data.core.body;
+        var body = dataCall.ref().body();
 
         // Special optimization for literals
         var lits = clauses.mapNotNull(cl -> cl.pat() instanceof Pat.ShapedInt i ?
@@ -175,7 +175,7 @@ public record PatClassifier(
   }
 
   private @Nullable SeqView<Param>
-  conTele(@NotNull ImmutableSeq<? extends Indexed<?>> clauses, DataCall dataCall, ConDef con) {
+  conTele(@NotNull ImmutableSeq<? extends Indexed<?>> clauses, DataCall dataCall, ConDefLike con) {
     var conTele = con.selfTele.view();
     // Check if this constructor is available by doing the obvious thing
     return switch (PatternTycker.checkAvail(dataCall, con, state())) {
