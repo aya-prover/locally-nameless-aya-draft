@@ -4,7 +4,6 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.FnDefLike;

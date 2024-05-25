@@ -85,7 +85,7 @@ public enum CodeAttrProcessor implements DelimiterProcessor {
     // Unlink the tmp nodes
     for (var node : toUnlink) node.unlink();
 
-    if (dist.map.size() > 0) {
+    if (!dist.map.isEmpty()) {
       var imageAttributes = new Attr(new CodeOptions(mode, dist, show));
 
       // The new node is added as a child of the image node to which the attributes apply.

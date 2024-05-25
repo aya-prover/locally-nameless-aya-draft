@@ -5,7 +5,6 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.core.pat.Pat;
-import org.aya.util.IterableUtil;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 

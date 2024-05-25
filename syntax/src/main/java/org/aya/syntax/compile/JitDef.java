@@ -28,8 +28,7 @@ public abstract sealed class JitDef extends JitTele implements AnyDef permits Ji
 
   @Override public @NotNull ModulePath fileModule() { return ModulePath.of(metadata().fileModule()); }
 
-  @Override
-  public @NotNull ModulePath module() {
+  @Override public @NotNull ModulePath module() {
     return new ModulePath(ImmutableArray.Unsafe.wrap(metadata().module()));
   }
 
