@@ -4,7 +4,10 @@ package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
+import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.compile.JitTele;
+import org.aya.syntax.core.def.AnyDef;
+import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
@@ -117,10 +120,6 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."throw new \{CLASS_PANIC}(\{message});");
   }
 
-  public @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {
-    return ImmutableSeq.fill(size, idx -> STR."\{term}[\{idx}]");
-  }
-
   public @NotNull ImmutableSeq<String> fromImmutableSeq(@NotNull String term, int size) {
     return ImmutableSeq.fill(size, idx -> STR."\{term}.get(\{idx})");
   }
@@ -185,8 +184,8 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected @NotNull String serializeTermUnderTele(@NotNull Term term, @NotNull String argsTerm, int size) {
-    return new TermSerializer(this.nameGen, fromArray(argsTerm, size))
-        .serialize(term).result();
+    return new TermSerializer(this.nameGen, fromImmutableSeq(argsTerm, size))
+      .serialize(term).result();
   }
 
   protected static @NotNull String isNull(@NotNull String term) {
@@ -197,15 +196,22 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return STR."Arrays.copyOf(\{arrayTerm}, \{length})";
   }
 
-  protected static @NotNull String getQualified(@NotNull DefVar<?, ?> ref) {
+  protected static @NotNull String getCoreQualified(@NotNull DefVar<?, ?> ref) {
     return Objects.requireNonNull(ref.module).module().view().appended(javify(ref))
       .joinToString(".");
   }
 
   // TODO: produce name like "AYA_Data_Vec_Vec" rather than just "Vec", so that they won't conflict with our import
   // then we can make all `CLASS_*` thing become unqualified.
-  protected static @NotNull String getQualified(@NotNull JitTele ref) {
+  protected static @NotNull String getJitQualified(@NotNull JitTele ref) {
     return ref.getClass().getName();
+  }
+
+  protected static @NotNull String getQualified(@NotNull AnyDef def) {
+    return switch (def) {
+      case JitDef jitDef -> getJitQualified(jitDef);
+      case TyckDef tyckDef -> getCoreQualified(tyckDef.ref());
+    };
   }
 
   protected static @NotNull String getInstance(@NotNull String defName) {

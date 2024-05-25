@@ -50,6 +50,9 @@ public final class ConDef extends SubLevelDef implements ConDefLike {
     assert equality != null;
     return (is0 ? equality.a() : equality.b()).instantiateTele(view.view());
   }
+  @Override public @NotNull ImmutableSeq<Param> selfTele(@NotNull ImmutableSeq<Term> ownerArgs) {
+    return Param.substTele(selfTele.view(), ownerArgs.view()).toImmutableSeq();
+  }
 
   @Override public @NotNull DataDefLike dataRef() { return dataRef.core; }
 }

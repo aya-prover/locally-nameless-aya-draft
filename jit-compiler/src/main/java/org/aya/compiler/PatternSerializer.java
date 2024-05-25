@@ -180,7 +180,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   static @NotNull String getQualified(@NotNull Pat.Con conLike) {
     return switch (conLike.ref()) {
       case JitCon jit -> getQualified(jit);
-      case ConDef def -> getQualified(def.ref);
+      case ConDef def -> getCoreQualified(def.ref);
     };
   }
 
@@ -200,7 +200,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       bindCount = 0;
       doSerialize(
         clause.patterns().view(),
-        fromArray(argName, clause.patterns.size()).view(),
+        fromImmutableSeq(argName, clause.patterns.size()).view(),
         () -> updateState(jumpCode));
 
       buildIf(STR."\{VARIABLE_STATE} > 0", this::buildBreak);

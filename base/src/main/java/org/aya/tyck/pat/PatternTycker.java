@@ -26,7 +26,6 @@ import org.aya.syntax.core.term.SigmaTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.Jdg;
@@ -147,7 +146,7 @@ public class PatternTycker implements Problematic, Stateful {
 
         // It is possible that `con.params()` is empty.
         var patterns = tyckInner(
-          Param.substTele(conCore.selfTele.view(), realCon.args.view()),
+          conCore.selfTele(realCon.args).view(),
           con.params().view(),
           pattern);
 

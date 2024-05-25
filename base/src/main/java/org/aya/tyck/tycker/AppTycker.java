@@ -76,14 +76,13 @@ public interface AppTycker {
         var ownerArgs = realArgs.take(ownerTele.size());
         var conArgs = realArgs.drop(ownerTele.size());
 
-        var type = fullSignature.result(args);
-        var argsSeq = ImmutableArray.from(args);
+        var type = fullSignature.result(realArgs);
         var shape = state.shapeFactory().find(dataVar.core)
           .mapNotNull(recog -> {
             if (recog.shape() == AyaShape.NAT_SHAPE) {
               var head = AyaShape.ofCon(conVar, recog, new DataCall(dataVar, 0, ImmutableSeq.empty()));
               assert head != null : "bad ShapeFactory";
-              return new RuleReducer.Con(head, 0, ImmutableSeq.empty(), argsSeq);
+              return new RuleReducer.Con(head, 0, ImmutableSeq.empty(), realArgs);
             }
 
             return null;

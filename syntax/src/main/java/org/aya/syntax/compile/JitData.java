@@ -8,7 +8,7 @@ import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.def.DataDefLike;
 import org.jetbrains.annotations.NotNull;
 
-public abstract non-sealed class JitData extends JitTeleDef implements DataDefLike {
+public abstract non-sealed class JitData extends JitDef implements DataDefLike {
   protected final JitCon @NotNull [] constructors;
 
   protected JitData(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, int conAmount) {

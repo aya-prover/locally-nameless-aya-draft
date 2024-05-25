@@ -112,7 +112,7 @@ public record Synthesizer(
       case IntegerTerm lit -> lit.type();
       case ListTerm list -> list.type();
       case Callable.Tele teleCall -> TyckDef.defSignature(teleCall.ref())
-        .result(teleCall.args().toArray(Term[]::new))
+        .result(teleCall.args())
         .elevate(teleCall.ulift());
 
       case MetaCall(var ref, var args) when ref.req() instanceof MetaVar.OfType(var type) ->

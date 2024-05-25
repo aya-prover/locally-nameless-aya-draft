@@ -140,7 +140,7 @@ public record PatClassifier(
               continue;
             }
           }
-          var classes = classifyN(subst, conTele, matches, fuel1);
+          var classes = classifyN(subst, conTele.view(), matches, fuel1);
           buffer.appendAll(classes.map(args ->
             new PatClass<>(new ConCall(conHead, args.term()), args.cls())));
         }
@@ -156,11 +156,11 @@ public record PatClassifier(
   }
 
   private static @Nullable Indexed<SeqView<Pat>> matches(
-    SeqView<Param> conTele, ConDefLike con, int ix, Indexed<Pat> subPat
+    ImmutableSeq<Param> conTele, ConDefLike con, int ix, Indexed<Pat> subPat
   ) {
     return switch (subPat.pat() instanceof Pat.ShapedInt i ? i.constructorForm() : subPat.pat()) {
       case Pat.Con c when c.ref() == con -> new Indexed<>(c.args().view(), ix);
-      case Pat.Bind _ -> new Indexed<>(conTele.map(Param::toFreshPat), ix);
+      case Pat.Bind _ -> new Indexed<>(conTele.view().map(Param::toFreshPat), ix);
       default -> null;
     };
   }
@@ -173,9 +173,8 @@ public record PatClassifier(
       new ClausesProblem.FMDomination(i, pos)), classes);
   }
 
-  private @Nullable SeqView<Param>
+  private @Nullable ImmutableSeq<Param>
   conTele(@NotNull ImmutableSeq<? extends Indexed<?>> clauses, DataCall dataCall, ConDefLike con) {
-    var conTele = con.selfTele.view();
     // Check if this constructor is available by doing the obvious thing
     return switch (PatternTycker.checkAvail(dataCall, con, state())) {
       // If not, check the reason why: it may fail negatively or positively
@@ -191,11 +190,11 @@ public record PatClassifier(
             fail(new ClausesProblem.UnsureCase(pos, con, dataCall));
             yield null;
           }
-          yield conTele;
+          yield con.selfTele(ImmutableSeq.empty());
         } else yield null;
         // ^ If fails positively, this would be an impossible case
       }
-      case Result.Ok(var ok) -> Param.substTele(conTele, ok.view());
+      case Result.Ok(var ok) -> con.selfTele(ok);
     };
   }
 }

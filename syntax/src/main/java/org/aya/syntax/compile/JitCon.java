@@ -3,13 +3,19 @@
 package org.aya.syntax.compile;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableArrayList;
 import kala.control.Result;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.def.DataDefLike;
+import org.aya.syntax.core.term.FreeTerm;
+import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.aya.syntax.ref.GenerateKind;
+import org.aya.syntax.ref.LocalVar;
+import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 
-public abstract non-sealed class JitCon extends JitTeleDef implements ConDefLike {
+public abstract non-sealed class JitCon extends JitDef implements ConDefLike {
   public final JitData dataType;
 
   protected JitCon(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, JitData dataType) {
@@ -19,9 +25,30 @@ public abstract non-sealed class JitCon extends JitTeleDef implements ConDefLike
 
   /**
    * Whether this constructor is available of data type
+   *
    * @param args the argument to the data type
    * @return a match result, a sequence of substitution if success
    */
   public abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
   @Override public @NotNull DataDefLike dataRef() { return dataType; }
+
+  @Override public @NotNull ImmutableSeq<Param> selfTele(@NotNull ImmutableSeq<Term> ownerArgs) {
+    var ownerArgsSize = ownerArgs.size();
+    var selfArgsSize = telescopeSize - ownerArgsSize;
+    var args = MutableArrayList.<Term>create(telescopeSize);
+    args.appendAll(ownerArgs);
+    var tele = MutableArrayList.<Param>create(selfArgsSize);
+
+    for (var i = 0; i < selfArgsSize; ++i) {
+      var realIdx = ownerArgsSize + i;
+      var name = telescopeNames[realIdx];
+      var licit = telescopeLicit[realIdx];
+      var type = telescope(realIdx, args).instantiateTele(args.view());
+      var bind = new LocalVar(name, SourcePos.NONE, GenerateKind.Basic.Tyck);
+      args.append(new FreeTerm(bind));
+      tele.append(new Param(name, type, licit));
+    }
+
+    return tele.toImmutableSeq();
+  }
 }

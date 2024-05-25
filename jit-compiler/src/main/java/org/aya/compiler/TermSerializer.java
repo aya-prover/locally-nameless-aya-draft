@@ -61,10 +61,6 @@ public class TermSerializer extends AbstractSerializer<Term> {
     builder.append(", ");
   }
 
-  private void buildArray(@NotNull String typeName, @NotNull ImmutableSeq<Term> terms) {
-    doSerialize(STR."new \{typeName}[] { ", " }", terms);
-  }
-
   private void buildImmutableSeq(@NotNull String typeName, @NotNull ImmutableSeq<Term> terms) {
     if (terms.isEmpty()) {
       builder.append(STR."\{CLASS_IMMSEQ}.empty()");
@@ -118,7 +114,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
       case FnCall call -> {
         var ref = switch (call.ref()) {
           case JitFn jit -> getInstance(getQualified(jit));
-          case FnDef def -> getInstance(getQualified(def.ref));
+          case FnDef def -> getInstance(getCoreQualified(def.ref));
         };
 
         var ulift = call.ulift();
@@ -135,7 +131,7 @@ public class TermSerializer extends AbstractSerializer<Term> {
         });
 
         sep();
-        buildArray(CLASS_TERM, args);
+        buildImmutableSeq(CLASS_TERM, args);
         builder.append(")");
         if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
       }

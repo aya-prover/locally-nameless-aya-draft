@@ -40,10 +40,10 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
         // Check whether this {bind} is a Con
         var conMaybe = context.iterate(ctx -> isCon(ctx.getUnqualifiedLocalMaybe(bind.bind().name(), pos)));
         if (conMaybe != null) {
-          assert conMaybe.concrete instanceof DataCon || conMaybe.core instanceof ConDef;
+          var cast = castConVar(conMaybe);
           // It wants to be a con!
           addReference(conMaybe);
-          yield new Pattern.Con(pos, (DefVar<? extends ConDef, ? extends DataCon>) conMaybe);
+          yield new Pattern.Con(pos, cast);
         }
 
         // It is not a constructor, it is a bind
@@ -56,9 +56,9 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
           throw new Panic("QualifiedRef#qualifiedID should be qualified");
         var conMaybe = context.iterate(ctx -> isCon(ctx.getQualifiedLocalMaybe(mod, qid.name(), pos)));
         if (conMaybe != null) {
-          assert conMaybe.concrete instanceof DataCon || conMaybe.core instanceof ConDef;
-          addReference(conMaybe);
-          yield new Pattern.Con(pos, (DefVar<? extends ConDef, ? extends DataCon>) conMaybe);
+          var cast = castConVar(conMaybe);
+          addReference(cast);
+          yield new Pattern.Con(pos, cast);
         }
 
         // !! No Such Thing !!
@@ -70,6 +70,12 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
       }
       default -> pat;
     };
+  }
+
+  @SuppressWarnings("unchecked") private static @NotNull DefVar<? extends ConDef, ? extends DataCon>
+  castConVar(DefVar<?, ?> conMaybe) {
+    assert conMaybe.concrete instanceof DataCon || conMaybe.core instanceof ConDef;
+    return (DefVar<? extends ConDef, ? extends DataCon>) conMaybe;
   }
 
   private void addReference(@NotNull DefVar<?, ?> defVar) {

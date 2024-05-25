@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.core.Closure;
@@ -10,6 +11,9 @@ import org.aya.syntax.core.term.PiTerm;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A Jit telescope, which is efficient when instantiating parameters/result, but not friendly with DeBruijn Index.
+ */
 public abstract class JitTele {
   public final int telescopeSize;
   public final boolean[] telescopeLicit;
@@ -18,12 +22,18 @@ public abstract class JitTele {
   /**
    * @param teleArgs the arguments before {@param i}, for constructor, it also contains the arguments to the data
    */
-  public abstract @NotNull Term telescope(int i, Term... teleArgs);
+  public final @NotNull Term telescope(int i, Term[] teleArgs) {
+    return telescope(i, ImmutableArray.Unsafe.wrap(teleArgs));
+  }
+  public abstract @NotNull Term telescope(int i, Seq<Term> teleArgs);
   public Param telescopeRich(int i, Term... teleArgs) {
     return new Param(telescopeNames[i], telescope(i, teleArgs), telescopeLicit[i]);
   }
 
-  public abstract @NotNull Term result(Term... teleArgs);
+  public final @NotNull Term result(Term... teleArgs) {
+    return result(ImmutableArray.Unsafe.wrap(teleArgs));
+  }
+  public abstract @NotNull Term result(Seq<Term> teleArgs);
 
   protected JitTele(int telescopeSize, boolean[] telescopeLicit, String[] telescopeNames) {
     this.telescopeSize = telescopeSize;
@@ -32,17 +42,13 @@ public abstract class JitTele {
   }
 
   public @NotNull Term makePi() {
-    return new PiBuilder().make(0);
+    return new PiBuilder().make(0, ImmutableSeq.empty());
   }
 
   private class PiBuilder {
-    private final Term[] args = new Term[telescopeSize];
-    public @NotNull Term make(int i) {
+    public @NotNull Term make(int i, ImmutableSeq<Term> args) {
       return i == telescopeSize ? result(args) :
-        new PiTerm(telescope(i, args), new Closure.Jit(arg -> {
-          args[i] = arg;
-          return make(i + 1);
-        }));
+        new PiTerm(telescope(i, args), new Closure.Jit(arg -> make(i + 1, args.appended(arg))));
     }
   }
 
@@ -58,14 +64,12 @@ public abstract class JitTele {
       }
       this.params = params;
     }
-    @Override public @NotNull Term telescope(int i, Term... teleArgs) {
-      ImmutableSeq<Term> unsafeView = ImmutableArray.Unsafe.wrap(teleArgs);
-      return params.get(i).type().instantiateTele(unsafeView.sliceView(0, i));
+    @Override public @NotNull Term telescope(int i, Seq<Term> teleArgs) {
+      return params.get(i).type().instantiateTele(teleArgs.sliceView(0, i));
     }
-    @Override public @NotNull Term result(Term... teleArgs) {
-      assert teleArgs.length == telescopeSize;
-      ImmutableSeq<Term> unsafeView = ImmutableArray.Unsafe.wrap(teleArgs);
-      return result.instantiateTele(unsafeView.view());
+    @Override public @NotNull Term result(Seq<Term> teleArgs) {
+      assert teleArgs.size() == telescopeSize;
+      return result.instantiateTele(teleArgs.view());
     }
   }
 }

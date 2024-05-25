@@ -7,7 +7,7 @@ import org.aya.generic.AyaDocile;
 import org.aya.prettier.CorePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.syntax.compile.JitTele;
-import org.aya.syntax.compile.JitTeleDef;
+import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.PiTerm;
@@ -45,7 +45,7 @@ public sealed interface TyckDef extends AyaDocile, AnyDef permits SubLevelDef, T
   static @NotNull Term defType(@NotNull AnyDef var) {
     return switch (var) {
       case TyckDef tyckDef -> defType(tyckDef.ref());
-      case JitTeleDef jitDef -> jitDef.makePi();
+      case JitDef jitDef -> jitDef.makePi();
     };
   }
   //endregion
@@ -61,7 +61,7 @@ public sealed interface TyckDef extends AyaDocile, AnyDef permits SubLevelDef, T
   static @NotNull JitTele defSignature(@NotNull AnyDef def) {
     return switch (def) {
       case TyckDef tyckDef -> defSignature(tyckDef.ref());
-      case JitTeleDef jitDef -> jitDef;
+      case JitDef jitDef -> jitDef;
     };
   }
 

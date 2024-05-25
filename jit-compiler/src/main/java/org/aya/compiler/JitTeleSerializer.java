@@ -82,7 +82,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
   }
 
   /**
-   * @see org.aya.syntax.compile.JitTele#result(Term...)
+   * @see org.aya.syntax.compile.JitTele#result
    */
   protected void buildResult(T unit, @NotNull String teleArgsTerm) {
     buildReturn(serializeTermUnderTele(unit.result(), teleArgsTerm, unit.telescope().size()));

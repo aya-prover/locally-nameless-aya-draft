@@ -14,33 +14,25 @@ import org.jetbrains.annotations.NotNull;
  *
  * @implNote every definition should be annotated by {@link CompiledAya}
  */
-public abstract sealed class JitTeleDef extends JitTele implements AnyDef permits JitCon, JitData, JitFn {
-  protected JitTeleDef(int telescopeSize, boolean[] telescopeLicit, String[] telescopeNames) {
+public abstract sealed class JitDef extends JitTele implements AnyDef permits JitCon, JitData, JitFn {
+  private CompiledAya metadata;
+  protected JitDef(int telescopeSize, boolean[] telescopeLicit, String[] telescopeNames) {
     super(telescopeSize, telescopeLicit, telescopeNames);
   }
 
   public @NotNull CompiledAya metadata() {
-    // TODO: lazy
-    var metadata = getClass().getAnnotation(CompiledAya.class);
+    if (metadata == null) metadata = getClass().getAnnotation(CompiledAya.class);
     if (metadata == null) throw new Panic(STR."No @CompiledAya on \{getClass().getName()}");
     return metadata;
   }
 
-  @Override
-  public @NotNull ModulePath fileModule() {
-    return ModulePath.of(metadata().fileModule());
-  }
+  @Override public @NotNull ModulePath fileModule() { return ModulePath.of(metadata().fileModule()); }
 
   @Override
   public @NotNull ModulePath module() {
     return new ModulePath(ImmutableArray.Unsafe.wrap(metadata().module()));
   }
 
-  @Override
-  public @NotNull String name() { return metadata().name(); }
-
-  @Override
-  public @NotNull Assoc assoc() {
-    return metadata().assoc();
-  }
+  @Override public @NotNull String name() { return metadata().name(); }
+  @Override public @NotNull Assoc assoc() { return metadata().assoc(); }
 }

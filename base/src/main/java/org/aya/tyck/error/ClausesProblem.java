@@ -7,6 +7,7 @@ import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
+import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.term.Term;
@@ -104,7 +105,11 @@ public sealed interface ClausesProblem extends Problem {
       return Doc.vcat(
         // Use `unsure` instead of `not sure`, which is used in Agda
         Doc.english("I'm unsure if there should be a case for constructor"),
-        Doc.par(1, con.toDoc(options)),
+        Doc.par(1, switch (con) {
+          // TODO: toDoc for compiled con
+          case JitCon jitCon -> Doc.plain(jitCon.name());
+          case ConDef conDef -> conDef.toDoc(options);
+        }),
         Doc.english("because I got stuck on the index unification of type"),
         Doc.par(1, dataCall.toDoc(options))
       );

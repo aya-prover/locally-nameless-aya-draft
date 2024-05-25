@@ -3,7 +3,7 @@
 package org.aya.syntax.core.def;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.syntax.compile.JitTeleDef;
+import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.binop.Assoc;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
  * </pre>
  * where the arrows indicate mean ""is superclass of
  */
-public sealed interface AnyDef permits JitTeleDef, ConDefLike, DataDefLike, FnDefLike, TyckDef {
+public sealed interface AnyDef permits JitDef, ConDefLike, DataDefLike, FnDefLike, TyckDef {
   /**
    * Returns which file level module this def lives in.
    */
