@@ -16,6 +16,7 @@ import org.aya.syntax.ref.ModulePath;
 import org.aya.util.binop.Assoc;
 import org.aya.util.prettier.PrettierOptions;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -25,7 +26,7 @@ import java.util.Objects;
  *
  * @author zaoqi
  */
-public sealed interface TyckDef extends AyaDocile, AnyDef permits SubLevelDef, TopLevelDef {
+public sealed interface TyckDef extends AyaDocile permits SubLevelDef, TopLevelDef {
   @Override default @NotNull Doc toDoc(@NotNull PrettierOptions options) {
     return new CorePrettier(options).def(this);
   }
@@ -34,7 +35,7 @@ public sealed interface TyckDef extends AyaDocile, AnyDef permits SubLevelDef, T
 
   static @NotNull Term defType(@NotNull AnyDef var) {
     return switch (var) {
-      case TyckDef tyckDef -> Objects.requireNonNull(tyckDef.ref().signature).makePi();
+      case TyckAnyDef<?> tyckDef -> Objects.requireNonNull(tyckDef.ref.signature).makePi();
       case JitDef jitDef -> jitDef.makePi();
     };
   }
@@ -50,7 +51,7 @@ public sealed interface TyckDef extends AyaDocile, AnyDef permits SubLevelDef, T
 
   static @NotNull JitTele defSignature(@NotNull AnyDef def) {
     return switch (def) {
-      case TyckDef tyckDef -> defSignature(tyckDef.ref());
+      case TyckAnyDef<?> tyckDef -> defSignature(tyckDef.ref);
       case JitDef jitDef -> jitDef;
     };
   }
@@ -58,26 +59,4 @@ public sealed interface TyckDef extends AyaDocile, AnyDef permits SubLevelDef, T
   @NotNull DefVar<? extends TyckDef, ?> ref();
   @NotNull Term result();
   @NotNull ImmutableSeq<Param> telescope();
-
-  @Override default @NotNull ModulePath fileModule() {
-    var fileModule = ref().fileModule;
-    assert fileModule != null;
-    return fileModule;
-  }
-
-  @Override default @NotNull ModulePath module() {
-    var module = ref().module;
-    assert module != null;
-    return module;
-  }
-
-  @Override
-  default @NotNull String name() {
-    return ref().name();
-  }
-
-  @Override
-  default @NotNull Assoc assoc() {
-    return ref().assoc();
-  }
 }

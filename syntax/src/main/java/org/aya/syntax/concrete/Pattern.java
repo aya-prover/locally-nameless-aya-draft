@@ -80,10 +80,10 @@ public sealed interface Pattern extends AyaDocile {
   }
 
   record Con(
-    @NotNull WithPos<@NotNull DefVar<? extends ConDef, ? extends DataCon>> resolved,
+    @NotNull WithPos<@NotNull DefVar<ConDef, DataCon>> resolved,
     @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params
   ) implements Pattern {
-    public Con(@NotNull SourcePos pos, @NotNull DefVar<? extends ConDef, ? extends DataCon> maybe) {
+    public Con(@NotNull SourcePos pos, @NotNull DefVar<ConDef, DataCon> maybe) {
       this(new WithPos<>(pos, maybe), ImmutableSeq.empty());
     }
 

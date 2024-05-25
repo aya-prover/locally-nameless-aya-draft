@@ -19,6 +19,7 @@ import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.literate.CodeOptions;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
+import org.aya.tyck.tycker.Stateful;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +31,7 @@ import static org.aya.normalize.PatMatcher.State.Stuck;
  * Unlike in pre-v0.30 Aya, we use only one normalizer, only doing head reduction,
  * and we merge conservative normalizer and the whnf normalizer.
  * <p>
- * Even though it has a field {@link #state}, do not make it extend {@link org.aya.tyck.tycker.Stateful},
+ * Even though it has a field {@link #state}, do not make it extend {@link Stateful},
  * because there is a method called whnf in it, which clashes with the one here.
  */
 public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar> opaque)
@@ -51,20 +52,26 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         var result = app.make();
         yield result == app ? result : whnf(result);
       }
-      case FnCall(FnDef ref, int ulift, var args) when !isOpaque(ref) -> switch (ref.body) {
-        case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
-        case Either.Right(var clauses) -> {
-          var result = tryUnfoldClauses(clauses, args, ulift, ref.is(Modifier.Overlap));
-          // we may get stuck
-          if (result.isEmpty()) yield term;
-          yield whnf(result.get());
+      case FnCall(var fn, int ulift, var args) -> switch (fn) {
+        case JitFn instance -> {
+          var result = instance.invoke(term, (Term[]) args.toArray()).elevate(ulift);
+          if (term != result) yield whnf(result);
+          yield result;
+        }
+        case FnDef.Delegate delegate -> {
+          FnDef core = delegate.core();
+          if (!isOpaque(core)) switch (core.body) {
+            case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
+            case Either.Right(var clauses) -> {
+              var result = tryUnfoldClauses(clauses, args, ulift, core.is(Modifier.Overlap));
+              // we may get stuck
+              if (result.isEmpty()) yield term;
+              yield whnf(result.get());
+            }
+          }
+          yield term;
         }
       };
-      case FnCall(JitFn instance, var ulift, var args) -> {
-        var result = instance.invoke(term, (Term[]) args.toArray()).elevate(ulift);
-        if (term != result) yield whnf(result);
-        yield result;
-      }
       case RuleReducer reduceRule -> {
         var result = reduceRule.rule().apply(reduceRule.args());
         if (result != null) yield apply(result);

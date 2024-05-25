@@ -10,6 +10,7 @@ import kala.control.Result;
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.DataDef;
+import org.aya.syntax.core.def.DataDefLike;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.*;
@@ -209,7 +210,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           yield new Jdg.Default(new MetaLitTerm(expr.sourcePos(), integer, defs, type), type);
         }
         var match = defs.getFirst();
-        var type = new DataCall((DataDef) match.def(), 0, ImmutableSeq.empty());
+        var type = new DataCall((DataDefLike) match.def(), 0, ImmutableSeq.empty());
         yield new Jdg.Default(new IntegerTerm(integer, match.recog(), type), type);
       }
       case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
@@ -241,10 +242,10 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
           yield new Jdg.Default(new MetaLitTerm(expr.sourcePos(), results, defs, tyMeta), tyMeta);
         }
         var match = defs.getFirst();
-        var def = (DataDef) match.def();
+        var def = (DataDefLike) match.def();
 
         // List (A : Type)
-        var sort = TyckDef.defSignature(def.ref).telescopeRich(0);
+        var sort = TyckDef.defSignature(def).telescopeRich(0);
         // the sort of type below.
         var elementTy = freshMeta(sort.name(), expr.sourcePos(), new MetaVar.OfType(sort.type()));
 

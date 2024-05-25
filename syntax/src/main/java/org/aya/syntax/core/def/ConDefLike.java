@@ -8,7 +8,7 @@ import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface ConDefLike extends AnyDef permits JitCon, ConDef {
+public sealed interface ConDefLike extends AnyDef permits JitCon, ConDef.Delegate {
   @NotNull DataDefLike dataRef();
 
   /** @return true if this is a path constructor */

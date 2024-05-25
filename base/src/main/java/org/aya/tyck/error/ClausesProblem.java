@@ -108,7 +108,7 @@ public sealed interface ClausesProblem extends Problem {
         Doc.par(1, switch (con) {
           // TODO: toDoc for compiled con
           case JitCon jitCon -> Doc.plain(jitCon.name());
-          case ConDef conDef -> conDef.toDoc(options);
+          case ConDef.Delegate conDef -> conDef.core().toDoc(options);
         }),
         Doc.english("because I got stuck on the index unification of type"),
         Doc.par(1, dataCall.toDoc(options))

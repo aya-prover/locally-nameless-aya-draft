@@ -7,6 +7,7 @@ import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.binop.Assoc;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A well-typed generic definition,
@@ -20,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
  * </pre>
  * where the arrows indicate mean ""is superclass of
  */
-public sealed interface AnyDef permits JitDef, ConDefLike, DataDefLike, FnDefLike, TyckDef {
+public sealed interface AnyDef permits JitDef, ConDefLike, DataDefLike, FnDefLike, TyckAnyDef {
   /**
    * Returns which file level module this def lives in.
    */
@@ -30,10 +31,8 @@ public sealed interface AnyDef permits JitDef, ConDefLike, DataDefLike, FnDefLik
    * Returns which module this def lives in, have the same prefix as {@link #fileModule()}
    */
   @NotNull ModulePath module();
-
   @NotNull String name();
-
-  @NotNull Assoc assoc();
+  @Nullable Assoc assoc();
 
   default @NotNull ImmutableSeq<String> qualifiedName() {
     return module().module().appended(name());

@@ -84,8 +84,9 @@ public final class PrimDef extends TopLevelDef {
 
   public final @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref;
   public final @NotNull ID id;
+  public @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref() { return ref; }
 
-  public @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref() {
-    return ref;
+  public static class Delegate extends TyckAnyDef<PrimDef> {
+    public Delegate(@NotNull DefVar<PrimDef, ?> ref) { super(ref); }
   }
 }

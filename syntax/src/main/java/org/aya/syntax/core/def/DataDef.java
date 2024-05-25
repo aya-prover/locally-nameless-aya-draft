@@ -13,7 +13,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author kiva
  */
-public final class DataDef extends TopLevelDef implements DataDefLike {
+public final class DataDef extends TopLevelDef {
   public final @NotNull DefVar<DataDef, DataDecl> ref;
   public final @NotNull ImmutableSeq<ConDef> body;
 
@@ -23,9 +23,12 @@ public final class DataDef extends TopLevelDef implements DataDefLike {
     this.body = body;
   }
 
-  @Override public @NotNull SortTerm result() {
-    return (SortTerm) super.result();
-  }
+  @Override public @NotNull SortTerm result() { return (SortTerm) super.result(); }
   public @NotNull DefVar<DataDef, DataDecl> ref() { return ref; }
-  @Override public @NotNull ImmutableSeq<ConDefLike> body() { return ImmutableSeq.narrow(body); }
+
+  public static final class Delegate extends TyckAnyDef<DataDef> implements DataDefLike {
+    public Delegate(@NotNull DefVar<DataDef, ?> ref) { super(ref); }
+    @Override public @NotNull ImmutableSeq<ConDefLike>
+    body() { return ref.core.body.map(x -> new ConDef.Delegate(x.ref)); }
+  }
 }

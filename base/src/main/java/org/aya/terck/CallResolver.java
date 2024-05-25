@@ -8,6 +8,7 @@ import kala.collection.immutable.ImmutableSet;
 import kala.value.MutableValue;
 import org.aya.normalize.Normalizer;
 import org.aya.syntax.core.def.FnDef;
+import org.aya.syntax.core.def.TyckAnyDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.AppTerm;
@@ -54,7 +55,8 @@ public record CallResolver(
   }
 
   private void resolveCall(@NotNull Callable.Tele callable) {
-    if (!(callable.ref() instanceof TyckDef callee)) return;
+    if (!(callable.ref() instanceof TyckAnyDef<?> calleeDef)) return;
+    var callee = calleeDef.core();
     if (!targets.contains(callee)) return;
     var matrix = new CallMatrix<>(callable, caller, callee,
       caller.telescope().size(), callee.telescope().size());

@@ -117,7 +117,7 @@ public enum AyaShape {
     @NotNull DataCall paramType
   ) {
     if (paramRecog.shape() == AyaShape.NAT_SHAPE) {
-      return new IntegerOps.ConRule(ref.core, new IntegerTerm(0, paramRecog, paramType), paramType);
+      return new IntegerOps.ConRule(new ConDef.Delegate(ref), new IntegerTerm(0, paramRecog, paramType), paramType);
     }
     return null;
   }
@@ -126,10 +126,8 @@ public enum AyaShape {
     @NotNull DefVar<FnDef, FnDecl> ref,
     @NotNull ShapeRecognition recog
   ) {
-    var core = ref.core;
-    if (core == null) return null;
     if (recog.shape() == AyaShape.PLUS_LEFT_SHAPE || recog.shape() == AyaShape.PLUS_RIGHT_SHAPE) {
-      return new IntegerOps.FnRule(core, IntegerOps.FnRule.Kind.Add);
+      return new IntegerOps.FnRule(new FnDef.Delegate(ref), IntegerOps.FnRule.Kind.Add);
     }
     return null;
   }
@@ -152,7 +150,7 @@ public enum AyaShape {
 
     public void bonjour(@NotNull TyckDef def, @NotNull ShapeRecognition shape) {
       // TODO[literal]: what if a def has multiple shapes?
-      discovered.put(def, shape);
+      discovered.put(new TyckAnyDef<>(def.ref()), shape);
     }
 
     /** Discovery of shaped literals */

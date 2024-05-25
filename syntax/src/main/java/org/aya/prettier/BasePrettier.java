@@ -95,13 +95,13 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   ) {
     var preArgs = args.toImmutableSeq();
 
-    ImmutableSeq<Param> licit;
-      // Because the signature of DataCon is selfTele, so we only need to deal with core con
-    if (var instanceof SubLevelDef sub) licit = sub.selfTele;
-    else if (var instanceof TyckDef tyck) licit = Objects.requireNonNull(tyck.ref().signature).rawParams();
-    else {
-      throw new UnsupportedOperationException("TODO");
+    ImmutableSeq<Param> licit = ImmutableSeq.empty();
+    // Because the signature of DataCon is selfTele, so we only need to deal with core con
+    if (var instanceof TyckAnyDef<?> inner) {
+      if (inner.core() instanceof SubLevelDef sub) licit = sub.selfTele;
+      else if (inner.core() instanceof TyckDef tyck) licit = Objects.requireNonNull(tyck.ref().signature).rawParams();
     }
+    // TODO: handle serialized code, where you can use telescopeLicit
 
     // licited args, note that this may not include all [var] args since [preArgs.size()] may less than [licit.size()]
     // this is safe since the core call is always fully applied, that is, no missing implicit arguments.

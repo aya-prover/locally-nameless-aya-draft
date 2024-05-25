@@ -1,0 +1,25 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
+package org.aya.syntax.core.def;
+
+import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.ModulePath;
+import org.aya.util.binop.Assoc;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+
+public non-sealed class TyckAnyDef<Interface extends TyckDef> implements AnyDef {
+  public final @NotNull DefVar<Interface , ?> ref;
+  public Interface core() { return ref.core; }
+  public TyckAnyDef(@NotNull DefVar<Interface, ?> ref) { this.ref = ref; }
+  @Override public final @NotNull ModulePath fileModule() { return Objects.requireNonNull(ref.fileModule); }
+  @Override public final @NotNull ModulePath module() { return Objects.requireNonNull(ref.module); }
+  @Override public final @NotNull String name() { return ref.name(); }
+  @Override public final @Nullable Assoc assoc() { return ref.assoc(); }
+  @Override public boolean equals(Object obj) {
+    return obj instanceof TyckAnyDef<?> that && ref.equals(that.ref);
+  }
+  @Override public int hashCode() { return ref.hashCode(); }
+}

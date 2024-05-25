@@ -4,6 +4,6 @@ package org.aya.syntax.core.def;
 
 import org.aya.syntax.compile.JitFn;
 
-public sealed interface FnDefLike extends AnyDef permits FnDef, JitFn {
+public sealed interface FnDefLike extends AnyDef permits JitFn, FnDef.Delegate {
 }
 

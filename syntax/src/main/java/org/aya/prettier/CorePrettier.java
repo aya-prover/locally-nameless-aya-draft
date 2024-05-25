@@ -14,7 +14,6 @@ import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
-import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.repr.IntegerTerm;
@@ -329,7 +328,7 @@ public class CorePrettier extends BasePrettier<Term> {
   }
 
   private @NotNull Doc visitCon(
-    @NotNull DefVar<? extends ConDef, ? extends DataCon> ref,
+    @NotNull DefVar<ConDef, DataCon> ref,
     @NotNull ImmutableSeq<ParamLike<Term>> richSelfTele,
     boolean coerce
   ) {

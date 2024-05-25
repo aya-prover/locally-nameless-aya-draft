@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author ice1000, kiva
  */
-public final class ConDef extends SubLevelDef implements ConDefLike {
+public final class ConDef extends SubLevelDef {
   public final @NotNull DefVar<DataDef, DataDecl> dataRef;
   public final @NotNull DefVar<ConDef, DataCon> ref;
   public final @NotNull ImmutableSeq<Pat> pats;
@@ -44,15 +44,20 @@ public final class ConDef extends SubLevelDef implements ConDefLike {
   @Override public @NotNull ImmutableSeq<Param> telescope() {
     return fullTelescope().toImmutableSeq();
   }
-  @Override public boolean isEq() { return equality != null; }
-  @Override public @NotNull Term equality(Term[] args, boolean is0) {
-    ImmutableSeq<Term> view = ImmutableArray.Unsafe.wrap(args);
-    assert equality != null;
-    return (is0 ? equality.a() : equality.b()).instantiateTele(view.view());
-  }
-  @Override public @NotNull ImmutableSeq<Param> selfTele(@NotNull ImmutableSeq<Term> ownerArgs) {
-    return Param.substTele(selfTele.view(), ownerArgs.view()).toImmutableSeq();
-  }
 
-  @Override public @NotNull DataDefLike dataRef() { return dataRef.core; }
+  public static final class Delegate extends TyckAnyDef<ConDef> implements ConDefLike {
+    public Delegate(@NotNull DefVar<ConDef, ?> ref) { super(ref); }
+    @Override public boolean isEq() { return ref.core.equality != null; }
+    @Override public @NotNull Term equality(Term[] args, boolean is0) {
+      ImmutableSeq<Term> view = ImmutableArray.Unsafe.wrap(args);
+      var equality = ref.core.equality;
+      assert equality != null;
+      return (is0 ? equality.a() : equality.b()).instantiateTele(view.view());
+    }
+    @Override public @NotNull ImmutableSeq<Param> selfTele(@NotNull ImmutableSeq<Term> ownerArgs) {
+      return Param.substTele(ref.core.selfTele.view(), ownerArgs.view()).toImmutableSeq();
+    }
+
+    @Override public @NotNull DataDefLike dataRef() { return new DataDef.Delegate(ref.core.dataRef); }
+  }
 }

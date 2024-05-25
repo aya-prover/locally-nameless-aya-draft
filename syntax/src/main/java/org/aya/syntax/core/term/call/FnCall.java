@@ -17,11 +17,11 @@ public record FnCall(
   @Override @NotNull ImmutableSeq<@NotNull Term> args
 ) implements Callable.Tele {
   public FnCall(
-    @NotNull DefVar<? extends FnDef, ? extends FnDecl> ref,
+    @NotNull DefVar<FnDef, FnDecl> ref,
     int ulift,
     @NotNull ImmutableSeq<@NotNull Term> args
   ) {
-    this(ref.core, ulift, args);
+    this(new FnDef.Delegate(ref), ulift, args);
   }
 
   public @NotNull FnCall update(@NotNull ImmutableSeq<Term> args) {

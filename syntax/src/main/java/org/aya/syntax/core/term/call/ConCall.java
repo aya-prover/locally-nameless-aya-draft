@@ -19,12 +19,12 @@ public record ConCall(
   @Override @NotNull ImmutableSeq<Term> conArgs
 ) implements ConCallLike {
   public ConCall(
-    @NotNull DefVar<? extends ConDef, ? extends DataCon> ref,
+    @NotNull DefVar<ConDef, ? extends DataCon> ref,
     int ulift,
     @NotNull ImmutableSeq<@NotNull Term> ownerArgs,
     @NotNull ImmutableSeq<@NotNull Term> conArgs
   ) {
-    this(new Head(ref.core, ulift, ownerArgs), conArgs);
+    this(new Head(new ConDef.Delegate(ref), ulift, ownerArgs), conArgs);
   }
 
   public @NotNull ConCall update(@NotNull Head head, @NotNull ImmutableSeq<Term> conArgs) {

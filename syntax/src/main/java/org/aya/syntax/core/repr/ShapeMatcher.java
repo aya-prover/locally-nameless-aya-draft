@@ -191,9 +191,9 @@ public record ShapeMatcher(
         boolean success = switch (call) {
           case TermShape.NameCall nameCall -> captures.resolve(nameCall.name()) == callable.ref();
           case TermShape.ShapeCall shapeCall -> {
-            if (callable.ref() instanceof TyckDef tyckDef) {
-              yield captureIfMatches(shapeCall.name(), tyckDef.ref(), () ->
-                discovered.getOption(tyckDef).map(x -> x.shape().codeShape()).getOrNull() == shapeCall.shape());
+            if (callable.ref() instanceof TyckAnyDef<?> wrapper) {
+              yield captureIfMatches(shapeCall.name(), wrapper.ref, () ->
+                discovered.getOption(wrapper).map(x -> x.shape().codeShape()).getOrNull() == shapeCall.shape());
             }
 
             yield false;

@@ -138,9 +138,7 @@ public class PatternTycker implements Problematic, Stateful {
       }
       case Pattern.Con con -> {
         var var = con.resolved().data();
-        var core = var.core;
-        assert core != null;
-        var realCon = selectCon(type, core, pattern);
+        var realCon = selectCon(type, new ConDef.Delegate(var), pattern);
         if (realCon == null) yield randomPat(type);
         var conCore = realCon.conHead.ref();
 
@@ -477,10 +475,11 @@ public class PatternTycker implements Problematic, Stateful {
     return switch (con) {
       case JitCon jitCon -> jitCon.isAvailable((Term[]) type.args().toArray())
         .mapErr(b -> b ? PatMatcher.State.Stuck : PatMatcher.State.Mismatch);
-      case ConDef conDef -> {
-        if (conDef.pats.isNotEmpty()) {
+      case ConDef.Delegate conDef -> {
+        var pats = conDef.core().pats;
+        if (pats.isNotEmpty()) {
           var matcher = new PatMatcher(true, new Normalizer(state));
-          yield matcher.apply(conDef.pats, type.args());
+          yield matcher.apply(pats, type.args());
         }
 
         yield Result.ok(type.args());

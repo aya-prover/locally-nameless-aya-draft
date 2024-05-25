@@ -72,10 +72,10 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
     };
   }
 
-  @SuppressWarnings("unchecked") private static @NotNull DefVar<? extends ConDef, ? extends DataCon>
+  @SuppressWarnings("unchecked") private static @NotNull DefVar<ConDef, DataCon>
   castConVar(DefVar<?, ?> conMaybe) {
     assert conMaybe.concrete instanceof DataCon || conMaybe.core instanceof ConDef;
-    return (DefVar<? extends ConDef, ? extends DataCon>) conMaybe;
+    return (DefVar<ConDef, DataCon>) conMaybe;
   }
 
   private void addReference(@NotNull DefVar<?, ?> defVar) {

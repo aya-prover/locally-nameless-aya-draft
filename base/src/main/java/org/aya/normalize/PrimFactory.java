@@ -193,7 +193,7 @@ public class PrimFactory {
   }
 
   public @NotNull Term unfold(@NotNull PrimCall primCall, @NotNull TyckState state) {
-    var id = primCall.ref().id;
+    var id = primCall.ref().core().id;
     return seeds.get(id).unfold.apply(primCall, state);
   }
 

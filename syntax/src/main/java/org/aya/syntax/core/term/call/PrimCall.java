@@ -6,12 +6,13 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
 import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.core.def.PrimDef;
+import org.aya.syntax.core.def.TyckAnyDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
 public record PrimCall(
-  @Override @NotNull PrimDef ref,
+  @Override @NotNull TyckAnyDef<PrimDef> ref,
   @Override int ulift,
   @Override @NotNull ImmutableSeq<@NotNull Term> args
 ) implements Callable.Tele {
@@ -27,6 +28,6 @@ public record PrimCall(
     @NotNull DefVar<@NotNull PrimDef, PrimDecl> ref,
     int ulift, @NotNull ImmutableSeq<@NotNull Term> args
   ) {
-    this(ref.core, ulift, args);
+    this(new PrimDef.Delegate(ref), ulift, args);
   }
 }

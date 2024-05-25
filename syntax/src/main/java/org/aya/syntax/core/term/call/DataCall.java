@@ -22,11 +22,11 @@ public record DataCall(
   @Override @NotNull ImmutableSeq<@NotNull Term> args
 ) implements Callable.Tele, StableWHNF, Formation {
   public DataCall(
-    @NotNull DefVar<? extends DataDef, ? extends DataDecl> ref,
+    @NotNull DefVar<DataDef, DataDecl> ref,
     int ulift,
     @NotNull ImmutableSeq<@NotNull Term> args
   ) {
-    this(ref.core, ulift, args);
+    this(new DataDef.Delegate(ref), ulift, args);
   }
 
   public @NotNull DataCall update(@NotNull ImmutableSeq<Term> args) {
@@ -42,7 +42,7 @@ public record DataCall(
   }
 
   public @NotNull ConCallLike.Head conHead(@NotNull DefVar<ConDef, DataCon> conRef) {
-    return conHead(conRef.core);
+    return conHead(new ConDef.Delegate(conRef));
   }
 
   public @NotNull ConCallLike.Head conHead(@NotNull ConDefLike conRef) {

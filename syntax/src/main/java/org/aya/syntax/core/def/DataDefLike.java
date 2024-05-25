@@ -6,6 +6,6 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.compile.JitData;
 import org.jetbrains.annotations.NotNull;
 
-public sealed interface DataDefLike extends AnyDef permits DataDef, JitData {
+public sealed interface DataDefLike extends AnyDef permits JitData, DataDef.Delegate {
   @NotNull ImmutableSeq<ConDefLike> body();
 }
