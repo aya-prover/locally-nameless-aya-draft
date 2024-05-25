@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.test;
+package org.aya.test.cli;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.cli.interactive.ReplCompiler;
@@ -16,9 +16,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 

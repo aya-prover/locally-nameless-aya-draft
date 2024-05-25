@@ -22,6 +22,7 @@ import org.aya.util.reporter.Reporter;
 import org.aya.util.terck.MutableGraph;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @param thisModule   context of the underlying module
@@ -65,31 +66,36 @@ public record ResolveInfo(
     @NotNull BindBlock bind, boolean reExport
   ) { }
 
+  public @Nullable OpDecl resolveOpDecl(DefVar<?, ?> defVar) {
+    var renameInfo = opRename.getOrNull(defVar);
+    if (renameInfo != null) return renameInfo.renamed();
+    return defVar.opDecl;
+  }
+
   /**
-   * @param definedHere Is this operator renamed in this module, or publicly renamed by upstream?
+   * @param reExport if this operator is renamed in this module, then true,
+   *                 or if publicly renamed by upstream, then false.
    * @see #open(ResolveInfo, SourcePos, Stmt.Accessibility)
    */
   public void renameOp(
     @NotNull Context bindCtx, @NotNull DefVar<?, ?> defVar,
-    @NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean definedHere
+    @NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean reExport
   ) {
-    defVar.addOpDeclRename(thisModule.modulePath(), renamed);
-    opRename.put(defVar, new OpRenameInfo(bindCtx, renamed, bind, definedHere));
+    // TODO: what if already exists?
+    opRename.put(defVar, new OpRenameInfo(bindCtx, renamed, bind, reExport));
   }
 
   public void open(@NotNull ResolveInfo other, @NotNull SourcePos sourcePos, @NotNull Stmt.Accessibility acc) {
     // open defined operator and their bindings
-    opSet().importBind(other.opSet(), sourcePos);
+    opSet.importBind(other.opSet, sourcePos);
     // open discovered shapes as well
-    shapeFactory().importAll(other.shapeFactory());
+    shapeFactory.importAll(other.shapeFactory);
     // open renamed operators and their bindings
-    other.opRename().forEach((defVar, tuple) -> {
-      if (acc == Stmt.Accessibility.Public) {
-        // if it is `public open`, make renamed operators transitively accessible by storing
-        // them in my `opRename` bc "my importers" cannot access `other.opRename`.
-        // see: https://github.com/aya-prover/aya-dev/issues/519
-        renameOp(thisModule(), defVar, tuple.renamed, tuple.bind, false);
-      } else defVar.addOpDeclRename(thisModule().modulePath(), tuple.renamed);
+    other.opRename.forEach((defVar, tuple) -> {
+      // if it is `public open`, make renamed operators transitively accessible by storing
+      // them in my `opRename` bc "my importers" cannot access `other.opRename`.
+      // see: https://github.com/aya-prover/aya-dev/issues/519
+      renameOp(thisModule, defVar, tuple.renamed, tuple.bind, acc != Stmt.Accessibility.Public);
     });
   }
 

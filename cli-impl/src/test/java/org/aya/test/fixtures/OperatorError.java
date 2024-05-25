@@ -43,4 +43,15 @@ public interface OperatorError {
     def infix + : Type => +
       looser +
     """;
+
+  // This should pass
+  @Language("Aya") String testModuleImportRename = """
+    open data Nat | zero | suc Nat
+    module A {
+      def infixl + (a b: Nat) => 0
+    }
+    def infix  = (a b : Nat) => 0
+    open A using (+ as infixr +' tighter =)
+    def test => 1 +' 2 = 3
+    """;
 }

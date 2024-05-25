@@ -66,7 +66,7 @@ public final class PatternBinParser extends BinOpParser<AyaBinOpSet, WithPos<Pat
 
   @Override protected @Nullable OpDecl underlyingOpDecl(@NotNull Arg<WithPos<Pattern>> elem) {
     return elem.term().data() instanceof Pattern.Con ref
-      ? ref.resolved().data().resolveOpDecl(resolveInfo.thisModule().modulePath())
+      ? resolveInfo.resolveOpDecl(ref.resolved().data())
       : null;
   }
 

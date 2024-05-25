@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.test;
+package org.aya.test.cli;
 
 import com.javax0.sourcebuddy.Compiler;
 import org.intellij.lang.annotations.Language;
@@ -19,7 +19,7 @@ public class SimpleTest {
       @Language("Java") var code = """
         package org.aya.gen;
 
-        import org.aya.test.SimpleTest;
+        import org.aya.test.cli.SimpleTest;
 
         public class Foo {
           public static void foo() {

@@ -23,9 +23,10 @@ public record StmtResolvers(@NotNull ModuleLoader loader, @NotNull ResolveInfo i
   }
 
   private void resolveBind(@NotNull ImmutableSeq<ResolvingStmt> stmts) {
-    StmtBinder.resolveBind(stmts, info);
+    var binder = new StmtBinder(info);
+    binder.resolveBind(stmts);
     info.opRename().forEach((var, rename) ->
-      StmtBinder.bind(rename.bindCtx(), rename.bind(), info.opSet(), var.opDecl));
+      binder.bind(rename.bindCtx(), rename.bind(), var.opDecl));
   }
 
   private void desugar(@NotNull ImmutableSeq<Stmt> stmts) {
