@@ -3,6 +3,7 @@
  * Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
  */
 
+//noinspection BnfResolveForFile
 {
   // only for the compiler, not the IDE
   generate=[
@@ -121,14 +122,6 @@
     RARRAY = ']'
     LGOAL = '{?'
     RGOAL = '?}'
-    // LPARTIAL = 'regexp:\{\||\u2983'
-    LPARTIAL = '{|'
-    // RPARTIAL = 'regexp:\|}|\u2984'
-    RPARTIAL = '|}'
-    // LPATH = 'regexp:\[\||\u27E6'
-    LPATH = '[|'
-    // RPATH = 'regexp:\|]|\u27E7'
-    RPATH = '|]'
     AT = '@'
 
     CALM_FACE = '_'
@@ -229,7 +222,8 @@ declModifiers ::= KW_PRIVATE
 classDecl
   ::= declModifiers*
       KW_CLASS declNameOrInfix (KW_EXTENDS <<commaSep weakId>>)?
-      (BAR classMember)* bindBlock?
+      bindBlock?
+      (BAR classMember)*
 
 classMember
   ::= KW_CLASSIFIYING? KW_OVERRIDE?            declNameOrInfix tele* type? IMPLIES expr bindBlock?
@@ -248,8 +242,7 @@ dataBody ::= BAR (dataConClause | dataCon) {
   pin=1
 }
 
-dataCon ::= KW_COERCE? declNameOrInfix tele* type? partialBlock? bindBlock?
-partialBlock ::= <<braced partialInner>>
+dataCon ::= KW_COERCE? declNameOrInfix tele* type? bindBlock?
 
 dataConClause ::= patterns IMPLIES dataCon
 
@@ -263,7 +256,6 @@ expr ::= newExpr
        | letExpr
        | doExpr
        | selfExpr
-       | pathExpr
        | atomExpr
        | arrowExpr
        | appExpr
@@ -274,7 +266,6 @@ atomExpr ::= uliftAtom
            | tupleAtom
            | idiomAtom
            | arrayAtom
-           | partialAtom
 uliftAtom ::= uliftPrefix* literal
 tupleAtom ::= LPAREN exprList RPAREN
 uliftPrefix ::= KW_ULIFT
@@ -296,19 +287,12 @@ lambdaExpr ::= KW_LAMBDA teleBinderUntyped (IMPLIES expr)?
 matchExpr ::= KW_MATCH exprList clauses
 doExpr ::= KW_DO LBRACE? <<commaSep doBlockContent>> RBRACE?
 selfExpr ::= KW_SELF (AT qualifiedId)?
-pathExpr ::= LPATH pathTele+ RPATH expr partialBlock?
 letBind ::= weakId lambdaTele* type? DEFINE_AS expr {
   mixin="org.aya.intellij.psi.impl.AyaPsiNamedWeakIdImpl"
   implements="org.aya.intellij.psi.AyaPsiNamedWeakId"
 }
 letBindBlock ::= letBind | (BAR letBind)+
 letExpr ::= KW_LET (KW_OPEN qualifiedId useHide? | letBindBlock) KW_IN expr
-
-partialAtom ::= LPARTIAL partialInner? RPARTIAL
-private partialInner ::= bareSubSystem? barredSubSystem*
-subSystem ::= expr DEFINE_AS expr
-bareSubSystem ::= subSystem
-barredSubSystem ::= BAR subSystem
 
 doBlockContent ::= doBinding | expr
 
@@ -392,9 +376,6 @@ lambdaTele ::= teleParamName | <<licit lambdaTeleBinder>>
 
 lambdaTeleBinder ::= teleBinderTyped
                    | teleBinderUntyped
-
-// path type tele
-pathTele ::= teleParamName
 
 // utilities
 private exprList ::= <<commaSep expr>>

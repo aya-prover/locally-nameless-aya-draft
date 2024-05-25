@@ -7,7 +7,6 @@ import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.ResolvingStmt;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.error.NameProblem;
-import org.aya.resolve.error.OperatorError;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.QualifiedID;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
@@ -23,12 +22,7 @@ import static org.aya.resolve.ResolvingStmt.*;
 
 public record StmtBinder(@NotNull ResolveInfo info) {
   private void visitBind(@NotNull Context ctx, @NotNull DefVar<?, ?> selfDef, @NotNull BindBlock bind) {
-    var self = selfDef.opDecl;
-    if (self == null && bind != BindBlock.EMPTY) {
-      info.opSet().fail(new OperatorError.BadBindBlock(selfDef.concrete.sourcePos(), selfDef.name()));
-      throw new Context.ResolvingInterruptedException();
-    }
-    bind(ctx, bind, self);
+    bind(ctx, bind, selfDef.concrete);
   }
 
   /**

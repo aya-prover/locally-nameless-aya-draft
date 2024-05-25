@@ -90,10 +90,6 @@ LARROW = <- | \u2190
 IMPLIES = => | \u21d2
 LIDIOM = \(\| | \u2987
 RIDIOM = \|\) | \u2988
-LPARTIAL = \{\| | \u2983
-RPARTIAL = \|\} |\u2984
-LPATH = \[\| | \u27E6
-RPATH = \|\] | \u27E7
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Comments, adapted from AyaLexer.g4
@@ -176,11 +172,6 @@ BLOCK_COMMENT_END   = "*/"
   {IMPLIES}             { return IMPLIES; }
   {LIDIOM}              { return LIDIOM; }
   {RIDIOM}              { return RIDIOM; }
-  {LPARTIAL}            { return LPARTIAL; }
-  {RPARTIAL}            { return RPARTIAL; }
-  {LPATH}               { return LPATH; }
-  {RPATH}               { return RPATH; }
-
 
   // put REPL_COMMAND before ID, or REPL_COMMAND can never be matched
   {REPL_COMMAND}        { return getTokenStart() == 0 && isRepl ? REPL_COMMAND : ID; }

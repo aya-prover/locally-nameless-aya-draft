@@ -18,12 +18,6 @@ public interface OperatorError extends Problem {
   @Override default @NotNull Problem.Severity level() { return Problem.Severity.ERROR; }
   @Override default @NotNull Stage stage() { return Stage.PARSE; }
 
-  record BadBindBlock(@NotNull SourcePos sourcePos, @NotNull String op) implements OperatorError {
-    @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
-      return Doc.sep(Doc.plain(op), Doc.english("is not an operator. It cannot have bind block."));
-    }
-  }
-
   record Fixity(
     @NotNull String op1, @NotNull Assoc assoc1,
     @NotNull String op2, @NotNull Assoc assoc2,

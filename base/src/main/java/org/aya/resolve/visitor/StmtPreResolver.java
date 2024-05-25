@@ -167,8 +167,7 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
 
   private void resolveOpInfo(@NotNull Decl decl) {
     if (decl.opInfo() != null) {
-      var ref = decl.ref();
-      ref.opDecl = decl;
+      decl.ref().opDecl = decl;
     }
   }
 

@@ -1,3 +1,6 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
+
 // This is a generated file. Not intended for manual editing.
 package org.aya.parser;
 
@@ -19,10 +22,8 @@ public interface AyaPsiElementTypes {
   IElementType ATOM_LIST_PATTERN = new AyaPsiElementType("ATOM_LIST_PATTERN");
   IElementType ATOM_PATTERN = new AyaPsiElementType("ATOM_PATTERN");
   IElementType BARE_CLAUSE = new AyaPsiElementType("BARE_CLAUSE");
-  IElementType BARE_SUB_SYSTEM = new AyaPsiElementType("BARE_SUB_SYSTEM");
   IElementType BARRED = new AyaPsiElementType("BARRED");
   IElementType BARRED_CLAUSE = new AyaPsiElementType("BARRED_CLAUSE");
-  IElementType BARRED_SUB_SYSTEM = new AyaPsiElementType("BARRED_SUB_SYSTEM");
   IElementType BIND_BLOCK = new AyaPsiElementType("BIND_BLOCK");
   IElementType CALM_FACE_EXPR = new AyaPsiElementType("CALM_FACE_EXPR");
   IElementType CLASS_DECL = new AyaPsiElementType("CLASS_DECL");
@@ -71,10 +72,6 @@ public interface AyaPsiElementTypes {
   IElementType NEW_BODY = new AyaPsiElementType("NEW_BODY");
   IElementType NEW_EXPR = new AyaPsiElementType("NEW_EXPR");
   IElementType OPEN_CMD = new AyaPsiElementType("OPEN_CMD");
-  IElementType PARTIAL_ATOM = new AyaPsiElementType("PARTIAL_ATOM");
-  IElementType PARTIAL_BLOCK = new AyaPsiElementType("PARTIAL_BLOCK");
-  IElementType PATH_EXPR = new AyaPsiElementType("PATH_EXPR");
-  IElementType PATH_TELE = new AyaPsiElementType("PATH_TELE");
   IElementType PATTERN = new AyaPsiElementType("PATTERN");
   IElementType PATTERNS = new AyaPsiElementType("PATTERNS");
   IElementType PI_EXPR = new AyaPsiElementType("PI_EXPR");
@@ -88,7 +85,6 @@ public interface AyaPsiElementTypes {
   IElementType SELF_EXPR = new AyaPsiElementType("SELF_EXPR");
   IElementType SIGMA_EXPR = new AyaPsiElementType("SIGMA_EXPR");
   IElementType STMT = new AyaPsiElementType("STMT");
-  IElementType SUB_SYSTEM = new AyaPsiElementType("SUB_SYSTEM");
   IElementType TELE = new AyaPsiElementType("TELE");
   IElementType TELE_BINDER = new AyaPsiElementType("TELE_BINDER");
   IElementType TELE_BINDER_ANONYMOUS = new AyaPsiElementType("TELE_BINDER_ANONYMOUS");
@@ -173,8 +169,6 @@ public interface AyaPsiElementTypes {
   IElementType LGOAL = new AyaPsiTokenType("{?");
   IElementType LIDIOM = new AyaPsiTokenType("(|");
   IElementType LPAREN = new AyaPsiTokenType("(");
-  IElementType LPARTIAL = new AyaPsiTokenType("{|");
-  IElementType LPATH = new AyaPsiTokenType("[|");
   IElementType NUMBER = new AyaPsiTokenType("NUMBER");
   IElementType RARRAY = new AyaPsiTokenType("]");
   IElementType RBRACE = new AyaPsiTokenType("}");
@@ -182,8 +176,6 @@ public interface AyaPsiElementTypes {
   IElementType RGOAL = new AyaPsiTokenType("?}");
   IElementType RIDIOM = new AyaPsiTokenType("|)");
   IElementType RPAREN = new AyaPsiTokenType(")");
-  IElementType RPARTIAL = new AyaPsiTokenType("|}");
-  IElementType RPATH = new AyaPsiTokenType("|]");
   IElementType STRING = new AyaPsiTokenType("STRING");
   IElementType SUCHTHAT = new AyaPsiTokenType("**");
   IElementType TO = new AyaPsiTokenType("->");

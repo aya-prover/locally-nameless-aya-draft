@@ -402,9 +402,7 @@ public record AyaProducer(
     var name = info.checkName(this);
     if (name == null) return null;
     var tele = telescope(node.childrenOfType(TELE));
-    var partial = node.peekChild(PARTIAL_BLOCK);
     var ty = node.peekChild(TYPE);
-    // var par = partial(partial, partial != null ? sourcePosOf(partial) : info.info.sourcePos());
     var coe = node.peekChild(KW_COERCE) != null;
     return new DataCon(info.info, name, patterns, tele, coe, ty == null ? null : type(ty));
   }
