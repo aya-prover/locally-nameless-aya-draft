@@ -103,7 +103,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
   private @Nullable Term compareCallApprox(
     @NotNull Callable.Tele lhs, @NotNull Callable.Tele rhs, @NotNull AnyDef typeProvider
   ) {
-    if (lhs.ref() != rhs.ref()) return null;
+    if (!lhs.ref().equals(rhs.ref())) return null;
     return compareMany(lhs.args(), rhs.args(), lhs.ulift(), TyckDef.defSignature(typeProvider));
   }
 
@@ -446,7 +446,7 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
     if (preLhs.getClass() != preRhs.getClass()) return false;
     return switch (new Pair<>(preLhs, (Formation) preRhs)) {
       case Pair(DataCall lhs, DataCall rhs) -> {
-        if (lhs.ref() != rhs.ref()) yield false;
+        if (!lhs.ref().equals(rhs.ref())) yield false;
         yield compareMany(lhs.args(), rhs.args(), lhs.ulift(), TyckDef.defSignature(lhs.ref())) != null;
       }
       case Pair(DimTyTerm _, DimTyTerm _) -> true;

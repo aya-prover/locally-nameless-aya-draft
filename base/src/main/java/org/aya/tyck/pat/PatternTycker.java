@@ -438,7 +438,7 @@ public class PatternTycker implements Problematic, Stateful {
 
     // If name != null, only one iteration of this loop is not skipped
     for (var con : core.body()) {
-      if (name != null && con != name) continue;
+      if (name != null && !Objects.equals(con, name)) continue;
       switch (checkAvail(dataCall, con, exprTycker.state)) {
         case Result.Ok(var subst) -> {
           return new Selection(dataCall, subst, dataCall.conHead(con));

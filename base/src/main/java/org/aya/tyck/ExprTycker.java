@@ -9,7 +9,6 @@ import kala.collection.mutable.MutableTreeSet;
 import kala.control.Result;
 import org.aya.generic.Constants;
 import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.DataDefLike;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.repr.AyaShape;

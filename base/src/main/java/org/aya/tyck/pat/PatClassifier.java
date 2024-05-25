@@ -159,7 +159,7 @@ public record PatClassifier(
     ImmutableSeq<Param> conTele, ConDefLike con, int ix, Indexed<Pat> subPat
   ) {
     return switch (subPat.pat() instanceof Pat.ShapedInt i ? i.constructorForm() : subPat.pat()) {
-      case Pat.Con c when c.ref() == con -> new Indexed<>(c.args().view(), ix);
+      case Pat.Con c when c.ref().equals(con) -> new Indexed<>(c.args().view(), ix);
       case Pat.Bind _ -> new Indexed<>(conTele.view().map(Param::toFreshPat), ix);
       default -> null;
     };
