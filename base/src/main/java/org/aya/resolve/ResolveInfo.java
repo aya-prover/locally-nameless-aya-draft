@@ -69,7 +69,7 @@ public record ResolveInfo(
   public @Nullable OpDecl resolveOpDecl(DefVar<?, ?> defVar) {
     var renameInfo = opRename.getOrNull(defVar);
     if (renameInfo != null) return renameInfo.renamed();
-    return defVar.opDecl;
+    return defVar.concrete;
   }
 
   /**

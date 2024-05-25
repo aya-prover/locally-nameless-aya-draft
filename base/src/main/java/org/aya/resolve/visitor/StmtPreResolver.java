@@ -107,9 +107,7 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
           ctor.ref().module = mCtx.modulePath();
           ctor.ref().fileModule = resolveInfo.thisModule().modulePath();
           mCtx.defineSymbol(ctor.ref(), Stmt.Accessibility.Public, ctor.sourcePos());
-          resolveOpInfo(ctor);
         });
-        resolveOpInfo(decl);
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
       // case ClassDecl decl -> {
@@ -118,13 +116,10 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
       //     field.ref().module = mockCtx.modulePath().path();
       //     field.ref().fileModule = resolveInfo.thisModule().modulePath().path();
       //     mockCtx.defineSymbol(field.ref, Stmt.Accessibility.Public, field.sourcePos());
-      //     resolveOpInfo(field, mockCtx);
       //   });
-      //   resolveOpInfo(decl, innerCtx);
       // }
       case FnDecl decl -> {
         var innerCtx = resolveTopLevelDecl(decl, context);
-        resolveOpInfo(decl);
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
       case PrimDecl decl -> {
@@ -140,7 +135,6 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
           context.reportAndThrow(new PrimResolveError.Redefinition(name, sourcePos));
         factory.factory(primID, decl.ref);
         var innerCtx = resolveTopLevelDecl(decl, context);
-        resolveOpInfo(decl);
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
       }
       default -> Panic.unreachable();
@@ -163,12 +157,6 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
       decl.sourcePos()
     );
     return innerCtx;
-  }
-
-  private void resolveOpInfo(@NotNull Decl decl) {
-    if (decl.opInfo() != null) {
-      decl.ref().opDecl = decl;
-    }
   }
 
   public static @NotNull NoExportContext exampleContext(@NotNull ModuleContext context) {

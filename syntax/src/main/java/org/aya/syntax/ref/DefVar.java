@@ -7,7 +7,6 @@ import org.aya.generic.AyaDocile;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.Signature;
 import org.aya.util.binop.Assoc;
-import org.aya.util.binop.OpDecl;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,13 +22,10 @@ public final class DefVar<Core extends AyaDocile, Concrete extends Decl> impleme
   /** Initialized in the resolver or core deserialization */
   public @Nullable ModulePath module;
   public @Nullable ModulePath fileModule; // TODO: unify `module` and `fileModule`
-  /** Initialized in the resolver or core deserialization */
-  public @Nullable OpDecl opDecl;
 
   @Contract(pure = true) public @Nullable Assoc assoc() {
-    if (opDecl == null) return null;
-    if (opDecl.opInfo() == null) return null;
-    return opDecl.opInfo().assoc();
+    if (concrete.opInfo() == null) return null;
+    return concrete.opInfo().assoc();
   }
 
   @Contract(pure = true) public @NotNull String name() { return name; }
