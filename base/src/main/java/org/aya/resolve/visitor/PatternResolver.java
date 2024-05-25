@@ -40,9 +40,10 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
         // Check whether this {bind} is a Con
         var conMaybe = context.iterate(ctx -> isCon(ctx.getUnqualifiedLocalMaybe(bind.bind().name(), pos)));
         if (conMaybe != null) {
+          assert conMaybe.concrete instanceof DataCon || conMaybe.core instanceof ConDef;
           // It wants to be a con!
           addReference(conMaybe);
-          yield new Pattern.Con(pos, conMaybe);
+          yield new Pattern.Con(pos, (DefVar<? extends ConDef, ? extends DataCon>) conMaybe);
         }
 
         // It is not a constructor, it is a bind
@@ -55,8 +56,9 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
           throw new Panic("QualifiedRef#qualifiedID should be qualified");
         var conMaybe = context.iterate(ctx -> isCon(ctx.getQualifiedLocalMaybe(mod, qid.name(), pos)));
         if (conMaybe != null) {
+          assert conMaybe.concrete instanceof DataCon || conMaybe.core instanceof ConDef;
           addReference(conMaybe);
-          yield new Pattern.Con(pos, conMaybe);
+          yield new Pattern.Con(pos, (DefVar<? extends ConDef, ? extends DataCon>) conMaybe);
         }
 
         // !! No Such Thing !!

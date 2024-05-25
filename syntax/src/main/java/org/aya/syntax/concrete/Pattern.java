@@ -83,8 +83,8 @@ public sealed interface Pattern extends AyaDocile {
     @NotNull WithPos<@NotNull DefVar<? extends ConDef, ? extends DataCon>> resolved,
     @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params
   ) implements Pattern {
-    @SuppressWarnings("unchecked") public Con(@NotNull SourcePos pos, @NotNull DefVar<?, ?> maybe) {
-      this(new WithPos<>(pos, (DefVar<ConDef, DataCon>) maybe), ImmutableSeq.empty());
+    public Con(@NotNull SourcePos pos, @NotNull DefVar<? extends ConDef, ? extends DataCon> maybe) {
+      this(new WithPos<>(pos, maybe), ImmutableSeq.empty());
     }
 
     public @NotNull Con update(@NotNull ImmutableSeq<Arg<WithPos<Pattern>>> params) {
