@@ -29,4 +29,9 @@ public final class DataDef extends TopLevelDef<SortTerm> implements DataDefLike 
   }
 
   public @NotNull DefVar<DataDef, DataDecl> ref() { return ref; }
+
+  @Override
+  public @NotNull ImmutableSeq<ConDefLike> body() {
+    return ImmutableSeq.narrow(body);
+  }
 }

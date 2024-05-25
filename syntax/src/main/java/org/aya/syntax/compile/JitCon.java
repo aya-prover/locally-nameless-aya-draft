@@ -5,6 +5,7 @@ package org.aya.syntax.compile;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Result;
 import org.aya.syntax.core.def.ConDefLike;
+import org.aya.syntax.core.def.DataDefLike;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,5 +22,10 @@ public abstract non-sealed class JitCon extends JitTeleDef implements ConDefLike
    * @param args the argument to the data type
    * @return a match result, a sequence of substitution if success
    */
-  protected abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
+  public abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
+
+  @Override
+  public @NotNull DataDefLike dataRef() {
+    return dataType;
+  }
 }

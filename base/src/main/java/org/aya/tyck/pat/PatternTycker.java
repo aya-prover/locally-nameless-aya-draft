@@ -11,12 +11,15 @@ import org.aya.generic.Constants;
 import org.aya.generic.NameGenerator;
 import org.aya.normalize.Normalizer;
 import org.aya.normalize.PatMatcher;
+import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.core.def.ConDef;
+import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
 import org.aya.syntax.core.repr.AyaShape;
+import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.SigmaTerm;
@@ -136,7 +139,9 @@ public class PatternTycker implements Problematic, Stateful {
       }
       case Pattern.Con con -> {
         var var = con.resolved().data();
-        var realCon = selectCon(type, var, pattern);
+        var core = var.core;
+        assert core != null;
+        var realCon = selectCon(type, core, pattern);
         if (realCon == null) yield randomPat(type);
         var conCore = realCon.conHead.ref();
 
@@ -147,7 +152,7 @@ public class PatternTycker implements Problematic, Stateful {
           pattern);
 
         // check if this Con is a ShapedCon
-        var typeRecog = state().shapeFactory().find(conCore.core.dataRef.core).getOrNull();
+        var typeRecog = state().shapeFactory().find(conCore.dataRef()).getOrNull();
         yield new Pat.Con(realCon.conHead.ref(), patterns, realCon.data());
       }
       case Pattern.Bind(var bind, var tyRef) -> {
@@ -163,7 +168,10 @@ public class PatternTycker implements Problematic, Stateful {
           var data = dataCall.ref();
           var shape = state().shapeFactory().find(data);
           if (shape.isDefined() && shape.get().shape() == AyaShape.NAT_SHAPE)
-            yield new Pat.ShapedInt(number, shape.get(), dataCall);
+            yield new Pat.ShapedInt(number,
+              shape.get().getCon(CodeShape.GlobalId.ZERO),
+              shape.get().getCon(CodeShape.GlobalId.SUC),
+              dataCall);
         }
         yield withError(new PatternProblem.BadLitPattern(pattern, ty), ty);
       }
@@ -423,7 +431,7 @@ public class PatternTycker implements Problematic, Stateful {
    * @param name if null, the selection will be performed on all constructors
    * @return null means selection failed
    */
-  private @Nullable Selection selectCon(Term type, @Nullable AnyVar name, @NotNull WithPos<Pattern> pattern) {
+  private @Nullable Selection selectCon(Term type, @Nullable ConDefLike name, @NotNull WithPos<Pattern> pattern) {
     if (!(exprTycker.whnf(type) instanceof DataCall dataCall)) {
       foundError(new PatternProblem.SplittingOnNonData(pattern, type));
       return null;
@@ -432,11 +440,11 @@ public class PatternTycker implements Problematic, Stateful {
     var core = dataCall.ref();
 
     // If name != null, only one iteration of this loop is not skipped
-    for (var con : core.body) {
-      if (name != null && con.ref() != name) continue;
+    for (var con : core.body()) {
+      if (name != null && con != name) continue;
       switch (checkAvail(dataCall, con, exprTycker.state)) {
         case Result.Ok(var subst) -> {
-          return new Selection(dataCall, subst, dataCall.conHead(con.ref()));
+          return new Selection(dataCall, subst, dataCall.conHead(con));
         }
         case Result.Err(var st) -> {
           // For absurd pattern, we look at the next constructor
@@ -465,14 +473,20 @@ public class PatternTycker implements Problematic, Stateful {
    * Check whether {@param con} is available under {@param type}
    */
   public static @NotNull Result<ImmutableSeq<Term>, PatMatcher.State> checkAvail(
-    @NotNull DataCall type, @NotNull ConDef con, @NotNull TyckState state
+    @NotNull DataCall type, @NotNull ConDefLike con, @NotNull TyckState state
   ) {
-    if (con.pats.isNotEmpty()) {
-      var matcher = new PatMatcher(true, new Normalizer(state));
-      return matcher.apply(con.pats, type.args());
-    }
+    return switch (con) {
+      case JitCon jitCon -> jitCon.isAvailable((Term[]) type.args().toArray())
+        .mapErr(b -> b ? PatMatcher.State.Stuck : PatMatcher.State.Mismatch);
+      case ConDef conDef -> {
+        if (conDef.pats.isNotEmpty()) {
+          var matcher = new PatMatcher(true, new Normalizer(state));
+          yield matcher.apply(conDef.pats, type.args());
+        }
 
-    return Result.ok(type.args());
+        yield Result.ok(type.args());
+      }
+    };
   }
 
   /// region Helper

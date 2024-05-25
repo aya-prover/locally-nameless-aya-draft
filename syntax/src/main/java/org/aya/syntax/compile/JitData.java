@@ -2,6 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
+import kala.collection.immutable.ImmutableArray;
+import kala.collection.immutable.ImmutableSeq;
+import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.def.DataDefLike;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,4 +20,10 @@ public abstract non-sealed class JitData extends JitTeleDef implements DataDefLi
    * The constructor of this data type, should initialize {@link #constructors} at the first call.
    */
   public abstract @NotNull JitCon @NotNull [] constructors();
+
+  @Override
+  public @NotNull ImmutableSeq<ConDefLike> body() {
+    // We should use `constructors()` rather than `constructor`, since `constructors()` will initialize them
+    return ImmutableArray.Unsafe.wrap(constructors());
+  }
 }
