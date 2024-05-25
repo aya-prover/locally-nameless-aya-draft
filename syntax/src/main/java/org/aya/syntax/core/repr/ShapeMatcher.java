@@ -153,11 +153,12 @@ public record ShapeMatcher(
           }
 
           // TODO[shaped]
-          var recognition = discovered.getOrThrow((AnyDef) defVar.core, () -> new Panic("Not a shaped data"));
+          var recognition = discovered.getOrThrow(new TyckAnyDef<>(defVar), () -> new Panic("Not a shaped data"));
           var realShapedCon = recognition.captures().getOrThrow(shapedCon.conId(), () ->
             new Panic("Invalid moment id: " + shapedCon.conId() + " in recognition" + recognition));
 
-          matched = realShapedCon.core == con.ref();
+          var conRef = ((ConDef.Delegate) con.ref()).ref;
+          matched = realShapedCon == conRef;
         }
 
         if (!matched) yield false;
@@ -188,8 +189,9 @@ public record ShapeMatcher(
         captures.resolve(call.name()) == ref;
       case TermShape.DeBruijn(var index) -> term instanceof LocalTerm(var jndex) && index == jndex;
       case TermShape.Callable call when term instanceof Callable.Tele callable -> {
+        var ref = ((TyckAnyDef<?>) callable.ref()).ref;
         boolean success = switch (call) {
-          case TermShape.NameCall nameCall -> captures.resolve(nameCall.name()) == callable.ref();
+          case TermShape.NameCall nameCall -> captures.resolve(nameCall.name()) == ref;
           case TermShape.ShapeCall shapeCall -> {
             if (callable.ref() instanceof TyckAnyDef<?> wrapper) {
               yield captureIfMatches(shapeCall.name(), wrapper.ref, () ->
@@ -198,7 +200,7 @@ public record ShapeMatcher(
 
             yield false;
           }
-          case TermShape.ConCall conCall -> resolveCon(conCall.dataId(), conCall.conId()).core == callable.ref();
+          case TermShape.ConCall conCall -> resolveCon(conCall.dataId(), conCall.conId()) == ref;
         };
 
         if (!success) yield false;
@@ -289,7 +291,7 @@ public record ShapeMatcher(
 
   private @NotNull DefVar<?, ?> resolveCon(@NotNull MomentId data, @NotNull CodeShape.GlobalId conId) {
     if (!(captures.resolve(data) instanceof DefVar<?, ?> defVar)) throw new Panic("Not a data");
-    var recog = discovered.getOrThrow((AnyDef) defVar.core, () -> new Panic("Not a recognized data"));
+    var recog = discovered.getOrThrow(TyckAnyDef.make(defVar.core), () -> new Panic("Not a recognized data"));
     return recog.captures().getOrThrow(conId, () -> new Panic("No such con"));
   }
 

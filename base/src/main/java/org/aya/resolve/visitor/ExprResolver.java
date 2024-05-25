@@ -159,7 +159,6 @@ public record ExprResolver(
         case DefVar<?, ?> def -> {
           // RefExpr is referring to a serialized core which is already tycked.
           // Collecting tyck order for tycked terms is unnecessary, just skip.
-          assert def.concrete != null || def.core != null;
           addReference(def);
           yield new Expr.Ref(def);
         }

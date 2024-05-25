@@ -150,7 +150,7 @@ public enum AyaShape {
 
     public void bonjour(@NotNull TyckDef def, @NotNull ShapeRecognition shape) {
       // TODO[literal]: what if a def has multiple shapes?
-      discovered.put(new TyckAnyDef<>(def.ref()), shape);
+      discovered.put(TyckAnyDef.make(def), shape);
     }
 
     /** Discovery of shaped literals */

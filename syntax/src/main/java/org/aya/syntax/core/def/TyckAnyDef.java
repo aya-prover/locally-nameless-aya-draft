@@ -22,4 +22,13 @@ public non-sealed class TyckAnyDef<Interface extends TyckDef> implements AnyDef 
     return obj instanceof TyckAnyDef<?> that && ref.equals(that.ref);
   }
   @Override public int hashCode() { return ref.hashCode(); }
+
+  public static TyckAnyDef<?> make(TyckDef core) {
+    return switch (core) {
+      case DataDef data -> new DataDef.Delegate(data.ref);
+      case FnDef fn -> new FnDef.Delegate(fn.ref);
+      case PrimDef prim -> new PrimDef.Delegate(prim.ref);
+      case ConDef con -> new ConDef.Delegate(con.ref);
+    };
+  }
 }

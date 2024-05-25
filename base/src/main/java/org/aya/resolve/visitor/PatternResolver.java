@@ -10,11 +10,10 @@ import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.core.def.ConDef;
-import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
-import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.Panic;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,20 +73,18 @@ public class PatternResolver implements PosedUnaryOperator<Pattern> {
 
   @SuppressWarnings("unchecked") private static @NotNull DefVar<ConDef, DataCon>
   castConVar(DefVar<?, ?> conMaybe) {
-    assert conMaybe.concrete instanceof DataCon || conMaybe.core instanceof ConDef;
+    assert conMaybe.concrete instanceof DataCon;
     return (DefVar<ConDef, DataCon>) conMaybe;
   }
 
   private void addReference(@NotNull DefVar<?, ?> defVar) {
-    if (defVar.concrete instanceof TyckUnit unit) parentAdd.accept(unit);
+    parentAdd.accept(defVar.concrete);
   }
 
   private static @Nullable DefVar<?, ?> isCon(@Nullable AnyVar myMaybe) {
     if (myMaybe == null) return null;
     if (myMaybe instanceof DefVar<?, ?> def && (
-      def.core instanceof ConDef
-        || def.concrete instanceof DataCon
-        || def.core instanceof PrimDef
+      def.concrete instanceof DataCon
         || def.concrete instanceof PrimDecl
     )) return def;
 
