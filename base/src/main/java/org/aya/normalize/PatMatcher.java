@@ -52,7 +52,7 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
       case Pat.Bind _ -> ImmutableSeq.of(term);
       case Pat.Con con -> switch (pre.apply(term)) {
         case ConCallLike kon -> {
-          if (con.ref() != kon.ref()) throw new Failure(State.Mismatch);
+          if (!con.ref().equals(kon.ref())) throw new Failure(State.Mismatch);
           yield matchMany(con.args(), kon.conArgs());
           // ^ arguments for data should not be matched
         }

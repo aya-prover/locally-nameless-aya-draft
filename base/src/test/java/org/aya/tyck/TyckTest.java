@@ -6,7 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.SyntaxTestUtil;
-import org.aya.syntax.core.def.Def;
+import org.aya.syntax.core.def.TyckDef;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -116,11 +116,11 @@ public class TyckTest {
       """).isNotEmpty());
   }
 
-  public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
+  public static @NotNull ImmutableSeq<TyckDef> tyck(@Language("Aya") @NotNull String code) {
     var moduleLoader = SyntaxTestUtil.moduleLoader();
     var callback = new ModuleCallback<RuntimeException>() {
-      ImmutableSeq<Def> ok;
-      @Override public void onModuleTycked(@NotNull ResolveInfo x, @NotNull ImmutableSeq<Def> defs) { ok = defs; }
+      ImmutableSeq<TyckDef> ok;
+      @Override public void onModuleTycked(@NotNull ResolveInfo x, @NotNull ImmutableSeq<TyckDef> defs) { ok = defs; }
     };
     moduleLoader.tyckModule(moduleLoader.resolve(SyntaxTestUtil.parse(code)), callback);
     return callback.ok;

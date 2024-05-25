@@ -60,7 +60,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         }
         case FnDef.Delegate delegate -> {
           FnDef core = delegate.core();
-          if (!isOpaque(core)) switch (core.body) {
+          if (core == null) yield term;
+          if (!isOpaque(core)) yield switch (core.body) {
             case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
             case Either.Right(var clauses) -> {
               var result = tryUnfoldClauses(clauses, args, ulift, core.is(Modifier.Overlap));
@@ -68,7 +69,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
               if (result.isEmpty()) yield term;
               yield whnf(result.get());
             }
-          }
+          };
           yield term;
         }
       };

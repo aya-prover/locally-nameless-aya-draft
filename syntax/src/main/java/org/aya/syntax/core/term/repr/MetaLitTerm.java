@@ -30,9 +30,7 @@ public record MetaLitTerm(
 
   @SuppressWarnings("unchecked") public @NotNull Term inline(UnaryOperator<Term> pre) {
     if (!(pre.apply(type) instanceof DataCall dataCall)) return this;
-    return candidates.find(t ->
-      /* TODO: use TyckingDef rather than compare two Def objects */
-      t.def() == dataCall.ref()).flatMap(t -> {
+    return candidates.find(t -> t.def().equals(dataCall.ref())).flatMap(t -> {
       var recog = t.recog();
       var shape = recog.shape();
       if (shape == AyaShape.NAT_SHAPE)

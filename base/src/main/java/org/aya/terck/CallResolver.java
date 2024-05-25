@@ -82,7 +82,7 @@ public record CallResolver(
           var ref = con2.ref();
           var conArgs = con2.conArgs();
 
-          if (ref != con.ref() || !conArgs.sizeEquals(con.args())) yield Relation.unk();
+          if (!ref.equals(con.ref()) || !conArgs.sizeEquals(con.args())) yield Relation.unk();
           var attempt = compareConArgs(conArgs, con);
           // Reduce arguments and compare again. This may cause performance issues (but not observed yet [2022-11-07]),
           // see https://github.com/agda/agda/issues/2403 for more information.
