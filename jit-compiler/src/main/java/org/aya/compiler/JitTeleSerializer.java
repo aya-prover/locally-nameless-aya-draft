@@ -13,6 +13,9 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSerializer<T> {
   public static final String CLASS_JITCON = getName(JitCon.class);
+  public static final String METHOD_TELESCOPE = "telescope";
+  public static final String METHOD_RESULT = "result";
+  public static final String TYPE_IMMTERMSEQ = STR."\{CLASS_IMMSEQ}<\{CLASS_TERM}>";
 
   protected final @NotNull Class<?> superClass;
 
@@ -36,13 +39,14 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
       appendLine();
       var iTerm = "i";
       var teleArgsTerm = "teleArgs";
-      buildMethod("telescope", ImmutableSeq.of(
-        new JitParam("i", "int"),
-        new JitParam("teleArgs", STR."\{CLASS_TERM}...")
+      var teleArgsTy = TYPE_IMMTERMSEQ;
+      buildMethod(METHOD_TELESCOPE, ImmutableSeq.of(
+        new JitParam(iTerm, "int"),
+        new JitParam(teleArgsTerm, teleArgsTy)
       ), CLASS_TERM, true, () -> buildTelescope(unit, iTerm, teleArgsTerm));
       appendLine();
-      buildMethod("result", ImmutableSeq.of(
-        new JitParam("teleArgs", STR."\{CLASS_TERM}...")
+      buildMethod(METHOD_RESULT, ImmutableSeq.of(
+        new JitParam(teleArgsTerm, teleArgsTy)
       ), CLASS_TERM, true, () -> buildResult(unit, teleArgsTerm));
       appendLine();
       continuation.run();
@@ -54,7 +58,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
   }
 
   /**
-   * @see org.aya.syntax.compile.JitTele
+   * @see org.aya.syntax.compile.JitDef
    */
   protected abstract void buildConstructor(T unit);
 
