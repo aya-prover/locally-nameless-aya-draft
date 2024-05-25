@@ -79,11 +79,9 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       }
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException("TODO");    // TODO
-      case Pat.Tuple tuple -> {
-        buildIfElse(STR."\{term} instanceof TupleTerm", State.Stuck, () -> {
-          throw new UnsupportedOperationException("TODO");
-        });
-      }
+      case Pat.Tuple tuple -> buildIfElse(STR."\{term} instanceof TupleTerm", State.Stuck, () -> {
+        throw new UnsupportedOperationException("TODO");
+      });
     }
   }
 

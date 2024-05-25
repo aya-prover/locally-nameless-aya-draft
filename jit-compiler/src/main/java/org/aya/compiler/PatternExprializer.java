@@ -5,6 +5,7 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.util.IterableUtil;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +49,7 @@ public class PatternExprializer extends AbstractSerializer<Pat> {
         serialize(con.args());
         builder.append(")");
       }
-      case Pat.Meta meta -> Panic.unreachable();
+      case Pat.Meta _ -> Panic.unreachable();
       case Pat.Tuple tuple -> throw new UnsupportedOperationException();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException();
     }

@@ -3,7 +3,9 @@
 
 import com.javax0.sourcebuddy.Compiler;
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.compiler.*;
+import org.aya.compiler.AyaSerializer;
+import org.aya.compiler.ModuleSerializer;
+import org.aya.compiler.TermSerializer;
 import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.producer.AyaParserImpl;
@@ -13,17 +15,15 @@ import org.aya.resolve.module.DumbModuleLoader;
 import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitFn;
-import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.core.Closure;
-import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.Def;
 import org.aya.syntax.core.def.FnDef;
-import org.aya.syntax.core.pat.Pat;
-import org.aya.syntax.core.term.*;
-import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.LocalVar;
-import org.aya.syntax.ref.ModulePath;
+import org.aya.syntax.core.def.TyckDef;
+import org.aya.syntax.core.term.AppTerm;
+import org.aya.syntax.core.term.LamTerm;
+import org.aya.syntax.core.term.LocalTerm;
+import org.aya.syntax.core.term.call.ConCall;
 import org.aya.util.error.SourceFile;
 import org.aya.util.reporter.ThrowingReporter;
 import org.intellij.lang.annotations.Language;
@@ -34,26 +34,6 @@ import java.nio.file.Path;
 
 public class CompileTest {
   @Test public void test0() {
-    DefVar<ConDef, DataCon> S = DefVar.empty("S");
-    S.module = ModulePath.of("Data", "Nat", "Nat");
-
-    var cls0 = ImmutableSeq.<Pat>of(
-      new Pat.Bind(new LocalVar("A"), ErrorTerm.DUMMY),
-      new Pat.Con(S, ImmutableSeq.of(new Pat.Bind(new LocalVar("n"), ErrorTerm.DUMMY)), null)
-    );
-
-    var builder = new StringBuilder();
-    var ser = new PatternSerializer(builder, 0, new NameGenerator(), "args", true,
-      s -> s.appendLine("System.out.println(\"Hello, world!\");"),
-      s -> s.appendLine("System.out.println(\"Unhello, world!\");"));
-
-    ser.serialize(ImmutableSeq.of(new PatternSerializer.Matching(cls0,
-        (s, _) -> s.appendLine("System.out.println(\"Good, world!\");"))));
-
-    System.out.println(ser.result());
-  }
-
-  @Test public void test1() {
     var result = tyck("""
       open data Nat | O | S Nat
       open data Vec (n : Nat) Type
@@ -93,10 +73,10 @@ public class CompileTest {
       var O = (JitCon) fieldO.get(null);
       var S = (JitCon) fieldS.get(null);
       var plus = (JitFn) fieldPlus.get(null);
-      var zero = new JitConCall(O, 0, ImmutableSeq.empty(), ImmutableSeq.empty());
-      var one = new JitConCall(S, 0, ImmutableSeq.empty(), ImmutableSeq.of(zero));
-      var two = new JitConCall(S, 0, ImmutableSeq.empty(), ImmutableSeq.of(one));
-      var three = new JitConCall(S, 0, ImmutableSeq.empty(), ImmutableSeq.of(two));
+      var zero = new ConCall(O, ImmutableSeq.empty(), 0, ImmutableSeq.empty());
+      var one = new ConCall(S, ImmutableSeq.empty(), 0, ImmutableSeq.of(zero));
+      var two = new ConCall(S, ImmutableSeq.empty(), 0, ImmutableSeq.of(one));
+      var three = new ConCall(S, ImmutableSeq.empty(), 0, ImmutableSeq.of(two));
 
       var mResult = plus.invoke(zero, two, three);
       System.out.println(mResult.debuggerOnlyToDoc().debugRender());
@@ -132,11 +112,11 @@ public class CompileTest {
 
   private static final @NotNull Path FILE = Path.of("/home/senpai/1919810.aya");
   public static final ThrowingReporter REPORTER = new ThrowingReporter(AyaPrettierOptions.pretty());
-  public static @NotNull ImmutableSeq<Def> tyck(@Language("Aya") @NotNull String code) {
+  public static @NotNull ImmutableSeq<TyckDef> tyck(@Language("Aya") @NotNull String code) {
     var moduleLoader = new DumbModuleLoader(new EmptyContext(REPORTER, FILE));
     var callback = new ModuleCallback<RuntimeException>() {
-      ImmutableSeq<Def> ok;
-      @Override public void onModuleTycked(@NotNull ResolveInfo x, @NotNull ImmutableSeq<Def> defs) { ok = defs; }
+      ImmutableSeq<TyckDef> ok;
+      @Override public void onModuleTycked(@NotNull ResolveInfo x, @NotNull ImmutableSeq<TyckDef> defs) { ok = defs; }
     };
     moduleLoader.tyckModule(moduleLoader.resolve(new AyaParserImpl(REPORTER).program(
       new SourceFile("<baka>", FILE, code))), callback);
