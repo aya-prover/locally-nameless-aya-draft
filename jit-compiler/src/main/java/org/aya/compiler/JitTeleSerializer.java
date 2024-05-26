@@ -64,6 +64,16 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     return javify(unit.ref());
   }
 
+  public void buildClass(@NotNull String className, @NotNull Class<?> superClass, @NotNull Runnable continuation) {
+    appendLine(STR."static final class \{className} extends \{getName(superClass)} {");
+    runInside(continuation);
+    appendLine("}");
+  }
+
+  public void buildInstance(@NotNull String className) {
+    appendLine(STR."public static final \{className} \{STATIC_FIELD_INSTANCE} = new \{className}();");
+  }
+
   protected void appendMetadataRecord(@NotNull String name, @NotNull String value, boolean isFirst) {
     var prepend = isFirst ? "" : ", ";
     appendLine(STR."\{prepend}\{name} = \{value}");

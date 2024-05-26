@@ -106,16 +106,6 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."return \{retWith};");
   }
 
-  public void buildClass(@NotNull String className, @NotNull Class<?> superClass, @NotNull Runnable continuation) {
-    appendLine(STR."static final class \{className} extends \{getName(superClass)} {");
-    runInside(continuation);
-    appendLine("}");
-  }
-
-  public void buildInstance(@NotNull String className) {
-    appendLine(STR."public static final \{className} INSTANCE = new \{className}();");
-  }
-
   public void buildPanic(@Nullable String message) {
     message = message == null ? "" : makeString(message);
     appendLine(STR."throw new \{CLASS_PANIC}(\{message});");
@@ -187,12 +177,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected static @NotNull String makeArrayFrom(@NotNull String type, @NotNull ImmutableSeq<String> elements) {
-    var builder = new StringBuilder();
-    builder.append("new ");
-    builder.append(type);
-    builder.append("[] ");
-    builder.append(makeHalfArrayFrom(elements));
-    return builder.toString();
+    return STR."new \{type}[] \{makeHalfArrayFrom(elements)}";
   }
 
   protected static @NotNull String makeHalfArrayFrom(@NotNull SeqLike<String> elements) {
