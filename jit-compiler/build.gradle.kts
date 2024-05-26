@@ -3,7 +3,7 @@
 
 dependencies {
   api(project(":base"))
-  implementation("com.javax0.sourcebuddy:SourceBuddy:2.5.0")
+  implementation(libs.sourcebuddy)
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)
   testImplementation(project(":producer"))
