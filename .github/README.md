@@ -1,26 +1,35 @@
 # Locally Nameless Aya draft
 
-This is a temporary repo for the rewrite of Aya using locally nameless with the additional foci:
+This is a temporary repo for the rewrite of Aya using locally nameless with the following additional foci:
 
-* Better modularity: decomposed `base` into `syntax`, `producer`, and `base`
-* Better concrete syntax tree, decompose source info from `Expr`
-* Complicated mutual recursion now work in a different way, smaller SCCs in the dependency graph
-* Reimplement serializer with JIT-compiled code for better efficiency
-* Replace extension types and `Glue` with `PathP` and boundary separation
-* Replace boundaries in constructors with an equality in the return type
-* Treat full (as opposed to head) normalization more carefully
-* Implement the `elim` keyword in Arend
+## Already finished, internal
+* _Better modularity_: decomposed `base` into `syntax`, `producer`, and `base`
+* _Better concrete syntax tree_, decompose source info from `Expr`
+* _Only do weak-head normalization in type checking_, implement the full normalizer uses WHNF normalizer, instead of having a normalizer that is parametrized by how much you want to normalize
 * Instead of using inheritance, we (actually Hoshino) use a design pattern to imitate type classes to organize type checking monad
 * Less test-only APIs in the type checker since we're more confident now
-* Re-think about the testing infrastructure, maybe there's a better way to organize the failing cases
+* Redesign the testing infrastructure, group the failing cases for a similar reason together
 * Get rid of trace builders and "codifiers" because the developers never used them anyway except me for a few times
 * Run internal tests using the "Orga" type checker (non-stopping & deal with mutual recursion correctly) instead of the silly sequential type checker
-* Remove first-class implicit arguments, replace with the design similar to Coq
+
+## Already finished, user-visible
+* _Mutual recursion inference_ now work differently, smaller SCCs in the dependency graph, rely more on the order that users write the definitions
+* Reimplement _serialization with JIT-compiled_ code for better efficiency, actually make use of the benefits of a VM-based host language
+* Replace extension types with `PathP` since we no longer have interesting higher homotopies
+* Replace boundaries in constructors with an equality in the return type
+* Implement _the `elim` keyword in Arend_, so much less pain when dealing with long pattern matching functions
+* _Remove first-class implicit arguments_ like in Agda/Lean, replace with the design similar to Coq. Pi types are only parametrized by the domain type and codomain closure
 * Improve pattern matching coverage checking error report
-* Redesign classes (future plan)
 
-Technically we didn't remove `Glue` because we didn't implement it either, but we can say we replaced it from our roadmap.
+## To be done, planned in this draft
+* Serialization of modules, with proper mangling and deserialization
+* _Library system_, with a small standard library
 
-Since late 2023, I was blessed with the privilege to talk to a number of students of Professor Avigad and learned a lot about Lean and some set-theoretic proof assistants. This has opened my eyes since I only know Agda and was too much into the idea of having a higher type theory as the foundation of mathematics (instead of an internal language for some higher topoi). This motivated the transition to a set-level type theory with good handling of propositional equality. I will try to weave my new understanding and thinking into this brand-new version of Aya. I am really grateful for Hoshino Tented for helping me out on this project.
+## To be done, not planned in this draft
+* Implement _boundary separation_, `hcomp`, and correct computation of `coe` on type formers
+* Redesign classes, make `do` and idiom brackets based on classes
+* _Java interop_: tactics, etc.
+
+Since late 2023, I was blessed with the privilege to talk to a number of students of Professor Avigad and learned a lot about Lean and some set-theoretic proof assistants, including Mizar and Metamath Zero. This is eye-opening since I only know Agda/Arend and was too much into the idea of univalent foundation of mathematics (instead of having HoTT as an internal language of higher topoi). This motivated the transition to a set-level type theory with good handling of propositional equality. I will try to weave my new understanding and thinking into this brand-new version of Aya. I am really grateful for Hoshino Tented for helping me out on this project.
 
 Once we're done with everything that exists in the original repo, we will create a huge pull request signed by everyone contributed to this prototype and work with the aya-dev repo instead. The version number will be `0.x` still until we've figured out Java interop (aka tactics).
