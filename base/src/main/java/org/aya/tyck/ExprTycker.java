@@ -278,6 +278,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         generateApplication(args, localLet.get(ref));
       case LocalVar lVar -> generateApplication(args,
         new Jdg.Default(new FreeTerm(lVar), localCtx().get(lVar)));
+      case CompiledVar(var content, _) -> throw new UnsupportedOperationException("TODO");
       case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, state, (params, k) -> {
         int argIx = 0, paramIx = 0;
         var result = new Term[params.telescopeSize];

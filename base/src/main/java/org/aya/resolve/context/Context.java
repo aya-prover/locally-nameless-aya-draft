@@ -72,7 +72,7 @@ public interface Context {
    */
   default @NotNull AnyVar get(@NotNull QualifiedID name) {
     return switch (name.component()) {
-      case ModuleName.ThisRef aThis -> getUnqualified(name.name(), name.sourcePos());
+      case ModuleName.ThisRef _ -> getUnqualified(name.name(), name.sourcePos());
       case ModuleName.Qualified qualified -> getQualified(qualified, name.name(), name.sourcePos());
     };
   }
@@ -82,7 +82,7 @@ public interface Context {
    */
   default @Nullable AnyVar getMaybe(@NotNull QualifiedID name) {
     return switch (name.component()) {
-      case ModuleName.ThisRef aThis -> getUnqualifiedMaybe(name.name(), name.sourcePos());
+      case ModuleName.ThisRef _ -> getUnqualifiedMaybe(name.name(), name.sourcePos());
       case ModuleName.Qualified qualified -> getQualifiedMaybe(qualified, name.name(), name.sourcePos());
     };
   }
@@ -108,8 +108,7 @@ public interface Context {
    * @see Context#getUnqualifiedLocalMaybe(String, SourcePos)
    */
   default @Nullable AnyVar getUnqualifiedMaybe(
-    @NotNull String name,
-    @NotNull SourcePos sourcePos
+    @NotNull String name, @NotNull SourcePos sourcePos
   ) {
     return iterate(c -> c.getUnqualifiedLocalMaybe(name, sourcePos));
   }
@@ -118,8 +117,7 @@ public interface Context {
    * @see Context#getUnqualified(String, SourcePos)
    */
   default @NotNull AnyVar getUnqualified(
-    @NotNull String name,
-    @NotNull SourcePos sourcePos
+    @NotNull String name, @NotNull SourcePos sourcePos
   ) {
     var result = getUnqualifiedMaybe(name, sourcePos);
     if (result == null) reportAndThrow(new NameProblem.UnqualifiedNameNotFoundError(this, name, sourcePos));
