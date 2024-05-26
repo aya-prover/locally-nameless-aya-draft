@@ -140,7 +140,7 @@ public class TermSerializer extends AbstractExprializer<Term> {
       case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
       case IntegerTerm integerTerm -> throw new UnsupportedOperationException("TODO");
       case ListTerm listTerm -> throw new UnsupportedOperationException("TODO");
-      default -> throw new IllegalStateException("Unexpected value: " + term);
+      default -> throw new IllegalStateException("Unexpected value: " + term.getClass());
     }
     return this;
   }

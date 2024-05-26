@@ -5,6 +5,8 @@ package org.aya.tyck.tycker;
 import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.CheckedBiFunction;
+import org.aya.syntax.compile.JitData;
+import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.DataDecl;
@@ -28,75 +30,90 @@ public interface AppTycker {
     CheckedBiFunction<JitTele, Function<Term[], Jdg>, Jdg, Ex> {
   }
 
+  static <Ex extends Exception> @NotNull Jdg checkCompiledApplication(
+    JitTele def, @NotNull TyckState state, @NotNull Factory<Ex> makeArgs
+  ) throws Ex {
+    return switch (def) {
+      case JitFn fn -> makeArgs.applyChecked(fn, args ->
+        new Jdg.Default(new FnCall(fn, 0, ImmutableArray.from(args)), fn.result(args)));
+      case JitData data -> makeArgs.applyChecked(data, args ->
+        new Jdg.Default(new DataCall(data, 0, ImmutableArray.from(args)), data.result(args)));
+      default -> Panic.unreachable();
+    };
+  }
+
   @SuppressWarnings("unchecked")
   static <Ex extends Exception> @NotNull Jdg checkDefApplication(
     @NotNull DefVar<?, ?> defVar,
     @NotNull TyckState state, @NotNull Factory<Ex> makeArgs
   ) throws Ex {
-    var core = defVar.core;
-    var concrete = defVar.concrete;
-
-    if (core instanceof FnDef || concrete instanceof FnDecl) {
-      var fnVar = (DefVar<FnDef, FnDecl>) defVar;
-      var signature = TyckDef.defSignature(fnVar);
-      return makeArgs.applyChecked(signature, args -> {
-        var shape = state.shapeFactory().find(new FnDef.Delegate(fnVar));
-        var argsSeq = ImmutableArray.from(args);
-        var result = signature.result(args);
-        if (shape.isDefined()) {
-          var operator = AyaShape.ofFn(fnVar, shape.get());
-          if (operator != null) {
-            return new Jdg.Default(new RuleReducer.Fn(operator, 0, argsSeq), result);
-          }
-        }
-        return new Jdg.Default(new FnCall(fnVar, 0, argsSeq), result);
-      });
-    } else if (core instanceof DataDef || concrete instanceof DataDecl) {
-      var dataVar = (DefVar<DataDef, DataDecl>) defVar;
-      var signature = TyckDef.defSignature(dataVar);
-      return makeArgs.applyChecked(signature, args -> new Jdg.Default(
-        new DataCall(dataVar, 0, ImmutableArray.from(args)),
-        signature.result(args)
-      ));
-    } else if (core instanceof PrimDef || concrete instanceof PrimDecl) {
-      var primVar = (DefVar<PrimDef, PrimDecl>) defVar;
-      var signature = TyckDef.defSignature(primVar);
-      return makeArgs.applyChecked(signature, args -> new Jdg.Default(
-        state.primFactory().unfold(new PrimCall(primVar, 0, ImmutableArray.from(args)), state),
-        signature.result(args)
-      ));
-    } else if (core instanceof ConDef || concrete instanceof DataCon) {
-      var conVar = (DefVar<ConDef, DataCon>) defVar;
-      var conCore = conVar.core;
-      assert conCore != null;
-      var dataVar = conCore.dataRef;
-
-      var fullSignature = TyckDef.defSignature(conVar);   // ownerTele + selfTele
-      var ownerTele = conCore.ownerTele;
-
-      return makeArgs.applyChecked(fullSignature, args -> {
-        var realArgs = ImmutableArray.from(args);
-        var ownerArgs = realArgs.take(ownerTele.size());
-        var conArgs = realArgs.drop(ownerTele.size());
-
-        var type = fullSignature.result(realArgs);
-        var shape = state.shapeFactory().find(new DataDef.Delegate(dataVar))
-          .mapNotNull(recog -> {
-            if (recog.shape() == AyaShape.NAT_SHAPE) {
-              var head = AyaShape.ofCon(conVar, recog, new DataCall(dataVar, 0, ImmutableSeq.empty()));
-              assert head != null : "bad ShapeFactory";
-              return new RuleReducer.Con(head, 0, ImmutableSeq.empty(), realArgs);
+    return switch (defVar.concrete) {
+      case FnDecl _ -> {
+        var fnVar = (DefVar<FnDef, FnDecl>) defVar;
+        var signature = TyckDef.defSignature(fnVar);
+        yield makeArgs.applyChecked(signature, args -> {
+          var shape = state.shapeFactory().find(new FnDef.Delegate(fnVar));
+          var argsSeq = ImmutableArray.from(args);
+          var result = signature.result(args);
+          if (shape.isDefined()) {
+            var operator = AyaShape.ofFn(fnVar, shape.get());
+            if (operator != null) {
+              return new Jdg.Default(new RuleReducer.Fn(operator, 0, argsSeq), result);
             }
+          }
+          return new Jdg.Default(new FnCall(fnVar, 0, argsSeq), result);
+        });
+      }
+      case DataDecl _ -> {
+        var dataVar = (DefVar<DataDef, DataDecl>) defVar;
+        var signature = TyckDef.defSignature(dataVar);
+        yield makeArgs.applyChecked(signature, args -> new Jdg.Default(
+          new DataCall(dataVar, 0, ImmutableArray.from(args)),
+          signature.result(args)
+        ));
+      }
+      case PrimDecl _ -> {
+        var primVar = (DefVar<PrimDef, PrimDecl>) defVar;
+        var signature = TyckDef.defSignature(primVar);
+        yield makeArgs.applyChecked(signature, args -> new Jdg.Default(
+          state.primFactory().unfold(new PrimCall(primVar, 0, ImmutableArray.from(args)), state),
+          signature.result(args)
+        ));
+      }
+      case DataCon _ -> {
+        var conVar = (DefVar<ConDef, DataCon>) defVar;
+        var conCore = conVar.core;
+        assert conCore != null;
+        var dataVar = conCore.dataRef;
 
-            return null;
-          })
-          .getOrNull();
-        if (shape != null) return new Jdg.Default(shape, type);
-        var wellTyped = new ConCall(conVar, 0, ownerArgs, conArgs);
-        return new Jdg.Default(wellTyped, type);
-      });
-    }
+        // ownerTele + selfTele
+        var fullSignature = TyckDef.defSignature(conVar);
+        var ownerTele = conCore.ownerTele;
 
-    return Panic.unreachable();
+        yield makeArgs.applyChecked(fullSignature, args -> {
+          var realArgs = ImmutableArray.from(args);
+          var ownerArgs = realArgs.take(ownerTele.size());
+          var conArgs = realArgs.drop(ownerTele.size());
+
+          var type = fullSignature.result(realArgs);
+          var shape = state.shapeFactory().find(new DataDef.Delegate(dataVar))
+            .mapNotNull(recog -> {
+              if (recog.shape() == AyaShape.NAT_SHAPE) {
+                var dataCall = new DataCall(dataVar, 0, ImmutableSeq.empty());
+                var head = AyaShape.ofCon(conVar, recog, dataCall);
+                assert head != null : "bad ShapeFactory";
+                return new RuleReducer.Con(head, 0, ImmutableSeq.empty(), realArgs);
+              }
+
+              return null;
+            })
+            .getOrNull();
+          if (shape != null) return new Jdg.Default(shape, type);
+          var wellTyped = new ConCall(conVar, 0, ownerArgs, conArgs);
+          return new Jdg.Default(wellTyped, type);
+        });
+      }
+      default -> Panic.unreachable();
+    };
   }
 }

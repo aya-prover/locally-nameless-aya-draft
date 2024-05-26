@@ -8,6 +8,7 @@ import kala.collection.mutable.MutableStack;
 import kala.collection.mutable.MutableTreeSet;
 import kala.control.Result;
 import org.aya.generic.Constants;
+import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.DataDefLike;
 import org.aya.syntax.core.def.TyckDef;
@@ -278,58 +279,65 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         generateApplication(args, localLet.get(ref));
       case LocalVar lVar -> generateApplication(args,
         new Jdg.Default(new FreeTerm(lVar), localCtx().get(lVar)));
-      case CompiledVar(var content, _) -> throw new UnsupportedOperationException("TODO");
-      case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, state, (params, k) -> {
-        int argIx = 0, paramIx = 0;
-        var result = new Term[params.telescopeSize];
-        while (argIx < args.size() && paramIx < params.telescopeSize) {
-          var arg = args.get(argIx);
-          var param = params.telescopeRich(paramIx, result);
-          // Implicit insertion
-          if (arg.explicit() != param.explicit()) {
-            if (!arg.explicit()) {
-              fail(new LicitError.BadImplicitArg(arg));
-              break;
-            } else if (arg.name() == null) {
-              // here, arg.explicit() == true and param.explicit() == false
-              result[paramIx++] = mockTerm(param, arg.sourcePos());
-              continue;
-            }
-          }
-          if (arg.name() != null && !param.nameEq(arg.name())) {
-            result[paramIx++] = mockTerm(param, arg.sourcePos());
-            continue;
-          }
-          result[paramIx++] = inherit(arg.arg(), param.type()).wellTyped();
-          argIx++;
-        }
-        // Trailing implicits
-        while (paramIx < params.telescopeSize) {
-          if (params.telescopeLicit[paramIx]) break;
-          var param = params.telescopeRich(paramIx, result);
-          result[paramIx++] = mockTerm(param, SourcePos.NONE);
-        }
-        var extraParams = MutableStack.<Pair<LocalVar, Term>>create();
-        if (argIx < args.size()) {
-          return generateApplication(args.drop(argIx), k.apply(result));
-        } else while (paramIx < params.telescopeSize) {
-          var param = params.telescopeRich(paramIx, result);
-          var atarashiVar = LocalVar.generate(param.name());
-          extraParams.push(new Pair<>(atarashiVar, param.type()));
-          result[paramIx++] = new FreeTerm(atarashiVar);
-        }
-        var generated = k.apply(result);
-        while (extraParams.isNotEmpty()) {
-          var pair = extraParams.pop();
-          generated = new Jdg.Default(
-            new LamTerm(generated.wellTyped().bind(pair.component1())),
-            new PiTerm(pair.component2(), generated.type().bind(pair.component1()))
-          );
-        }
-        return generated;
-      });
+      case CompiledVar(var content, _) -> AppTycker.checkCompiledApplication(content, state,
+        (params, k) -> computeArgs(args, params, k));
+      case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, state,
+        (params, k) -> computeArgs(args, params, k));
       default -> throw new UnsupportedOperationException("TODO");
     };
+  }
+
+  private Jdg computeArgs(
+    @NotNull ImmutableSeq<Expr.NamedArg> args,
+    JitTele params, Function<Term[], Jdg> k
+  ) throws NotPi {
+    int argIx = 0, paramIx = 0;
+    var result = new Term[params.telescopeSize];
+    while (argIx < args.size() && paramIx < params.telescopeSize) {
+      var arg = args.get(argIx);
+      var param = params.telescopeRich(paramIx, result);
+      // Implicit insertion
+      if (arg.explicit() != param.explicit()) {
+        if (!arg.explicit()) {
+          fail(new LicitError.BadImplicitArg(arg));
+          break;
+        } else if (arg.name() == null) {
+          // here, arg.explicit() == true and param.explicit() == false
+          result[paramIx++] = mockTerm(param, arg.sourcePos());
+          continue;
+        }
+      }
+      if (arg.name() != null && !param.nameEq(arg.name())) {
+        result[paramIx++] = mockTerm(param, arg.sourcePos());
+        continue;
+      }
+      result[paramIx++] = inherit(arg.arg(), param.type()).wellTyped();
+      argIx++;
+    }
+    // Trailing implicits
+    while (paramIx < params.telescopeSize) {
+      if (params.telescopeLicit[paramIx]) break;
+      var param = params.telescopeRich(paramIx, result);
+      result[paramIx++] = mockTerm(param, SourcePos.NONE);
+    }
+    var extraParams = MutableStack.<Pair<LocalVar, Term>>create();
+    if (argIx < args.size()) {
+      return generateApplication(args.drop(argIx), k.apply(result));
+    } else while (paramIx < params.telescopeSize) {
+      var param = params.telescopeRich(paramIx, result);
+      var atarashiVar = LocalVar.generate(param.name());
+      extraParams.push(new Pair<>(atarashiVar, param.type()));
+      result[paramIx++] = new FreeTerm(atarashiVar);
+    }
+    var generated = k.apply(result);
+    while (extraParams.isNotEmpty()) {
+      var pair = extraParams.pop();
+      generated = new Jdg.Default(
+        new LamTerm(generated.wellTyped().bind(pair.component1())),
+        new PiTerm(pair.component2(), generated.type().bind(pair.component1()))
+      );
+    }
+    return generated;
   }
 
   private Jdg generateApplication(@NotNull ImmutableSeq<Expr.NamedArg> args, Jdg start) throws NotPi {
