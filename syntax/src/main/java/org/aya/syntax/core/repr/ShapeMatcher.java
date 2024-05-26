@@ -152,7 +152,6 @@ public record ShapeMatcher(
             throw new Panic("Invalid name: " + shapedCon.dataId());
           }
 
-          // TODO[shaped]
           var recognition = discovered.getOrThrow(new TyckAnyDef<>(defVar), () -> new Panic("Not a shaped data"));
           var realShapedCon = recognition.captures().getOrThrow(shapedCon.conId(), () ->
             new Panic("Invalid moment id: " + shapedCon.conId() + " in recognition" + recognition));

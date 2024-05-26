@@ -29,7 +29,6 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
 
   @Override public AyaSerializer<DataDef> serialize(DataDef unit) {
     buildFramework(unit, () -> {
-      // TODO: is it better to be synchronized ?
       buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", true,
         () -> buildConstructors(unit));
       appendLine();

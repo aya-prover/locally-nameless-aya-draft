@@ -89,7 +89,6 @@ public class Main extends MainArgs implements Callable<Integer> {
       outputPath);
 
     // if (compile.isLibrary || compile.isRemake || compile.isNoCode) {
-    //   // TODO: move to a new tool
     //   var advisor = compile.isNoCode ? CompilerAdvisor.inMemory() : CompilerAdvisor.onDisk();
     //   return LibraryCompiler.compile(new PrimDef.Factory(), reporter, flags, advisor, filePath);
     // }

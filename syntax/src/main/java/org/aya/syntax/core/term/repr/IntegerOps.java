@@ -18,15 +18,6 @@ import org.jetbrains.annotations.Nullable;
  * @see org.aya.syntax.core.term.call.RuleReducer
  */
 public sealed interface IntegerOps<Def extends AnyDef> extends Shaped.Applicable<Term, Def> {
-  @Override
-  default @NotNull Term type() {
-    // TODO
-    throw new UnsupportedOperationException("TODO");
-    // var core = ref().core;
-    // assert core != null;
-    // return Def.defType(ref());
-  }
-
   record ConRule(
     @Override @NotNull ConDefLike ref,
     @NotNull IntegerTerm zero,

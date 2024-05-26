@@ -71,7 +71,6 @@ public interface GoalAndMeta {
     open data List2 (A : Type) | nil2 | cons2 A (List2 A)
     open data Unit | unit
     
-    // TODO: make this work
     def good : List Unit => [ ]
     def bad => [ unit ]
     """;

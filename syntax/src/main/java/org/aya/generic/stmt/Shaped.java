@@ -97,7 +97,7 @@ public interface Shaped<T> {
    * {@link org.aya.syntax.core.def.FnDef}, {@link ConDef}, and probably {@link org.aya.syntax.core.def.DataDef}.
    * See also <code>RuleReducer</code>.
    */
-  interface Applicable<T extends Term, Def extends AnyDef> extends Shaped<T> {
+  interface Applicable<T extends Term, Def extends AnyDef> {
     @NotNull Def ref();
 
     /**

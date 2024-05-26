@@ -167,11 +167,11 @@ Error: Unsolved meta _
 What are you doing?
 
 LiteralAmbiguous3:
-In file $FILE:7:11 ->
+In file $FILE:6:11 ->
 
-  5 │   // TODO: make this work
-  6 │   def good : List Unit => [ ]
-  7 │   def bad => [ unit ]
+  4 │   
+  5 │   def good : List Unit => [ ]
+  6 │   def bad => [ unit ]
     │              ╰──────╯
 
 Error: Unable to solve the type of this literal:

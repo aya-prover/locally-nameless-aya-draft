@@ -93,20 +93,16 @@ public record CallResolver(
 
         var subCompare = con.args().view().map(sub -> compare(term, sub));
         var attempt = subCompare.anyMatch(r -> r != Relation.unk()) ? Relation.lt() : Relation.unk();
-        if (attempt == Relation.unk()) {
-          yield switch (whnf(term)) {
-            case ConCall con2 -> compare(con2, con);
-            // TODO[h]: do we need a RuleReducer.Con case here? @ice1000
-            case IntegerTerm lit -> compare(lit, con);
-            // This is related to the predicativity issue mentioned in #907
-            case PAppTerm papp -> {
-              var head = papp.fun();
-              while (head instanceof PAppTerm papp2) head = papp2.fun();
-              yield compare(head, con);
-            }
-            default -> attempt;
-          };
-        }
+        if (attempt == Relation.unk()) yield switch (whnf(term)) {
+          case ConCallLike con2 -> compare(con2, con);
+          // This is related to the predicativity issue mentioned in #907
+          case PAppTerm papp -> {
+            var head = papp.fun();
+            while (head instanceof PAppTerm papp2) head = papp2.fun();
+            yield compare(head, con);
+          }
+          default -> attempt;
+        };
 
         yield attempt;
       }
