@@ -20,7 +20,7 @@ public class CompileTester {
 
   public CompileTester(@NotNull String code) { this.code = code; }
 
-  public CompileTester(@NotNull ImmutableSeq<TyckDef> defs, @NotNull AyaShape.Factory factory) {
+  public static CompileTester make(@NotNull ImmutableSeq<TyckDef> defs, @NotNull AyaShape.Factory factory) {
     defs = defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
     var out = new ModuleSerializer(new StringBuilder(), 0, new NameGenerator(), factory)
       .serialize(defs)
@@ -36,7 +36,7 @@ public class CompileTester {
       }
       """;
 
-    this(code);
+    return new CompileTester(code);
   }
 
   public void compile() throws ClassNotFoundException, Compiler.CompileException {
@@ -44,6 +44,6 @@ public class CompileTester {
   }
 
   public <T> Class<T> load(String... path) {
-
+    throw new UnsupportedOperationException("TODO");
   }
 }
