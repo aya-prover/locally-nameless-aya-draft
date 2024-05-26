@@ -12,9 +12,7 @@ import org.aya.syntax.concrete.stmt.Stmt;
 import org.jetbrains.annotations.NotNull;
 
 public record StmtResolvers(@NotNull ModuleLoader loader, @NotNull ResolveInfo info) {
-  private @NotNull ImmutableSeq<ResolvingStmt> fillContext(
-    @NotNull ImmutableSeq<Stmt> stmts
-  ) {
+  private @NotNull ImmutableSeq<ResolvingStmt> fillContext(@NotNull ImmutableSeq<Stmt> stmts) {
     return new StmtPreResolver(loader, info).resolveStmt(stmts, info.thisModule());
   }
 

@@ -92,12 +92,12 @@ public class Main extends MainArgs implements Callable<Integer> {
     //   var advisor = compile.isNoCode ? CompilerAdvisor.inMemory() : CompilerAdvisor.onDisk();
     //   return LibraryCompiler.compile(new PrimDef.Factory(), reporter, flags, advisor, filePath);
     // }
-    var compiler = new SingleFileCompiler(reporter, null);
+    var compiler = new SingleFileCompiler(reporter, flags, null);
     if (Files.notExists(filePath)) {
       System.err.println("File not found: " + filePath);
       return -1;
     }
-    return compiler.compile(filePath, flags, null);
+    return compiler.compile(filePath, null);
   }
 
   private @Nullable CompilerFlags.PrettyInfo

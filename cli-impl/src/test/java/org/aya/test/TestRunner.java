@@ -112,25 +112,27 @@ public class TestRunner {
     throws IllegalAccessException, IOException {
     try (var output = new ByteArrayOutputStream();
          var stream = new PrintStream(output, true, StandardCharsets.UTF_8)) {
+      var reporter = CountingReporter.delegate(new StreamReporter(stream));
+      var compiler = new SingleFileCompiler(reporter, flags(), LOCATOR);
       for (var field : fixturesClass.getDeclaredFields()) {
         var name = field.getName();
         if (!name.startsWith("test")) continue;
         System.out.println("Running " + name.substring(4));
         stream.println(name.substring(4) + ":");
         var code = (String) field.get(null);
-        runSingleCase(code, stream);
+        runSingleCase(code, compiler);
+        compiler.reporter.clear();
         stream.println();
       }
       return output.toString(StandardCharsets.UTF_8);
     }
   }
 
-  private static void runSingleCase(String code, PrintStream stream) throws IOException {
+  private static void runSingleCase(String code, SingleFileCompiler compiler) throws IOException {
     Files.deleteIfExists(TMP_FILE);
     Files.createFile(TMP_FILE);
     Files.writeString(TMP_FILE, code);
-    var reporter = CountingReporter.delegate(new StreamReporter(stream));
-    new SingleFileCompiler(reporter, LOCATOR).compile(TMP_FILE, flags(), null);
+    compiler.compile(TMP_FILE, null);
   }
 
   public static @NotNull CompilerFlags flags() {

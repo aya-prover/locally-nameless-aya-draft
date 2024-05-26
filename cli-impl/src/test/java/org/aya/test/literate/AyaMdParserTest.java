@@ -108,11 +108,12 @@ public class AyaMdParserTest {
     FileUtil.writeString(oneCase.plainTextFile(), doc.debugRender());
 
     // test single file compiler
-    var compiler = new SingleFileCompiler(IgnoringReporter.INSTANCE, null);
-    compiler.compile(oneCase.mdFile(), new CompilerFlags(
+    var flags = new CompilerFlags(
       CompilerFlags.Message.ASCII, false, false, null, SeqView.empty(),
       oneCase.outMdFile()
-    ), null);
+    );
+    var compiler = new SingleFileCompiler(IgnoringReporter.INSTANCE, flags, null);
+    compiler.compile(oneCase.mdFile(), null);
     var actualMd = Files.readString(oneCase.outMdFile());
     assertEquals(trim(expectedMd), trim(actualMd));
 
