@@ -35,6 +35,12 @@ public interface AppTycker {
   ) throws Ex {
     return switch (def) {
       case JitFn fn -> makeArgs.applyChecked(fn, args -> {
+        int shape = fn.metadata().shape();
+        if (shape != -1) {
+          var operator = AyaShape.ofFn(fn, AyaShape.values()[shape]);
+          if (operator != null) return new Jdg.Default(
+            new RuleReducer.Fn(operator, 0, ImmutableArray.from(args)), fn.result(args));
+        }
         return new Jdg.Default(new FnCall(fn, 0, ImmutableArray.from(args)), fn.result(args));
       });
       case JitData data -> makeArgs.applyChecked(data, args ->
@@ -57,7 +63,7 @@ public interface AppTycker {
           var argsSeq = ImmutableArray.from(args);
           var result = signature.result(args);
           if (shape.isDefined()) {
-            var operator = AyaShape.ofFn(fnVar, shape.get());
+            var operator = AyaShape.ofFn(new FnDef.Delegate(fnVar), shape.get().shape());
             if (operator != null) {
               return new Jdg.Default(new RuleReducer.Fn(operator, 0, argsSeq), result);
             }
@@ -101,7 +107,7 @@ public interface AppTycker {
             .mapNotNull(recog -> {
               if (recog.shape() == AyaShape.NAT_SHAPE) {
                 var dataCall = new DataCall(dataVar, 0, ImmutableSeq.empty());
-                var head = AyaShape.ofCon(conVar, recog, dataCall);
+                var head = AyaShape.ofCon(new ConDef.Delegate(conVar), recog, dataCall);
                 assert head != null : "bad ShapeFactory";
                 return new RuleReducer.Con(head, 0, ImmutableSeq.empty(), realArgs);
               }

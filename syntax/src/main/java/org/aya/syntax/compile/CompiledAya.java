@@ -13,7 +13,9 @@ public @interface CompiledAya {
   @NotNull String[] module();
   int fileModuleSize();
   @NotNull String name();
+  /** @return the index in the Assoc enum, -1 if null */
   int assoc();
+  /** @return the index in the AyaShape enum, -1 if null */
   int shape();
   @NotNull CodeShape.GlobalId[] recognition();
 }

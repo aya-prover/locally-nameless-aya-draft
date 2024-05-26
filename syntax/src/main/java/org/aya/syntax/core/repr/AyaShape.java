@@ -9,15 +9,12 @@ import kala.collection.mutable.MutableMap;
 import kala.control.Either;
 import kala.control.Option;
 import org.aya.generic.stmt.Shaped;
-import org.aya.syntax.concrete.stmt.decl.DataCon;
-import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.repr.IntegerOps;
 import org.aya.syntax.core.term.repr.IntegerTerm;
-import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,22 +109,21 @@ public enum AyaShape {
   @NotNull abstract CodeShape codeShape();
 
   public static Shaped.Applicable<Term, ConDefLike> ofCon(
-    @NotNull DefVar<ConDef, DataCon> ref,
+    @NotNull ConDefLike ref,
     @NotNull ShapeRecognition paramRecog,
     @NotNull DataCall paramType
   ) {
     if (paramRecog.shape() == AyaShape.NAT_SHAPE) {
-      return new IntegerOps.ConRule(new ConDef.Delegate(ref), new IntegerTerm(0, paramRecog, paramType), paramType);
+      return new IntegerOps.ConRule(ref, new IntegerTerm(0, paramRecog, paramType), paramType);
     }
     return null;
   }
 
   public static @Nullable Shaped.Applicable<Term, FnDefLike> ofFn(
-    @NotNull DefVar<FnDef, FnDecl> ref,
-    @NotNull ShapeRecognition recog
+    FnDefLike ref, @NotNull AyaShape shape
   ) {
-    if (recog.shape() == AyaShape.PLUS_LEFT_SHAPE || recog.shape() == AyaShape.PLUS_RIGHT_SHAPE) {
-      return new IntegerOps.FnRule(new FnDef.Delegate(ref), IntegerOps.FnRule.Kind.Add);
+    if (shape == AyaShape.PLUS_LEFT_SHAPE || shape == AyaShape.PLUS_RIGHT_SHAPE) {
+      return new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.Add);
     }
     return null;
   }
