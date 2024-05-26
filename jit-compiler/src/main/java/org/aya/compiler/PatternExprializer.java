@@ -9,6 +9,9 @@ import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
+import static org.aya.compiler.AbstractSerializer.*;
+import static org.aya.pretty.doc.Doc.sep;
+
 public class PatternExprializer extends AbstractExprializer<Pat> {
   public static final String CLASS_PAT = getName(Pat.class);
   public static final @NotNull String CLASS_PAT_ABSURD = makeSub(CLASS_PAT, getName(Pat.Absurd.class));
@@ -18,49 +21,27 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
 
 
   protected PatternExprializer(@NotNull NameGenerator nameGen) {
-    super(new StringBuilder(), nameGen);
-  }
-
-  private void doSerializeToImmutableSeq(@NotNull ImmutableSeq<Pat> pats) {
-    buildImmutableSeq(CLASS_PAT, pats);
+    super(nameGen);
   }
 
   @Override
-  protected @NotNull AbstractSerializer<Pat> doSerialize(@NotNull Pat term) {
-    switch (term) {
-      case Pat.Absurd _ -> builder.append(getInstance(CLASS_PAT_ABSURD));
+  protected @NotNull String doSerialize(@NotNull Pat term) {
+    return switch (term) {
+      case Pat.Absurd _ -> getInstance(CLASS_PAT_ABSURD);
       // it is safe to new a LocalVar, this method will be called when meta solving only,
       // but the meta solver will eat all LocalVar so that it will be happy.
-      case Pat.Bind bind -> {
-        buildNew(CLASS_PAT_BIND, () -> {
-          buildNew(CLASS_LOCALVAR, () -> {
-            builder.append(makeString(bind.bind().name()));
-          });
-          sep();
-          builder.append("ErrorTerm.DUMMY");
-        });
-      }
-      case Pat.Con con -> {
-        var instance = PatternSerializer.getQualified(con);
-
-        buildNew(CLASS_PAT_CON, () -> {
-          appendSep(getInstance(instance));
-          doSerializeToImmutableSeq(con.args());
-          sep();
-          // TODO: should we instantiate con.data() with something?
-          builder.append(serializeTerm(con.data()));
-        });
-      }
+      case Pat.Bind bind -> makeNew(CLASS_PAT_BIND,
+        makeNew(CLASS_LOCALVAR, makeString(bind.bind().name())),
+        "ErrorTerm.DUMMY"
+      );
+      case Pat.Con con -> makeNew(CLASS_PAT_CON,
+        getInstance(PatternSerializer.getQualified(con)),
+        serializeToImmutableSeq(CLASS_PAT, con.args()),
+        new TermExprializer(this.nameGen, ImmutableSeq.empty())
+          .serialize(con.data()).result());
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.Tuple tuple -> throw new UnsupportedOperationException();
       case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException();
-    }
-
-    return this;
-  }
-
-  @Override
-  public AyaSerializer<Pat> serialize(Pat unit) {
-    return doSerialize(unit);
+    };
   }
 }

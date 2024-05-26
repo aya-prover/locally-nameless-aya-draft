@@ -3,10 +3,9 @@
 
 import com.javax0.sourcebuddy.Compiler;
 import kala.collection.immutable.ImmutableSeq;
-import kala.text.StringView;
 import org.aya.compiler.AyaSerializer;
 import org.aya.compiler.ModuleSerializer;
-import org.aya.compiler.TermSerializer;
+import org.aya.compiler.TermExprializer;
 import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.producer.AyaParserImpl;
@@ -106,7 +105,7 @@ public class CompileTest {
   @Test public void serLam() {
     // \ t. (\0. 0 t)
     var lam = new LamTerm(new Closure.Jit(t -> new LamTerm(new Closure.Idx(new AppTerm(new LocalTerm(0), t)))));
-    var out = new TermSerializer(new NameGenerator(), ImmutableSeq.empty())
+    var out = new TermExprializer(new NameGenerator(), ImmutableSeq.empty())
       .serialize(lam)
       .result();
 

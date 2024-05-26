@@ -121,12 +121,8 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."throw new \{CLASS_PANIC}(\{message});");
   }
 
-  public @NotNull ImmutableSeq<String> fromImmutableSeq(@NotNull String term, int size) {
+  public static @NotNull ImmutableSeq<String> fromImmutableSeq(@NotNull String term, int size) {
     return ImmutableSeq.fill(size, idx -> STR."\{term}.get(\{idx})");
-  }
-
-  public @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {
-    return ImmutableSeq.fill(size, idx -> STR."\{term}[\{idx}]");
   }
 
   public void appendLine(@NotNull String string) {
@@ -200,18 +196,14 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected @NotNull String serializeTermUnderTele(@NotNull Term term, @NotNull String argsTerm, int size) {
-    return new TermSerializer(this.nameGen, fromImmutableSeq(argsTerm, size))
+    return new TermExprializer(this.nameGen, fromImmutableSeq(argsTerm, size))
       .serialize(term).result();
-  }
-
-  protected @NotNull String serializeTerm(@NotNull Term term) {
-    return serializeTermUnderTele(term, "dummy", 0);
   }
 
   /**
    * @param raw make sure that it doesn't contain any terrible characters (i.e. '\', '"')
    */
-  protected @NotNull String makeString(@NotNull String raw) {
+  protected static @NotNull String makeString(@NotNull String raw) {
     // TODO: kala bug
     // assert StringView.of(raw).anyMatch(c -> c == '\\' || c == '"');
     return STR."\"\{raw}\"";

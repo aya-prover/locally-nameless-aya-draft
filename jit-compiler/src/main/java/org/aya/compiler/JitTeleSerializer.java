@@ -81,7 +81,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     assert module != null;
     assert fileModule != null;
     appendLine(STR."@\{CLASS_METADATA}(");
-    appendMetadataRecord("module", makeHalfArrayFrom(module.module().view().map(this::makeString)), true);
+    appendMetadataRecord("module", makeHalfArrayFrom(module.module().view().map(JitTeleSerializer::makeString)), true);
     // Assumption: module.take(fileModule.size).equals(fileModule)
     appendMetadataRecord("fileModuleSize", Integer.toString(fileModule.module().size()), false);
     appendMetadataRecord("name", makeString(ref.name()), false);

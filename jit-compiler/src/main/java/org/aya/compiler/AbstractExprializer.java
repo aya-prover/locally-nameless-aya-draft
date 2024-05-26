@@ -4,47 +4,45 @@ package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
-import org.aya.syntax.core.term.Term;
-import org.aya.util.IterableUtil;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class AbstractExprializer<T> extends AbstractSerializer<T> {
-  protected AbstractExprializer(@NotNull StringBuilder builder, @NotNull NameGenerator nameGen) {
-    super(builder, 0, nameGen);
+import java.util.Objects;
+
+public abstract class AbstractExprializer<T> implements AyaSerializer<T> {
+  private String lastResult = null;
+  protected final @NotNull NameGenerator nameGen;
+  public static final String SEP = ", ";
+
+  protected AbstractExprializer(@NotNull NameGenerator nameGen) { this.nameGen = nameGen; }
+
+  protected @NotNull String makeNew(@NotNull String className, String... terms) {
+    return ImmutableSeq.from(terms).joinToString(SEP, STR."new \{className}(", ")");
   }
 
-  protected void sep() {
-    builder.append(", ");
+  protected @NotNull String makeNew(@NotNull String className, T... terms) {
+    return ImmutableSeq.from(terms).map(this::doSerialize).joinToString(SEP, STR."new \{className}(", ")");
   }
 
-  protected void appendSep(@NotNull String string) {
-    builder.append(string);
-    sep();
+  protected @NotNull String serializeToImmutableSeq(@NotNull String typeName, @NotNull ImmutableSeq<T> terms) {
+    return makeImmutableSeq(typeName, terms.map(this::doSerialize));
   }
 
-  protected void buildNew(@NotNull String className, @NotNull ImmutableSeq<T> terms) {
-    doSerialize(STR."new \{className}(", ")", terms);
-  }
-
-  protected void buildNew(@NotNull String className, @NotNull Runnable continuation) {
-    builder.append(STR."new \{className}(");
-    continuation.run();
-    builder.append(")");
-  }
-
-  protected void buildImmutableSeq(@NotNull String typeName, @NotNull ImmutableSeq<T> terms) {
+  protected @NotNull String makeImmutableSeq(@NotNull String typeName, @NotNull ImmutableSeq<String> terms) {
     if (terms.isEmpty()) {
-      builder.append(STR."\{CLASS_IMMSEQ}.empty()");
+      return STR."\{CLASS_IMMSEQ}.empty()";
     } else {
-      doSerialize(STR."\{CLASS_IMMSEQ}.<\{typeName}>of(", ")", terms);
+      return terms.joinToString(SEP, STR."\{CLASS_IMMSEQ}.<\{typeName}>of(", ")");
     }
   }
 
-  protected abstract @NotNull AbstractSerializer<T> doSerialize(@NotNull T term);
+  protected abstract @NotNull String doSerialize(@NotNull T term);
 
-  protected void doSerialize(@NotNull String prefix, @NotNull String suffix, @NotNull ImmutableSeq<T> terms) {
-    builder.append(prefix);
-    IterableUtil.forEach(terms, this::sep, this::doSerialize);
-    builder.append(suffix);
+  @Override public AyaSerializer<T> serialize(T unit) {
+    lastResult = doSerialize(unit);
+    return this;
+  }
+
+  @Override public String result() {
+    return Objects.requireNonNull(lastResult);
   }
 }
