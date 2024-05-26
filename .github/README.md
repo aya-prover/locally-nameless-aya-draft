@@ -5,8 +5,8 @@ This is a temporary repo for the rewrite of Aya using locally nameless with the 
 ## Already finished, internal
 * _Better modularity_: decomposed `base` into `syntax`, `producer`, and `base`
 * _Better concrete syntax tree_, decompose source info from `Expr`
-* _Only do weak-head normalization in type checking_, implement the full normalizer uses WHNF normalizer, instead of having a normalizer that is parametrized by how much you want to normalize
-* Instead of using inheritance, we (actually Hoshino) use a design pattern to imitate type classes to organize type checking monad
+* _Only do weak-head normalization in type checking_, implement the full normalizer based on top of it instead of having a single normalizer parametrized by how much you want to normalize
+* Instead of using inheritance, we (actually @HoshinoTented) use a design pattern to imitate type classes to organize type checking monad
 * Less test-only APIs in the type checker since we're more confident now
 * Redesign the testing infrastructure, group the failing cases for a similar reason together
 * Get rid of trace builders and "codifiers" because the developers never used them anyway except me for a few times
@@ -30,6 +30,6 @@ This is a temporary repo for the rewrite of Aya using locally nameless with the 
 * Redesign classes, make `do` and idiom brackets based on classes
 * _Java interop_: tactics, etc.
 
-Since late 2023, I was blessed with the privilege to talk to a number of students of Professor Avigad and learned a lot about Lean and some set-theoretic proof assistants, including Mizar and Metamath Zero. This is eye-opening since I only know Agda/Arend and was too much into the idea of univalent foundation of mathematics (instead of having HoTT as an internal language of higher topoi). This motivated the transition to a set-level type theory with good handling of propositional equality. I will try to weave my new understanding and thinking into this brand-new version of Aya. I am really grateful for Hoshino Tented for helping me out on this project.
+Since late 2023, I was blessed with the privilege to talk to a number of students of Professor Avigad and learned a lot about Lean and some set-theoretic proof assistants, including Mizar and Metamath Zero. This is eye-opening since I only know Agda/Arend and was too much into the idea of univalent foundation of mathematics (instead of having HoTT as an internal language of higher topoi). This motivated the transition to a set-level type theory with good handling of propositional equality. I will try to weave my new understanding and thinking into this brand-new version of Aya. I am really grateful for @HoshinoTented for helping me out on this project.
 
 Once we're done with everything that exists in the original repo, we will create a huge pull request signed by everyone contributed to this prototype and work with the aya-dev repo instead. The version number will be `0.x` still until we've figured out Java interop (aka tactics).
