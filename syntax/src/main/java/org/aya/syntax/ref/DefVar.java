@@ -29,7 +29,7 @@ public final class DefVar<Core extends TyckDef, Concrete extends Decl> implement
   }
 
   @Contract(pure = true) public @NotNull String name() { return name; }
-  private DefVar(Concrete concrete, Core core, @NotNull String name) {
+  private DefVar(@NotNull Concrete concrete, Core core, @NotNull String name) {
     this.concrete = concrete;
     this.core = core;
     this.name = name;

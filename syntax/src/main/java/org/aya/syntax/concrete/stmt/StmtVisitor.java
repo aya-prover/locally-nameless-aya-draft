@@ -82,10 +82,8 @@ public interface StmtVisitor extends Consumer<Stmt> {
       }
       case Decl decl -> {
         visit(decl.bindBlock());
-        if (decl instanceof Decl teleDecl) {
-          visitVarDecl(decl.sourcePos(), decl.ref(), lazyType(decl.ref()));
-          teleDecl.telescope.forEach(p -> visitVarDecl(p.sourcePos(), p.ref(), withTermType(p)));
-        }
+        visitVarDecl(decl.sourcePos(), decl.ref(), lazyType(decl.ref()));
+        decl.telescope.forEach(p -> visitVarDecl(p.sourcePos(), p.ref(), withTermType(p)));
       }
     }
   }
@@ -93,7 +91,7 @@ public interface StmtVisitor extends Consumer<Stmt> {
   default void accept(@NotNull Stmt stmt) {
     switch (stmt) {
       case Decl decl -> {
-        if (decl instanceof Decl telescopic) visitTelescopic(telescopic);
+        visitTelescopic(decl);
         switch (decl) {
           case DataDecl data -> data.body.forEach(this);
           // case ClassDecl clazz -> clazz.members.forEach(this);

@@ -4,9 +4,7 @@ package org.aya.syntax.core.term.call;
 
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.IndexedFunction;
-import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.concrete.stmt.decl.DataDecl;
-import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.DataDefLike;
@@ -39,10 +37,6 @@ public record DataCall(
 
   @Override public @NotNull Tele doElevate(int level) {
     return new DataCall(ref, ulift + level, args);
-  }
-
-  public @NotNull ConCallLike.Head conHead(@NotNull DefVar<ConDef, DataCon> conRef) {
-    return conHead(new ConDef.Delegate(conRef));
   }
 
   public @NotNull ConCallLike.Head conHead(@NotNull ConDefLike conRef) {

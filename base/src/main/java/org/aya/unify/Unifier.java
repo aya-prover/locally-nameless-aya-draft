@@ -111,12 +111,12 @@ public final class Unifier extends TermComparator {
       case MetaVar.Misc.IsType -> {
         switch (rhs) {
           case Formation _ -> { }
-          /*case MetaCall rMeta -> {
-            if (!rMeta.ref().req().isType(checker.synthesizer())) {
+          case MetaCall rMeta -> {
+            if (!checker.synthesizer().isTypeMeta(rMeta.ref().req())) {
               reportIllTyped(meta, rhs);
               return null;
             }
-          }*/
+          }
           default -> {
             var synthesize = checker.synthesizer().trySynth(rhs);
             if (!(synthesize instanceof SortTerm)) {

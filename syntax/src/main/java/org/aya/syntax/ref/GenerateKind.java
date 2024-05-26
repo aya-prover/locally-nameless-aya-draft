@@ -18,5 +18,4 @@ public sealed interface GenerateKind {
   }
 
   record Generalized(@NotNull GeneralizedVar origin) implements GenerateKind { }
-  record Renamed(@NotNull LocalVar origin) implements GenerateKind { }
 }

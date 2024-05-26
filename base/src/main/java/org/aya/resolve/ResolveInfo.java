@@ -22,7 +22,6 @@ import org.aya.util.reporter.Reporter;
 import org.aya.util.terck.MutableGraph;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * @param thisModule   context of the underlying module
@@ -66,7 +65,7 @@ public record ResolveInfo(
     @NotNull BindBlock bind, boolean reExport
   ) { }
 
-  public @Nullable OpDecl resolveOpDecl(DefVar<?, ?> defVar) {
+  public @NotNull OpDecl resolveOpDecl(DefVar<?, ?> defVar) {
     var renameInfo = opRename.getOrNull(defVar);
     if (renameInfo != null) return renameInfo.renamed();
     return defVar.concrete;

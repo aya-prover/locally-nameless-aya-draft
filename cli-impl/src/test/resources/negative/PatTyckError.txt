@@ -223,3 +223,14 @@ Error: Unknown constructor
 1 error(s), 0 warning(s).
 What are you doing?
 
+NewRepoIssue384:
+In file $FILE:1:4 ->
+
+  1 │   def test : Type
+    │       ╰──╯
+
+Error: The empty pattern-matching function test does not have a telescope
+
+1 error(s), 0 warning(s).
+What are you doing?
+

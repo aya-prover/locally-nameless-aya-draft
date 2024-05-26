@@ -8,6 +8,7 @@ import org.aya.prettier.BasePrettier;
 import org.aya.pretty.doc.Doc;
 import org.aya.resolve.context.BindContext;
 import org.aya.resolve.context.Context;
+import org.aya.resolve.context.ModuleContext;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.ModulePath;
@@ -206,13 +207,12 @@ public interface NameProblem extends Problem {
       var ctx = context;
       while (ctx instanceof BindContext bindCtx) ctx = bindCtx.parent();
       var possible = MutableList.<String>create();
-      // TODO: require ModuleContext
-      // if (ctx instanceof ModuleContext moduleContext) moduleContext.modules().forEach((modName, mod) -> {
-      //   if (mod.symbols().contains(name)) {
-      //     // TODO: The name `{modName}::{name}` is probably ambiguous
-      //     possible.append(modName.resolve(name).toString());
-      //   }
-      // });
+      if (ctx instanceof ModuleContext moduleContext) moduleContext.modules().forEach((modName, mod) -> {
+        if (mod.symbols().contains(name)) {
+          // TODO: The name `{modName}::{name}` is probably ambiguous
+          possible.append(modName.resolve(name).toString());
+        }
+      });
       return possible.toImmutableSeq();
     }
   }

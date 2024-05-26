@@ -20,10 +20,7 @@ import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.tyck.ctx.LocalLet;
-import org.aya.tyck.error.BadTypeError;
-import org.aya.tyck.error.PrimError;
-import org.aya.tyck.error.UnifyError;
-import org.aya.tyck.error.UnifyInfo;
+import org.aya.tyck.error.*;
 import org.aya.tyck.pat.ClauseTycker;
 import org.aya.tyck.pat.IApplyConfl;
 import org.aya.tyck.pat.PatClassifier;
@@ -135,9 +132,11 @@ public record StmtTycker(
         var fnRef = fn.ref;
         fnRef.signature = teleTycker.checkSignature(fn.telescope, result);
         // For ExprBody, they will be zonked later
-        if (fn.body instanceof FnBody.BlockBody) {
+        if (fn.body instanceof FnBody.BlockBody(var cls, _)) {
           tycker.solveMetas();
           fnRef.signature = fnRef.signature.descent(tycker::zonk);
+          if (fnRef.signature.param().isEmpty() && cls.isEmpty())
+            fail(new NobodyError(decl.sourcePos(), fn.ref));
         }
       }
     }

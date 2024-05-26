@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import static org.aya.test.literate.HighlighterTester.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@SuppressWarnings("UnknownLanguage")
 public class HighlighterTest {
   @Test public void commonTests() {
     @Language("Aya") String code = """

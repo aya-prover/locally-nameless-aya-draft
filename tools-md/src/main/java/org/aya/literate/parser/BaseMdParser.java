@@ -88,8 +88,7 @@ public class BaseMdParser {
     return switch (node) {
       case Text text -> new Literate.Raw(Doc.plain(text.getLiteral()));
       case Emphasis emphasis -> new Literate.Many(Style.italic(), mapChildren(emphasis));
-      case HardLineBreak _ -> new Literate.Raw(Doc.line());
-      case SoftLineBreak _ -> new Literate.Raw(Doc.line());
+      case HardLineBreak _, SoftLineBreak _ -> new Literate.Raw(Doc.line());
       case StrongEmphasis emphasis -> new Literate.Many(Style.bold(), mapChildren(emphasis));
       case Paragraph p -> new Literate.Many(MdStyle.GFM.Paragraph, mapChildren(p));
       case BlockQuote b -> new Literate.Many(MdStyle.GFM.BlockQuote, mapChildren(b));

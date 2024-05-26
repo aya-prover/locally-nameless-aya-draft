@@ -104,8 +104,7 @@ public sealed interface SingleAyaFile extends GenericAyaFile {
   }
 
   /** Must be called after {@link #parseMe} */
-  default void resolveAdditional(@NotNull ResolveInfo info) {
-  }
+  default void resolveAdditional(@NotNull ResolveInfo info) { }
 
   @MustBeInvokedByOverriders
   default void tyckAdditional(@NotNull ResolveInfo info) {
@@ -145,12 +144,7 @@ public sealed interface SingleAyaFile extends GenericAyaFile {
       return SingleAyaFile.super.parseMe(parser);
     }
 
-    @Override public @NotNull SourceFile codeFile() {
-      return data.extractedAya();
-    }
-
-    @Override public @NotNull Literate literate() throws IOException {
-      return data.literate();
-    }
+    @Override public @NotNull SourceFile codeFile() { return data.extractedAya(); }
+    @Override public @NotNull Literate literate() { return data.literate(); }
   }
 }

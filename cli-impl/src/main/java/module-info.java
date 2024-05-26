@@ -3,7 +3,6 @@ module aya.cli.impl {
   requires transitive aya.base;
 
   requires aya.ij.parsing.core;
-  requires aya.ij.parsing.wrapper;
   requires com.google.gson;
   requires aya.md;
   requires aya.producer;

@@ -143,4 +143,15 @@ public record Synthesizer(
   @Override public @NotNull LocalCtx setLocalCtx(@NotNull LocalCtx ctx) {
     return tycker.setLocalCtx(ctx);
   }
+
+  public boolean isTypeMeta(@NotNull MetaVar.Requirement req) {
+    return switch (req) {
+      case MetaVar.Misc misc -> switch (misc) {
+        case Whatever -> false;
+        case IsType -> true;
+      };
+      case MetaVar.OfType (var type) -> trySynth(type) instanceof SortTerm;
+      case MetaVar.PiDom _ -> true;
+    };
+  }
 }

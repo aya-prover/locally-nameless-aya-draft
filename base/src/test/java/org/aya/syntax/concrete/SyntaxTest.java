@@ -3,17 +3,16 @@
 package org.aya.syntax.concrete;
 
 import org.aya.syntax.SyntaxTestUtil;
-import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SyntaxTest {
   @Test public void test0() {
-    @Language("Aya")
-    var code = """
+    var res = SyntaxTestUtil.parse("""
       def foo (f : Type -> Type 0) (a : Type 0) : Type 0 => f a
       def bar (A : Type 0) : A -> A => fn x => x
-      """;
-
-    SyntaxTestUtil.parse(code);
+      """);
+    assertTrue(res.isNotEmpty());
   }
 }

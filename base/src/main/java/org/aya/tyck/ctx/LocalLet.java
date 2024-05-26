@@ -4,7 +4,6 @@ package org.aya.tyck.ctx;
 
 import kala.collection.mutable.MutableLinkedHashMap;
 import kala.control.Option;
-import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.tyck.Jdg;
 import org.aya.util.Scoped;
@@ -32,8 +31,4 @@ public record LocalLet(
   }
 
   @Override public void putLocal(@NotNull LocalVar key, @NotNull Jdg value) { subst.put(key, value); }
-
-  public void put(@NotNull LocalVar var, @NotNull Term term, @NotNull Term type) {
-    put(var, new Jdg.Default(term, type));
-  }
 }

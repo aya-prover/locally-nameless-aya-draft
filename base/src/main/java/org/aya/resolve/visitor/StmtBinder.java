@@ -40,10 +40,8 @@ public record StmtBinder(@NotNull ResolveInfo info) {
   ) throws Context.ResolvingInterruptedException {
     if (ctx.get(id) instanceof DefVar<?, ?> defVar) {
       var opDecl = info.resolveOpDecl(defVar);
-      if (opDecl != null) {
-        info.opSet().bind(self, pred, opDecl, id.sourcePos());
-        return defVar;
-      }
+      info.opSet().bind(self, pred, opDecl, id.sourcePos());
+      return defVar;
     }
 
     // make compiler happy 😥

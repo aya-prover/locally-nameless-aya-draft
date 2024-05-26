@@ -14,7 +14,7 @@ public class SimpleTest {
   }
 
   @Test public void test() {
-    Class<?> foo = null;
+    Class<?> foo;
     try {
       @Language("Java") var code = """
         package org.aya.gen;

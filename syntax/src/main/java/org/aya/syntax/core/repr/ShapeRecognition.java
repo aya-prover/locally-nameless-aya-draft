@@ -12,8 +12,8 @@ public record ShapeRecognition(
   @NotNull AyaShape shape,
   @NotNull ImmutableMap<CodeShape.GlobalId, DefVar<?, ?>> captures
 ) {
-  public @NotNull ConDefLike getCon(@NotNull CodeShape.GlobalId id) {
-    // TODO: improve generics
+  @SuppressWarnings("unchecked") public @NotNull ConDefLike
+  getCon(@NotNull CodeShape.GlobalId id) {
     return new ConDef.Delegate((DefVar<ConDef, ?>) this.captures().get(id));
   }
 }

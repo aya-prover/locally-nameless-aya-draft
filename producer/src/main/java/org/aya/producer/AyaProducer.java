@@ -600,12 +600,6 @@ public record AyaProducer(
         .map(v -> new Expr.Param(v.definition(), v, true));
       return Expr.buildLam(pos, tele, result);
     }
-    // if (node.is(PARTIAL_ATOM)) return partial(node, pos);
-    // if (node.is(PATH_EXPR)) {
-    //   var params = node.childrenOfType(PATH_TELE).map(t ->
-    //     LocalVar.from(teleParamName(t.child(TELE_PARAM_NAME)))).toImmutableSeq();
-    //   return new WithPos<>(pos, new Expr.Path(pos, params, expr(node.child(EXPR)), partial(node.peekChild(PARTIAL_BLOCK), pos)));
-    // }
     if (node.is(IDIOM_ATOM)) {
       var block = node.peekChild(IDIOM_BLOCK);
       var names = new Expr.IdiomNames(
@@ -682,24 +676,6 @@ public record AyaProducer(
     }
     return unreachable(node);
   }
-
-  // public @NotNull Expr.PartEl partial(@Nullable GenericNode<?> partial, @NotNull SourcePos fallbackPos) {
-  //   if (partial == null) return new Expr.PartEl(fallbackPos, ImmutableSeq.empty());
-  //   var sub = partial.childrenView()
-  //     .filter(c -> c.elementType() == BARE_SUB_SYSTEM || c.elementType() == BARRED_SUB_SYSTEM)
-  //     .map(this::bareOrBarredSubSystem)
-  //     .toImmutableSeq();
-  //   return new Expr.PartEl(sourcePosOf(partial), sub);
-  // }
-
-  // public @NotNull Tuple2<Expr, Expr> bareOrBarredSubSystem(@NotNull GenericNode<?> node) {
-  //   return subSystem(node.child(SUB_SYSTEM));
-  // }
-
-  // public @NotNull Tuple2<Expr, Expr> subSystem(@NotNull GenericNode<?> node) {
-  //   var exprs = node.childrenOfType(EXPR).map(this::expr);
-  //   return Tuple.of(exprs.get(0), exprs.get(1));
-  // }
 
   private @NotNull Expr buildProj(
     @NotNull WithPos<Expr> projectee,

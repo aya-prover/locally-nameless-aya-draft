@@ -93,4 +93,8 @@ public interface PatTyckError {
     def test Test1 : Test1
     | test2 => test1
     """;
+
+  @Language("Aya") String testNewRepoIssue384 = """
+    def test : Type
+    """;
 }

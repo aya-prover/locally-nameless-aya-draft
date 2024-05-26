@@ -36,11 +36,10 @@ public class PatternExprializer extends AbstractSerializer<Pat> {
   public AyaSerializer<Pat> serialize(Pat unit) {
     switch (unit) {
       case Pat.Absurd _ -> builder.append(getInstance(PatternSerializer.CLASS_PAT_ABSURD));
-      case Pat.Bind bind -> {
-        // it is safe to new a LocalVar, this method will be called when meta solving only,
-        // but the meta solver will eat all LocalVar so that it will be happy.
-        builder.append(STR."new \{PatternSerializer.CLASS_PAT_BIND}(new LocalVar(\"\{bind.bind().name()}\"), ErrorTerm.DUMMY)");
-      }
+      // it is safe to new a LocalVar, this method will be called when meta solving only,
+      // but the meta solver will eat all LocalVar so that it will be happy.
+      case Pat.Bind bind -> builder.append(
+        STR."new \{PatternSerializer.CLASS_PAT_BIND}(new LocalVar(\"\{bind.bind().name()}\"), ErrorTerm.DUMMY)");
       case Pat.Con con -> {
         var instance = PatternSerializer.getQualified(con);
 

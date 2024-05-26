@@ -52,20 +52,17 @@ public interface Resolver {
     var collect = MutableList.<WithPos<AnyVar>>create();
     program.view().forEach(new XYResolver(xy, collect));
     return collect.view().mapNotNull(pos -> switch (pos.data()) {
-      case DefVar<?, ?> defVar -> {
-        if (defVar.concrete != null) yield new WithPos<>(pos.sourcePos(), defVar);
-        else if (defVar.module != null) {
-          // defVar is an imported and serialized symbol, so we need to find the original one
-          yield Resolver.resolveDef(source.owner(), defVar.module.module(), defVar.name())
-            .map(target -> new WithPos<AnyVar>(pos.sourcePos(), target.ref()))
-            .getOrNull();
-        }
-        // defVar is from a skipped module (see OrgaTycker), we can do nothing
-        else yield null;
-      }
+      case DefVar<?, ?> defVar -> new WithPos<>(pos.sourcePos(), defVar);
       case LocalVar localVar -> new WithPos<>(pos.sourcePos(), localVar);
       case ModuleVar moduleVar -> new WithPos<>(pos.sourcePos(), moduleVar);
       case GeneralizedVar gVar -> new WithPos<>(pos.sourcePos(), gVar);
+      // if (defVar.module != null) {
+      //   // defVar is an imported and serialized symbol, so we need to find the original one
+      //   yield Resolver.resolveDef(source.owner(), defVar.module.module(), defVar.name())
+      //     .map(target -> new WithPos<AnyVar>(pos.sourcePos(), target.ref()))
+      //     .getOrNull();
+      // }
+      // TODO: defVar is from a skipped module (see OrgaTycker), we can do nothing
       case null, default -> null;
     });
   }

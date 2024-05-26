@@ -15,10 +15,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @implNote {@link Decl#signature} is always null.
+ * @implNote {@link DefVar#signature} is always null.
  */
 public final class DataCon extends Decl {
-  public final @NotNull DefVar<ConDef, org.aya.syntax.concrete.stmt.decl.DataCon> ref;
+  public final @NotNull DefVar<ConDef, DataCon> ref;
   public DefVar<DataDef, DataDecl> dataRef;
   public @NotNull ImmutableSeq<Arg<WithPos<Pattern>>> patterns;
   public final boolean coerce;
@@ -43,5 +43,5 @@ public final class DataCon extends Decl {
     // descent patterns
     patterns = patterns.map(x -> x.descent(wp -> wp.descent(p)));
   }
-  @Override public @NotNull DefVar<ConDef, org.aya.syntax.concrete.stmt.decl.DataCon> ref() { return ref; }
+  @Override public @NotNull DefVar<ConDef, DataCon> ref() { return ref; }
 }

@@ -57,7 +57,7 @@ public interface LibraryOwner {
   private @Nullable LibrarySource findModuleHere(@NotNull ImmutableSeq<String> mod) {
     return librarySources().find(s -> {
       var checkMod = s.moduleName();
-      return checkMod.equals(mod);
+      return checkMod.module().equals(mod);
     }).getOrNull();
   }
 
