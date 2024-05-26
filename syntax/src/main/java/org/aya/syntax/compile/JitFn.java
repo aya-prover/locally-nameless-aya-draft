@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
+import kala.collection.Seq;
 import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
@@ -14,5 +15,5 @@ public abstract non-sealed class JitFn extends JitDef implements FnDefLike {
   /**
    * Unfold this function
    */
-  public abstract @NotNull Term invoke(Term stuck, Term... args);
+  public abstract @NotNull Term invoke(Term stuck, Seq<Term> args);
 }

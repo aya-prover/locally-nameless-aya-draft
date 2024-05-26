@@ -5,6 +5,7 @@ package org.aya.compiler;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
+import kala.collection.mutable.MutableSeq;
 import kala.range.primitive.IntRange;
 import kala.value.primitive.MutableIntValue;
 import org.aya.generic.NameGenerator;
@@ -102,7 +103,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     if (inferMeta) {
       var tmpName = nameGen.nextName(null);
       buildUpdate(VARIABLE_META_STATE, "false");
-      buildLocalVar("Term", tmpName, term);
+      buildLocalVar(CLASS_TERM, tmpName, term);
       buildIfInstanceElse(term, CLASS_META_PAT, metaTerm -> {
         buildUpdate(tmpName, STR."\{CLASS_PAT_MATCHER}.realSolution(\{metaTerm})");
         // if the solution is still a meta, we solve it
@@ -167,7 +168,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   }
 
   private void onMatchBind(@NotNull String term) {
-    buildUpdate(STR."\{VARIABLE_RESULT}[\{bindCount++}]", term);
+    appendLine(STR."\{VARIABLE_RESULT}.set(\{bindCount++}, \{term});");
   }
 
   private int bindAmount(@NotNull Pat pat) {
@@ -190,7 +191,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
     int maxBindSize = bindSize.max();
 
-    buildLocalVar(STR."\{CLASS_TERM}[]", VARIABLE_RESULT, STR."new \{CLASS_TERM}[\{maxBindSize}]");
+    buildLocalVar(STR."\{CLASS_MUTSEQ}<\{CLASS_TERM}>", VARIABLE_RESULT, STR."\{CLASS_MUTSEQ}.fill(\{maxBindSize}, (\{CLASS_TERM}) null)");
     buildLocalVar("int", VARIABLE_STATE, "0");
     if (inferMeta) buildLocalVar("boolean", VARIABLE_META_STATE, "false");
 

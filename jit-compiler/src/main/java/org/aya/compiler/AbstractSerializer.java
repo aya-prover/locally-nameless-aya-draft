@@ -2,7 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
+import kala.collection.SeqLike;
 import kala.collection.immutable.ImmutableSeq;
+import kala.text.StringView;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.compile.JitTele;
@@ -10,6 +12,7 @@ import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.TyckAnyDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -124,10 +127,18 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return ImmutableSeq.fill(size, idx -> STR."\{term}.get(\{idx})");
   }
 
+  public @NotNull ImmutableSeq<String> fromArray(@NotNull String term, int size) {
+    return ImmutableSeq.fill(size, idx -> STR."\{term}[\{idx}]");
+  }
+
   public void appendLine(@NotNull String string) {
     fillIndent();
     builder.append(string);
     builder.append('\n');
+  }
+
+  public void appendSepLine(@NotNull String string) {
+    appendLine(STR."\{string},");
   }
 
   public void appendLine() {
@@ -173,19 +184,35 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine("}");
   }
 
-  protected @NotNull String arrayFrom(@NotNull String type, @NotNull ImmutableSeq<String> elements) {
+  protected static @NotNull String makeArrayFrom(@NotNull String type, @NotNull ImmutableSeq<String> elements) {
     var builder = new StringBuilder();
     builder.append("new ");
     builder.append(type);
-    builder.append("[] { ");
-    elements.joinTo(builder, ", ");
-    builder.append(" }");
+    builder.append("[] ");
+    builder.append(makeHalfArrayFrom(elements));
     return builder.toString();
+  }
+
+  protected static @NotNull String makeHalfArrayFrom(@NotNull SeqLike<String> elements) {
+    return elements.joinToString(", ", "{ ", " }");
+  }
+
+  protected static @NotNull String makeSubclass(@NotNull String superClass, @NotNull String sub) {
+    return STR."\{superClass}.\{sub}";
   }
 
   protected @NotNull String serializeTermUnderTele(@NotNull Term term, @NotNull String argsTerm, int size) {
     return new TermSerializer(this.nameGen, fromImmutableSeq(argsTerm, size))
       .serialize(term).result();
+  }
+
+  /**
+   * @param raw make sure that it doesn't contain any terrible characters (i.e. '\', '"')
+   */
+  protected @NotNull String makeString(@NotNull String raw) {
+    // TODO: kala bug
+    // assert StringView.of(raw).anyMatch(c -> c == '\\' || c == '"');
+    return STR."\"\{raw}\"";
   }
 
   protected static @NotNull String isNull(@NotNull String term) {

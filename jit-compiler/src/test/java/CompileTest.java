@@ -3,6 +3,7 @@
 
 import com.javax0.sourcebuddy.Compiler;
 import kala.collection.immutable.ImmutableSeq;
+import kala.text.StringView;
 import org.aya.compiler.AyaSerializer;
 import org.aya.compiler.ModuleSerializer;
 import org.aya.compiler.TermSerializer;
@@ -77,7 +78,7 @@ public class CompileTest {
       var two = new ConCall(S, ImmutableSeq.empty(), 0, ImmutableSeq.of(one));
       var three = new ConCall(S, ImmutableSeq.empty(), 0, ImmutableSeq.of(two));
 
-      var mResult = plus.invoke(zero, two, three);
+      var mResult = plus.invoke(zero, ImmutableSeq.of(two, three));
       System.out.println(mResult.debuggerOnlyToDoc().debugRender());
     } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException | Compiler.CompileException e) {
       throw new RuntimeException(e);

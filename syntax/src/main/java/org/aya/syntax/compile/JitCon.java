@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableArrayList;
 import kala.control.Result;
@@ -29,7 +30,7 @@ public abstract non-sealed class JitCon extends JitDef implements ConDefLike {
    * @param args the argument to the data type
    * @return a match result, a sequence of substitution if success
    */
-  public abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Term[] args);
+  public abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Seq<Term> args);
   @Override public @NotNull DataDefLike dataRef() { return dataType; }
 
   @Override public @NotNull ImmutableSeq<Param> selfTele(@NotNull ImmutableSeq<Term> ownerArgs) {

@@ -24,12 +24,12 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
 
     ser.serialize(ImmutableSeq.of(new PatternSerializer.Matching(unit.pats,
       // we have only one clause, so the size is useless
-      (s, _) -> s.buildReturn(STR."\{CLASS_RESULT}.ok(\{CLASS_IMMSEQ}.from(\{PatternSerializer.VARIABLE_RESULT}))"))));
+      (s, _) -> s.buildReturn(STR."\{CLASS_RESULT}.ok(\{PatternSerializer.VARIABLE_RESULT}.toImmutableSeq())"))));
   }
 
   @Override public AyaSerializer<ConDef> serialize(ConDef unit) {
     buildFramework(unit, () -> buildMethod("isAvailable",
-      ImmutableSeq.of(new JitParam("args", TYPE_IMMTERMSEQ)),
+      ImmutableSeq.of(new JitParam("args", TYPE_TERMSEQ)),
       STR."\{CLASS_RESULT}<\{CLASS_IMMSEQ}<\{CLASS_TERM}>, \{CLASS_BOOLEAN}>", true,
       () -> buildIsAvailable(unit, "args")));
 

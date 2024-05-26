@@ -3,6 +3,7 @@
 package org.aya.compiler.util;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableSeq;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +15,7 @@ public class SerializeUtils {
   /**
    * Copy the sequence {@param source} to {@param dest}, starts at {@code dest[from]}
    */
-  public static void copyTo(@NotNull Term[] dest, @NotNull ImmutableSeq<Term> source, int from) {
-    source.forEachIndexed((idx, term) -> dest[from + idx] = term);
+  public static void copyTo(@NotNull MutableSeq<Term> dest, @NotNull ImmutableSeq<Term> source, int from) {
+    source.forEachIndexed((idx, term) -> dest.set(from + idx, term));
   }
 }

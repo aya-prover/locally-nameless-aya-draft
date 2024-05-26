@@ -75,9 +75,9 @@ public class TermSerializer extends AbstractExprializer<Term> {
       case ConCall(var head, var args) -> buildNew(CLASS_JITCONCALL, () -> {
         builder.append(getInstance(getQualified(head.ref())));
         sep();
-        builder.append(head.ulift());
-        sep();
         buildImmutableSeq(CLASS_TERM, head.ownerArgs());
+        sep();
+        builder.append(head.ulift());
         sep();
         buildImmutableSeq(CLASS_TERM, args);
       });

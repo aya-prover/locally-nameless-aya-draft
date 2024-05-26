@@ -37,7 +37,7 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
     var onStuckTerm = "onStuck";
     var params = ImmutableSeq.of(
       new JitParam(onStuckTerm, CLASS_TERM),
-      new JitParam(argsTerm, TYPE_IMMTERMSEQ)
+      new JitParam(argsTerm, TYPE_TERMSEQ)
     );
 
     buildFramework(unit, () -> buildMethod("invoke", params, CLASS_TERM, true,

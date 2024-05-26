@@ -2,7 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableSeq;
 import kala.control.Result;
 import org.aya.compiler.util.SerializeUtils;
 import org.aya.syntax.core.term.Term;
@@ -36,6 +38,8 @@ public interface AyaSerializer<T> {
   String CLASS_JITFNCALL = getName(FnCall.class);
   String CLASS_JITDATACALL = getName(DataCall.class);
   String CLASS_IMMSEQ = getName(ImmutableSeq.class);
+  String CLASS_MUTSEQ = getName(MutableSeq.class);
+  String CLASS_SEQ = getName(Seq.class);
   String CLASS_TERM = getName(Term.class);
   String CLASS_PANIC = getName(Panic.class);
 
@@ -48,9 +52,11 @@ public interface AyaSerializer<T> {
     import org.aya.generic.term.SortKind;
     import org.aya.compiler.util.*;
     import org.aya.syntax.compile.*;
+    import org.aya.syntax.compile.CompiledAya;
     import org.aya.syntax.ref.LocalVar;
     import org.aya.syntax.core.*;
     import org.aya.syntax.core.Closure.Jit;
+    // TODO: do not import all subclass of Pat directly
     import org.aya.syntax.core.pat.Pat.*;
     import org.aya.syntax.core.term.*;
     import org.aya.syntax.core.term.repr.*;
@@ -58,8 +64,11 @@ public interface AyaSerializer<T> {
     import org.aya.syntax.core.term.xtt.*;
     import org.aya.normalize.PatMatcher;
     import org.aya.util.error.Panic;
+    import org.aya.util.binop.Assoc;
 
     import kala.collection.immutable.ImmutableSeq;
+    import kala.collection.mutable.MutableSeq;
+    import kala.collection.Seq;
     import kala.control.Result;
     """;
 

@@ -5,19 +5,29 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import kala.range.primitive.IntRange;
 import org.aya.generic.NameGenerator;
+import org.aya.syntax.compile.CompiledAya;
 import org.aya.syntax.compile.JitCon;
+import org.aya.syntax.core.def.TyckAnyDef;
 import org.aya.syntax.core.def.TyckDef;
+import org.aya.syntax.core.repr.AyaShape;
+import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
+import org.aya.util.binop.Assoc;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSerializer<T> {
+  public static final String CLASS_METADATA = getName(CompiledAya.class);
   public static final String CLASS_JITCON = getName(JitCon.class);
+  public static final String CLASS_ASSOC = getName(Assoc.class);
+  public static final String CLASS_AYASHAPE = getName(AyaShape.class);
   public static final String METHOD_TELESCOPE = "telescope";
   public static final String METHOD_RESULT = "result";
-  public static final String TYPE_IMMTERMSEQ = STR."\{CLASS_IMMSEQ}<\{CLASS_TERM}>";
+  public static final String TYPE_TERMSEQ = STR."\{CLASS_SEQ}<\{CLASS_TERM}>";
 
   protected final @NotNull Class<?> superClass;
+  // TODO: from constructor
+  private final @NotNull AyaShape.Factory shapeFactory = null;
 
   protected JitTeleSerializer(
     @NotNull StringBuilder builder,
@@ -29,8 +39,9 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     this.superClass = superClass;
   }
 
-  protected void buildFramework(T unit, @NotNull Runnable continuation) {
+  protected void buildFramework(@NotNull T unit, @NotNull Runnable continuation) {
     var className = getClassName(unit);
+    buildMetadata(unit);
     buildClass(className, superClass, () -> {
       buildInstance(className);
       appendLine();     // make code more pretty
@@ -39,7 +50,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
       appendLine();
       var iTerm = "i";
       var teleArgsTerm = "teleArgs";
-      var teleArgsTy = TYPE_IMMTERMSEQ;
+      var teleArgsTy = TYPE_TERMSEQ;
       buildMethod(METHOD_TELESCOPE, ImmutableSeq.of(
         new JitParam(iTerm, "int"),
         new JitParam(teleArgsTerm, teleArgsTy)
@@ -53,8 +64,54 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     });
   }
 
-  private @NotNull String getClassName(T unit) {
+  private @NotNull String getClassName(@NotNull T unit) {
     return javify(unit.ref());
+  }
+
+  protected void appendMetadataRecord(@NotNull String name, @NotNull String value, boolean isFirst) {
+    var prepend = isFirst ? "" : ", ";
+    appendLine(STR."\{prepend}\{name} = \{value}");
+  }
+
+  /**
+   * @see CompiledAya
+   */
+  protected void buildMetadata(@NotNull T unit) {
+    var ref = unit.ref();
+    var module = ref.module;
+    var fileModule = ref.fileModule;
+    var assoc = ref.assoc();
+    assert module != null;
+    assert fileModule != null;
+    appendLine(STR."@\{CLASS_METADATA}(");
+    appendMetadataRecord("module", makeHalfArrayFrom(module.module().view().map(this::makeString)), true);
+    // Assumption: module.take(fileModule.size).equals(fileModule)
+    appendMetadataRecord("fileModuleSize", Integer.toString(fileModule.module().size()), false);
+    appendMetadataRecord("name", makeString(ref.name()), false);
+    // assoc
+    appendMetadataRecord("assoc", assoc == null ? "null" : makeSubclass(CLASS_ASSOC, assoc.toString()), false);
+
+    if (false) {
+      // shape
+      var recog = shapeFactory.find(TyckAnyDef.make(unit));
+      if (recog.isEmpty()) {
+        appendSepLine("null");
+        appendLine(makeHalfArrayFrom(ImmutableSeq.empty()));
+      } else {
+        var shape = recog.get().shape();
+        appendSepLine(makeSubclass(CLASS_AYASHAPE, shape.toString()));
+        appendLine(buildCapture(unit, recog.get()));
+      }
+    } else {
+      appendMetadataRecord("shape", "null", false);
+      appendMetadataRecord("recognition", makeHalfArrayFrom(ImmutableSeq.empty()), false);
+    }
+
+    appendLine(")");
+  }
+
+  protected @NotNull String buildCapture(T unit, @NotNull ShapeRecognition recog) {
+    return makeHalfArrayFrom(ImmutableSeq.empty());
   }
 
   /**
@@ -62,7 +119,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
    */
   protected abstract void buildConstructor(T unit);
 
-  protected void buildConstructor(T def, @NotNull ImmutableSeq<String> ext) {
+  protected void buildConstructor(@NotNull T def, @NotNull ImmutableSeq<String> ext) {
     var tele = def.telescope();
     var size = tele.size();
     var licit = tele.view().map(Param::explicit).map(Object::toString);
@@ -70,15 +127,15 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
 
     buildSuperCall(ImmutableSeq.of(
       Integer.toString(size),
-      arrayFrom("boolean", licit.toImmutableSeq()),
-      arrayFrom("String", names.toImmutableArray())
+      makeArrayFrom("boolean", licit.toImmutableSeq()),
+      makeArrayFrom("String", names.toImmutableArray())
     ).appendedAll(ext));
   }
 
   /**
    * @see org.aya.syntax.compile.JitTele#telescope(int, Term...)
    */
-  protected void buildTelescope(T unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
+  protected void buildTelescope(@NotNull T unit, @NotNull String iTerm, @NotNull String teleArgsTerm) {
     @NotNull ImmutableSeq<Param> tele = unit.telescope();
     buildSwitch(iTerm, IntRange.closedOpen(0, tele.size()).collect(ImmutableSeq.factory()), kase ->
       buildReturn(serializeTermUnderTele(tele.get(kase).type(), teleArgsTerm, kase)), () -> buildPanic(null));
@@ -87,7 +144,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
   /**
    * @see org.aya.syntax.compile.JitTele#result
    */
-  protected void buildResult(T unit, @NotNull String teleArgsTerm) {
+  protected void buildResult(@NotNull T unit, @NotNull String teleArgsTerm) {
     buildReturn(serializeTermUnderTele(unit.result(), teleArgsTerm, unit.telescope().size()));
   }
 
