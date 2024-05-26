@@ -14,7 +14,7 @@ public class PatternTyckTest {
       def lind (a b : Nat) : Nat elim a
       | 0 => b
       | S a' => S (lind a' b)
-      """);
+      """).defs();
     assertTrue(result.isNotEmpty());
   }
 
@@ -37,7 +37,7 @@ public class PatternTyckTest {
       
       def unwrap (A : Type) (v : Vec 1 A) : A elim v
       | x vcons vnil => x
-      """);
+      """).defs();
 
     assertTrue(result.isNotEmpty());
   }
@@ -65,7 +65,7 @@ public class PatternTyckTest {
       | _, 0 => refl
       | S a, b => pmap S (+-comm a b)
       | a, S b => pmap S (+-comm a b)
-      """);
+      """).defs();
     assertTrue(result.isNotEmpty());
   }
 
@@ -100,7 +100,7 @@ public class PatternTyckTest {
       | pos n => n
       | neg n => n
       | zro _ => 0
-      """);
+      """).defs();
     assertTrue(result.isNotEmpty());
   }
 
@@ -112,7 +112,7 @@ public class PatternTyckTest {
       | S n => fsucc (Fin n)
       
       def exfalso (A : Type) (x : Fin 0) : A elim x | ()
-      """).isNotEmpty());
+      """).defs().isNotEmpty());
   }
 
   @Test public void issue630() {
@@ -126,6 +126,6 @@ public class PatternTyckTest {
       def yes {n : Nat} (a : INat n) (b : INat n) : Nat
       | +-one, +-two => O
       | _, _ => S O
-      """).isNotEmpty());
+      """).defs().isNotEmpty());
   }
 }

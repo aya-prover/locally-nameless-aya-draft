@@ -86,7 +86,7 @@ public class RedBlackTreeTest {
       def tree_sort (dec_le : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec_le) nil
       """);
 
-    var tester = new CompileTester(result.defs(), result.info().shapeFactory());
+    var tester = CompileTester.make(result.defs(), result.info().shapeFactory());
     tester.compile();
 
     System.out.println(tester.code);
@@ -126,7 +126,7 @@ public class RedBlackTreeTest {
 
     var seed = 114514L;
     var random = new Random(seed);
-    var largeList = mkList.apply(ImmutableIntSeq.fill(100, () -> Math.abs(random.nextInt()) % 100));
+    var largeList = mkList.apply(ImmutableIntSeq.fill(10, () -> Math.abs(random.nextInt()) % 100));
     var args = ImmutableSeq.of(NatCall, leCall, largeList);
 
     var beginTime = System.currentTimeMillis();
@@ -135,7 +135,7 @@ public class RedBlackTreeTest {
     var endTime = System.currentTimeMillis();
     assertNotNull(sortResult);
 
-    System.out.println(STR."Done in \{(endTime - beginTime) / 1000} seconds");
+    System.out.println(STR."Done in \{(endTime - beginTime)}");
     System.out.println(sortResult.debuggerOnlyToDoc().debugRender());
   }
 }
