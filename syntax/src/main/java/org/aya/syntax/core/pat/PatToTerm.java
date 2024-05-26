@@ -93,7 +93,7 @@ public interface PatToTerm {
           ctx.put(bind.bind(), bind.type());
           yield ImmutableSeq.of(new FreeTerm(bind.bind()));
         }
-        case Pat.Con con when con.ref().isEq() ->
+        case Pat.Con con when con.ref().hasEq() ->
           list(con.args().view().dropLast(1), BOUNDARIES)
             .map(args -> new ConCall(conHead(con), args));
         case Pat.Con con -> list(con.args().view())

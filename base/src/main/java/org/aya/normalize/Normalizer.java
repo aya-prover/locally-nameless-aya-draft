@@ -81,8 +81,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
           ? whnf(fnRule.toFnCall())
           : reduceRule;
       }
-      case ConCall(var head, var args) when head.ref().isEq() && args.getLast() instanceof DimTerm dim ->
-        head.ref().equality(args.toArray(Term[]::new), dim == DimTerm.I0);
+      case ConCall(var head, var args) when head.ref().hasEq() && args.getLast() instanceof DimTerm dim ->
+        head.ref().equality(args, dim == DimTerm.I0);
       case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
       case MetaCall meta -> state.computeSolution(meta, this::whnf);

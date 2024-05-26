@@ -18,10 +18,12 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract non-sealed class JitCon extends JitDef implements ConDefLike {
   public final JitData dataType;
+  private final boolean hasEq;
 
-  protected JitCon(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, JitData dataType) {
+  protected JitCon(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName, JitData dataType, boolean hasEq) {
     super(telescopeSize, telescopeLicit, telescopeName);
     this.dataType = dataType;
+    this.hasEq = hasEq;
   }
 
   /**
@@ -31,6 +33,14 @@ public abstract non-sealed class JitCon extends JitDef implements ConDefLike {
    * @return a match result, a sequence of substitution if success
    */
   public abstract @NotNull Result<ImmutableSeq<Term>, Boolean> isAvailable(@NotNull Seq<Term> args);
+
+  @Override
+  public boolean hasEq() {
+    return hasEq;
+  }
+
+  @Override public abstract @NotNull Term equality(Seq<Term> args, boolean is0);
+
   @Override public @NotNull DataDefLike dataRef() { return dataType; }
 
   @Override public @NotNull ImmutableSeq<Param> selfTele(@NotNull ImmutableSeq<Term> ownerArgs) {

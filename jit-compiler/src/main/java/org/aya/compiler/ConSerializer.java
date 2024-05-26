@@ -2,10 +2,14 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
+import kala.function.BooleanConsumer;
+import kala.function.BooleanFunction;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.core.def.ConDef;
+import org.aya.syntax.core.def.ConDefLike;
 import org.jetbrains.annotations.NotNull;
 
 public final class ConSerializer extends JitTeleSerializer<ConDef> {
@@ -14,7 +18,8 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
   }
 
   @Override protected void buildConstructor(ConDef unit) {
-    buildConstructor(unit, ImmutableSeq.of(getInstance(getCoreReference(unit.dataRef))));
+    var hasEq = unit.equality != null;
+    buildConstructor(unit, ImmutableSeq.of(getInstance(getCoreReference(unit.dataRef)), Boolean.toString(hasEq)));
   }
 
   private void buildIsAvailable(ConDef unit, @NotNull String argsTerm) {
@@ -27,11 +32,37 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
       (s, _) -> s.buildReturn(STR."\{CLASS_RESULT}.ok(\{PatternSerializer.VARIABLE_RESULT}.toImmutableSeq())"))));
   }
 
+  /**
+   * @see ConDefLike#equality(Seq, boolean)
+   */
+  private void buildEquality(ConDef unit, @NotNull String argsTerm, @NotNull String is0Term) {
+    var eq = unit.equality;
+    if (eq == null) {
+      buildPanic(null);
+    } else {
+      BooleanConsumer continuation = (b) -> {
+        var side = b ? eq.a() : eq.b();
+        buildReturn(serializeTermUnderTele(side, argsTerm, unit.telescope().size()));
+      };
+
+      buildIfElse(is0Term, () -> continuation.accept(true), () -> continuation.accept(false));
+    }
+  }
+
   @Override public AyaSerializer<ConDef> serialize(ConDef unit) {
-    buildFramework(unit, () -> buildMethod("isAvailable",
-      ImmutableSeq.of(new JitParam("args", TYPE_TERMSEQ)),
-      STR."\{CLASS_RESULT}<\{CLASS_IMMSEQ}<\{CLASS_TERM}>, \{CLASS_BOOLEAN}>", true,
-      () -> buildIsAvailable(unit, "args")));
+    var argsTerm = "args";
+    var is0Term = "is0";
+
+    buildFramework(unit, () -> {
+      buildMethod("isAvailable",
+        ImmutableSeq.of(new JitParam(argsTerm, TYPE_TERMSEQ)),
+        STR."\{CLASS_RESULT}<\{CLASS_IMMSEQ}<\{CLASS_TERM}>, \{CLASS_BOOLEAN}>", true,
+        () -> buildIsAvailable(unit, argsTerm));
+      appendLine();
+      buildMethod("equality",
+        ImmutableSeq.of(new JitParam(argsTerm, TYPE_TERMSEQ), new JitParam(is0Term, "boolean")),
+        CLASS_TERM, true, () -> buildEquality(unit, argsTerm, is0Term));
+    });
 
     return this;
   }

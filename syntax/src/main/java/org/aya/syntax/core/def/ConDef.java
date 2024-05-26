@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.def;
 
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
@@ -47,12 +48,11 @@ public final class ConDef extends SubLevelDef {
 
   public static final class Delegate extends TyckAnyDef<ConDef> implements ConDefLike {
     public Delegate(@NotNull DefVar<ConDef, ?> ref) { super(ref); }
-    @Override public boolean isEq() { return ref.core.equality != null; }
-    @Override public @NotNull Term equality(Term[] args, boolean is0) {
-      ImmutableSeq<Term> view = ImmutableArray.Unsafe.wrap(args);
+    @Override public boolean hasEq() { return ref.core.equality != null; }
+    @Override public @NotNull Term equality(Seq<Term> args, boolean is0) {
       var equality = ref.core.equality;
       assert equality != null;
-      return (is0 ? equality.a() : equality.b()).instantiateTele(view.view());
+      return (is0 ? equality.a() : equality.b()).instantiateTele(args.view());
     }
     @Override public @NotNull ImmutableSeq<Param> selfTele(@NotNull ImmutableSeq<Term> ownerArgs) {
       return Param.substTele(ref.core.selfTele.view(), ownerArgs.view()).toImmutableSeq();

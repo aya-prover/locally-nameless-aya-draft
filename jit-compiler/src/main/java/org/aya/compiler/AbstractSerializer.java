@@ -117,7 +117,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   public void buildPanic(@Nullable String message) {
-    message = message == null ? "" : STR."\"\{message}\"";
+    message = message == null ? "" : makeString(message);
     appendLine(STR."throw new \{CLASS_PANIC}(\{message});");
   }
 
@@ -137,6 +137,14 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
 
   public void appendLine() {
     builder.append('\n');
+  }
+
+  public <R> void buildSwitch(
+    @NotNull String term,
+    @NotNull ImmutableSeq<R> cases,
+    @NotNull Consumer<R> continuation
+  ) {
+    buildSwitch(term, cases, continuation, () -> buildPanic(null));
   }
 
   public <R> void buildSwitch(
