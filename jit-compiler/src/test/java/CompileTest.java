@@ -43,7 +43,7 @@ public class CompileTest {
       def plus (a b : Nat) : Nat elim a
       | O => b
       | S n => S (plus n b)
-      """).filter(x -> x instanceof FnDef || x instanceof DataDef);
+            """).defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
 
     var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator(), new AyaShape.Factory())
       .serialize(result)
@@ -112,16 +112,21 @@ public class CompileTest {
     System.out.println(out);
   }
 
+  public record TyckResult(@NotNull ImmutableSeq<TyckDef> defs, @NotNull ResolveInfo info) {
+
+  }
+
   private static final @NotNull Path FILE = Path.of("/home/senpai/1919810.aya");
   public static final ThrowingReporter REPORTER = new ThrowingReporter(AyaPrettierOptions.pretty());
-  public static @NotNull ImmutableSeq<TyckDef> tyck(@Language("Aya") @NotNull String code) {
+
+  public static TyckResult tyck(@Language("Aya") @NotNull String code) {
     var moduleLoader = new DumbModuleLoader(new EmptyContext(REPORTER, FILE));
     var callback = new ModuleCallback<RuntimeException>() {
       ImmutableSeq<TyckDef> ok;
       @Override public void onModuleTycked(@NotNull ResolveInfo x, @NotNull ImmutableSeq<TyckDef> defs) { ok = defs; }
     };
-    moduleLoader.tyckModule(moduleLoader.resolve(new AyaParserImpl(REPORTER).program(
+    var info = moduleLoader.tyckModule(moduleLoader.resolve(new AyaParserImpl(REPORTER).program(
       new SourceFile("<baka>", FILE, code))), callback);
-    return callback.ok;
+    return new TyckResult(callback.ok, info);
   }
 }

@@ -57,7 +57,6 @@ public record PatMatcher(boolean inferMeta, @NotNull UnaryOperator<Term> pre) {
           // ^ arguments for data should not be matched
         }
         case MetaPatTerm metaPatTerm -> solve(pat, metaPatTerm);
-        case ListTerm list -> match(con, list.constructorForm());
         default -> throw new Failure(State.Stuck);
       };
       case Pat.Tuple tuple -> switch (pre.apply(term)) {

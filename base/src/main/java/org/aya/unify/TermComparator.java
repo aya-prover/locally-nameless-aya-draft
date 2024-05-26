@@ -277,12 +277,6 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
       case MetaCall mCall -> solveMeta(mCall, rhs, null);
       // By typing invariant, they should have the same type, so no need to check for repr equality.
       case IntegerTerm(var lepr, _, _, var ty) -> rhs instanceof IntegerTerm rInt && lepr == rInt.repr() ? ty : null;
-      // fallback case
-      case ConCallLike lCon -> switch (rhs) {
-        case ConCallLike rCon -> compareCallApprox(lCon, rCon, lCon.ref());
-        case ListTerm rList -> compareUntyped(lhs, rList.constructorForm());
-        default -> null;
-      };
       case ListTerm list -> switch (rhs) {
         case ListTerm rist -> {
           if (!list.compareUntyped(rist, (l, r) ->
@@ -290,6 +284,12 @@ public abstract sealed class TermComparator extends AbstractTycker permits Unifi
           yield list.type();
         }
         case ConCall rCon -> compareUntyped(list.constructorForm(), rCon);
+        default -> null;
+      };
+      // fallback case
+      case ConCallLike lCon -> switch (rhs) {
+        case ListTerm rList -> compareUntyped(lhs, rList.constructorForm());
+        case ConCallLike rCon -> compareCallApprox(lCon, rCon, lCon.ref());
         default -> null;
       };
       case MetaLitTerm mlt -> switch (rhs) {

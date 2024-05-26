@@ -7,6 +7,7 @@ import kala.function.IndexedFunction;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListTerm;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
  *   <li>Of course, {@link ConCall} behaves like a {@link ConCall}</li>
  * </ul>
  */
-public sealed interface ConCallLike extends Callable.Tele permits ConCall, RuleReducer.Con, IntegerTerm {
+public sealed interface ConCallLike extends Callable.Tele permits ConCall, RuleReducer.Con, IntegerTerm, ListTerm {
   /**
    * @param ownerArgs the arguments to the owner/patterns, NOT the data type parameters!!
    */

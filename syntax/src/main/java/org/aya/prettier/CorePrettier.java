@@ -69,6 +69,16 @@ public class CorePrettier extends BasePrettier<Term> {
       case IntegerTerm shaped -> shaped.repr() == 0
         ? linkLit(0, shaped.zero(), CON)
         : linkLit(shaped.repr(), shaped.suc(), CON);
+      case ListTerm shaped -> {
+        var subterms = shaped.repr().map(x -> term(Outer.Free, x));
+        var nil = shaped.nil();
+        var cons = shaped.cons();
+        yield Doc.sep(
+          linkListLit(Doc.symbol("["), nil, CON),
+          Doc.join(linkListLit(Doc.COMMA, cons, CON), subterms),
+          linkListLit(Doc.symbol("]"), nil, CON)
+        );
+      }
       case ConCallLike conCall -> visitCoreCalls(conCall.ref(), conCall.conArgs(), outer, optionImplicit());
       case FnCall fnCall -> visitCoreCalls(fnCall.ref(), fnCall.args(), outer, optionImplicit());
       case SigmaTerm(var params) -> {
@@ -187,16 +197,6 @@ public class CorePrettier extends BasePrettier<Term> {
       }
       // case ClassCall classCall -> visitArgsCalls(classCall.ref(), CLAZZ, classCall.orderedArgs(), outer);
       case DataCall dataCall -> visitCoreCalls(dataCall.ref(), dataCall.args(), outer, optionImplicit());
-      case ListTerm shaped -> {
-        var subterms = shaped.repr().map(x -> term(Outer.Free, x));
-        var nil = shaped.nil();
-        var cons = shaped.cons();
-        yield Doc.sep(
-          linkListLit(Doc.symbol("["), nil, CON),
-          Doc.join(linkListLit(Doc.COMMA, cons, CON), subterms),
-          linkListLit(Doc.symbol("]"), nil, CON)
-        );
-      }
       // case StringTerm(var str) -> Doc.plain("\"" + StringUtil.escapeStringCharacters(str) + "\"");
       case PAppTerm app -> visitCalls(null, term(Outer.AppHead, app.fun()),
         SeqView.of(new Arg<>(app.arg(), true)), outer, optionImplicit());

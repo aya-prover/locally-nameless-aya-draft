@@ -9,6 +9,7 @@ import org.aya.syntax.compile.CompiledAya;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.repr.AyaShape;
+import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.binop.Assoc;
@@ -19,6 +20,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
   public static final String CLASS_JITCON = getName(JitCon.class);
   public static final String CLASS_ASSOC = getName(Assoc.class);
   public static final String CLASS_AYASHAPE = getName(AyaShape.class);
+  public static final String CLASS_GLOBALID = makeSub(getName(CodeShape.class), getName(CodeShape.GlobalId.class));
   public static final String METHOD_TELESCOPE = "telescope";
   public static final String METHOD_RESULT = "result";
   public static final String TYPE_TERMSEQ = STR."\{CLASS_SEQ}<\{CLASS_TERM}>";

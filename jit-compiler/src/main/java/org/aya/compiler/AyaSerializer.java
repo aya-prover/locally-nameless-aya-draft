@@ -9,12 +9,11 @@ import kala.control.Result;
 import org.aya.compiler.util.SerializeUtils;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.ConCall;
+import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
-
-import java.util.Arrays;
 
 import static org.aya.compiler.AbstractSerializer.getName;
 
@@ -36,6 +35,7 @@ public interface AyaSerializer<T> {
   String STATIC_FIELD_INSTANCE = "INSTANCE";
   String FIELD_INSTANCE = "ref";
   String CLASS_JITCONCALL = getName(ConCall.class);
+  String CLASS_CONCALLLIKE = getName(ConCallLike.class);
   String CLASS_JITFNCALL = getName(FnCall.class);
   String CLASS_JITDATACALL = getName(DataCall.class);
   String CLASS_IMMSEQ = getName(ImmutableSeq.class);
@@ -58,6 +58,7 @@ public interface AyaSerializer<T> {
     import org.aya.syntax.core.Closure.Jit;
     // TODO: do not import all subclass of Pat directly
     import org.aya.syntax.core.pat.Pat;
+    import org.aya.syntax.core.repr.*;
     import org.aya.syntax.core.term.*;
     import org.aya.syntax.core.term.repr.*;
     import org.aya.syntax.core.term.call.*;

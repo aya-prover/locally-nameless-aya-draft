@@ -10,6 +10,7 @@ import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.ConCall;
+import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.marker.StableWHNF;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +20,7 @@ public record ListTerm(
   @NotNull ConDefLike nil,
   @NotNull ConDefLike cons,
   @Override @NotNull DataCall type
-) implements StableWHNF, Shaped.List<Term> {
+) implements StableWHNF, Shaped.List<Term>, ConCallLike {
   public ListTerm(
     @NotNull ImmutableSeq<Term> repr,
     @NotNull ShapeRecognition recog,
@@ -40,10 +41,23 @@ public record ListTerm(
   @Override public @NotNull Term destruct(@NotNull ImmutableSeq<Term> repr) {
     return new ListTerm(repr, nil, cons, type);
   }
+
   public ListTerm update(@NotNull ImmutableSeq<Term> repr) {
     return repr.sameElements(this.repr, true) ? this : new ListTerm(repr, nil, cons, type);
   }
+
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
     return update(repr.map(term -> f.apply(0, term)));
+  }
+
+  @Override
+  public @NotNull ConCallLike.Head head() {
+    var isNil = repr.isEmpty();
+    return new Head(isNil ? nil : cons, 0, ImmutableSeq.of(type.args().getFirst()));
+  }
+
+  @Override
+  public @NotNull ImmutableSeq<Term> conArgs() {
+    return repr.isEmpty() ? ImmutableSeq.empty() : ImmutableSeq.of(repr.getFirst(), destruct(repr.drop(1)));
   }
 }
