@@ -83,6 +83,28 @@ public enum AyaShape {
       ))));
 
     @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
+  },
+  MINUS_SHAPE {
+    public static final @NotNull CodeShape FN_MINUS = CodeShape.binop(NAT_SHAPE.codeShape(),
+      // n - 0 => n
+      new ClauseShape(ImmutableSeq.of(
+        PatShape.Basic.Bind, PatShape.ShapedCon.of(TYPE, ZERO)
+      ), new TermShape.DeBruijn(0)),
+      // 0 - suc m = 0
+      new ClauseShape(ImmutableSeq.of(
+        PatShape.ShapedCon.of(TYPE, ZERO),
+        PatShape.ShapedCon.of(TYPE, SUC, PatShape.Basic.Bind)
+      ), TermShape.ConCall.of(TYPE, ZERO)),
+      // suc n - suc m = n - m
+      new ClauseShape(ImmutableSeq.of(
+        PatShape.ShapedCon.of(TYPE, SUC, PatShape.Basic.Bind),
+        PatShape.ShapedCon.of(TYPE, SUC, PatShape.Basic.Bind)
+      ), TermShape.NameCall.of(FUNC,
+        new TermShape.DeBruijn(1),
+        new TermShape.DeBruijn(0)
+      )));
+
+    @Override public @NotNull CodeShape codeShape() { return FN_MINUS; }
   };
 
   @NotNull abstract CodeShape codeShape();
@@ -98,13 +120,13 @@ public enum AyaShape {
     return null;
   }
 
-  public static @Nullable Shaped.Applicable<Term, FnDefLike> ofFn(
-    FnDefLike ref, @NotNull AyaShape shape
-  ) {
-    if (shape == AyaShape.PLUS_LEFT_SHAPE || shape == AyaShape.PLUS_RIGHT_SHAPE) {
-      return new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.Add);
-    }
-    return null;
+  public static @Nullable Shaped.Applicable<Term, FnDefLike>
+  ofFn(FnDefLike ref, @NotNull AyaShape shape) {
+    return switch (shape) {
+      case PLUS_LEFT_SHAPE, PLUS_RIGHT_SHAPE -> new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.Add);
+      case MINUS_SHAPE -> new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.SubTrunc);
+      default -> null;
+    };
   }
 
   public record FindImpl(@NotNull AnyDef def, @NotNull ShapeRecognition recog) { }
