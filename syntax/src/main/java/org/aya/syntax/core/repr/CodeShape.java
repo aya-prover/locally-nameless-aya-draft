@@ -2,11 +2,15 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.repr;
 
+import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
+
+import static org.aya.syntax.core.repr.CodeShape.LocalId.FUNC;
+import static org.aya.syntax.core.repr.CodeShape.LocalId.TYPE;
 
 /**
  * @author kiva
@@ -36,6 +40,18 @@ public sealed interface CodeShape {
     @NotNull TermShape result,
     @NotNull Either<TermShape, ImmutableSeq<ClauseShape>> body
   ) implements CodeShape, Moment { }
+  static FnShape binop(CodeShape type, ClauseShape... body) {
+    return new FnShape(
+      FUNC,
+      // _ : Nat -> Nat -> Nat
+      ImmutableSeq.of(
+        new TermShape.ShapeCall(TYPE, type, ImmutableSeq.empty()),
+        TermShape.NameCall.of(TYPE)
+      ),
+      TermShape.NameCall.of(TYPE),
+      Either.right(ImmutableArray.Unsafe.wrap(body))
+    );
+  }
 
   record ClauseShape(
     @NotNull ImmutableSeq<PatShape> pats,

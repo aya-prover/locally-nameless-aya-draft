@@ -6,7 +6,6 @@ import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableLinkedHashMap;
 import kala.collection.mutable.MutableMap;
-import kala.control.Either;
 import kala.control.Option;
 import org.aya.generic.stmt.Shaped;
 import org.aya.syntax.core.def.*;
@@ -51,57 +50,38 @@ public enum AyaShape {
     @Override public @NotNull CodeShape codeShape() { return DATA_LIST; }
   },
   PLUS_LEFT_SHAPE {
-    public static final @NotNull CodeShape FN_PLUS = new FnShape(
-      FUNC,
-      // _ : Nat -> Nat -> Nat
-      ImmutableSeq.of(
-        new TermShape.ShapeCall(TYPE, NAT_SHAPE.codeShape(), ImmutableSeq.empty()),
-        TermShape.NameCall.of(TYPE)
-      ),
-      TermShape.NameCall.of(TYPE),
-      Either.right(ImmutableSeq.of(
-        // | a, 0 => a
-        new ClauseShape(ImmutableSeq.of(
-          PatShape.Basic.Bind, PatShape.ShapedCon.of(TYPE, ZERO)
-        ), new TermShape.DeBruijn(0)),
-        // | a, suc b => suc (_ a b)
-        new ClauseShape(ImmutableSeq.of(
-          PatShape.Basic.Bind, new PatShape.ShapedCon(TYPE, SUC,
-            ImmutableSeq.of(PatShape.Basic.Bind))
-        ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC,
-          ImmutableSeq.of(
-            new TermShape.DeBruijn(1),
-            new TermShape.DeBruijn(0)
-          )))))
-      ))
-    );
-
-    @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
-  },
-  PLUS_RIGHT_SHAPE {
-    public static final @NotNull CodeShape FN_PLUS = new FnShape(
-      FUNC,
-      // _ : Nat -> Nat -> Nat
-      ImmutableSeq.of(
-        new TermShape.ShapeCall(TYPE, NAT_SHAPE.codeShape(), ImmutableSeq.empty()),
-        TermShape.NameCall.of(TYPE)
-      ),
-      TermShape.NameCall.of(TYPE),
-      Either.right(ImmutableSeq.of(
-        // | 0, b => b
-        new ClauseShape(ImmutableSeq.of(
-          PatShape.ShapedCon.of(TYPE, ZERO), PatShape.Basic.Bind
-        ), new TermShape.DeBruijn(0)),
-        // | suc a, b => _ a (suc b)
-        new ClauseShape(ImmutableSeq.of(
-          new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(PatShape.Basic.Bind)),
-          PatShape.Basic.Bind
-        ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
+    public static final @NotNull FnShape FN_PLUS = CodeShape.binop(NAT_SHAPE.codeShape(),
+      // | a, 0 => a
+      new ClauseShape(ImmutableSeq.of(
+        PatShape.Basic.Bind, PatShape.ShapedCon.of(TYPE, ZERO)
+      ), new TermShape.DeBruijn(0)),
+      // | a, suc b => suc (_ a b)
+      new ClauseShape(ImmutableSeq.of(
+        PatShape.Basic.Bind, new PatShape.ShapedCon(TYPE, SUC,
+          ImmutableSeq.of(PatShape.Basic.Bind))
+      ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC,
+        ImmutableSeq.of(
           new TermShape.DeBruijn(1),
           new TermShape.DeBruijn(0)
         )))))
-      ))
     );
+
+    @Override public @NotNull FnShape codeShape() { return FN_PLUS; }
+  },
+  PLUS_RIGHT_SHAPE {
+    public static final @NotNull CodeShape FN_PLUS = CodeShape.binop(NAT_SHAPE.codeShape(),
+      // | 0, b => b
+      new ClauseShape(ImmutableSeq.of(
+        PatShape.ShapedCon.of(TYPE, ZERO), PatShape.Basic.Bind
+      ), new TermShape.DeBruijn(0)),
+      // | suc a, b => _ a (suc b)
+      new ClauseShape(ImmutableSeq.of(
+        new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(PatShape.Basic.Bind)),
+        PatShape.Basic.Bind
+      ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
+        new TermShape.DeBruijn(1),
+        new TermShape.DeBruijn(0)
+      ))))));
 
     @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
   };
