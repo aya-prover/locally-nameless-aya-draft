@@ -3,13 +3,13 @@
 package org.aya.resolve.module;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.normalize.PrimFactory;
+import org.aya.primitive.PrimFactory;
+import org.aya.primitive.ShapeFactory;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.StmtResolvers;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
 import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.tyck.order.AyaOrgaTycker;
 import org.aya.tyck.order.AyaSccTycker;
@@ -62,7 +62,7 @@ public interface ModuleLoader extends Problematic {
     @NotNull ModuleLoader recurseLoader
   ) {
     var opSet = new AyaBinOpSet(reporter());
-    return resolveModule(primFactory, new AyaShape.Factory(), opSet, context, program, recurseLoader);
+    return resolveModule(primFactory, new ShapeFactory(), opSet, context, program, recurseLoader);
   }
 
   /**
@@ -74,8 +74,8 @@ public interface ModuleLoader extends Problematic {
    */
   @ApiStatus.Internal
   default @NotNull ResolveInfo resolveModule(
-    @NotNull PrimFactory primFactory, @NotNull AyaShape.Factory shapeFactory, @NotNull AyaBinOpSet opSet,
-    @NotNull ModuleContext context, @NotNull ImmutableSeq<Stmt> program, @NotNull ModuleLoader recurseLoader
+      @NotNull PrimFactory primFactory, @NotNull ShapeFactory shapeFactory, @NotNull AyaBinOpSet opSet,
+      @NotNull ModuleContext context, @NotNull ImmutableSeq<Stmt> program, @NotNull ModuleLoader recurseLoader
   ) {
     var resolveInfo = new ResolveInfo(context, primFactory, shapeFactory, opSet);
     new StmtResolvers(recurseLoader, resolveInfo).resolve(program);

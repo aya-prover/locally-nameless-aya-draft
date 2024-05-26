@@ -7,11 +7,11 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.compiler.AyaSerializer;
 import org.aya.compiler.ModuleSerializer;
 import org.aya.generic.NameGenerator;
+import org.aya.primitive.ShapeFactory;
 import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TyckDef;
-import org.aya.syntax.core.repr.AyaShape;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ public class CompileTester {
 
   public CompileTester(@NotNull String code) { this.code = code; }
 
-  public static CompileTester make(@NotNull ImmutableSeq<TyckDef> defs, @NotNull AyaShape.Factory factory) {
+  public static CompileTester make(@NotNull ImmutableSeq<TyckDef> defs, @NotNull ShapeFactory factory) {
     defs = defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
     var out = new ModuleSerializer(new StringBuilder(), 0, new NameGenerator(), factory)
       .serialize(defs)

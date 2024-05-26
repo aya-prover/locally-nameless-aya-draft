@@ -4,7 +4,8 @@ package org.aya.resolve;
 
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.stmt.TyckOrder;
-import org.aya.normalize.PrimFactory;
+import org.aya.primitive.PrimFactory;
+import org.aya.primitive.ShapeFactory;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
@@ -12,7 +13,6 @@ import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.UseHide;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.TyckState;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public record ResolveInfo(
   @NotNull ModuleContext thisModule,
   @NotNull PrimFactory primFactory,
-  @NotNull AyaShape.Factory shapeFactory,
+  @NotNull ShapeFactory shapeFactory,
   @NotNull AyaBinOpSet opSet,
   @NotNull MutableMap<DefVar<?, ?>, OpRenameInfo> opRename,
   @NotNull MutableMap<ModuleName.Qualified, ImportInfo> imports,
@@ -45,7 +45,7 @@ public record ResolveInfo(
   public ResolveInfo(
     @NotNull ModuleContext thisModule,
     @NotNull PrimFactory primFactory,
-    @NotNull AyaShape.Factory shapeFactory,
+    @NotNull ShapeFactory shapeFactory,
     @NotNull AyaBinOpSet opSet
   ) {
     this(thisModule, primFactory, shapeFactory, opSet,

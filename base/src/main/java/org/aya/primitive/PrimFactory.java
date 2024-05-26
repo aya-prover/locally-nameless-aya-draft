@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.normalize;
+package org.aya.primitive;
 
 import kala.collection.Map;
 import kala.collection.immutable.ImmutableMap;
@@ -43,8 +43,7 @@ public class PrimFactory {
   }
 
   @FunctionalInterface
-  public interface Unfolder extends BiFunction<@NotNull PrimCall, @NotNull TyckState, @NotNull Term> {
-  }
+  public interface Unfolder extends BiFunction<@NotNull PrimCall, @NotNull TyckState, @NotNull Term> { }
 
   public record PrimSeed(
     @NotNull ID name,

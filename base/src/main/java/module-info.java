@@ -7,6 +7,7 @@ module aya.base {
 
   exports org.aya.normalize;
   exports org.aya.prelude;
+  exports org.aya.primitive;
   exports org.aya.resolve.context;
   exports org.aya.resolve.module;
   exports org.aya.resolve.salt;

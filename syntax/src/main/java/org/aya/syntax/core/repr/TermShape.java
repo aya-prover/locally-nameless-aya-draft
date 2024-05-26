@@ -4,7 +4,6 @@ package org.aya.syntax.core.repr;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.term.SortKind;
-import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +16,7 @@ sealed public interface TermShape {
   /**
    * The shape to Sort term, I am not very work well at type theory, so improve this feel free!
    *
-   * @param kind  the SortKind, null if accept any kind of sort. see {@link ShapeMatcher#matchTerm(TermShape, Term)}
+   * @param kind  the SortKind, null if accept any kind of sort. see {@code ShapeMatcher.matchTerm}
    * @param ulift the lower bound of the type level.
    * @author hoshino
    */

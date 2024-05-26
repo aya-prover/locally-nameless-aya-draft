@@ -15,7 +15,7 @@ import static org.aya.syntax.core.repr.CodeShape.LocalId.TYPE;
  * @author kiva
  */
 public sealed interface CodeShape {
-  /** A capture group, see {@link ConShape} and {@link ShapeMatcher#captures()} */
+  /** A capture group, see {@link ConShape} and {@code ShapeMatcher.captures} */
   sealed interface Moment permits ConShape, DataShape, FnShape, TermShape.ShapeCall {
     @NotNull MomentId name();
   }

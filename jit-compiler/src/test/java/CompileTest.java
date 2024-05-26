@@ -7,6 +7,7 @@ import org.aya.compiler.AyaSerializer;
 import org.aya.compiler.ModuleSerializer;
 import org.aya.compiler.TermExprializer;
 import org.aya.generic.NameGenerator;
+import org.aya.primitive.ShapeFactory;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.ResolveInfo;
@@ -19,7 +20,6 @@ import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.def.TyckDef;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.LocalTerm;
@@ -45,7 +45,7 @@ public class CompileTest {
       | S n => S (plus n b)
             """).defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
 
-    var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator(), new AyaShape.Factory())
+    var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator(), new ShapeFactory())
       .serialize(result)
       .result();
 

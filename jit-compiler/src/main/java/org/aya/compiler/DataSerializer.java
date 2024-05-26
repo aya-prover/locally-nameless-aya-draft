@@ -6,10 +6,10 @@ import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.tuple.Tuple;
 import org.aya.generic.NameGenerator;
+import org.aya.primitive.ShapeFactory;
 import org.aya.syntax.compile.JitData;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.TyckAnyDef;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 // You should compile this with its constructors
 public final class DataSerializer extends JitTeleSerializer<DataDef> {
   private final @NotNull Consumer<DataSerializer> conContinuation;
-  private final @NotNull AyaShape.Factory shapeFactory;
+  private final @NotNull ShapeFactory shapeFactory;
 
   /**
    * @param conContinuation should generate constructor inside of this data
@@ -28,7 +28,7 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     @NotNull StringBuilder builder,
     int indent,
     @NotNull NameGenerator nameGen,
-    @NotNull AyaShape.Factory shapeFactory,
+    @NotNull ShapeFactory shapeFactory,
     @NotNull Consumer<DataSerializer> conContinuation
   ) {
     super(builder, indent, nameGen, JitData.class);

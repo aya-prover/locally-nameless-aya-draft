@@ -3,7 +3,7 @@
 package org.aya.resolve.module;
 
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.normalize.PrimFactory;
+import org.aya.primitive.PrimFactory;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.Context;
 import org.aya.syntax.concrete.stmt.Stmt;

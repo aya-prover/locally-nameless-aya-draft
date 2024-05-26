@@ -11,7 +11,7 @@ import org.aya.cli.single.CompilerFlags;
 import org.aya.cli.single.SingleAyaFile;
 import org.aya.generic.InterruptException;
 import org.aya.normalize.Normalizer;
-import org.aya.normalize.PrimFactory;
+import org.aya.primitive.PrimFactory;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.EmptyContext;

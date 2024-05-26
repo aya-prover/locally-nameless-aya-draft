@@ -17,11 +17,11 @@ public sealed interface PatShape {
   record Con(@NotNull ImmutableSeq<PatShape> innerPats) implements ConLike { }
 
   /**
-   * Expecting a certain ctor, {@link ShapeMatcher} will crash
+   * Expecting a certain constructor, {@code ShapeMatcher} will crash
    * if the {@param dataId} is invalid (such as undefined or not a DataShaped thing)
    *
    * @param dataId a reference to a {@link CodeShape.DataShape}d term
-   * @param conId  the {@link CodeShape.GlobalId} to the ctor
+   * @param conId  the {@link CodeShape.GlobalId} to the constructor
    */
   record ShapedCon(
     @NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId,

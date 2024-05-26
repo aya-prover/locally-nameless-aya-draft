@@ -1,6 +1,6 @@
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
-package org.aya.syntax.core.repr;
+package org.aya.primitive;
 
 import kala.collection.SeqLike;
 import kala.collection.immutable.ImmutableMap;
@@ -15,6 +15,7 @@ import kala.value.MutableValue;
 import org.aya.generic.Modifier;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.repr.*;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;

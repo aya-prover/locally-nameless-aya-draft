@@ -2,13 +2,11 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.repr;
 
-import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
-import kala.collection.mutable.MutableLinkedHashMap;
-import kala.collection.mutable.MutableMap;
-import kala.control.Option;
 import org.aya.generic.stmt.Shaped;
-import org.aya.syntax.core.def.*;
+import org.aya.syntax.core.def.AnyDef;
+import org.aya.syntax.core.def.ConDefLike;
+import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.repr.CodeShape.*;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
@@ -107,7 +105,7 @@ public enum AyaShape {
     @Override public @NotNull CodeShape codeShape() { return FN_MINUS; }
   };
 
-  @NotNull abstract CodeShape codeShape();
+  public @NotNull abstract CodeShape codeShape();
 
   public static Shaped.Applicable<Term, ConDefLike> ofCon(
     @NotNull ConDefLike ref,
@@ -130,34 +128,4 @@ public enum AyaShape {
   }
 
   public record FindImpl(@NotNull AnyDef def, @NotNull ShapeRecognition recog) { }
-  public static class Factory {
-    public @NotNull MutableMap<AnyDef, ShapeRecognition> discovered = MutableLinkedHashMap.of();
-
-    public @NotNull ImmutableSeq<FindImpl> findImpl(@NotNull AyaShape shape) {
-      return discovered.view()
-        .map(FindImpl::new)
-        .filter(t -> t.recog.shape() == shape)
-        .toImmutableSeq();
-    }
-
-    public @NotNull Option<ShapeRecognition> find(@Nullable AnyDef def) {
-      if (def == null) return Option.none();
-      return discovered.getOption(def);
-    }
-
-    public void bonjour(@NotNull TyckDef def, @NotNull ShapeRecognition shape) {
-      // TODO[literal]: what if a def has multiple shapes?
-      discovered.put(TyckAnyDef.make(def), shape);
-    }
-
-    /** Discovery of shaped literals */
-    public void bonjour(@NotNull TyckDef def) {
-      for (var shape : AyaShape.values()) {
-        new ShapeMatcher(ImmutableMap.from(discovered)).match(shape, def)
-          .ifDefined(recog -> bonjour(def, recog));
-      }
-    }
-
-    public void importAll(@NotNull Factory other) { discovered.putAll(other.discovered); }
-  }
 }

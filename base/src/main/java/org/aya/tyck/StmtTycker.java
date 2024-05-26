@@ -6,14 +6,14 @@ import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import kala.control.Option;
 import org.aya.generic.Modifier;
-import org.aya.normalize.PrimFactory;
+import org.aya.primitive.PrimFactory;
+import org.aya.primitive.ShapeFactory;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
 import org.aya.syntax.concrete.stmt.decl.*;
 import org.aya.syntax.core.def.*;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.pat.PatToTerm;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -37,7 +37,7 @@ import static org.aya.tyck.tycker.TeleTycker.loadTele;
 
 public record StmtTycker(
   @NotNull Reporter reporter,
-  @NotNull AyaShape.Factory shapeFactory,
+  @NotNull ShapeFactory shapeFactory,
   @NotNull PrimFactory primFactory
 ) implements Problematic {
   private @NotNull ExprTycker mkTycker() {

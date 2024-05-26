@@ -4,8 +4,8 @@ package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
+import org.aya.primitive.ShapeFactory;
 import org.aya.syntax.core.def.*;
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.util.IterableUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,9 +13,9 @@ import org.jetbrains.annotations.NotNull;
  * Serializing a module, note that it may not a file module, so we need not to make importing.
  */
 public final class ModuleSerializer extends AbstractSerializer<ImmutableSeq<TyckDef>> {
-  private final @NotNull AyaShape.Factory shapeFactory;
+  private final @NotNull ShapeFactory shapeFactory;
 
-  public ModuleSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen, @NotNull AyaShape.Factory shapeFactory) {
+  public ModuleSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen, @NotNull ShapeFactory shapeFactory) {
     super(builder, indent, nameGen);
     this.shapeFactory = shapeFactory;
   }

@@ -8,7 +8,7 @@ import org.aya.cli.single.CompilerFlags;
 import org.aya.cli.single.SingleAyaFile;
 import org.aya.cli.single.SingleFileCompiler;
 import org.aya.generic.Constants;
-import org.aya.normalize.PrimFactory;
+import org.aya.primitive.PrimFactory;
 import org.aya.prettier.AyaPrettierOptions;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.context.EmptyContext;
