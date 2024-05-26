@@ -157,8 +157,6 @@ public record ExprResolver(
           yield new Expr.Ref(allowedGeneralizes.get(generalized).ref());
         }
         case DefVar<?, ?> def -> {
-          // RefExpr is referring to a serialized core which is already tycked.
-          // Collecting tyck order for tycked terms is unnecessary, just skip.
           addReference(def);
           yield new Expr.Ref(def);
         }

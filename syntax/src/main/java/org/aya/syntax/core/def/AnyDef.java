@@ -14,10 +14,10 @@ import org.jetbrains.annotations.Nullable;
  * it can be a core def (like {@link DataDef}) or a compiled def (like {@link org.aya.syntax.compile.JitData}).<br/>
  * We have three "def-chain"s, take {@link ConDef} as an example:
  * <pre>
- *   TyckDef <-----   AnyDef   -----> JitTeleDef
- *      |               |                  |
- *      v               v                  v
- *   ConDef  <----- ConDefLike ----->   JitCon
+ *   TyckDef   <-----   AnyDef   ----->  JitTeleDef
+ *      |                 |                |
+ *      v                 v                v
+ *   TyckAnyDef <----- ConDefLike -----> JitCon
  * </pre>
  * where the arrows indicate mean ""is superclass of
  */
