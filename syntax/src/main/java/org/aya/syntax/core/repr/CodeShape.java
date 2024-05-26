@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.repr;
 
-import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Either;
 import org.jetbrains.annotations.NotNull;
@@ -45,11 +44,11 @@ public sealed interface CodeShape {
       FUNC,
       // _ : Nat -> Nat -> Nat
       ImmutableSeq.of(
-        new TermShape.ShapeCall(TYPE, type, ImmutableSeq.empty()),
+        TermShape.ShapeCall.of(TYPE, type),
         TermShape.NameCall.of(TYPE)
       ),
       TermShape.NameCall.of(TYPE),
-      Either.right(ImmutableArray.Unsafe.wrap(body))
+      Either.right(ImmutableSeq.from(body))
     );
   }
 

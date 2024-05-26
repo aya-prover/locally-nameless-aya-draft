@@ -43,7 +43,7 @@ public enum AyaShape {
         new ConShape(GlobalId.NIL, ImmutableSeq.empty()),
         new ConShape(GlobalId.CONS, ImmutableSeq.of(
           new TermShape.DeBruijn(0),
-          new TermShape.NameCall(DATA, ImmutableSeq.of(new TermShape.DeBruijn(1)))
+          TermShape.NameCall.of(DATA, new TermShape.DeBruijn(1))
         )) // List A
       ));
 
@@ -57,13 +57,12 @@ public enum AyaShape {
       ), new TermShape.DeBruijn(0)),
       // | a, suc b => suc (_ a b)
       new ClauseShape(ImmutableSeq.of(
-        PatShape.Basic.Bind, new PatShape.ShapedCon(TYPE, SUC,
-          ImmutableSeq.of(PatShape.Basic.Bind))
-      ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC,
-        ImmutableSeq.of(
-          new TermShape.DeBruijn(1),
-          new TermShape.DeBruijn(0)
-        )))))
+        PatShape.Basic.Bind, PatShape.ShapedCon.of(TYPE, SUC,
+          PatShape.Basic.Bind)
+      ), TermShape.ConCall.of(TYPE, SUC, TermShape.NameCall.of(FUNC,
+        new TermShape.DeBruijn(1),
+        new TermShape.DeBruijn(0)
+      )))
     );
 
     @Override public @NotNull FnShape codeShape() { return FN_PLUS; }
@@ -76,12 +75,12 @@ public enum AyaShape {
       ), new TermShape.DeBruijn(0)),
       // | suc a, b => _ a (suc b)
       new ClauseShape(ImmutableSeq.of(
-        new PatShape.ShapedCon(TYPE, SUC, ImmutableSeq.of(PatShape.Basic.Bind)),
+        PatShape.ShapedCon.of(TYPE, SUC, PatShape.Basic.Bind),
         PatShape.Basic.Bind
-      ), new TermShape.ConCall(TYPE, SUC, ImmutableSeq.of(new TermShape.NameCall(FUNC, ImmutableSeq.of(
+      ), TermShape.ConCall.of(TYPE, SUC, TermShape.NameCall.of(FUNC,
         new TermShape.DeBruijn(1),
         new TermShape.DeBruijn(0)
-      ))))));
+      ))));
 
     @Override public @NotNull CodeShape codeShape() { return FN_PLUS; }
   };

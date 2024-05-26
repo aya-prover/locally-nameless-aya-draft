@@ -32,18 +32,26 @@ sealed public interface TermShape {
     @NotNull CodeShape.MomentId name,
     @Override @NotNull ImmutableSeq<TermShape> args
   ) implements Callable {
-    public static @NotNull NameCall of(@NotNull CodeShape.MomentId name) {
-      return new NameCall(name, ImmutableSeq.empty());
+    public static @NotNull NameCall of(@NotNull CodeShape.MomentId name, @NotNull TermShape... args) {
+      return new NameCall(name, ImmutableSeq.from(args));
     }
   }
 
   record ShapeCall(
     @NotNull CodeShape.MomentId name, @NotNull CodeShape shape,
     @Override @NotNull ImmutableSeq<TermShape> args
-  ) implements Callable, CodeShape.Moment { }
+  ) implements Callable, CodeShape.Moment {
+    public static @NotNull ShapeCall of(@NotNull CodeShape.MomentId name, @NotNull CodeShape shape, @NotNull TermShape... args) {
+      return new ShapeCall(name, shape, ImmutableSeq.from(args));
+    }
+  }
 
   record ConCall(
     @NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId,
     @Override @NotNull ImmutableSeq<TermShape> args
-  ) implements Callable { }
+  ) implements Callable {
+    public static @NotNull ConCall of(@NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId, @NotNull TermShape... args) {
+      return new ConCall(dataId, conId, ImmutableSeq.from(args));
+    }
+  }
 }

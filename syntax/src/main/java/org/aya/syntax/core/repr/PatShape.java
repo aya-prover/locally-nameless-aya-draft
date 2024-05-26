@@ -27,8 +27,11 @@ public sealed interface PatShape {
     @NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId,
     @NotNull ImmutableSeq<PatShape> innerPats
   ) implements ConLike {
-    public static @NotNull PatShape.ShapedCon of(@NotNull CodeShape.MomentId name, @NotNull CodeShape.GlobalId id) {
-      return new ShapedCon(name, id, ImmutableSeq.empty());
+    public static ShapedCon of(
+      @NotNull CodeShape.MomentId dataId, @NotNull CodeShape.GlobalId conId,
+      @NotNull PatShape... innerPats
+    ) {
+      return new ShapedCon(dataId, conId, ImmutableSeq.from(innerPats));
     }
   }
 }
