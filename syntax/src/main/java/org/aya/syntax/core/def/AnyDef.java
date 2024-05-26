@@ -12,14 +12,15 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A well-typed generic definition,
  * it can be a core def (like {@link DataDef}) or a compiled def (like {@link org.aya.syntax.compile.JitData}).<br/>
- * We have three "def-chain"s, take {@link ConDef} as an example:
+ * We have four "def-chain"s, take {@link ConDef} as an example:
  * <pre>
- *   TyckDef   <-----   AnyDef   ----->  JitTeleDef
- *      |                 |                |
- *      v                 v                v
- *   TyckAnyDef <----- ConDefLike -----> JitCon
+ *  TyckDef             TyckAnyDef   <-----   AnyDef   ----->  JitTeleDef
+ *     |                    |                   |                  |
+ *     v                    v                   v                  v
+ *   ConDef  <- - -  ConDef.Delegate <----- ConDefLike ----->    JitCon
  * </pre>
- * where the arrows indicate mean ""is superclass of
+ * where the arrows indicate mean "is superclass of".<br/>
+ * Note that {@link ConDef.Delegate} <b>contains</b> a {@link ConDef} rather than a super class of.
  */
 public sealed interface AnyDef permits JitDef, ConDefLike, DataDefLike, FnDefLike, TyckAnyDef {
   /**
