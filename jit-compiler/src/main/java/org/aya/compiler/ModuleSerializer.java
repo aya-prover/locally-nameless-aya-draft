@@ -5,6 +5,7 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.core.def.*;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.util.IterableUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,8 +13,11 @@ import org.jetbrains.annotations.NotNull;
  * Serializing a module, note that it may not a file module, so we need not to make importing.
  */
 public final class ModuleSerializer extends AbstractSerializer<ImmutableSeq<TyckDef>> {
-  public ModuleSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen) {
+  private final @NotNull AyaShape.Factory shapeFactory;
+
+  public ModuleSerializer(@NotNull StringBuilder builder, int indent, @NotNull NameGenerator nameGen, @NotNull AyaShape.Factory shapeFactory) {
     super(builder, indent, nameGen);
+    this.shapeFactory = shapeFactory;
   }
 
   private void serializeCons(@NotNull DataDef dataDef, @NotNull DataSerializer serializer) {
@@ -25,7 +29,8 @@ public final class ModuleSerializer extends AbstractSerializer<ImmutableSeq<Tyck
     switch (unit) {
       case FnDef teleDef -> new FnSerializer(builder, indent, nameGen)
         .serialize(teleDef);
-      case DataDef dataDef -> new DataSerializer(builder, indent, nameGen, ser -> serializeCons(dataDef, ser))
+      case DataDef dataDef ->
+        new DataSerializer(builder, indent, nameGen, shapeFactory, ser -> serializeCons(dataDef, ser))
         .serialize(dataDef);
       case ConDef conDef -> new ConSerializer(builder, indent, nameGen)
         .serialize(conDef);

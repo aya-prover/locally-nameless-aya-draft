@@ -8,9 +8,9 @@ import kala.tuple.Tuple;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitData;
 import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.TyckDef;
+import org.aya.syntax.core.def.TyckAnyDef;
+import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.repr.CodeShape;
-import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.ref.DefVar;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 // You should compile this with its constructors
 public final class DataSerializer extends JitTeleSerializer<DataDef> {
   private final @NotNull Consumer<DataSerializer> conContinuation;
+  private final @NotNull AyaShape.Factory shapeFactory;
 
   /**
    * @param conContinuation should generate constructor inside of this data
@@ -27,9 +28,11 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     @NotNull StringBuilder builder,
     int indent,
     @NotNull NameGenerator nameGen,
+    @NotNull AyaShape.Factory shapeFactory,
     @NotNull Consumer<DataSerializer> conContinuation
   ) {
     super(builder, indent, nameGen, JitData.class);
+    this.shapeFactory = shapeFactory;
     this.conContinuation = conContinuation;
   }
 
@@ -45,12 +48,20 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
   }
 
   @Override
-  protected @NotNull String buildCapture(DataDef unit, @NotNull ShapeRecognition recog) {
-    // The capture is one-to-one
-    var flipped = ImmutableMap.from(recog.captures().toImmutableSeq().view()
-      .map(x -> Tuple.<DefVar<?, ?>, CodeShape.GlobalId>of(x.component2(), x.component1())));
-    var capture = unit.body.map(x -> flipped.get(x.ref).toString());
-    return makeHalfArrayFrom(capture);
+  protected void buildShape(DataDef unit) {
+    var maybe = shapeFactory.find(TyckAnyDef.make(unit));
+    if (maybe.isEmpty()) {
+      super.buildShape(unit);
+    } else {
+      var recog = maybe.get();
+      appendMetadataRecord("shape", makeSubclass(CLASS_AYASHAPE, recog.shape().toString()), false);
+
+      // The capture is one-to-one
+      var flipped = ImmutableMap.from(recog.captures().toImmutableSeq().view()
+        .map(x -> Tuple.<DefVar<?, ?>, CodeShape.GlobalId>of(x.component2(), x.component1())));
+      var capture = unit.body.map(x -> flipped.get(x.ref).toString());
+      appendMetadataRecord("recognition", makeHalfArrayFrom(capture), false);
+    }
   }
 
   @Override protected void buildConstructor(DataDef unit) {

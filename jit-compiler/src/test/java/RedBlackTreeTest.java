@@ -5,6 +5,7 @@ import org.aya.compiler.ModuleSerializer;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
+import org.aya.syntax.core.repr.AyaShape;
 import org.junit.jupiter.api.Test;
 
 public class RedBlackTreeTest {
@@ -61,7 +62,7 @@ public class RedBlackTreeTest {
       def tree_sort (dec_le : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec_le) nil
       """).filter(x -> x instanceof FnDef || x instanceof DataDef);
 
-    var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator())
+    var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator(), new AyaShape.Factory())
       .serialize(result)
       .result();
 

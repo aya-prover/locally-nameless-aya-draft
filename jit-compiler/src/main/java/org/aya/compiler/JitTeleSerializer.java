@@ -7,10 +7,8 @@ import kala.range.primitive.IntRange;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.CompiledAya;
 import org.aya.syntax.compile.JitCon;
-import org.aya.syntax.core.def.TyckAnyDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.repr.AyaShape;
-import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Param;
 import org.aya.syntax.core.term.Term;
 import org.aya.util.binop.Assoc;
@@ -26,8 +24,6 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
   public static final String TYPE_TERMSEQ = STR."\{CLASS_SEQ}<\{CLASS_TERM}>";
 
   protected final @NotNull Class<?> superClass;
-  // TODO: from constructor
-  private final @NotNull AyaShape.Factory shapeFactory = null;
 
   protected JitTeleSerializer(
     @NotNull StringBuilder builder,
@@ -88,30 +84,15 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     // Assumption: module.take(fileModule.size).equals(fileModule)
     appendMetadataRecord("fileModuleSize", Integer.toString(fileModule.module().size()), false);
     appendMetadataRecord("name", makeString(ref.name()), false);
-    // assoc
     appendMetadataRecord("assoc", assoc == null ? "null" : makeSubclass(CLASS_ASSOC, assoc.toString()), false);
-
-    if (false) {
-      // shape
-      var recog = shapeFactory.find(TyckAnyDef.make(unit));
-      if (recog.isEmpty()) {
-        appendSepLine("null");
-        appendLine(makeHalfArrayFrom(ImmutableSeq.empty()));
-      } else {
-        var shape = recog.get().shape();
-        appendSepLine(makeSubclass(CLASS_AYASHAPE, shape.toString()));
-        appendLine(buildCapture(unit, recog.get()));
-      }
-    } else {
-      appendMetadataRecord("shape", "null", false);
-      appendMetadataRecord("recognition", makeHalfArrayFrom(ImmutableSeq.empty()), false);
-    }
+    buildShape(unit);
 
     appendLine(")");
   }
 
-  protected @NotNull String buildCapture(T unit, @NotNull ShapeRecognition recog) {
-    return makeHalfArrayFrom(ImmutableSeq.empty());
+  protected void buildShape(T unit) {
+    appendMetadataRecord("shape", "null", false);
+    appendMetadataRecord("recognition", makeHalfArrayFrom(ImmutableSeq.empty()), false);
   }
 
   /**
