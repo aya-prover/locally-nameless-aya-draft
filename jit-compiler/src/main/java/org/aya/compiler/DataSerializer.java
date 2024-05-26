@@ -76,7 +76,7 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
 
     buildIf(isNull(STR."\{cRef}[0]"), () ->
       unit.body.forEachIndexed((idx, con) ->
-        buildUpdate(STR."\{cRef}[\{idx}]", getInstance(getCoreQualified(con.ref)))));
+        buildUpdate(STR."\{cRef}[\{idx}]", getInstance(getCoreReference(con.ref)))));
 
     buildReturn(cRef);
   }

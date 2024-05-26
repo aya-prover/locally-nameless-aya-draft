@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.generic.stmt;
 
+import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.AyaDocile;
 import org.aya.syntax.core.def.AnyDef;
@@ -97,7 +98,7 @@ public interface Shaped<T> {
    * {@link org.aya.syntax.core.def.FnDef}, {@link ConDef}, and probably {@link org.aya.syntax.core.def.DataDef}.
    * See also <code>RuleReducer</code>.
    */
-  interface Applicable<T extends Term, Def extends AnyDef> {
+  interface Applicable<T extends Term, Def extends AnyDef> extends Reducible<T> {
     @NotNull Def ref();
 
     /**
@@ -107,5 +108,12 @@ public interface Shaped<T> {
      * @return null if failed
      */
     @Nullable T apply(@NotNull ImmutableSeq<T> args);
+
+    @Override
+    default T invoke(T onStuck, @NotNull Seq<T> args) {
+      var result = apply(args.toImmutableSeq());
+      if (result == null) return onStuck;
+      return result;
+    }
   }
 }

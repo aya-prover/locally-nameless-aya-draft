@@ -61,6 +61,8 @@ public class CompileTest {
     }
     """;
 
+    System.out.println(code);
+
     try {
       var clazz = Compiler.java().from("AYA.baka", code).compile().load().get();
       var loader = clazz.getClassLoader();

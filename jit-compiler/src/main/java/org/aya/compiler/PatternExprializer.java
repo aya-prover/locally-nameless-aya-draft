@@ -11,9 +11,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class PatternExprializer extends AbstractExprializer<Pat> {
   public static final String CLASS_PAT = getName(Pat.class);
-  public static final @NotNull String CLASS_PAT_ABSURD = makeSubclass(CLASS_PAT, getName(Pat.Absurd.class));
-  public static final @NotNull String CLASS_PAT_BIND = makeSubclass(CLASS_PAT, getName(Pat.Bind.class));
-  public static final @NotNull String CLASS_PAT_CON = makeSubclass(CLASS_PAT, getName(Pat.Con.class));
+  public static final @NotNull String CLASS_PAT_ABSURD = makeSub(CLASS_PAT, getName(Pat.Absurd.class));
+  public static final @NotNull String CLASS_PAT_BIND = makeSub(CLASS_PAT, getName(Pat.Bind.class));
+  public static final @NotNull String CLASS_PAT_CON = makeSub(CLASS_PAT, getName(Pat.Con.class));
   public static final @NotNull String CLASS_LOCALVAR = getName(LocalVar.class);
 
 
@@ -44,9 +44,11 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
         var instance = PatternSerializer.getQualified(con);
 
         buildNew(CLASS_PAT_CON, () -> {
-          builder.append(getInstance(instance));
-          sep();
+          appendSep(getInstance(instance));
           doSerializeToImmutableSeq(con.args());
+          sep();
+          // TODO: should we instantiate con.data() with something?
+          builder.append(serializeTerm(con.data()));
         });
       }
       case Pat.Meta _ -> Panic.unreachable();

@@ -56,7 +56,7 @@ public interface AyaSerializer<T> {
     import org.aya.syntax.core.*;
     import org.aya.syntax.core.Closure.Jit;
     // TODO: do not import all subclass of Pat directly
-    import org.aya.syntax.core.pat.Pat.*;
+    import org.aya.syntax.core.pat.Pat;
     import org.aya.syntax.core.term.*;
     import org.aya.syntax.core.term.repr.*;
     import org.aya.syntax.core.term.call.*;

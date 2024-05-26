@@ -17,6 +17,11 @@ public abstract class AbstractExprializer<T> extends AbstractSerializer<T> {
     builder.append(", ");
   }
 
+  protected void appendSep(@NotNull String string) {
+    builder.append(string);
+    sep();
+  }
+
   protected void buildNew(@NotNull String className, @NotNull ImmutableSeq<T> terms) {
     doSerialize(STR."new \{className}(", ")", terms);
   }

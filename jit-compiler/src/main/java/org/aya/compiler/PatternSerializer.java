@@ -5,7 +5,6 @@ package org.aya.compiler;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
-import kala.collection.mutable.MutableSeq;
 import kala.range.primitive.IntRange;
 import kala.value.primitive.MutableIntValue;
 import org.aya.generic.NameGenerator;
@@ -176,8 +175,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   static @NotNull String getQualified(@NotNull Pat.Con conLike) {
     return switch (conLike.ref()) {
-      case JitCon jit -> getQualified(jit);
-      case ConDef.Delegate def -> getCoreQualified(def.ref);
+      case JitCon jit -> getReference(jit);
+      case ConDef.Delegate def -> getCoreReference(def.ref);
     };
   }
 

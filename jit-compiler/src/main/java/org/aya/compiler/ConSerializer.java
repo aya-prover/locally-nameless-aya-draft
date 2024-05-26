@@ -14,7 +14,7 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
   }
 
   @Override protected void buildConstructor(ConDef unit) {
-    buildConstructor(unit, ImmutableSeq.of(getInstance(getCoreQualified(unit.dataRef))));
+    buildConstructor(unit, ImmutableSeq.of(getInstance(getCoreReference(unit.dataRef))));
   }
 
   private void buildIsAvailable(ConDef unit, @NotNull String argsTerm) {

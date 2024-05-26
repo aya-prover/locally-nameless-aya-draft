@@ -5,20 +5,20 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
 import org.aya.generic.NameGenerator;
+import org.aya.generic.stmt.Shaped;
 import org.aya.generic.term.SortKind;
 import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
-import org.aya.syntax.core.term.call.ConCall;
-import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.core.term.call.FnCall;
-import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.marker.TyckInternal;
+import org.aya.syntax.core.term.repr.IntegerOps;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.util.IterableUtil;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +32,14 @@ public class TermSerializer extends AbstractExprializer<Term> {
   public static final String CLASS_JITLAMTERM = getName(Closure.Jit.class);
   public static final String CLASS_APPTERM = getName(AppTerm.class);
   public static final String CLASS_SORTKIND = getName(SortKind.class);
+  public static final String CLASS_INTOPS = getName(IntegerOps.class);
+  public static final String CLASS_INTEGER = getName(IntegerTerm.class);
+  public static final String CLASS_CONRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.ConRule.class));
+  public static final String CLASS_FNRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.FnRule.class));
+  public static final String CLASS_FNRULE_KIND = makeSub(CLASS_FNRULE, getName(IntegerOps.FnRule.Kind.class));
+  public static final String CLASS_RULEREDUCER = getName(RuleReducer.class);
+  public static final String CLASS_RULE_CON = makeSub(CLASS_RULEREDUCER, getName(RuleReducer.Con.class));
+  public static final String CLASS_RULE_FN = makeSub(CLASS_RULEREDUCER, getName(RuleReducer.Fn.class));
 
   private final @NotNull ImmutableSeq<String> instantiates;
   private final @NotNull MutableMap<LocalVar, String> binds;
@@ -44,6 +52,54 @@ public class TermSerializer extends AbstractExprializer<Term> {
     super(builder, nameGen);
     this.instantiates = instantiates;
     this.binds = MutableMap.create();
+  }
+
+  private @NotNull TermSerializer serializeApplicable(@NotNull Shaped.Applicable<?, ?> applicable) {
+    switch (applicable) {
+      case IntegerOps.ConRule conRule -> buildNew(CLASS_CONRULE, () -> {
+        var ref = getInstance(getReference(conRule.ref()));
+        doSerialize(STR."\{ref}, ", "", ImmutableSeq.of(conRule.zero(), conRule.paramType()));
+      });
+      case IntegerOps.FnRule fnRule -> buildNew(CLASS_FNRULE, () -> {
+        var ref = getInstance(getReference(fnRule.ref()));
+        appendSep(ref);
+        builder.append(makeSub(CLASS_FNRULE_KIND, fnRule.kind().toString()));
+      });
+      default -> Panic.unreachable();
+    }
+
+    return this;
+  }
+
+  /**
+   * This code requires that {@link FnCall} and {@link RuleReducer.Fn}:
+   * {@code ulift} is the second parameter, {@code args} is the third parameter
+   */
+  private @NotNull TermSerializer buildReducibleCall(
+    @NotNull Runnable reducible,
+    @NotNull String callName,
+    int ulift,
+    @NotNull ImmutableSeq<Term>... args
+  ) {
+    reducible.run();
+    builder.append(".invoke(");
+    // make fallback call
+    buildNew(callName, () -> {
+      reducible.run();
+      sep();
+      builder.append(0);
+      sep();               // elevate later
+      IterableUtil.forEach(ImmutableSeq.from(args), this::sep, t -> {
+        buildImmutableSeq(CLASS_TERM, t);
+      });
+    });
+    sep();
+    // supply arguments
+    buildImmutableSeq(CLASS_TERM, ImmutableSeq.from(args).flatMap(x -> x));
+    builder.append(")");
+    if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
+
+    return this;
   }
 
   @Override
@@ -66,14 +122,14 @@ public class TermSerializer extends AbstractExprializer<Term> {
       case LocalTerm(var idx) -> throw AyaRuntimeException.runtime(new Panic("LocalTerm"));
       case LamTerm lamTerm -> buildNew(CLASS_LAMTERM, () -> serializeClosure(lamTerm.body()));
       case DataCall(var ref, var ulift, var args) -> buildNew(CLASS_JITDATACALL, () -> {
-        builder.append(getInstance(getQualified(ref)));
+        builder.append(getInstance(getReference(ref)));
         sep();
         builder.append(ulift);
         sep();
         buildImmutableSeq(CLASS_TERM, args);
       });
       case ConCall(var head, var args) -> buildNew(CLASS_JITCONCALL, () -> {
-        builder.append(getInstance(getQualified(head.ref())));
+        builder.append(getInstance(getReference(head.ref())));
         sep();
         buildImmutableSeq(CLASS_TERM, head.ownerArgs());
         sep();
@@ -83,27 +139,20 @@ public class TermSerializer extends AbstractExprializer<Term> {
       });
       case FnCall call -> {
         var ref = switch (call.ref()) {
-          case JitFn jit -> getInstance(getQualified(jit));
-          case FnDef.Delegate def -> getInstance(getCoreQualified(def.ref));
+          case JitFn jit -> getInstance(getReference(jit));
+          case FnDef.Delegate def -> getInstance(getCoreReference(def.ref));
         };
 
         var ulift = call.ulift();
         var args = call.args();
-
-        builder.append(STR."\{ref}.invoke(");
-        // serialize JitFnCall in case stuck
-        buildNew(CLASS_JITFNCALL, () -> {
+        buildReducibleCall(() -> {
           builder.append(ref);
-          sep();
-          builder.append(ulift);
-          sep();
-          buildImmutableSeq(CLASS_TERM, args);
-        });
-
-        sep();
-        buildImmutableSeq(CLASS_TERM, args);
-        builder.append(")");
-        if (ulift > 0) builder.append(STR.".elevate(\{ulift})");
+        }, CLASS_JITFNCALL, ulift, args);
+      }
+      case RuleReducer.Con conRuler -> {
+        buildReducibleCall(() -> {
+          serializeApplicable(conRuler.rule());
+        }, CLASS_RULE_CON, conRuler.ulift(), conRuler.dataArgs(), conRuler.conArgs());
       }
       case SortTerm(var kind, var ulift) -> buildNew(getName(SortTerm.class), () -> {
         builder.append(STR."\{CLASS_SORTKIND}.\{kind.name()}"); sep();
@@ -138,7 +187,12 @@ public class TermSerializer extends AbstractExprializer<Term> {
       case SigmaTerm sigmaTerm -> throw new UnsupportedOperationException("TODO");
       case TupTerm tupTerm -> throw new UnsupportedOperationException("TODO");
       case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
-      case IntegerTerm integerTerm -> throw new UnsupportedOperationException("TODO");
+      case IntegerTerm integerTerm -> buildNew(CLASS_INTEGER, () -> {
+        appendSep(Integer.toString(integerTerm.repr()));
+        appendSep(getInstance(getReference(integerTerm.zero())));
+        appendSep(getInstance(getReference(integerTerm.suc())));
+        doSerialize(integerTerm.type());
+      });
       case ListTerm listTerm -> throw new UnsupportedOperationException("TODO");
       default -> throw new IllegalStateException("Unexpected value: " + term.getClass());
     }

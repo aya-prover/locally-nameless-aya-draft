@@ -3,11 +3,12 @@
 package org.aya.syntax.compile;
 
 import kala.collection.Seq;
+import org.aya.generic.stmt.Reducible;
 import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public abstract non-sealed class JitFn extends JitDef implements FnDefLike {
+public abstract non-sealed class JitFn extends JitDef implements FnDefLike, Reducible<Term> {
   protected JitFn(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName) {
     super(telescopeSize, telescopeLicit, telescopeName);
   }
@@ -15,5 +16,6 @@ public abstract non-sealed class JitFn extends JitDef implements FnDefLike {
   /**
    * Unfold this function
    */
-  public abstract @NotNull Term invoke(Term stuck, Seq<Term> args);
+  @Override
+  public abstract Term invoke(Term stuck, @NotNull Seq<Term> args);
 }
