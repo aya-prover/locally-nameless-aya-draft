@@ -3,9 +3,7 @@
 package org.aya.syntax.compile;
 
 import kala.collection.immutable.ImmutableArray;
-import kala.value.LazyValue;
 import org.aya.syntax.core.def.AnyDef;
-import org.aya.syntax.ref.CompiledVar;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.binop.Assoc;
 import org.aya.util.error.Panic;
@@ -18,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract sealed class JitDef extends JitTele implements AnyDef permits JitCon, JitData, JitFn {
   private CompiledAya metadata;
-  private LazyValue<CompiledVar> var = LazyValue.of(() -> new CompiledVar(this, name()));
 
   protected JitDef(int telescopeSize, boolean[] telescopeLicit, String[] telescopeNames) {
     super(telescopeSize, telescopeLicit, telescopeNames);
