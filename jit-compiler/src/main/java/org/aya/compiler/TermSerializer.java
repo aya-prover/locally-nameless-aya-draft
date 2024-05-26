@@ -19,7 +19,6 @@ import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalVar;
-import org.aya.util.IterableUtil;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +27,7 @@ import java.util.function.Consumer;
 /**
  * Build the "constructor form" of {@link Term}, but in Java.
  */
-public class TermSerializer extends AbstractSerializer<Term> {
+public class TermSerializer extends AbstractExprializer<Term> {
   public static final String CLASS_LAMTERM = getName(LamTerm.class);
   public static final String CLASS_JITLAMTERM = getName(Closure.Jit.class);
   public static final String CLASS_APPTERM = getName(AppTerm.class);
@@ -42,40 +41,13 @@ public class TermSerializer extends AbstractSerializer<Term> {
   }
 
   public TermSerializer(@NotNull StringBuilder builder, @NotNull NameGenerator nameGen, @NotNull ImmutableSeq<String> instantiates) {
-    super(builder, 0, nameGen);
+    super(builder, nameGen);
     this.instantiates = instantiates;
     this.binds = MutableMap.create();
   }
 
-  private void buildNew(@NotNull String qualifiedClassName, @NotNull ImmutableSeq<Term> terms) {
-    doSerialize(STR."new \{qualifiedClassName}(", ")", terms);
-  }
-
-  private void buildNew(@NotNull String qualifiedClassName, @NotNull Runnable continuation) {
-    builder.append(STR."new \{qualifiedClassName}(");
-    continuation.run();
-    builder.append(")");
-  }
-
-  private void sep() {
-    builder.append(", ");
-  }
-
-  private void buildImmutableSeq(@NotNull String typeName, @NotNull ImmutableSeq<Term> terms) {
-    if (terms.isEmpty()) {
-      builder.append(STR."\{CLASS_IMMSEQ}.empty()");
-    } else {
-      doSerialize(STR."\{CLASS_IMMSEQ}.<\{typeName}>of(", ")", terms);
-    }
-  }
-
-  private void doSerialize(@NotNull String prefix, @NotNull String suffix, @NotNull ImmutableSeq<Term> terms) {
-    builder.append(prefix);
-    IterableUtil.forEach(terms, this::sep, this::doSerialize);
-    builder.append(suffix);
-  }
-
-  private TermSerializer doSerialize(@NotNull Term term) {
+  @Override
+  protected @NotNull TermSerializer doSerialize(@NotNull Term term) {
     switch (term) {
       case FreeTerm bind -> {
         // It is possible that we meet bind here,
