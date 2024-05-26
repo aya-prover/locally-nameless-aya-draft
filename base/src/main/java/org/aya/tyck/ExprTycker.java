@@ -279,7 +279,7 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         generateApplication(args, localLet.get(ref));
       case LocalVar lVar -> generateApplication(args,
         new Jdg.Default(new FreeTerm(lVar), localCtx().get(lVar)));
-      case CompiledVar(var content, _) -> AppTycker.checkCompiledApplication(content, state,
+      case CompiledVar(var content, _) -> AppTycker.checkCompiledApplication(content,
         (params, k) -> computeArgs(args, params, k));
       case DefVar<?, ?> defVar -> AppTycker.checkDefApplication(defVar, state,
         (params, k) -> computeArgs(args, params, k));

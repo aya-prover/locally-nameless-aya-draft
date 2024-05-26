@@ -12,10 +12,8 @@ import java.lang.annotation.RetentionPolicy;
 public @interface CompiledAya {
   @NotNull String[] module();
   int fileModuleSize();
-
   @NotNull String name();
   int assoc();
-
   int shape();
   @NotNull CodeShape.GlobalId[] recognition();
 }

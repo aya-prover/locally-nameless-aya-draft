@@ -31,11 +31,12 @@ public interface AppTycker {
   }
 
   static <Ex extends Exception> @NotNull Jdg checkCompiledApplication(
-    JitTele def, @NotNull TyckState state, @NotNull Factory<Ex> makeArgs
+    JitTele def, @NotNull Factory<Ex> makeArgs
   ) throws Ex {
     return switch (def) {
-      case JitFn fn -> makeArgs.applyChecked(fn, args ->
-        new Jdg.Default(new FnCall(fn, 0, ImmutableArray.from(args)), fn.result(args)));
+      case JitFn fn -> makeArgs.applyChecked(fn, args -> {
+        return new Jdg.Default(new FnCall(fn, 0, ImmutableArray.from(args)), fn.result(args));
+      });
       case JitData data -> makeArgs.applyChecked(data, args ->
         new Jdg.Default(new DataCall(data, 0, ImmutableArray.from(args)), data.result(args)));
       default -> Panic.unreachable();
