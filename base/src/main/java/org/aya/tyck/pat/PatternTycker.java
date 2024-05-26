@@ -441,7 +441,7 @@ public class PatternTycker implements Problematic, Stateful {
       if (name != null && !Objects.equals(con, name)) continue;
       switch (checkAvail(dataCall, con, exprTycker.state)) {
         case Result.Ok(var subst) -> {
-          return new Selection(dataCall, subst, dataCall.conHead(con));
+          return new Selection((DataCall) dataCall.instantiateTele(subst.view()), subst, dataCall.conHead(con));
         }
         case Result.Err(var st) -> {
           // For absurd pattern, we look at the next constructor

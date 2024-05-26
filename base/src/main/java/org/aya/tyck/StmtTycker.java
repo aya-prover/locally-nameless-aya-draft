@@ -169,6 +169,7 @@ public record StmtTycker(
       wellPats = lhsResult.clause().pats();
       tycker.setLocalCtx(lhsResult.localCtx());
       lhsResult.addLocalLet(ownerBinds, tycker);
+      // TODO: inline pattern / terms
       freeDataCall = new DataCall(dataRef, 0, wellPats.map(PatToTerm::visit));
 
       var allBinds = Pat.collectBindings(wellPats.view());
