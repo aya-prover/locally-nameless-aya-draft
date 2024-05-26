@@ -40,37 +40,37 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     this(state, ImmutableSet.empty());
   }
 
-  @Override public Term apply(Term term) { return whnf(term); }
-  private @NotNull Term whnf(@NotNull Term term) {
-    if (term instanceof StableWHNF) return term;
+  @Override public Term apply(Term term) { return whnf(term, false); }
+  private @NotNull Term whnf(@NotNull Term term, boolean usePostTerm) {
+    if (term instanceof StableWHNF || term instanceof FreeTerm) return term;
     var postTerm = term.descent(this);
+    var defaultValue = usePostTerm ? postTerm : term;
 
     return switch (postTerm) {
-      case StableWHNF _ -> Panic.unreachable();
-      case FreeTerm free -> free;
+      case StableWHNF _, FreeTerm _ -> Panic.unreachable();
       case BetaRedex app -> {
         var result = app.make();
-        yield result == app ? result : whnf(result);
+        yield result == app ? result : whnf(result, usePostTerm);
       }
       case FnCall(var fn, int ulift, var args) -> switch (fn) {
         case JitFn instance -> {
           var result = instance.invoke(term, args);
-          if (term != result) yield whnf(result.elevate(ulift));
+          if (term != result) yield whnf(result.elevate(ulift), usePostTerm);
           yield result;
         }
         case FnDef.Delegate delegate -> {
           FnDef core = delegate.core();
-          if (core == null) yield term;
+          if (core == null) yield defaultValue;
           if (!isOpaque(core)) yield switch (core.body) {
-            case Either.Left(var body) -> whnf(body.instantiateTele(args.view()));
+            case Either.Left(var body) -> whnf(body.instantiateTele(args.view()), usePostTerm);
             case Either.Right(var clauses) -> {
               var result = tryUnfoldClauses(clauses, args, ulift, core.is(Modifier.Overlap));
               // we may get stuck
-              if (result.isEmpty()) yield term;
-              yield whnf(result.get());
+              if (result.isEmpty()) yield defaultValue;
+              yield whnf(result.get(), usePostTerm);
             }
           };
-          yield term;
+          yield defaultValue;
         }
       };
       case RuleReducer reduceRule -> {
@@ -78,24 +78,24 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
         if (result != null) yield apply(result);
         // We can't handle it, try to delegate to FnCall
         yield reduceRule instanceof RuleReducer.Fn fnRule
-          ? whnf(fnRule.toFnCall())
+          ? whnf(fnRule.toFnCall(), usePostTerm)
           : reduceRule;
       }
       case ConCall(var head, var args) when head.ref().hasEq() && args.getLast() instanceof DimTerm dim ->
         head.ref().equality(args, dim == DimTerm.I0);
       case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);
-      case MetaCall meta -> state.computeSolution(meta, this::whnf);
+      case MetaCall meta -> state.computeSolution(meta, term1 -> whnf(term1, usePostTerm));
       case CoeTerm(var type, var r, var s) -> {
         if (r instanceof DimTerm || r instanceof FreeTerm) {
           if (r.equals(s)) yield new LamTerm(new LocalTerm(0));
         }
-        yield term;
+        yield defaultValue;
       }
       // TODO: handle other cases
       // ice: what are the other cases?
       // h: i don't know
-      default -> term;
+      default -> defaultValue;
     };
   }
 
@@ -121,9 +121,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
     return Option.none();
   }
 
-  public @NotNull UnaryOperator<Term> full() { return new Full(); }
   private class Full implements UnaryOperator<Term> {
-    @Override public Term apply(Term term) { return whnf(term).descent(this); }
+    @Override public Term apply(Term term) { return whnf(term, true).descent(this); }
   }
 
   /**
@@ -133,7 +132,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
   public @NotNull Term normalize(Term term, CodeOptions.NormalizeMode mode) {
     return switch (mode) {
       case HEAD -> apply(term);
-      case FULL -> full().apply(term);
+      case FULL -> new Full().apply(term);
       case NULL -> new Finalizer.Freeze(() -> state).zonk(term);
     };
   }

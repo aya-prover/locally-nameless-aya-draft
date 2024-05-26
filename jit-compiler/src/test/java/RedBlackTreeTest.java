@@ -4,28 +4,24 @@
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.immutable.primitive.ImmutableIntSeq;
 import org.aya.normalize.Normalizer;
-import org.aya.normalize.PrimFactory;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitData;
 import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.literate.CodeOptions;
-import org.aya.tyck.TyckState;
-import org.aya.util.error.Panic;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RedBlackTreeTest {
   @Test public void test1() {
@@ -115,7 +111,7 @@ public class RedBlackTreeTest {
     // note that we didn't supply the correct shape factory, so IntegerTerm is unavailable.
     IntFunction<Term> mkInt = i -> new IntegerTerm(i, O, S, NatCall);
 
-    Function<ImmutableIntSeq, Term> mkList = xs -> new ListTerm(xs.mapToObj(mkInt::apply), nil, cons, ListNatCall);
+    Function<ImmutableIntSeq, Term> mkList = xs -> new ListTerm(xs.mapToObj(mkInt), nil, cons, ListNatCall);
 
     // var decider = new LamTerm(new Closure.Jit(l -> new LamTerm(new Closure.Jit(r -> {
     //   if (l instanceof IntegerTerm lint && r instanceof IntegerTerm rint) {
@@ -132,16 +128,19 @@ public class RedBlackTreeTest {
 
     var seed = 114514L;
     var random = new Random(seed);
-    var largeList = mkList.apply(ImmutableIntSeq.fill(10, () -> Math.abs(random.nextInt()) % 100));
+    var largeList = mkList.apply(ImmutableIntSeq.fill(50, () -> random.nextInt(150)));
     var args = ImmutableSeq.of(NatCall, leCall, largeList);
 
+    var normalizer = new Normalizer(result.info().makeTyckState());
     var beginTime = System.currentTimeMillis();
-    var sortResult = new Normalizer(new TyckState(result.info().shapeFactory(), new PrimFactory()))
-      .normalize(tree_sort.invoke(null, args), CodeOptions.NormalizeMode.FULL);
-    var endTime = System.currentTimeMillis();
+    var sortResult = normalizer.normalize(tree_sort.invoke(null, args), CodeOptions.NormalizeMode.FULL);
+    var endTime1 = System.currentTimeMillis();
     assertNotNull(sortResult);
+    normalizer.normalize(tree_sort.invoke(null, args), CodeOptions.NormalizeMode.FULL);
+    var endTime2 = System.currentTimeMillis();
 
-    System.out.println(STR."Done in \{(endTime - beginTime)}");
+    System.out.println(STR."Done first time in \{(endTime1 - beginTime)}");
+    System.out.println(STR."Done second time in \{(endTime2 - endTime1)}");
     System.out.println(sortResult.debuggerOnlyToDoc().debugRender());
   }
 }
