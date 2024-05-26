@@ -67,8 +67,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       case Pat.Con con -> {
         var qualifiedName = getQualified(con);
         solveMeta(pat, term, (realTerm, mCon) ->
-                // TODO: match IntegerTerm / ListTerm first
-                buildIfInstanceElse(realTerm, CLASS_CONCALLLIKE, State.Stuck, mTerm ->
+          // TODO: match IntegerTerm / ListTerm first
+          buildIfInstanceElse(realTerm, CLASS_CONCALLLIKE, State.Stuck, mTerm ->
             buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
               State.Mismatch, () -> doSerialize(con.args().view(),
                 fromImmutableSeq(STR."\{mTerm}.conArgs()",

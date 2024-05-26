@@ -8,7 +8,6 @@ import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.context.EmptyContext;
 import org.aya.resolve.module.DumbModuleLoader;
 import org.aya.syntax.concrete.stmt.Stmt;
-import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.util.error.SourceFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Contract;
@@ -18,11 +17,6 @@ import java.nio.file.Path;
 
 public final class SyntaxTestUtil {
   private static final @NotNull Path FILE = Path.of("/home/senpai/114514.aya");
-
-  @Contract(mutates = "param1")
-  public static void resolve(@NotNull Decl decl) {
-    moduleLoader().resolve(ImmutableSeq.of(decl));
-  }
 
   public static @NotNull DumbModuleLoader moduleLoader() {
     return new DumbModuleLoader(new EmptyContext(TestUtil.THROWING, FILE));

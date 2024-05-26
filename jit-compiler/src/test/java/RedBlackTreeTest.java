@@ -36,6 +36,10 @@ public class RedBlackTreeTest {
       | nil
       | A => infixr cons A (List A)
       
+      def isZero (a : Nat) : Bool
+      | 0 => True
+      | S _ => False
+      
       open data Color | red | black
       def Decider (A : Type) => Fn (x y : A) -> Bool
       
@@ -52,11 +56,13 @@ public class RedBlackTreeTest {
       def repaint (RBTree A) : RBTree A
       | rbNode c l a r => rbNode black l a r
       | rbLeaf => rbLeaf
+      
+      def sub (x y : Nat) : Nat
+      | n, 0 => n
+      | 0, S _ => 0
+      | S n, S m => sub n m
 
-      def le (x y : Nat) : Bool
-      | O, _ => True
-      | S _, O => False
-      | S a, S b => le a b
+      def le (x y : Nat) => isZero (sub x y)
       
       def balanceLeft Color (RBTree A) A (RBTree A) : RBTree A
       | black, rbNode red (rbNode red a x b) y c, v, r =>
