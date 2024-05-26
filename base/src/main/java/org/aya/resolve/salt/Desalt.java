@@ -6,8 +6,8 @@ import org.aya.generic.term.SortKind;
 import org.aya.resolve.ResolveInfo;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
-import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.Panic;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,7 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
               return switch (typeF.kind()) {
                 case Type -> new Expr.Type(level);
                 case Set -> new Expr.Set(level);
-                case ISet -> Panic.unreachable();
+                default -> Panic.unreachable();
               };
             }
           }
@@ -63,6 +63,7 @@ public record Desalt(@NotNull ResolveInfo info) implements PosedUnaryOperator<Ex
         case Set -> new Expr.Set(0);
         case ISet -> Expr.ISet.INSTANCE;
       };
+      case Expr.LetOpen letOpen -> apply(letOpen.body());
     };
   }
 

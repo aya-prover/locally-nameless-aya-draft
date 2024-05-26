@@ -51,4 +51,12 @@ public interface ScopeError {
     open data Nat : Type | zero
     def p => Nat::suc Nat::zero
     """;
+  // This should pass
+  @Language("Aya") String testLetOpen = """
+    open import Paths using (=, refl)
+    data Nat | O | S Nat
+    def zero : Nat => let open Nat using (O) in O
+    def suc (n : Nat) : Nat => let open Nat hiding (O) in S n
+    def they-are : suc zero = Nat::S Nat::O => refl
+    """;
 }

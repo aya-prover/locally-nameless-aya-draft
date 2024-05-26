@@ -570,7 +570,7 @@ public sealed interface Expr extends AyaDocile {
     @NotNull ModuleName.Qualified componentName,
     @NotNull UseHide useHide,
     @NotNull WithPos<Expr> body
-  ) implements Expr {
+  ) implements Expr, Sugar {
     public @NotNull LetOpen update(@NotNull WithPos<Expr> body) {
       return this.body == body ? this : new LetOpen(sourcePos, componentName, useHide, body);
     }
