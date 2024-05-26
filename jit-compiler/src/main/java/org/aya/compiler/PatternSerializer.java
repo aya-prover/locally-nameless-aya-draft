@@ -10,8 +10,6 @@ import kala.value.primitive.MutableIntValue;
 import org.aya.generic.NameGenerator;
 import org.aya.normalize.PatMatcher;
 import org.aya.normalize.PatMatcher.State;
-import org.aya.syntax.compile.JitCon;
-import org.aya.syntax.core.def.ConDef;
 import org.aya.syntax.core.pat.Pat;
 import org.aya.syntax.core.term.MetaPatTerm;
 import org.aya.util.error.Panic;
@@ -22,12 +20,15 @@ import java.util.function.Consumer;
 
 public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<PatternSerializer.Matching>> {
   @FunctionalInterface
-  public interface SuccessContinuation extends BiConsumer<PatternSerializer, Integer> { }
-  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull SuccessContinuation onSucc) { }
+  public interface SuccessContinuation extends BiConsumer<PatternSerializer, Integer> {
+  }
+
+  public record Matching(@NotNull ImmutableSeq<Pat> patterns, @NotNull SuccessContinuation onSucc) {
+  }
 
   public static final @NotNull String VARIABLE_RESULT = "result";
   public static final @NotNull String VARIABLE_STATE = "matchState";
-  public static final @NotNull String VARIABLE_META_STATE = "metaState";
+  public static final @NotNull String VARIABLE_MULTI_STAGE = "multiStage";
 
   static final @NotNull String CLASS_META_PAT = getName(MetaPatTerm.class);
   static final @NotNull String CLASS_PAT_MATCHER = getName(PatMatcher.class);
@@ -64,19 +65,23 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         onMatchBind(term);
         continuation.run();
       }
-      case Pat.Con con -> {
-        var qualifiedName = getQualified(con);
-        solveMeta(pat, term, (realTerm, mCon) ->
-          // TODO: match IntegerTerm / ListTerm first
-          buildIfInstanceElse(realTerm, CLASS_CONCALLLIKE, State.Stuck, mTerm ->
-            buildIfElse(STR."\{getCallInstance(mTerm)} == \{getInstance(qualifiedName)}",
-              State.Mismatch, () -> doSerialize(con.args().view(),
-                fromImmutableSeq(STR."\{mTerm}.conArgs()",
-                  con.args().size()).view(),
-                mCon))), continuation);
-      }
+      // TODO: match IntegerTerm / ListTerm first
+      case Pat.Con con -> multiStage(pat, term, ImmutableSeq.of(
+        mTerm -> solveMeta(con, mTerm),
+        mTerm -> buildIfInstanceElse(mTerm, CLASS_CONCALLLIKE, State.Stuck, mmTerm ->
+          buildIfElse(STR."\{getCallInstance(mmTerm)} == \{getInstance(getReference(con.ref()))}",
+            State.Mismatch, () -> doSerialize(con.args().view(),
+              fromImmutableSeq(STR."\{mmTerm}.conArgs()",
+                con.args().size()).view(), () -> {
+                buildUpdate(VARIABLE_MULTI_STAGE, "true");
+              })))
+      ), continuation);
       case Pat.Meta _ -> Panic.unreachable();
-      case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException("TODO");    // TODO
+      case Pat.ShapedInt shapedInt -> multiStage(pat, term, ImmutableSeq.of(
+        mTerm -> solveMeta(shapedInt, mTerm),
+        mTerm -> matchInt(shapedInt, mTerm),
+        mTerm -> doSerialize(shapedInt.constructorForm(), mTerm, continuation)
+      ), continuation);
       case Pat.Tuple tuple -> buildIfElse(STR."\{term} instanceof TupleTerm", State.Stuck, () -> {
         throw new UnsupportedOperationException("TODO");
       });
@@ -84,49 +89,65 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   }
 
   /**
-   * Generate meta solving code
+   * Generate multi case matching, these local variable are available:
+   * <ul>
+   *   <li>{@link #VARIABLE_MULTI_STAGE}: the state of multi case matching, false means last check failed</li>
+   *   <li>{@code tmpName}: this name is generated, they are the first argument of continuation.
+   *   {@param preContinuation} may change the term be matched
+   *   </li>
+   * </ul>
    *
-   * @param pat               the pattern currently serialize
-   * @param term              the parameter currently matched
-   * @param matchContinuation do something if it is not a meta
-   * @param continuation      do something if the matching success
+   * @param term            the expression be matched, not always a variable reference
+   * @param preContinuation fast path case matching
+   * @param continuation    on match success
    */
-  private void solveMeta(
+  private void multiStage(
     @NotNull Pat pat,
     @NotNull String term,
-    @NotNull BiConsumer<String, Runnable> matchContinuation,
+    @NotNull ImmutableSeq<Consumer<String>> preContinuation,
     @NotNull Runnable continuation
   ) {
+    var tmpName = nameGen.nextName(null);
+    buildUpdate(VARIABLE_MULTI_STAGE, "false");
+    buildLocalVar(CLASS_TERM, tmpName, term);
+
+    for (var pre : preContinuation) {
+      buildIf(STR."! \{VARIABLE_MULTI_STAGE}", () -> {
+        pre.accept(tmpName);
+      });
+    }
+
+    buildIf(VARIABLE_MULTI_STAGE, continuation);
+  }
+
+  private void solveMeta(@NotNull Pat pat, @NotNull String term) {
     if (inferMeta) {
-      var tmpName = nameGen.nextName(null);
-      buildUpdate(VARIABLE_META_STATE, "false");
-      buildLocalVar(CLASS_TERM, tmpName, term);
       buildIfInstanceElse(term, CLASS_META_PAT, metaTerm -> {
-        buildUpdate(tmpName, STR."\{CLASS_PAT_MATCHER}.realSolution(\{metaTerm})");
+        buildUpdate(term, STR."\{CLASS_PAT_MATCHER}.realSolution(\{metaTerm})");
         // if the solution is still a meta, we solve it
         // this is a heavy work
-        buildIfInstanceElse(tmpName, CLASS_META_PAT, stillMetaTerm -> {
+        buildIfInstanceElse(term, CLASS_META_PAT, stillMetaTerm -> {
           // TODO: we may store all Pattern in somewhere and refer them by something like `.conArgs().get(114514)`
           var exprializer = new PatternExprializer(nameGen);
           exprializer.serialize(pat);
           var doSolveMetaResult = STR."\{CLASS_PAT_MATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";
           appendLine(STR."\{CLASS_SER_UTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
-          buildUpdate(VARIABLE_META_STATE, "true");
+          buildUpdate(VARIABLE_MULTI_STAGE, "true");
           // at this moment, the matching is complete,
           // but we still need to generate the code for normal matching
           // and it will increase bindCount
         }, null);
-
       }, null);
-
-      buildIf(STR."! \{VARIABLE_META_STATE}", () -> matchContinuation.accept(tmpName, () ->
-        buildUpdate(VARIABLE_META_STATE, "true")));
-
-      buildIf(VARIABLE_META_STATE, continuation);
-      // if failed, the previous matching already sets the matchState
-    } else {
-      matchContinuation.accept(term, continuation);
     }
+  }
+
+  private void matchInt(@NotNull Pat.ShapedInt pat, @NotNull String term) {
+    buildIfInstanceElse(term, TermExprializer.CLASS_INTEGER, intTerm -> {
+      buildIf(STR."\{pat.repr()} == \{intTerm}.repr()", () -> {
+        // Pat.ShapedInt provides no binds
+        buildUpdate(VARIABLE_MULTI_STAGE, "true");
+      });
+    }, null);
   }
 
   /**
@@ -174,23 +195,17 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     return acc.get();
   }
 
-  static @NotNull String getQualified(@NotNull Pat.Con conLike) {
-    return switch (conLike.ref()) {
-      case JitCon jit -> getReference(jit);
-      case ConDef.Delegate def -> getCoreReference(def.ref);
-    };
-  }
-
   /// endregion Java Source Code Generate API
 
-  @Override public AyaSerializer<ImmutableSeq<Matching>> serialize(@NotNull ImmutableSeq<Matching> unit) {
+  @Override
+  public AyaSerializer<ImmutableSeq<Matching>> serialize(@NotNull ImmutableSeq<Matching> unit) {
     var bindSize = unit.mapToInt(ImmutableIntSeq.factory(),
       x -> x.patterns.view().foldLeft(0, (acc, p) -> acc + bindAmount(p)));
     int maxBindSize = bindSize.max();
 
     buildLocalVar(STR."\{CLASS_MUTSEQ}<\{CLASS_TERM}>", VARIABLE_RESULT, STR."\{CLASS_MUTSEQ}.fill(\{maxBindSize}, (\{CLASS_TERM}) null)");
     buildLocalVar("int", VARIABLE_STATE, "0");
-    if (inferMeta) buildLocalVar("boolean", VARIABLE_META_STATE, "false");
+    buildLocalVar("boolean", VARIABLE_MULTI_STAGE, "false");
 
     buildGoto(() -> unit.forEachIndexed((idx, clause) -> {
       var jumpCode = idx + 1;

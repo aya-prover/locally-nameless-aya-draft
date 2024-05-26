@@ -5,6 +5,7 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -17,11 +18,17 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
   public static final @NotNull String CLASS_PAT_ABSURD = makeSub(CLASS_PAT, getName(Pat.Absurd.class));
   public static final @NotNull String CLASS_PAT_BIND = makeSub(CLASS_PAT, getName(Pat.Bind.class));
   public static final @NotNull String CLASS_PAT_CON = makeSub(CLASS_PAT, getName(Pat.Con.class));
+  public static final @NotNull String CLASS_PAT_INT = makeSub(CLASS_PAT, getName(Pat.ShapedInt.class));
   public static final @NotNull String CLASS_LOCALVAR = getName(LocalVar.class);
 
 
   protected PatternExprializer(@NotNull NameGenerator nameGen) {
     super(nameGen);
+  }
+
+  private @NotNull String serializeTerm(@NotNull Term term) {
+    return new TermExprializer(this.nameGen, ImmutableSeq.empty())
+      .serialize(term).result();
   }
 
   @Override
@@ -35,13 +42,17 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
         "ErrorTerm.DUMMY"
       );
       case Pat.Con con -> makeNew(CLASS_PAT_CON,
-        getInstance(PatternSerializer.getQualified(con)),
+        getInstance(getReference(con.ref())),
         serializeToImmutableSeq(CLASS_PAT, con.args()),
         new TermExprializer(this.nameGen, ImmutableSeq.empty())
           .serialize(con.data()).result());
+      case Pat.ShapedInt shapedInt -> makeNew(CLASS_PAT_INT,
+        Integer.toString(shapedInt.repr()),
+        getInstance(getReference(shapedInt.zero())),
+        getInstance(getReference(shapedInt.suc())),
+        serializeTerm(shapedInt.type()));
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.Tuple tuple -> throw new UnsupportedOperationException();
-      case Pat.ShapedInt shapedInt -> throw new UnsupportedOperationException();
     };
   }
 }
