@@ -8,6 +8,7 @@ import org.aya.syntax.ref.ModulePath;
 import org.aya.util.binop.Assoc;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A well-typed compiled definition
@@ -36,5 +37,9 @@ public abstract sealed class JitDef extends JitTele implements AnyDef permits Ji
   }
 
   @Override public @NotNull String name() { return metadata().name(); }
-  @Override public @NotNull Assoc assoc() { return metadata().assoc(); }
+  @Override public @Nullable Assoc assoc() {
+    var idx = metadata().assoc();
+    if (idx == -1) return null;
+    return Assoc.values()[idx];
+  }
 }

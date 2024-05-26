@@ -77,6 +77,7 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     var module = ref.module;
     var fileModule = ref.fileModule;
     var assoc = ref.assoc();
+    var assocIdx = assoc == null ? -1 : assoc.ordinal();
     assert module != null;
     assert fileModule != null;
     appendLine(STR."@\{CLASS_METADATA}(");
@@ -84,14 +85,14 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     // Assumption: module.take(fileModule.size).equals(fileModule)
     appendMetadataRecord("fileModuleSize", Integer.toString(fileModule.module().size()), false);
     appendMetadataRecord("name", makeString(ref.name()), false);
-    appendMetadataRecord("assoc", assoc == null ? "null" : makeSubclass(CLASS_ASSOC, assoc.toString()), false);
+    appendMetadataRecord("assoc", Integer.toString(assocIdx), false);
     buildShape(unit);
 
     appendLine(")");
   }
 
   protected void buildShape(T unit) {
-    appendMetadataRecord("shape", "null", false);
+    appendMetadataRecord("shape", "-1", false);
     appendMetadataRecord("recognition", makeHalfArrayFrom(ImmutableSeq.empty()), false);
   }
 

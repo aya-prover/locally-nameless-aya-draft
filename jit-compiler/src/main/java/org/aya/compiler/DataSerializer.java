@@ -54,7 +54,7 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
       super.buildShape(unit);
     } else {
       var recog = maybe.get();
-      appendMetadataRecord("shape", makeSubclass(CLASS_AYASHAPE, recog.shape().toString()), false);
+      appendMetadataRecord("shape", Integer.toString(recog.shape().ordinal()), false);
 
       // The capture is one-to-one
       var flipped = ImmutableMap.from(recog.captures().toImmutableSeq().view()

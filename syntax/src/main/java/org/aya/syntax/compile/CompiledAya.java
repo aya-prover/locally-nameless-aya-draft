@@ -2,11 +2,8 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.compile;
 
-import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.repr.CodeShape;
-import org.aya.util.binop.Assoc;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -17,8 +14,8 @@ public @interface CompiledAya {
   int fileModuleSize();
 
   @NotNull String name();
-  @Nullable Assoc assoc();
+  int assoc();
 
-  @Nullable AyaShape shape();
+  int shape();
   @NotNull CodeShape.GlobalId[] recognition();
 }
