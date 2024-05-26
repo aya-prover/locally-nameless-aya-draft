@@ -17,12 +17,12 @@ public abstract class AbstractExprializer<T> extends AbstractSerializer<T> {
     builder.append(", ");
   }
 
-  protected void buildNew(@NotNull String qualifiedClassName, @NotNull ImmutableSeq<T> terms) {
-    doSerialize(STR."new \{qualifiedClassName}(", ")", terms);
+  protected void buildNew(@NotNull String className, @NotNull ImmutableSeq<T> terms) {
+    doSerialize(STR."new \{className}(", ")", terms);
   }
 
-  protected void buildNew(@NotNull String qualifiedClassName, @NotNull Runnable continuation) {
-    builder.append(STR."new \{qualifiedClassName}(");
+  protected void buildNew(@NotNull String className, @NotNull Runnable continuation) {
+    builder.append(STR."new \{className}(");
     continuation.run();
     builder.append(")");
   }

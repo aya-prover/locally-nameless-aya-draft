@@ -45,7 +45,6 @@ public interface AyaSerializer<T> {
 
   String CLASS_SER_UTILS = getName(SerializeUtils.class);
   String CLASS_RESULT = getName(Result.class);
-  String CLASS_ARRAYS = getName(Arrays.class);
   String CLASS_BOOLEAN = getName(Boolean.class);
 
   @Language("Java") String IMPORT_BLOCK = """

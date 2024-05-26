@@ -33,9 +33,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   static final @NotNull String CLASS_META_PAT = getName(MetaPatTerm.class);
   static final @NotNull String CLASS_PAT_MATCHER = getName(PatMatcher.class);
   // TODO: they are inner class, which contains '$'
-  static final @NotNull String CLASS_PAT_ABSURD = getName(Pat.Absurd.class);
-  static final @NotNull String CLASS_PAT_BIND = getName(Pat.Bind.class);
-  static final @NotNull String CLASS_PAT_CON = getName(Pat.Con.class);
 
   private final @NotNull String argName;
   private final @NotNull Consumer<PatternSerializer> onStuck;
