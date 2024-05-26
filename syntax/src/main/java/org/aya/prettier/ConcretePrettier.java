@@ -229,10 +229,10 @@ public class ConcretePrettier extends BasePrettier<Expr> {
       }
       // let open Foo using (bar) in
       //   body
-      // case Expr.LetOpen letOpen -> Doc.vcat(
-      //   Doc.sep(Doc.styled(KEYWORD, "let"), stmt(letOpen.openCmd()), Doc.styled(KEYWORD, "in")),
-      //   Doc.indent(2, term(Outer.Free, letOpen.body()))
-      // );
+      case Expr.LetOpen letOpen -> Doc.vcat(
+        Doc.sep(Doc.styled(KEYWORD, "let"), stmt(letOpen.openCmd()), Doc.styled(KEYWORD, "in")),
+        Doc.indent(2, term(Outer.Free, letOpen.body()))
+      );
     };
   }
 

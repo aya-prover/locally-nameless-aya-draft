@@ -12,16 +12,18 @@ import org.aya.generic.stmt.TyckOrder;
 import org.aya.generic.stmt.TyckUnit;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;
+import org.aya.resolve.context.NoExportContext;
 import org.aya.resolve.error.GeneralizedNotAvailableError;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.concrete.Pattern;
+import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.decl.DataCon;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GeneralizedVar;
 import org.aya.syntax.ref.LocalVar;
-import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.Panic;
+import org.aya.util.error.PosedUnaryOperator;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.Contract;
@@ -185,13 +187,13 @@ public record ExprResolver(
           newBody
         );
       }
-      // case Expr.LetOpen letOpen -> {
-      //   var context = new NoExportContext(ctx);
-      //   // open module
-      //   context.openModule(letOpen.componentName(), Stmt.Accessibility.Private,
-      //           letOpen.sourcePos(), letOpen.useHide());
-      //   yield letOpen.update(enter(context).apply(letOpen.body()));
-      // }
+      case Expr.LetOpen letOpen -> {
+        var context = new NoExportContext(ctx);
+        // open module
+        context.openModule(letOpen.componentName(), Stmt.Accessibility.Private,
+          letOpen.sourcePos(), letOpen.useHide());
+        yield letOpen.update(letOpen.body().descent(enter(context)));
+      }
       case Expr newExpr -> newExpr.descent(this);
     };
   }

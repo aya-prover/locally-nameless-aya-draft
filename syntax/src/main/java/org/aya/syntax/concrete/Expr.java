@@ -13,7 +13,7 @@ import org.aya.generic.term.SortKind;
 import org.aya.prettier.BasePrettier;
 import org.aya.prettier.ConcretePrettier;
 import org.aya.pretty.doc.Doc;
-import org.aya.syntax.concrete.stmt.QualifiedID;
+import org.aya.syntax.concrete.stmt.*;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.syntax.ref.LocalVar;
@@ -526,9 +526,7 @@ public sealed interface Expr extends AyaDocile {
     @NotNull WithPos<Expr> body
   ) implements Expr, Nested<LetBind, Expr, Let> {
     public @NotNull Let update(@NotNull LetBind bind, @NotNull WithPos<Expr> body) {
-      return bind() == bind && body() == body
-        ? this
-        : new Let(bind, body);
+      return bind() == bind && body() == body ? this : new Let(bind, body);
     }
 
     @Override public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
@@ -562,6 +560,34 @@ public sealed interface Expr extends AyaDocile {
       telescope.forEach(param -> param.forEach(f));
       f.accept(result);
       f.accept(definedAs);
+    }
+  }
+
+  // I think a new type is better than `Either<LetBind, Open> bind` in `Expr.Let`.
+  // Being desugared after resolving.
+  record LetOpen(
+    @NotNull SourcePos sourcePos,
+    @NotNull ModuleName.Qualified componentName,
+    @NotNull UseHide useHide,
+    @NotNull WithPos<Expr> body
+  ) implements Expr {
+    public @NotNull LetOpen update(@NotNull WithPos<Expr> body) {
+      return this.body == body ? this : new LetOpen(sourcePos, componentName, useHide, body);
+    }
+
+    @Override public @NotNull Expr descent(@NotNull PosedUnaryOperator<@NotNull Expr> f) {
+      return update(body.descent(f));
+    }
+    @Override public void forEach(@NotNull PosedConsumer<@NotNull Expr> f) {
+      f.accept(body);
+    }
+
+    public @NotNull Command.Open openCmd() {
+      return new Command.Open(
+        sourcePos, Stmt.Accessibility.Private,
+        componentName, useHide,
+        false, true
+      );
     }
   }
 

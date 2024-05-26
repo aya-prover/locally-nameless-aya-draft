@@ -641,15 +641,14 @@ public record AyaProducer(
         var binds = bindBlockMaybe.childrenOfType(LET_BIND).map(this::letBind);
         return Expr.buildLet(pos, binds, body);
       } else {
-        throw new UnsupportedOperationException("TODO");
         // let open
-        // var component = qualifiedId(node.child(QUALIFIED_ID));
-        // var useHide = node.peekChild(USE_HIDE);
-        //
-        // return new Expr.LetOpen(pos,
-        //   component.component().resolve(component.name()),
-        //   useHide == null ? UseHide.EMPTY : useHide(useHide),
-        //   body);
+        var component = qualifiedId(node.child(QUALIFIED_ID));
+        var useHide = node.peekChild(USE_HIDE);
+
+        return new WithPos<>(pos, new Expr.LetOpen(pos,
+          component.component().resolve(component.name()),
+          useHide == null ? UseHide.EMPTY : useHide(useHide),
+          body));
       }
     }
     return unreachable(node);
