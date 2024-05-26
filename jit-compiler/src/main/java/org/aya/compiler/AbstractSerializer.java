@@ -107,7 +107,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   public void buildClass(@NotNull String className, @NotNull Class<?> superClass, @NotNull Runnable continuation) {
-    appendLine(STR."static class \{className} extends \{getName(superClass)} {");
+    appendLine(STR."static final class \{className} extends \{getName(superClass)} {");
     runInside(continuation);
     appendLine("}");
   }
