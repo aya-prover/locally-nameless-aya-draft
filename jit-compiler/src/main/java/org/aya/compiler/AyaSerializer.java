@@ -32,6 +32,7 @@ import static org.aya.compiler.AbstractSerializer.getName;
  * We can use those importing by qualified name, but that makes the output ugly.
  */
 public interface AyaSerializer<T> {
+  String PACKAGE_BASE = "AYA";
   String STATIC_FIELD_INSTANCE = "INSTANCE";
   String FIELD_INSTANCE = "ref";
   String CLASS_JITCONCALL = getName(ConCall.class);
