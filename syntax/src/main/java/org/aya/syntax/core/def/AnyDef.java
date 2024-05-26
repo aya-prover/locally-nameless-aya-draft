@@ -20,6 +20,12 @@ import org.jetbrains.annotations.Nullable;
  *   ConDef  <- - -  ConDef.Delegate <----- ConDefLike ----->    JitCon
  * </pre>
  * where the arrows indicate mean "is superclass of".<br/>
+ * <ul>
+ *   <li>The first chain is "core def" chain, which are well-typed definition</li>
+ *   <li>The second chain is "local def" chain, which may refer to a not yet tycked definition, i.e. tyck a recursive function</li>
+ *   <li>The third chain is "generic def" chain</li>
+ *   <li>The fourth chain is "complied def" chain, which are well-typed, compiled definition</li>
+ * </ul>
  * Note that {@link ConDef.Delegate} <b>contains</b> a {@link ConDef} rather than a super class of.
  */
 public sealed interface AnyDef permits JitDef, ConDefLike, DataDefLike, FnDefLike, TyckAnyDef {
