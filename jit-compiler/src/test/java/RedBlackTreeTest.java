@@ -128,7 +128,7 @@ public class RedBlackTreeTest {
 
     var seed = 114514L;
     var random = new Random(seed);
-    var largeList = mkList.apply(ImmutableIntSeq.fill(50, () -> random.nextInt(150)));
+    var largeList = mkList.apply(ImmutableIntSeq.fill(300, () -> random.nextInt(150)));
     var args = ImmutableSeq.of(NatCall, leCall, largeList);
 
     var normalizer = new Normalizer(result.info().makeTyckState());
@@ -141,6 +141,6 @@ public class RedBlackTreeTest {
 
     System.out.println(STR."Done first time in \{(endTime1 - beginTime)}");
     System.out.println(STR."Done second time in \{(endTime2 - endTime1)}");
-    System.out.println(sortResult.debuggerOnlyToDoc().debugRender());
+    System.out.println(sortResult.debuggerOnlyToString());
   }
 }

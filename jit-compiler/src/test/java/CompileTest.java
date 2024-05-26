@@ -81,7 +81,7 @@ public class CompileTest {
       var three = new ConCall(S, ImmutableSeq.empty(), 0, ImmutableSeq.of(two));
 
       var mResult = plus.invoke(zero, ImmutableSeq.of(two, three));
-      System.out.println(mResult.debuggerOnlyToDoc().debugRender());
+      System.out.println(mResult.debuggerOnlyToString());
     } catch (ClassNotFoundException | IllegalAccessException | NoSuchFieldException | Compiler.CompileException e) {
       throw new RuntimeException(e);
     }

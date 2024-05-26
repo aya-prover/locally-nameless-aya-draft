@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
-@Debug.Renderer(text = "debuggerOnlyToDoc().debugRender()")
+@Debug.Renderer(text = "debuggerOnlyToString()")
 public interface AyaDocile /*extends Docile*/ {
   /**
    * Load PrettierOptions by using it explicitly so IDEA won't show cannot load blahblah
@@ -18,8 +18,8 @@ public interface AyaDocile /*extends Docile*/ {
    * @apiNote This should not be used in any other place.
    * @deprecated use {@link #toDoc(PrettierOptions)} instead
    */
-  @Deprecated default @NotNull Doc debuggerOnlyToDoc() {
-    return toDoc(AyaPrettierOptions.debug());
+  @Deprecated default @NotNull String debuggerOnlyToString() {
+    return toDoc(AyaPrettierOptions.debug()).debugRender();
   }
 
   @NotNull Doc toDoc(@NotNull PrettierOptions options);

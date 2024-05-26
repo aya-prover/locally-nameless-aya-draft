@@ -43,6 +43,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
   @Override public Term apply(Term term) { return whnf(term, false); }
   private @NotNull Term whnf(@NotNull Term term, boolean usePostTerm) {
     if (term instanceof StableWHNF || term instanceof FreeTerm) return term;
+    // ConCall for point constructors are always in WHNF
+    if (term instanceof ConCall con && !con.ref().hasEq()) return con;
     var postTerm = term.descent(this);
     var defaultValue = usePostTerm ? postTerm : term;
 
@@ -81,7 +83,8 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
           ? whnf(fnRule.toFnCall(), usePostTerm)
           : reduceRule;
       }
-      case ConCall(var head, var args) when head.ref().hasEq() && args.getLast() instanceof DimTerm dim ->
+      // head.ref().hasEq() must be true
+      case ConCall(var head, var args) when args.getLast() instanceof DimTerm dim ->
         head.ref().equality(args, dim == DimTerm.I0);
       case PrimCall prim -> state.primFactory().unfold(prim, state);
       case MetaPatTerm metaTerm -> metaTerm.inline(this);

@@ -36,7 +36,7 @@ import java.util.function.UnaryOperator;
  *
  * @author kiva, ice1000, HoshinoTented
  */
-@Debug.Renderer(text = "PatToTerm.visit(this).debuggerOnlyToDoc().commonRender()")
+@Debug.Renderer(text = "PatToTerm.visit(this).debuggerOnlyToString()")
 public sealed interface Pat extends AyaDocile {
   @NotNull Pat descent(@NotNull UnaryOperator<Pat> patOp, @NotNull UnaryOperator<Term> termOp);
 
