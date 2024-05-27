@@ -1,3 +1,5 @@
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
+// Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 import org.aya.gradle.GenerateVersionTask
 
 // Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
@@ -22,3 +24,8 @@ val cleanGenerated = tasks.register("cleanGenerated") {
 }
 
 tasks.named("clean") { dependsOn(cleanGenerated) }
+tasks.withType<JavaExec>().configureEach {
+  val vmArgs = jvmArgs ?: mutableListOf()
+  vmArgs.add("-Xss32M")
+  jvmArgs = vmArgs
+}
