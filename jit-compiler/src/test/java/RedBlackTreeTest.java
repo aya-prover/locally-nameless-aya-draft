@@ -15,6 +15,9 @@ import org.aya.syntax.literate.CodeOptions;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -87,13 +90,12 @@ public class RedBlackTreeTest {
     def tree_sortNat (l : List Nat) => tree_sort le l
     """;
 
-  @Test public void test1() {
+  @Test public void test1() throws IOException {
     var result = CompileTest.tyck(TreeSort);
 
     var tester = CompileTester.make(result.defs(), result.info().shapeFactory());
+    Files.writeString(Paths.get("src/test/gen/baka.java"), tester.code);
     tester.compile();
-
-    // System.out.println(tester.code);
 
     JitData List = tester.loadInstance("baka", "List");
     JitCon nil = tester.loadInstance("baka", "List", javify("[]"));
