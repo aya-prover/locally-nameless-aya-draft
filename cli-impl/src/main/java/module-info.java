@@ -10,7 +10,7 @@ module aya.cli.impl {
   requires org.commonmark;
 
   exports org.aya.cli.interactive;
-  // exports org.aya.cli.library.incremental;
+  exports org.aya.cli.library.incremental;
   exports org.aya.cli.library.json;
   exports org.aya.cli.library.source;
   exports org.aya.cli.library;
