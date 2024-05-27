@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   public record JitParam(@NotNull String name, @NotNull String type) { }
@@ -236,12 +237,12 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return STR."\{term}.\{FIELD_INSTANCE}()";
   }
 
-  /**
-   * Turn an aya symbol name to a java symbol name
-   */
+  /** Mangle an aya symbol name to a java symbol name */
   public static @NotNull String javify(@NotNull DefVar<?, ?> ayaName) {
-    // TODO: impl
-    return ayaName.name();
+    return ayaName.name().codePoints().flatMap(x ->
+        Character.isJavaIdentifierPart(x) ? IntStream.of(x) : ("u" + x).chars())
+      .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+      .toString();
   }
 
   public static @NotNull String getName(@NotNull Class<?> clazz) {

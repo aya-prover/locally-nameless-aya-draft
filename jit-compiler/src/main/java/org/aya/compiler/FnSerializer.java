@@ -22,17 +22,17 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
   private void buildInvoke(FnDef unit, @NotNull String onStuckTerm, @NotNull String argsTerm) {
     if (unit.is(Modifier.Opaque)) {
       buildReturn(onStuckTerm);
-    } else {
-      switch (unit.body) {
-        case Either.Left(var expr) -> buildReturn(serializeTermUnderTele(expr, argsTerm, unit.telescope().size()));
-        case Either.Right(var clauses) -> {
-          var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm, false,
-            s -> s.buildReturn(onStuckTerm), s -> s.buildReturn(onStuckTerm));
-          ser.serialize(clauses.map(matching -> new PatternSerializer.Matching(
-            matching.patterns(),
-            (s, bindSize) -> s.buildReturn(serializeTermUnderTele(matching.body(), PatternSerializer.VARIABLE_RESULT, bindSize))
-          )));
-        }
+      return;
+    }
+    switch (unit.body) {
+      case Either.Left(var expr) -> buildReturn(serializeTermUnderTele(expr, argsTerm, unit.telescope().size()));
+      case Either.Right(var clauses) -> {
+        var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm, false,
+          s -> s.buildReturn(onStuckTerm), s -> s.buildReturn(onStuckTerm));
+        ser.serialize(clauses.map(matching -> new PatternSerializer.Matching(
+          matching.patterns(),
+          (s, bindSize) -> s.buildReturn(serializeTermUnderTele(matching.body(), PatternSerializer.VARIABLE_RESULT, bindSize))
+        )));
       }
     }
   }
