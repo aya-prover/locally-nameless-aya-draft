@@ -106,7 +106,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
       }
       case TyckInternal _ -> Panic.unreachable();
       case AppTerm appTerm -> makeNew(CLASS_APPTERM, appTerm.fun(), appTerm.arg());
-      case LocalTerm(var idx) -> throw AyaRuntimeException.runtime(new Panic("LocalTerm"));
+      case LocalTerm _ -> throw AyaRuntimeException.runtime(new Panic("LocalTerm"));
       case LamTerm lamTerm -> makeNew(CLASS_LAMTERM, serializeClosure(lamTerm.body()));
       case DataCall(var ref, var ulift, var args) -> makeNew(CLASS_JITDATACALL,
         getInstance(getReference(ref)),
@@ -164,8 +164,10 @@ public class TermExprializer extends AbstractExprializer<Term> {
       );
       case DimTyTerm _ -> getInstance(getName(DimTyTerm.class));
       case DimTerm dim -> makeSub(getName(DimTerm.class), dim.name());
+      case TupTerm(var items) -> makeNew(getName(TupTerm.class),
+        serializeToImmutableSeq(CLASS_TERM, items)
+      );
       case SigmaTerm sigmaTerm -> throw new UnsupportedOperationException("TODO");
-      case TupTerm tupTerm -> throw new UnsupportedOperationException("TODO");
       case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
       case IntegerTerm integerTerm -> makeNew(CLASS_INTEGER,
         Integer.toString(integerTerm.repr()),

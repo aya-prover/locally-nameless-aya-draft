@@ -66,15 +66,13 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         continuation.run();
       }
       // TODO: match IntegerTerm / ListTerm first
-      case Pat.Con con -> multiStage(pat, term, ImmutableSeq.of(
+      case Pat.Con con -> multiStage(con, term, ImmutableSeq.of(
         mTerm -> solveMeta(con, mTerm),
         mTerm -> buildIfInstanceElse(mTerm, CLASS_CONCALLLIKE, State.Stuck, mmTerm ->
           buildIfElse(STR."\{getCallInstance(mmTerm)} == \{getInstance(getReference(con.ref()))}",
             State.Mismatch, () -> doSerialize(con.args().view(),
               fromImmutableSeq(STR."\{mmTerm}.conArgs()",
-                con.args().size()).view(), () -> {
-                buildUpdate(VARIABLE_MULTI_STAGE, "true");
-              })))
+                con.args().size()).view(), () -> buildUpdate(VARIABLE_MULTI_STAGE, "true"))))
       ), continuation);
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> multiStage(pat, term, ImmutableSeq.of(
@@ -82,9 +80,12 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         mTerm -> matchInt(shapedInt, mTerm),
         mTerm -> doSerialize(shapedInt.constructorForm(), mTerm, continuation)
       ), continuation);
-      case Pat.Tuple tuple -> buildIfElse(STR."\{term} instanceof TupleTerm", State.Stuck, () -> {
-        throw new UnsupportedOperationException("TODO");
-      });
+      case Pat.Tuple tuple -> multiStage(tuple, term, ImmutableSeq.of(
+        mTerm -> solveMeta(tuple, mTerm),
+        mTerm -> buildIfInstanceElse(mTerm, CLASS_TUPLE, State.Stuck, mmTerm ->
+          doSerialize(tuple.elements().view(), fromImmutableSeq(STR."\{mmTerm}.items()",
+            tuple.elements().size()).view(), continuation))
+      ), continuation);
     }
   }
 

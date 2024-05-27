@@ -11,7 +11,6 @@ import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import static org.aya.compiler.AbstractSerializer.*;
-import static org.aya.pretty.doc.Doc.sep;
 
 public class PatternExprializer extends AbstractExprializer<Pat> {
   public static final String CLASS_PAT = getName(Pat.class);
@@ -20,7 +19,7 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
   public static final @NotNull String CLASS_PAT_CON = makeSub(CLASS_PAT, getName(Pat.Con.class));
   public static final @NotNull String CLASS_PAT_INT = makeSub(CLASS_PAT, getName(Pat.ShapedInt.class));
   public static final @NotNull String CLASS_LOCALVAR = getName(LocalVar.class);
-
+  public static final @NotNull String CLASS_PAT_TUPLE = makeSub(CLASS_PAT, getName(Pat.Tuple.class));
 
   protected PatternExprializer(@NotNull NameGenerator nameGen) {
     super(nameGen);
@@ -52,7 +51,8 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
         getInstance(getReference(shapedInt.suc())),
         serializeTerm(shapedInt.type()));
       case Pat.Meta _ -> Panic.unreachable();
-      case Pat.Tuple tuple -> throw new UnsupportedOperationException();
+      case Pat.Tuple tuple -> makeNew(CLASS_PAT_TUPLE,
+        serializeToImmutableSeq(CLASS_PAT, tuple.elements()));
     };
   }
 }

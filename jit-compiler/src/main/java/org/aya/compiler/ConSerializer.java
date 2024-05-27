@@ -5,7 +5,6 @@ package org.aya.compiler;
 import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
 import kala.function.BooleanConsumer;
-import kala.function.BooleanFunction;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.core.def.ConDef;
@@ -40,7 +39,7 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
     if (eq == null) {
       buildPanic(null);
     } else {
-      BooleanConsumer continuation = (b) -> {
+      BooleanConsumer continuation = b -> {
         var side = b ? eq.a() : eq.b();
         buildReturn(serializeTermUnderTele(side, argsTerm, unit.telescope().size()));
       };
