@@ -8,6 +8,7 @@ import org.aya.compiler.AyaSerializer;
 import org.aya.compiler.ModuleSerializer;
 import org.aya.generic.NameGenerator;
 import org.aya.primitive.ShapeFactory;
+import org.aya.resolve.module.DumbModuleLoader;
 import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.FnDef;
@@ -24,28 +25,10 @@ public class CompileTester {
 
   public CompileTester(@NotNull String code) { this.code = code; }
 
-  public static CompileTester make(@NotNull ImmutableSeq<TyckDef> defs, @NotNull ShapeFactory factory) {
-    defs = defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
-    var out = new ModuleSerializer(new StringBuilder(), 0, new NameGenerator(), factory)
-      .serialize(defs)
-      .result();
-
-    var code = STR."""
-      package \{AyaSerializer.PACKAGE_BASE};
-
-      \{AyaSerializer.IMPORT_BLOCK}
-
-      public interface baka {
-      \{out}
-      }
-      """;
-
-    return new CompileTester(code);
-  }
-
   public void compile() {
     try {
-      output = compiler.from(STR."\{AyaSerializer.PACKAGE_BASE}.baka", code).compile().load().get();
+      output = compiler.from(STR."\{AyaSerializer.PACKAGE_BASE}.\{DumbModuleLoader.DUMB_MODULE_NAME}", code)
+        .compile().load().get();
     } catch (ClassNotFoundException | Compiler.CompileException e) {
       throw new RuntimeException(e);
     }

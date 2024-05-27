@@ -36,6 +36,16 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
     this.conContinuation = conContinuation;
   }
 
+  public DataSerializer(
+    @NotNull AbstractSerializer<?> other,
+    @NotNull ShapeFactory shapeFactory,
+    @NotNull Consumer<DataSerializer> conContinuation
+  ) {
+    super(other, JitData.class);
+    this.shapeFactory = shapeFactory;
+    this.conContinuation = conContinuation;
+  }
+
   @Override public AyaSerializer<DataDef> serialize(DataDef unit) {
     buildFramework(unit, () -> {
       buildMethod("constructors", ImmutableSeq.empty(), STR."\{CLASS_JITCON}[]", true,

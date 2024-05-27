@@ -3,12 +3,11 @@
 
 import com.javax0.sourcebuddy.Compiler;
 import kala.collection.immutable.ImmutableSeq;
-import org.aya.compiler.AyaSerializer;
+import org.aya.compiler.FileSerializer;
 import org.aya.compiler.ModuleSerializer;
 import org.aya.compiler.TermExprializer;
 import org.aya.generic.NameGenerator;
 import org.aya.prettier.AyaPrettierOptions;
-import org.aya.primitive.ShapeFactory;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.EmptyContext;
@@ -17,8 +16,7 @@ import org.aya.resolve.module.ModuleCallback;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitFn;
 import org.aya.syntax.core.Closure;
-import org.aya.syntax.core.def.DataDef;
-import org.aya.syntax.core.def.FnDef;
+import org.aya.syntax.core.def.TopLevelDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.AppTerm;
 import org.aya.syntax.core.term.LamTerm;
@@ -43,22 +41,9 @@ public class CompileTest {
       def plus (a b : Nat) : Nat elim a
       | O => b
       | S n => S (plus n b)
-      """).defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
+      """); // .filter(x -> x instanceof FnDef || x instanceof DataDef);
 
-    var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator(), new ShapeFactory())
-      .serialize(result)
-      .result();
-
-    var code = STR."""
-    package AYA;
-
-    \{AyaSerializer.IMPORT_BLOCK}
-
-    @SuppressWarnings({"NullableProblems", "SwitchStatementWithTooFewBranches", "ConstantValue"})
-    public interface baka {
-    \{out}
-    }
-    """;
+    var code = serializeFrom(result);
 
     System.out.println(code);
 
@@ -118,6 +103,13 @@ public class CompileTest {
 
   private static final @NotNull Path FILE = Path.of("/home/senpai/1919810.aya");
   public static final ThrowingReporter REPORTER = new ThrowingReporter(AyaPrettierOptions.pretty());
+
+  public static @NotNull String serializeFrom(@NotNull TyckResult result) {
+    return new FileSerializer(result.info.shapeFactory())
+      .serialize(new FileSerializer.FileResult(null, new ModuleSerializer.ModuleResult(
+        DumbModuleLoader.DUMB_MODULE_NAME, result.defs.filterIsInstance(TopLevelDef.class), ImmutableSeq.empty())))
+      .result();
+  }
 
   public static TyckResult tyck(@Language("Aya") @NotNull String code) {
     var moduleLoader = new DumbModuleLoader(new EmptyContext(REPORTER, FILE));

@@ -13,13 +13,13 @@ import org.jetbrains.annotations.NotNull;
 import static org.aya.compiler.AbstractSerializer.*;
 
 public class PatternExprializer extends AbstractExprializer<Pat> {
-  public static final String CLASS_PAT = getName(Pat.class);
-  public static final @NotNull String CLASS_PAT_ABSURD = makeSub(CLASS_PAT, getName(Pat.Absurd.class));
-  public static final @NotNull String CLASS_PAT_BIND = makeSub(CLASS_PAT, getName(Pat.Bind.class));
-  public static final @NotNull String CLASS_PAT_CON = makeSub(CLASS_PAT, getName(Pat.Con.class));
-  public static final @NotNull String CLASS_PAT_INT = makeSub(CLASS_PAT, getName(Pat.ShapedInt.class));
-  public static final @NotNull String CLASS_LOCALVAR = getName(LocalVar.class);
-  public static final @NotNull String CLASS_PAT_TUPLE = makeSub(CLASS_PAT, getName(Pat.Tuple.class));
+  public static final String CLASS_PAT = getJavaReference(Pat.class);
+  public static final @NotNull String CLASS_PAT_ABSURD = makeSub(CLASS_PAT, getJavaReference(Pat.Absurd.class));
+  public static final @NotNull String CLASS_PAT_BIND = makeSub(CLASS_PAT, getJavaReference(Pat.Bind.class));
+  public static final @NotNull String CLASS_PAT_CON = makeSub(CLASS_PAT, getJavaReference(Pat.Con.class));
+  public static final @NotNull String CLASS_PAT_INT = makeSub(CLASS_PAT, getJavaReference(Pat.ShapedInt.class));
+  public static final @NotNull String CLASS_LOCALVAR = getJavaReference(LocalVar.class);
+  public static final @NotNull String CLASS_PAT_TUPLE = makeSub(CLASS_PAT, getJavaReference(Pat.Tuple.class));
 
   protected PatternExprializer(@NotNull NameGenerator nameGen) {
     super(nameGen);

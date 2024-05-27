@@ -16,11 +16,11 @@ import org.aya.util.binop.Assoc;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSerializer<T> {
-  public static final String CLASS_METADATA = getName(CompiledAya.class);
-  public static final String CLASS_JITCON = getName(JitCon.class);
-  public static final String CLASS_ASSOC = getName(Assoc.class);
-  public static final String CLASS_AYASHAPE = getName(AyaShape.class);
-  public static final String CLASS_GLOBALID = makeSub(getName(CodeShape.class), getName(CodeShape.GlobalId.class));
+  public static final String CLASS_METADATA = getJavaReference(CompiledAya.class);
+  public static final String CLASS_JITCON = getJavaReference(JitCon.class);
+  public static final String CLASS_ASSOC = getJavaReference(Assoc.class);
+  public static final String CLASS_AYASHAPE = getJavaReference(AyaShape.class);
+  public static final String CLASS_GLOBALID = makeSub(getJavaReference(CodeShape.class), getJavaReference(CodeShape.GlobalId.class));
   public static final String METHOD_TELESCOPE = "telescope";
   public static final String METHOD_RESULT = "result";
   public static final String TYPE_TERMSEQ = STR."\{CLASS_SEQ}<\{CLASS_TERM}>";
@@ -37,10 +37,18 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
     this.superClass = superClass;
   }
 
+  protected JitTeleSerializer(
+    @NotNull AbstractSerializer<?> serializer,
+    @NotNull Class<?> superClass
+  ) {
+    super(serializer);
+    this.superClass = superClass;
+  }
+
   protected void buildFramework(@NotNull T unit, @NotNull Runnable continuation) {
     var className = getClassName(unit);
     buildMetadata(unit);
-    buildClass(className, superClass, () -> {
+    buildInnerClass(className, superClass, () -> {
       buildInstance(className);
       appendLine();     // make code more pretty
       // empty return type for constructor
@@ -64,12 +72,6 @@ public abstract class JitTeleSerializer<T extends TyckDef> extends AbstractSeria
 
   private @NotNull String getClassName(@NotNull T unit) {
     return javify(unit.ref());
-  }
-
-  public void buildClass(@NotNull String className, @NotNull Class<?> superClass, @NotNull Runnable continuation) {
-    appendLine(STR."static final class \{className} extends \{getName(superClass)} {");
-    runInside(continuation);
-    appendLine("}");
   }
 
   public void buildInstance(@NotNull String className) {

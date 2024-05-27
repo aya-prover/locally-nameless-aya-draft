@@ -30,8 +30,8 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   public static final @NotNull String VARIABLE_STATE = "matchState";
   public static final @NotNull String VARIABLE_MULTI_STAGE = "multiStage";
 
-  static final @NotNull String CLASS_META_PAT = getName(MetaPatTerm.class);
-  static final @NotNull String CLASS_PAT_MATCHER = getName(PatMatcher.class);
+  static final @NotNull String CLASS_META_PAT = getJavaReference(MetaPatTerm.class);
+  static final @NotNull String CLASS_PAT_MATCHER = getJavaReference(PatMatcher.class);
   // TODO: they are inner class, which contains '$'
 
   private final @NotNull String argName;

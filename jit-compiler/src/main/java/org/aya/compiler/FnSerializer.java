@@ -15,6 +15,10 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
     super(builder, indent, nameGen, JitFn.class);
   }
 
+  public FnSerializer(@NotNull AbstractSerializer<?> other) {
+    super(other, JitFn.class);
+  }
+
   @Override protected void buildConstructor(FnDef unit) {
     super.buildConstructor(unit, ImmutableSeq.empty());
   }

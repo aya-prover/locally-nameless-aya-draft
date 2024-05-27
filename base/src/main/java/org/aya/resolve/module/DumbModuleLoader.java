@@ -13,6 +13,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DumbModuleLoader implements ModuleLoader {
+  public static final @NotNull String DUMB_MODULE_NAME = "baka";
+
   public final @NotNull PrimFactory primFactory = new PrimFactory();
   public final @NotNull Context baseContext;
   public DumbModuleLoader(@NotNull Context baseContext) {
@@ -20,7 +22,7 @@ public class DumbModuleLoader implements ModuleLoader {
   }
 
   public @NotNull ResolveInfo resolve(@NotNull ImmutableSeq<Stmt> stmts) {
-    return resolveModule(primFactory, baseContext.derive("baka"), stmts, this);
+    return resolveModule(primFactory, baseContext.derive(DUMB_MODULE_NAME), stmts, this);
   }
 
   @Override public @Nullable ResolveInfo load(@NotNull ModulePath path, @NotNull ModuleLoader recurseLoader) {

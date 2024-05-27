@@ -16,7 +16,7 @@ import org.aya.syntax.core.term.call.FnCall;
 import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
 
-import static org.aya.compiler.AbstractSerializer.getName;
+import static org.aya.compiler.AbstractSerializer.getJavaReference;
 
 /**
  * <h1>Serializing</h1>
@@ -35,20 +35,20 @@ public interface AyaSerializer<T> {
   String PACKAGE_BASE = "AYA";
   String STATIC_FIELD_INSTANCE = "INSTANCE";
   String FIELD_INSTANCE = "ref";
-  String CLASS_JITCONCALL = getName(ConCall.class);
-  String CLASS_CONCALLLIKE = getName(ConCallLike.class);
-  String CLASS_TUPLE = getName(TupTerm.class);
-  String CLASS_JITFNCALL = getName(FnCall.class);
-  String CLASS_JITDATACALL = getName(DataCall.class);
-  String CLASS_IMMSEQ = getName(ImmutableSeq.class);
-  String CLASS_MUTSEQ = getName(MutableSeq.class);
-  String CLASS_SEQ = getName(Seq.class);
-  String CLASS_TERM = getName(Term.class);
-  String CLASS_PANIC = getName(Panic.class);
+  String CLASS_JITCONCALL = getJavaReference(ConCall.class);
+  String CLASS_CONCALLLIKE = getJavaReference(ConCallLike.class);
+  String CLASS_TUPLE = getJavaReference(TupTerm.class);
+  String CLASS_JITFNCALL = getJavaReference(FnCall.class);
+  String CLASS_JITDATACALL = getJavaReference(DataCall.class);
+  String CLASS_IMMSEQ = getJavaReference(ImmutableSeq.class);
+  String CLASS_MUTSEQ = getJavaReference(MutableSeq.class);
+  String CLASS_SEQ = getJavaReference(Seq.class);
+  String CLASS_TERM = getJavaReference(Term.class);
+  String CLASS_PANIC = getJavaReference(Panic.class);
 
-  String CLASS_SER_UTILS = getName(SerializeUtils.class);
-  String CLASS_RESULT = getName(Result.class);
-  String CLASS_BOOLEAN = getName(Boolean.class);
+  String CLASS_SER_UTILS = getJavaReference(SerializeUtils.class);
+  String CLASS_RESULT = getJavaReference(Result.class);
+  String CLASS_BOOLEAN = getJavaReference(Boolean.class);
 
   @Language("Java") String IMPORT_BLOCK = """
     import org.aya.generic.term.SortKind;
@@ -58,7 +58,6 @@ public interface AyaSerializer<T> {
     import org.aya.syntax.ref.LocalVar;
     import org.aya.syntax.core.*;
     import org.aya.syntax.core.Closure.Jit;
-    // TODO: do not import all subclass of Pat directly
     import org.aya.syntax.core.pat.Pat;
     import org.aya.syntax.core.repr.*;
     import org.aya.syntax.core.term.*;

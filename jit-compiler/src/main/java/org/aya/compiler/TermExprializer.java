@@ -30,21 +30,21 @@ import static org.aya.compiler.AbstractSerializer.*;
  * Build the "constructor form" of {@link Term}, but in Java.
  */
 public class TermExprializer extends AbstractExprializer<Term> {
-  public static final String CLASS_LAMTERM = getName(LamTerm.class);
-  public static final String CLASS_JITLAMTERM = getName(Closure.Jit.class);
-  public static final String CLASS_APPTERM = getName(AppTerm.class);
-  public static final String CLASS_SORTKIND = getName(SortKind.class);
-  public static final String CLASS_INTOPS = getName(IntegerOps.class);
-  public static final String CLASS_LISTOPS = getName(ListOps.class);
-  public static final String CLASS_INTEGER = getName(IntegerTerm.class);
-  public static final String CLASS_LIST = getName(ListTerm.class);
-  public static final String CLASS_INT_CONRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.ConRule.class));
-  public static final String CLASS_INT_FNRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.FnRule.class));
-  public static final String CLASS_LIST_CONRULE = makeSub(CLASS_LISTOPS, getName(ListOps.ConRule.class));
-  public static final String CLASS_FNRULE_KIND = makeSub(CLASS_INT_FNRULE, getName(IntegerOps.FnRule.Kind.class));
-  public static final String CLASS_RULEREDUCER = getName(RuleReducer.class);
-  public static final String CLASS_RULE_CON = makeSub(CLASS_RULEREDUCER, getName(RuleReducer.Con.class));
-  public static final String CLASS_RULE_FN = makeSub(CLASS_RULEREDUCER, getName(RuleReducer.Fn.class));
+  public static final String CLASS_LAMTERM = getJavaReference(LamTerm.class);
+  public static final String CLASS_JITLAMTERM = getJavaReference(Closure.Jit.class);
+  public static final String CLASS_APPTERM = getJavaReference(AppTerm.class);
+  public static final String CLASS_SORTKIND = getJavaReference(SortKind.class);
+  public static final String CLASS_INTOPS = getJavaReference(IntegerOps.class);
+  public static final String CLASS_LISTOPS = getJavaReference(ListOps.class);
+  public static final String CLASS_INTEGER = getJavaReference(IntegerTerm.class);
+  public static final String CLASS_LIST = getJavaReference(ListTerm.class);
+  public static final String CLASS_INT_CONRULE = makeSub(CLASS_INTOPS, getJavaReference(IntegerOps.ConRule.class));
+  public static final String CLASS_INT_FNRULE = makeSub(CLASS_INTOPS, getJavaReference(IntegerOps.FnRule.class));
+  public static final String CLASS_LIST_CONRULE = makeSub(CLASS_LISTOPS, getJavaReference(ListOps.ConRule.class));
+  public static final String CLASS_FNRULE_KIND = makeSub(CLASS_INT_FNRULE, getJavaReference(IntegerOps.FnRule.Kind.class));
+  public static final String CLASS_RULEREDUCER = getJavaReference(RuleReducer.class);
+  public static final String CLASS_RULE_CON = makeSub(CLASS_RULEREDUCER, getJavaReference(RuleReducer.Con.class));
+  public static final String CLASS_RULE_FN = makeSub(CLASS_RULEREDUCER, getJavaReference(RuleReducer.Fn.class));
 
   private final @NotNull ImmutableSeq<String> instantiates;
   private final @NotNull MutableMap<LocalVar, String> binds;
@@ -146,32 +146,32 @@ public class TermExprializer extends AbstractExprializer<Term> {
         CLASS_RULE_FN, fnRuler.ulift(),
         ImmutableSeq.of(fnRuler.args())
       );
-      case SortTerm(var kind, var ulift) -> makeNew(getName(SortTerm.class),
+      case SortTerm(var kind, var ulift) -> makeNew(getJavaReference(SortTerm.class),
         makeSub(CLASS_SORTKIND, kind.name()),
         Integer.toString(ulift));
-      case PiTerm(var param, var body) -> makeNew(getName(PiTerm.class),
+      case PiTerm(var param, var body) -> makeNew(getJavaReference(PiTerm.class),
         doSerialize(param),
         serializeClosure(body)
       );
-      case CoeTerm(var type, var r, var s) -> makeNew(getName(CoeTerm.class),
+      case CoeTerm(var type, var r, var s) -> makeNew(getJavaReference(CoeTerm.class),
         serializeClosure(type),
         doSerialize(r),
         doSerialize(s)
       );
-      case ProjTerm(var of, var ix) -> makeNew(getName(ProjTerm.class),
+      case ProjTerm(var of, var ix) -> makeNew(getJavaReference(ProjTerm.class),
         doSerialize(of),
         Integer.toString(ix)
       );
-      case PAppTerm(var fun, var arg, var a, var b) -> makeNew(getName(PAppTerm.class),
+      case PAppTerm(var fun, var arg, var a, var b) -> makeNew(getJavaReference(PAppTerm.class),
         fun, arg, a, b
       );
-      case EqTerm(var A, var a, var b) -> makeNew(getName(EqTerm.class),
+      case EqTerm(var A, var a, var b) -> makeNew(getJavaReference(EqTerm.class),
         serializeClosure(A),
         doSerialize(a), doSerialize(b)
       );
-      case DimTyTerm _ -> getInstance(getName(DimTyTerm.class));
-      case DimTerm dim -> makeSub(getName(DimTerm.class), dim.name());
-      case TupTerm(var items) -> makeNew(getName(TupTerm.class),
+      case DimTyTerm _ -> getInstance(getJavaReference(DimTyTerm.class));
+      case DimTerm dim -> makeSub(getJavaReference(DimTerm.class), dim.name());
+      case TupTerm(var items) -> makeNew(getJavaReference(TupTerm.class),
         serializeToImmutableSeq(CLASS_TERM, items)
       );
       case SigmaTerm sigmaTerm -> throw new UnsupportedOperationException("TODO");

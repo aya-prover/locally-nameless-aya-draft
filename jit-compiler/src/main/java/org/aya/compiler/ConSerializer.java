@@ -16,6 +16,10 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
     super(builder, indent, nameGen, JitCon.class);
   }
 
+  public ConSerializer(@NotNull AbstractSerializer<?> other) {
+    super(other, JitCon.class);
+  }
+
   @Override protected void buildConstructor(ConDef unit) {
     var hasEq = unit.equality != null;
     buildConstructor(unit, ImmutableSeq.of(getInstance(getCoreReference(unit.dataRef)), Boolean.toString(hasEq)));

@@ -93,7 +93,7 @@ public class RedBlackTreeTest {
   @Test public void test1() throws IOException {
     var result = CompileTest.tyck(TreeSort);
 
-    var tester = CompileTester.make(result.defs(), result.info().shapeFactory());
+    var tester = new CompileTester(CompileTest.serializeFrom(result));
     Files.writeString(Paths.get("src/test/gen/baka.java"), tester.code);
     tester.compile();
 

@@ -3,6 +3,7 @@
 package org.aya.compiler;
 
 import kala.collection.SeqLike;
+import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitDef;
@@ -11,6 +12,7 @@ import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.TyckAnyDef;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.ModulePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,6 +36,12 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   protected AbstractSerializer(@NotNull AbstractSerializer<?> other) {
     this(other.builder, other.indent, other.nameGen);
   }
+
+  /**
+   * the implementation should keep {@link #indent} after invocation.
+   */
+  @Override
+  public abstract AyaSerializer<T> serialize(T unit);
 
   @Override
   public String result() {
@@ -112,6 +120,23 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."throw new \{CLASS_PANIC}(\{message});");
   }
 
+  public void buildInnerClass(@NotNull String className, @Nullable Class<?> superClass, @NotNull Runnable continuation) {
+    buildClass(className, superClass, true, continuation);
+  }
+
+  public void buildClass(
+    @NotNull String className,
+    @Nullable Class<?> superClass,
+    boolean isStatic,
+    @NotNull Runnable continuation
+  ) {
+    var ext = superClass == null ? "" : STR."extends \{getJavaReference(superClass)}";
+
+    appendLine(STR."public \{isStatic ? "static" : ""} final class \{className} \{ext} {");
+    runInside(continuation);
+    appendLine("}");
+  }
+
   public static @NotNull ImmutableSeq<String> fromImmutableSeq(@NotNull String term, int size) {
     return ImmutableSeq.fill(size, idx -> STR."\{term}.get(\{idx})");
   }
@@ -120,10 +145,6 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     fillIndent();
     builder.append(string);
     builder.append('\n');
-  }
-
-  public void appendSepLine(@NotNull String string) {
-    appendLine(STR."\{string},");
   }
 
   public void appendLine() {
@@ -207,13 +228,13 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     return STR."\{term} == null";
   }
 
-  protected static @NotNull String copyOf(@NotNull String arrayTerm, int length) {
-    return STR."Arrays.copyOf(\{arrayTerm}, \{length})";
+  public static @NotNull String getModuleReference(@Nullable ModulePath module) {
+    return (module == null ? SeqView.<String>empty() : module.module().view())
+      .prepended(PACKAGE_BASE).joinToString(".");
   }
 
   protected static @NotNull String getCoreReference(@NotNull DefVar<?, ?> ref) {
-    return Objects.requireNonNull(ref.module).module().view().appended(javify(ref))
-      .joinToString(".");
+    return STR."\{getModuleReference(Objects.requireNonNull(ref.module))}.\{javify(ref)}";
   }
 
   // TODO: produce name like "AYA_Data_Vec_Vec" rather than just "Vec", so that they won't conflict with our import
@@ -250,7 +271,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
       .toString();
   }
 
-  public static @NotNull String getName(@NotNull Class<?> clazz) {
+  public static @NotNull String getJavaReference(@NotNull Class<?> clazz) {
     return clazz.getSimpleName().replace('$', '.');
   }
 }
