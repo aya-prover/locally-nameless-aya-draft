@@ -32,7 +32,6 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   static final @NotNull String CLASS_META_PAT = getJavaReference(MetaPatTerm.class);
   static final @NotNull String CLASS_PAT_MATCHER = getJavaReference(PatMatcher.class);
-  // TODO: they are inner class, which contains '$'
 
   private final @NotNull ImmutableSeq<String> argNames;
   private final @NotNull Consumer<PatternSerializer> onStuck;
@@ -70,9 +69,12 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         mTerm -> solveMeta(con, mTerm),
         mTerm -> buildIfInstanceElse(mTerm, CLASS_CONCALLLIKE, State.Stuck, mmTerm ->
           buildIfElse(STR."\{getCallInstance(mmTerm)} == \{getInstance(getReference(con.ref()))}",
-            State.Mismatch, () -> doSerialize(con.args().view(),
-              fromSeq(STR."\{mmTerm}.conArgs()",
-                con.args().size()).view(), () -> buildUpdate(VARIABLE_SUBSTATE, "true"))))
+            State.Mismatch, () -> {
+              var conArgsTerm = buildLocalVar(TYPE_IMMTERMSEQ,
+                nameGen.nextName(null), STR."\{mmTerm}.conArgs()");
+              doSerialize(con.args().view(), fromSeq(conArgsTerm, con.args().size()).view(),
+                () -> buildUpdate(VARIABLE_SUBSTATE, "true"));
+            }))
       ), continuation);
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> multiStage(pat, term, ImmutableSeq.of(

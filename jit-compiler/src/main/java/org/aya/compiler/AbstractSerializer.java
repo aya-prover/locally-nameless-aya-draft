@@ -60,9 +60,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     indent--;
   }
 
-  public void buildLocalVar(@NotNull String type, @NotNull String name, @Nullable String initial) {
+  public @NotNull String buildLocalVar(@NotNull String type, @NotNull String name, @Nullable String initial) {
     var update = initial == null ? "" : STR." = \{initial}";
     appendLine(STR."\{type} \{name}\{update};");
+    return name;
   }
 
   public void buildUpdate(@NotNull String lhs, @NotNull String rhs) {

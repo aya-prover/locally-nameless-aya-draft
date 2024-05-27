@@ -15,6 +15,7 @@ import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.call.FnCall;
 import org.aya.util.error.Panic;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.NotNull;
 
 import static org.aya.compiler.AbstractSerializer.getJavaReference;
 
@@ -49,6 +50,7 @@ public interface AyaSerializer<T> {
   String CLASS_SER_UTILS = getJavaReference(SerializeUtils.class);
   String CLASS_RESULT = getJavaReference(Result.class);
   String CLASS_BOOLEAN = getJavaReference(Boolean.class);
+  String TYPE_IMMTERMSEQ = STR."\{CLASS_IMMSEQ}<\{CLASS_TERM}>";
 
   @Language("Java") String IMPORT_BLOCK = """
     import org.aya.generic.term.SortKind;
