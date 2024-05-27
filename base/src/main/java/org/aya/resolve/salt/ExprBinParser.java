@@ -9,7 +9,6 @@ import org.aya.pretty.doc.Doc;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.error.OperatorError;
 import org.aya.syntax.concrete.Expr;
-import org.aya.syntax.ref.DefVar;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.BinOpParser;
 import org.aya.util.binop.BinOpSet;
@@ -62,9 +61,7 @@ public class ExprBinParser extends BinOpParser<AyaBinOpSet, WithPos<Expr>, Expr.
   @Override protected @Nullable OpDecl underlyingOpDecl(@NotNull Expr.NamedArg elem) {
     var expr = elem.term().data();
     while (expr instanceof Expr.Lift lift) expr = lift.expr().data();
-    return expr instanceof Expr.Ref(var ref, _) && ref instanceof DefVar<?, ?> defVar
-      ? resolveInfo.resolveOpDecl(defVar)
-      : null;
+    return expr instanceof Expr.Ref(var ref, _) ? resolveInfo.resolveOpDecl(ref) : null;
   }
 
   @Override protected @NotNull Expr.NamedArg

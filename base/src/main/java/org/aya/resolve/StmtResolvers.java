@@ -24,7 +24,7 @@ public record StmtResolvers(@NotNull ModuleLoader loader, @NotNull ResolveInfo i
     var binder = new StmtBinder(info);
     binder.resolveBind(stmts);
     info.opRename().forEach((var, rename) ->
-      binder.bind(rename.bindCtx(), rename.bind(), var.concrete));
+      binder.bind(rename.bindCtx(), rename.bind(), var));
   }
 
   private void desugar(@NotNull ImmutableSeq<Stmt> stmts) {

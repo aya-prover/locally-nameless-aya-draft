@@ -13,6 +13,7 @@ public record BindBlock(
   @Override @NotNull SourcePos sourcePos,
   @NotNull ImmutableSeq<QualifiedID> loosers,
   @NotNull ImmutableSeq<QualifiedID> tighters,
+  // TODO: make AnyVar
   @ForLSP @NotNull MutableValue<ImmutableSeq<DefVar<?, ?>>> resolvedLoosers,
   @ForLSP @NotNull MutableValue<ImmutableSeq<DefVar<?, ?>>> resolvedTighters
 ) {

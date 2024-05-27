@@ -17,6 +17,7 @@ import org.aya.syntax.ref.DefVar;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static org.aya.resolve.ResolvingStmt.*;
 
@@ -30,22 +31,26 @@ public record StmtBinder(@NotNull ResolveInfo info) {
    */
   public void bind(@NotNull Context ctx, @NotNull BindBlock bindBlock, OpDecl self) {
     if (bindBlock == BindBlock.EMPTY) return;
-    bindBlock.resolvedLoosers().set(bindBlock.loosers().map(looser -> bind(self, ctx, OpDecl.BindPred.Looser, looser)));
-    bindBlock.resolvedTighters().set(bindBlock.tighters().map(tighter -> bind(self, ctx, OpDecl.BindPred.Tighter, tighter)));
+    bindBlock.resolvedLoosers().set(bindBlock.loosers().mapNotNull(looser ->
+      bind(self, ctx, OpDecl.BindPred.Looser, looser)));
+    bindBlock.resolvedTighters().set(bindBlock.tighters().mapNotNull(tighter ->
+      bind(self, ctx, OpDecl.BindPred.Tighter, tighter)));
   }
 
-  private @NotNull DefVar<?, ?> bind(
+  private @Nullable DefVar<?, ?> bind(
     @NotNull OpDecl self, @NotNull Context ctx,
     @NotNull OpDecl.BindPred pred, @NotNull QualifiedID id
   ) throws Context.ResolvingInterruptedException {
-    if (ctx.get(id) instanceof DefVar<?, ?> defVar) {
-      var opDecl = info.resolveOpDecl(defVar);
+    var var = ctx.get(id);
+    var opDecl = info.resolveOpDecl(var);
+    if (opDecl != null) {
       info.opSet().bind(self, pred, opDecl, id.sourcePos());
-      return defVar;
+      return var instanceof DefVar<?, ?> defVar ? defVar : null;
     }
 
     // make compiler happy 😥
-    throw StmtResolver.resolvingInterrupt(info.opSet().reporter, new NameProblem.OperatorNameNotFound(id.sourcePos(), id.join()));
+    throw StmtResolver.resolvingInterrupt(info.opSet().reporter,
+      new NameProblem.OperatorNameNotFound(id.sourcePos(), id.join()));
   }
 
   public void resolveBind(@NotNull SeqLike<ResolvingStmt> contents) {

@@ -9,10 +9,15 @@ import org.aya.primitive.ShapeFactory;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
+import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
 import org.aya.syntax.concrete.stmt.UseHide;
+import org.aya.syntax.core.def.AnyDef;
+import org.aya.syntax.core.def.TyckAnyDef;
+import org.aya.syntax.ref.AnyVar;
+import org.aya.syntax.ref.CompiledVar;
 import org.aya.syntax.ref.DefVar;
 import org.aya.tyck.ExprTycker;
 import org.aya.tyck.TyckState;
@@ -22,6 +27,7 @@ import org.aya.util.reporter.Reporter;
 import org.aya.util.terck.MutableGraph;
 import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @param thisModule   context of the underlying module
@@ -37,7 +43,7 @@ public record ResolveInfo(
   @NotNull PrimFactory primFactory,
   @NotNull ShapeFactory shapeFactory,
   @NotNull AyaBinOpSet opSet,
-  @NotNull MutableMap<DefVar<?, ?>, OpRenameInfo> opRename,
+  @NotNull MutableMap<AnyDef, OpRenameInfo> opRename,
   @NotNull MutableMap<ModuleName.Qualified, ImportInfo> imports,
   @NotNull MutableMap<ModuleName.Qualified, UseHide> reExports,
   @NotNull MutableGraph<TyckOrder> depGraph
@@ -65,10 +71,16 @@ public record ResolveInfo(
     @NotNull BindBlock bind, boolean reExport
   ) { }
 
-  public @NotNull OpDecl resolveOpDecl(DefVar<?, ?> defVar) {
+  public @Nullable OpDecl resolveOpDecl(AnyVar var) {
+    return switch (var) {
+      case CompiledVar jit when jit.core() instanceof JitDef def -> resolveOpDecl(def);
+      case DefVar<?, ?> ref -> resolveOpDecl(new TyckAnyDef<>(ref));
+      default -> null;
+    };
+  }
+  public @NotNull OpDecl resolveOpDecl(AnyDef defVar) {
     var renameInfo = opRename.getOrNull(defVar);
-    if (renameInfo != null) return renameInfo.renamed();
-    return defVar.concrete;
+    return renameInfo != null ? renameInfo.renamed() : defVar;
   }
 
   /**
@@ -77,7 +89,7 @@ public record ResolveInfo(
    * @see #open(ResolveInfo, SourcePos, Stmt.Accessibility)
    */
   public void renameOp(
-    @NotNull Context bindCtx, @NotNull DefVar<?, ?> defVar,
+    @NotNull Context bindCtx, @NotNull AnyDef defVar,
     @NotNull RenamedOpDecl renamed, @NotNull BindBlock bind, boolean reExport
   ) {
     // TODO: what if already exists?

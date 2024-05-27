@@ -31,4 +31,5 @@ public non-sealed class TyckAnyDef<Interface extends TyckDef> implements AnyDef 
       case ConDef con -> new ConDef.Delegate(con.ref);
     };
   }
+  @Override public @Nullable OpInfo opInfo() { return ref.concrete.opInfo(); }
 }

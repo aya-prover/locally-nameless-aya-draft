@@ -6,6 +6,7 @@ import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.ref.ModulePath;
 import org.aya.util.binop.Assoc;
+import org.aya.util.binop.OpDecl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  * </ul>
  * Note that {@link ConDef.Delegate} <b>contains</b> a {@link ConDef} rather than a super class of.
  */
-public sealed interface AnyDef permits JitDef, ConDefLike, DataDefLike, FnDefLike, TyckAnyDef {
+public sealed interface AnyDef extends OpDecl permits JitDef, ConDefLike, DataDefLike, FnDefLike, TyckAnyDef {
   /**
    * Returns which file level module this def lives in.
    */

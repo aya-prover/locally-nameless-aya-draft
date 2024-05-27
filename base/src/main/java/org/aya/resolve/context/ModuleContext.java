@@ -27,13 +27,8 @@ import java.nio.file.Path;
 public sealed interface ModuleContext extends Context permits NoExportContext, PhysicalModuleContext {
   @Override @NotNull Context parent();
 
-  @Override default @NotNull Reporter reporter() {
-    return parent().reporter();
-  }
-
-  @Override default @NotNull Path underlyingFile() {
-    return parent().underlyingFile();
-  }
+  @Override default @NotNull Reporter reporter() { return parent().reporter(); }
+  @Override default @NotNull Path underlyingFile() { return parent().underlyingFile(); }
 
   /**
    * All available symbols in this context

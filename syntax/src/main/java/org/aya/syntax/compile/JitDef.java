@@ -42,4 +42,10 @@ public abstract sealed class JitDef extends JitTele implements AnyDef permits Ji
     if (idx == -1) return null;
     return Assoc.values()[idx];
   }
+
+  @Override public @Nullable OpInfo opInfo() {
+    var assoc = assoc();
+    if (assoc == null) return null;
+    return new OpInfo(name(), assoc);
+  }
 }

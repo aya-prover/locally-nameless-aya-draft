@@ -2,8 +2,10 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
+import com.intellij.openapi.util.text.StringUtil;
 import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableMap;
+import kala.text.StringUtils;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.stmt.Shaped;
 import org.aya.generic.term.SortKind;
@@ -13,10 +15,7 @@ import org.aya.syntax.core.def.FnDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.marker.TyckInternal;
-import org.aya.syntax.core.term.repr.IntegerOps;
-import org.aya.syntax.core.term.repr.IntegerTerm;
-import org.aya.syntax.core.term.repr.ListOps;
-import org.aya.syntax.core.term.repr.ListTerm;
+import org.aya.syntax.core.term.repr.*;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
@@ -38,6 +37,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
   public static final String CLASS_LISTOPS = getJavaReference(ListOps.class);
   public static final String CLASS_INTEGER = getJavaReference(IntegerTerm.class);
   public static final String CLASS_LIST = getJavaReference(ListTerm.class);
+  public static final String CLASS_STRING = getJavaReference(StringTerm.class);
   public static final String CLASS_INT_CONRULE = makeSub(CLASS_INTOPS, getJavaReference(IntegerOps.ConRule.class));
   public static final String CLASS_INT_FNRULE = makeSub(CLASS_INTOPS, getJavaReference(IntegerOps.FnRule.class));
   public static final String CLASS_LIST_CONRULE = makeSub(CLASS_LISTOPS, getJavaReference(ListOps.ConRule.class));
@@ -197,6 +197,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
         getInstance(getReference(cons)),
         doSerialize(type)
       );
+      case StringTerm stringTerm -> makeNew(CLASS_STRING, makeString(StringUtil.escapeStringCharacters(stringTerm.string())));
     };
   }
 
