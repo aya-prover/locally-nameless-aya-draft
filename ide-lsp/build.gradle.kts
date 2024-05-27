@@ -83,7 +83,7 @@ supportedPlatforms.forEach { platform ->
   val copyAyaExecutables = tasks.register<Copy>("copyAyaExecutables_$platform") {
     from(file("src/main/shell")) {
       // https://ss64.com/bash/chmod.html
-      fileMode = "755".toInt(8)
+      filePermissions { unix("755") }
       if (platform.contains("windows")) {
         include("*.bat")
       } else {
