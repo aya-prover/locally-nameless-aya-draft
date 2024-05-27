@@ -26,18 +26,17 @@ public record InlayHints(
     program.forEach(maker);
     return maker.hints.toImmutableSeq();
   }
-
-  @Override public @NotNull Pattern pre(@NotNull Pattern pattern) {
-    if (pattern instanceof Pattern.Bind bind && bind.type().get() instanceof Term term) {
+  @Override public void visitPattern(@NotNull SourcePos pos, @NotNull Pattern pat) {
+    if (pat instanceof Pattern.Bind bind && bind.type().get() instanceof Term term) {
       var type = Doc.sep(Doc.symbol(":"), term.toDoc(options));
-      hints.append(new Hint(bind.sourcePos(), type, true));
+      hints.append(new Hint(pos, type, true));
     }
-    return Ranged.super.pre(pattern);
+    Ranged.super.visitPattern(pos, pat);
   }
 
   public record Hint(
     @NotNull SourcePos sourcePos,
     @NotNull Doc doc,
     boolean isType
-  ) {}
+  ) { }
 }
