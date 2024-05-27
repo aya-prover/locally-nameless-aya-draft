@@ -106,8 +106,7 @@ public sealed interface ClausesProblem extends Problem {
         // Use `unsure` instead of `not sure`, which is used in Agda
         Doc.english("I'm unsure if there should be a case for constructor"),
         Doc.par(1, switch (con) {
-          // TODO: toDoc for compiled con
-          case JitCon jitCon -> Doc.plain(jitCon.name());
+          case JitCon jitCon -> BasePrettier.refVar(jitCon);
           case ConDef.Delegate conDef -> conDef.core().toDoc(options);
         }),
         Doc.english("because I got stuck on the index unification of type"),

@@ -28,7 +28,7 @@ import java.nio.file.Path;
  * @author kiva
  */
 public interface CompilerAdvisor {
-  // static @NotNull CompilerAdvisor onDisk() { return new DiskCompilerAdvisor(); }
+  static @NotNull CompilerAdvisor onDisk() { return new DiskCompilerAdvisor(); }
   static @NotNull CompilerAdvisor inMemory() { return new InMemoryCompilerAdvisor(); }
 
   boolean isSourceModified(@NotNull LibrarySource source);

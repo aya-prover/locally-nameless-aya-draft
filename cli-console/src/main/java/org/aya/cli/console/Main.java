@@ -3,6 +3,8 @@
 package org.aya.cli.console;
 
 import org.aya.cli.interactive.ReplConfig;
+import org.aya.cli.library.LibraryCompiler;
+import org.aya.cli.library.incremental.CompilerAdvisor;
 import org.aya.cli.literate.FlclFaithfulPrettier;
 import org.aya.cli.plct.PLCTReport;
 import org.aya.cli.render.RenderOptions;
@@ -11,6 +13,7 @@ import org.aya.cli.single.CompilerFlags;
 import org.aya.cli.single.SingleFileCompiler;
 import org.aya.cli.utils.CliEnums;
 import org.aya.prettier.AyaPrettierOptions;
+import org.aya.primitive.PrimFactory;
 import org.aya.producer.flcl.FlclParser;
 import org.aya.util.FileUtil;
 import org.aya.util.error.SourceFile;
@@ -84,14 +87,14 @@ public class Main extends MainArgs implements Callable<Integer> {
     replConfig.close();
     var pretty = computePrettyInfo(outputPath, renderOptions, prettierOptions);
     var flags = new CompilerFlags(message, interruptedTrace,
-      /*compile.isRemake*/false, pretty,
+      compile.isRemake, pretty,
       modulePaths().view().map(Paths::get),
       outputPath);
 
-    // if (compile.isLibrary || compile.isRemake || compile.isNoCode) {
-    //   var advisor = compile.isNoCode ? CompilerAdvisor.inMemory() : CompilerAdvisor.onDisk();
-    //   return LibraryCompiler.compile(new PrimDef.Factory(), reporter, flags, advisor, filePath);
-    // }
+    if (compile.isLibrary || compile.isRemake || compile.isNoCode) {
+      var advisor = compile.isNoCode ? CompilerAdvisor.inMemory() : CompilerAdvisor.onDisk();
+      return LibraryCompiler.compile(new PrimFactory(), reporter, flags, advisor, filePath);
+    }
     var compiler = new SingleFileCompiler(reporter, flags, null);
     if (Files.notExists(filePath)) {
       System.err.println("File not found: " + filePath);
