@@ -151,7 +151,9 @@ public record CallResolver(
 
   private void visitTerm(@NotNull Term term) {
     // TODO: Improve error reporting to include the original call
-    term = new Normalizer(state, ImmutableSet.from(targets.map(TyckDef::ref))).apply(term);
+    var normalizer = new Normalizer(state);
+    normalizer.opaque = ImmutableSet.from(targets.map(TyckDef::ref));
+    term = normalizer.apply(term);
     if (term instanceof Callable.Tele call) resolveCall(call);
     term.descent((_, child) -> {
       visitTerm(child);
