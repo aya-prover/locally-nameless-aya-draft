@@ -13,21 +13,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 import java.util.function.Function;
 
-public final class FnDef extends TopLevelDef {
-  public final @NotNull EnumSet<Modifier> modifiers;
-  public final @NotNull DefVar<FnDef, FnDecl> ref;
-  public final @NotNull Either<Term, ImmutableSeq<Term.Matching>> body;
-
-  public FnDef(
-    @NotNull DefVar<FnDef, FnDecl> ref,
-    @NotNull EnumSet<Modifier> modifiers,
-    @NotNull Either<Term, ImmutableSeq<Term.Matching>> body
-  ) {
-    ref.core = this;
-    this.ref = ref;
-    this.modifiers = modifiers;
-    this.body = body;
-  }
+public record FnDef(
+  @NotNull DefVar<FnDef, FnDecl> ref,
+  @NotNull EnumSet<Modifier> modifiers,
+  @NotNull Either<Term, ImmutableSeq<Term.Matching>> body
+) implements TopLevelDef {
+  public FnDef { ref.core = this; }
 
   public static <T> Function<Either<Term, ImmutableSeq<Term.Matching>>, T>
   factory(Function<Either<Term, ImmutableSeq<Term.Matching>>, T> function) {
@@ -35,7 +26,6 @@ public final class FnDef extends TopLevelDef {
   }
 
   public boolean is(@NotNull Modifier mod) { return modifiers.contains(mod); }
-  @Override public @NotNull DefVar<FnDef, FnDecl> ref() { return ref; }
   public static final class Delegate extends TyckAnyDef<FnDef> implements FnDefLike {
     public Delegate(@NotNull DefVar<FnDef, ?> ref) { super(ref); }
   }

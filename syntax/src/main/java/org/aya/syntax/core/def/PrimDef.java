@@ -19,19 +19,21 @@ import java.util.Objects;
 
 import static org.aya.syntax.core.term.SortTerm.Type0;
 
-public final class PrimDef extends TopLevelDef {
+public final class PrimDef implements TopLevelDef {
   public final @NotNull ImmutableSeq<Param> telescope;
   public final @NotNull Term result;
+  public final @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref;
+  public final @NotNull ID id;
 
   public PrimDef(
     @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref,
     @NotNull ImmutableSeq<Param> telescope,
-    @NotNull Term result, @NotNull ID name
+    @NotNull Term result, @NotNull ID id
   ) {
     this.telescope = telescope;
     this.result = result;
     this.ref = ref;
-    this.id = name;
+    this.id = id;
     ref.core = this;
   }
 
@@ -82,8 +84,6 @@ public final class PrimDef extends TopLevelDef {
     ID(@NotNull String id) { this.id = id; }
   }
 
-  public final @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref;
-  public final @NotNull ID id;
   public @NotNull DefVar<@NotNull PrimDef, @NotNull PrimDecl> ref() { return ref; }
 
   public static class Delegate extends TyckAnyDef<PrimDef> {

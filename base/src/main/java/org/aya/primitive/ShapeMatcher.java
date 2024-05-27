@@ -118,12 +118,12 @@ public record ShapeMatcher(
     if (!teleResult) return false;
 
     // match body
-    return switch (new Pair<>(shape.body(), def.body)) {
+    return switch (new Pair<>(shape.body(), def.body())) {
       case Pair(Either.Left(var termShape), Either.Left(var term)) ->
-        matchInside(() -> captures.put(shape.name(), def.ref), () -> matchTerm(termShape, term));
+        matchInside(() -> captures.put(shape.name(), def.ref()), () -> matchTerm(termShape, term));
       case Pair(Either.Right(var clauseShapes), Either.Right(var clauses)) -> {
         var mode = def.is(Modifier.Overlap) ? MatchMode.Sub : MatchMode.Eq;
-        yield matchInside(() -> captures.put(shape.name(), def.ref), () ->
+        yield matchInside(() -> captures.put(shape.name(), def.ref()), () ->
           matchMany(mode, clauseShapes, clauses, this::matchClause));
       }
       default -> false;

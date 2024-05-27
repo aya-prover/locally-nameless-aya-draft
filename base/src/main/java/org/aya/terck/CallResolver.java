@@ -43,9 +43,7 @@ public record CallResolver(
   @NotNull MutableValue<Term.Matching> currentClause,
   @NotNull CallGraph<Callable.Tele, TyckDef> graph
 ) implements Stateful, Consumer<Term.Matching> {
-  public CallResolver {
-    assert caller.body.isRight();
-  }
+  public CallResolver { assert caller.body().isRight(); }
   public CallResolver(
     @NotNull TyckState state, @NotNull FnDef fn,
     @NotNull Set<TyckDef> targets,
@@ -140,7 +138,7 @@ public record CallResolver(
   }
 
   public void check() {
-    var clauses = caller.body.getRightValue();
+    var clauses = caller.body().getRightValue();
     clauses.forEach(this);
   }
 

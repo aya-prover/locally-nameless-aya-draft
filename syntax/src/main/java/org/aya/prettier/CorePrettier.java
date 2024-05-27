@@ -267,7 +267,7 @@ public class CorePrettier extends BasePrettier<Term> {
       case PrimDef def -> primDoc(def.ref());
       case FnDef def -> {
         var line1 = MutableList.of(KW_DEF);
-        def.modifiers.forEach(m -> line1.append(Doc.styled(KEYWORD, m.keyword)));
+        def.modifiers().forEach(m -> line1.append(Doc.styled(KEYWORD, m.keyword)));
         var tele = enrich(def.telescope());
         var subst = tele.view().<Term>map(p -> new FreeTerm(p.ref()));
         line1.appendAll(new Doc[]{
@@ -277,7 +277,7 @@ public class CorePrettier extends BasePrettier<Term> {
           term(Outer.Free, def.result())
         });
         var line1sep = Doc.sepNonEmpty(line1);
-        yield def.body.fold(
+        yield def.body().fold(
           term -> Doc.sep(line1sep, FN_DEFINED_AS, term(Outer.Free, term.instantiateTele(subst))),
           clauses -> Doc.vcat(line1sep, Doc.nest(2, visitClauses(clauses, subst))));
       }

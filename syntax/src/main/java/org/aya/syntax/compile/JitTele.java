@@ -53,19 +53,19 @@ public abstract class JitTele {
   }
 
   public static class LocallyNameless extends JitTele {
-    public final ImmutableSeq<Param> params;
+    public final ImmutableSeq<Param> telescope;
     public final Term result;
-    public LocallyNameless(ImmutableSeq<Param> params, Term result) {
-      super(params.size(), new boolean[params.size()], new String[params.size()]);
+    public LocallyNameless(ImmutableSeq<Param> telescope, Term result) {
+      super(telescope.size(), new boolean[telescope.size()], new String[telescope.size()]);
       this.result = result;
-      for (int i = 0; i < params.size(); i++) {
-        telescopeLicit[i] = params.get(i).explicit();
-        telescopeNames[i] = params.get(i).name();
+      for (int i = 0; i < telescope.size(); i++) {
+        telescopeLicit[i] = telescope.get(i).explicit();
+        telescopeNames[i] = telescope.get(i).name();
       }
-      this.params = params;
+      this.telescope = telescope;
     }
     @Override public @NotNull Term telescope(int i, Seq<Term> teleArgs) {
-      return params.get(i).type().instantiateTele(teleArgs.sliceView(0, i));
+      return telescope.get(i).type().instantiateTele(teleArgs.sliceView(0, i));
     }
     @Override public @NotNull Term result(Seq<Term> teleArgs) {
       assert teleArgs.size() == telescopeSize;

@@ -43,7 +43,7 @@ public record IApplyConfl(
   boolean orderIndep, @NotNull SourcePos sourcePos, @NotNull ExprTycker tycker
 ) {
   public IApplyConfl(@NotNull FnDef def, @NotNull ExprTycker tycker, @NotNull SourcePos pos) {
-    this(def, def.body.getRightValue(), def.is(Modifier.Overlap), pos, tycker);
+    this(def, def.body().getRightValue(), def.is(Modifier.Overlap), pos, tycker);
   }
   public void check() {
     // A matcher that does not normalize the arguments.
@@ -64,7 +64,7 @@ public record IApplyConfl(
 
   private void doCompare(PatMatcher chillMatcher, ImmutableSeq<Term> args, Term.Matching matching, int nth) {
     var currentClause = chillMatcher.apply(matching, args).get();
-    var anoNormalized = tycker.whnf(new FnCall(def.ref, 0, args));
+    var anoNormalized = tycker.whnf(new FnCall(def.ref(), 0, args));
     tycker.unifyTermReported(anoNormalized, currentClause, def.result().instantiateTele(args.view()),
       sourcePos, comparison -> new ClausesProblem.Conditions(
         sourcePos, matching.sourcePos(), nth, args, new UnifyInfo(tycker.state), comparison));
