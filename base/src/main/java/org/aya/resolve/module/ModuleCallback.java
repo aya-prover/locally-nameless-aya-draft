@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 @FunctionalInterface
 public interface ModuleCallback<E extends Exception> {
-  // TODO[ice]: why param1 is needed?
   void onModuleTycked(@NotNull ResolveInfo moduleResolve, @NotNull ImmutableSeq<TyckDef> defs)
     throws E;
 }

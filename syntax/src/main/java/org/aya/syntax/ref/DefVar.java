@@ -46,8 +46,4 @@ public final class DefVar<Core extends TyckDef, Concrete extends Decl> implement
   public boolean isInModule(@NotNull ModulePath moduleName) {
     return module != null && module.isInModule(moduleName);
   }
-
-  public @NotNull ImmutableSeq<String> qualifiedName() {
-    return module == null ? ImmutableSeq.of(name) : module.module().appended(name);
-  }
 }

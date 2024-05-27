@@ -2,11 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.ref;
 
-import org.aya.syntax.compile.JitTele;
+import org.aya.syntax.compile.JitDef;
 import org.jetbrains.annotations.NotNull;
 
-public record CompiledVar(
-  @NotNull JitTele core,
-  @Override @NotNull String name
-) implements AnyVar {
+public record CompiledVar(@NotNull JitDef core) implements AnyVar {
+  @Override public @NotNull String name() { return core.name(); }
 }

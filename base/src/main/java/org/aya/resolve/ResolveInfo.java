@@ -9,7 +9,6 @@ import org.aya.primitive.ShapeFactory;
 import org.aya.resolve.context.Context;
 import org.aya.resolve.context.ModuleContext;
 import org.aya.resolve.salt.AyaBinOpSet;
-import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.concrete.stmt.BindBlock;
 import org.aya.syntax.concrete.stmt.ModuleName;
 import org.aya.syntax.concrete.stmt.Stmt;
@@ -51,6 +50,13 @@ public record ResolveInfo(
   public ResolveInfo(
     @NotNull ModuleContext thisModule,
     @NotNull PrimFactory primFactory,
+    @NotNull ShapeFactory shapeFactory
+  ) {
+    this(thisModule, primFactory, shapeFactory, new AyaBinOpSet(thisModule.reporter()));
+  }
+  public ResolveInfo(
+    @NotNull ModuleContext thisModule,
+    @NotNull PrimFactory primFactory,
     @NotNull ShapeFactory shapeFactory,
     @NotNull AyaBinOpSet opSet
   ) {
@@ -73,7 +79,7 @@ public record ResolveInfo(
 
   public @Nullable OpDecl resolveOpDecl(AnyVar var) {
     return switch (var) {
-      case CompiledVar jit when jit.core() instanceof JitDef def -> resolveOpDecl(def);
+      case CompiledVar jit -> resolveOpDecl(jit.core());
       case DefVar<?, ?> ref -> resolveOpDecl(new TyckAnyDef<>(ref));
       default -> null;
     };

@@ -30,8 +30,8 @@ public class ShapeFactory {
     return discovered.getOption(def);
   }
 
+  /** @implNote assumption: defs can have only one shape */
   public void bonjour(@NotNull TyckDef def, @NotNull ShapeRecognition shape) {
-    // TODO[literal]: what if a def has multiple shapes?
     discovered.put(TyckAnyDef.make(def), shape);
   }
 
