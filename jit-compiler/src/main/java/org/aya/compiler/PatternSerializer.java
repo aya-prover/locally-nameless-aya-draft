@@ -34,7 +34,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   static final @NotNull String CLASS_PAT_MATCHER = getJavaReference(PatMatcher.class);
   // TODO: they are inner class, which contains '$'
 
-  private final @NotNull String argName;
+  private final @NotNull ImmutableSeq<String> argNames;
   private final @NotNull Consumer<PatternSerializer> onStuck;
   private final @NotNull Consumer<PatternSerializer> onMismatch;
   private int bindCount = 0;
@@ -44,13 +44,13 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     @NotNull StringBuilder builder,
     int indent,
     @NotNull NameGenerator nameGen,
-    @NotNull String argName,
+    @NotNull ImmutableSeq<String> argNames,
     boolean inferMeta,
     @NotNull Consumer<PatternSerializer> onStuck,
     @NotNull Consumer<PatternSerializer> onMismatch
   ) {
     super(builder, indent, nameGen);
-    this.argName = argName;
+    this.argNames = argNames;
     this.inferMeta = inferMeta;
     this.onStuck = onStuck;
     this.onMismatch = onMismatch;
@@ -71,7 +71,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
         mTerm -> buildIfInstanceElse(mTerm, CLASS_CONCALLLIKE, State.Stuck, mmTerm ->
           buildIfElse(STR."\{getCallInstance(mmTerm)} == \{getInstance(getReference(con.ref()))}",
             State.Mismatch, () -> doSerialize(con.args().view(),
-              fromImmutableSeq(STR."\{mmTerm}.conArgs()",
+              fromSeq(STR."\{mmTerm}.conArgs()",
                 con.args().size()).view(), () -> buildUpdate(VARIABLE_MULTI_STAGE, "true"))))
       ), continuation);
       case Pat.Meta _ -> Panic.unreachable();
@@ -83,7 +83,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       case Pat.Tuple tuple -> multiStage(tuple, term, ImmutableSeq.of(
         mTerm -> solveMeta(tuple, mTerm),
         mTerm -> buildIfInstanceElse(mTerm, CLASS_TUPLE, State.Stuck, mmTerm ->
-          doSerialize(tuple.elements().view(), fromImmutableSeq(STR."\{mmTerm}.items()",
+          doSerialize(tuple.elements().view(), fromSeq(STR."\{mmTerm}.items()",
             tuple.elements().size()).view(), continuation))
       ), continuation);
     }
@@ -213,7 +213,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
       bindCount = 0;
       doSerialize(
         clause.patterns().view(),
-        fromImmutableSeq(argName, clause.patterns.size()).view(),
+        argNames.view(),
         () -> updateState(jumpCode));
 
       buildIf(STR."\{VARIABLE_STATE} > 0", this::buildBreak);

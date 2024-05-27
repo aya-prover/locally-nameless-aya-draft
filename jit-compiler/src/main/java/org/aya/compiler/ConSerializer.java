@@ -26,11 +26,14 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
   }
 
   private void buildIsAvailable(ConDef unit, @NotNull String argsTerm) {
-    var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argsTerm, true,
+    var pats = unit.pats;
+    var names = buildGenLocalVarsFromSeq(CLASS_TERM, argsTerm, pats.size());
+    appendLine();
+    var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, names, true,
       s -> s.buildReturn(STR."\{CLASS_RESULT}.err(true)"),
       s -> s.buildReturn(STR."\{CLASS_RESULT}.err(false)"));
 
-    ser.serialize(ImmutableSeq.of(new PatternSerializer.Matching(unit.pats,
+    ser.serialize(ImmutableSeq.of(new PatternSerializer.Matching(pats,
       // we have only one clause, so the size is useless
       (s, _) -> s.buildReturn(STR."\{CLASS_RESULT}.ok(\{PatternSerializer.VARIABLE_RESULT}.toImmutableSeq())"))));
   }

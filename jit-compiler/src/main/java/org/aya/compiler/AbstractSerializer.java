@@ -4,6 +4,7 @@ package org.aya.compiler;
 
 import kala.collection.SeqLike;
 import kala.collection.SeqView;
+import kala.collection.immutable.ImmutableArray;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.compile.JitDef;
@@ -137,7 +138,18 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine("}");
   }
 
-  public static @NotNull ImmutableSeq<String> fromImmutableSeq(@NotNull String term, int size) {
+  public @NotNull ImmutableSeq<String> buildGenLocalVarsFromSeq(@NotNull String type, @NotNull String seqTerm, int size) {
+    String[] names = new String[size];
+    for (int i = 0; i < size; ++i) {
+      var name = nameGen.nextName(null);
+      names[i] = name;
+      buildLocalVar(type, name, STR."\{seqTerm}.get(\{i})");
+    }
+
+    return ImmutableArray.Unsafe.wrap(names);
+  }
+
+  public static @NotNull ImmutableSeq<String> fromSeq(@NotNull String term, int size) {
     return ImmutableSeq.fill(size, idx -> STR."\{term}.get(\{idx})");
   }
 
@@ -168,13 +180,12 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
     appendLine(STR."switch (\{term}) {");
     runInside(() -> {
       for (var kase : cases) {
-        appendLine(STR."case \{kase}: {");
-        // the continuation should return
+        appendLine(STR."case \{kase} -> {");
         runInside(() -> continuation.accept(kase));
         appendLine("}");
       }
 
-      appendLine("default: {");
+      appendLine("default -> {");
       runInside(defaultCase);
       appendLine("}");
     });
@@ -211,7 +222,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected @NotNull String serializeTermUnderTele(@NotNull Term term, @NotNull String argsTerm, int size) {
-    return new TermExprializer(this.nameGen, fromImmutableSeq(argsTerm, size))
+    return new TermExprializer(this.nameGen, fromSeq(argsTerm, size))
       .serialize(term).result();
   }
 
