@@ -67,8 +67,8 @@ public final class DataSerializer extends JitTeleSerializer<DataDef> {
       appendMetadataRecord("shape", Integer.toString(recog.shape().ordinal()), false);
 
       // The capture is one-to-one
-      var flipped = ImmutableMap.from(recog.captures().toImmutableSeq().view()
-        .map(x -> Tuple.<DefVar<?, ?>, CodeShape.GlobalId>of(x.component2(), x.component1())));
+      var flipped = ImmutableMap.from(recog.captures().view()
+        .map((k, v) -> Tuple.<DefVar<?, ?>, CodeShape.GlobalId>of(((TyckAnyDef<?>) v).ref, k)));
       var capture = unit.body.map(x -> makeSub(CLASS_GLOBALID, flipped.get(x.ref).toString()));
       appendMetadataRecord("recognition", makeHalfArrayFrom(capture), false);
     }

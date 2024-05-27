@@ -3,19 +3,18 @@
 package org.aya.syntax.core.repr;
 
 import kala.collection.immutable.ImmutableMap;
-import org.aya.syntax.core.def.ConDef;
+import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.ConDefLike;
-import org.aya.syntax.ref.DefVar;
+import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 public record ShapeRecognition(
   @NotNull AyaShape shape,
-  @NotNull ImmutableMap<CodeShape.GlobalId, DefVar<?, ?>> captures
+  @NotNull ImmutableMap<CodeShape.GlobalId, AnyDef> captures
 ) {
-  @SuppressWarnings("unchecked") public @NotNull ConDefLike
-  getCon(@NotNull CodeShape.GlobalId id) {
+  public @NotNull ConDefLike getCon(@NotNull CodeShape.GlobalId id) {
     var ref = this.captures().get(id);
-    assert ref.core instanceof ConDef : "Sanity check";
-    return new ConDef.Delegate((DefVar<ConDef, ?>) ref);
+    if (ref instanceof ConDefLike ok) return ok;
+    return Panic.unreachable();
   }
 }

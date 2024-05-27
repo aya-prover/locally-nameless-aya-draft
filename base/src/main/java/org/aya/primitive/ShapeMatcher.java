@@ -27,6 +27,7 @@ import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.BiPredicate;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
@@ -49,10 +50,10 @@ public record ShapeMatcher(
       return new Captures(MutableMap.create(), MutableValue.create());
     }
 
-    public @NotNull ImmutableMap<GlobalId, DefVar<?, ?>> extractGlobal() {
+    public @NotNull ImmutableMap<GlobalId, AnyDef> extractGlobal() {
       return ImmutableMap.from(map.toImmutableSeq().view()
         .mapNotNull(x -> switch (x) {
-          case Tuple2(GlobalId gid, DefVar<?, ?> dv) -> Tuple.of(gid, dv);
+          case Tuple2(GlobalId gid, DefVar<?, ?> dv) -> Tuple.of(gid, TyckAnyDef.make(dv.core));
           default -> null;
         }));
     }
@@ -157,8 +158,7 @@ public record ShapeMatcher(
           var realShapedCon = recognition.captures().getOrThrow(shapedCon.conId(), () ->
             new Panic("Invalid moment id: " + shapedCon.conId() + " in recognition" + recognition));
 
-          var conRef = ((ConDef.Delegate) con.ref()).ref;
-          matched = realShapedCon == conRef;
+          matched = Objects.equals(realShapedCon, con.ref());
         }
 
         if (!matched) yield false;
@@ -189,9 +189,9 @@ public record ShapeMatcher(
         captures.resolve(call.name()) == ref;
       case TermShape.DeBruijn(var index) -> term instanceof LocalTerm(var jndex) && index == jndex;
       case TermShape.Callable call when term instanceof Callable.Tele callable -> {
-        var ref = ((TyckAnyDef<?>) callable.ref()).ref;
+        var ref = (TyckAnyDef<?>) callable.ref();
         boolean success = switch (call) {
-          case TermShape.NameCall nameCall -> captures.resolve(nameCall.name()) == ref;
+          case TermShape.NameCall nameCall -> captures.resolve(nameCall.name()) == ref.ref;
           case TermShape.ShapeCall shapeCall -> {
             if (callable.ref() instanceof TyckAnyDef<?> wrapper) {
               yield captureIfMatches(shapeCall.name(), wrapper.ref, () ->
@@ -200,7 +200,7 @@ public record ShapeMatcher(
 
             yield false;
           }
-          case TermShape.ConCall conCall -> resolveCon(conCall.dataId(), conCall.conId()) == ref;
+          case TermShape.ConCall conCall -> ref.equals(resolveCon(conCall.dataId(), conCall.conId()));
         };
 
         if (!success) yield false;
@@ -289,7 +289,7 @@ public record ShapeMatcher(
     return remainingShapes.isEmpty() || mode == MatchMode.Sup;
   }
 
-  private @NotNull DefVar<?, ?> resolveCon(@NotNull MomentId data, @NotNull CodeShape.GlobalId conId) {
+  private @NotNull AnyDef resolveCon(@NotNull MomentId data, @NotNull CodeShape.GlobalId conId) {
     if (!(captures.resolve(data) instanceof DefVar<?, ?> defVar)) throw new Panic("Not a data");
     var recog = discovered.getOrThrow(TyckAnyDef.make(defVar.core), () -> new Panic("Not a recognized data"));
     return recog.captures().getOrThrow(conId, () -> new Panic("No such con"));
