@@ -11,6 +11,7 @@ import org.aya.ide.util.XY;
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.GeneralizedVar;
 import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.ModulePath;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ public interface GotoDefinition {
   }
 
   private static @Nullable SourcePos mockSourcePos(@NotNull SeqView<LibraryOwner> libraries, @NotNull ModuleVar moduleVar) {
-    return Resolver.resolveModule(libraries, moduleVar.path().ids())
+    return Resolver.resolveModule(libraries, new ModulePath(moduleVar.path().ids()))
       .map(src -> src.originalFile(""))
       .map(src -> new SourcePos(src, 0, 0, 1, 0, 1, 0))
       .getOrNull();
