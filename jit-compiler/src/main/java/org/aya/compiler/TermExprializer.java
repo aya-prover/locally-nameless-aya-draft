@@ -113,7 +113,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
       }
       case TyckInternal i -> throw new Panic(i.getClass().toString());
       case AppTerm appTerm -> makeNew(CLASS_APPTERM, appTerm.fun(), appTerm.arg());
-      case LocalTerm _ -> throw AyaRuntimeException.runtime(new Panic("LocalTerm"));
+      case LocalTerm _ -> throw new Panic("LocalTerm");
       case LamTerm lamTerm -> makeNew(CLASS_LAMTERM, serializeClosure(lamTerm.body()));
       case DataCall(var ref, var ulift, var args) -> makeNew(CLASS_JITDATACALL,
         getInstance(getReference(ref)),

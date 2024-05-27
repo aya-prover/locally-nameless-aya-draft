@@ -5,6 +5,7 @@ package org.aya.compiler;
 import kala.collection.immutable.ImmutableSeq;
 import org.aya.generic.NameGenerator;
 import org.aya.syntax.core.pat.Pat;
+import org.aya.syntax.core.term.ErrorTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.aya.util.error.Panic;
@@ -19,7 +20,9 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
   public static final @NotNull String CLASS_PAT_CON = makeSub(CLASS_PAT, getJavaReference(Pat.Con.class));
   public static final @NotNull String CLASS_PAT_INT = makeSub(CLASS_PAT, getJavaReference(Pat.ShapedInt.class));
   public static final @NotNull String CLASS_LOCALVAR = getJavaReference(LocalVar.class);
+  public static final @NotNull String CLASS_ERROR = getJavaReference(ErrorTerm.class);
   public static final @NotNull String CLASS_PAT_TUPLE = makeSub(CLASS_PAT, getJavaReference(Pat.Tuple.class));
+
 
   protected PatternExprializer(@NotNull NameGenerator nameGen) {
     super(nameGen);
@@ -38,7 +41,7 @@ public class PatternExprializer extends AbstractExprializer<Pat> {
       // but the meta solver will eat all LocalVar so that it will be happy.
       case Pat.Bind bind -> makeNew(CLASS_PAT_BIND,
         makeNew(CLASS_LOCALVAR, makeString(bind.bind().name())),
-        "ErrorTerm.DUMMY"
+        STR."\{CLASS_ERROR}.DUMMY"
       );
       case Pat.Con con -> makeNew(CLASS_PAT_CON,
         getInstance(getReference(con.ref())),

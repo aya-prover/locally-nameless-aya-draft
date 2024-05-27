@@ -28,7 +28,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
   public static final @NotNull String VARIABLE_RESULT = "result";
   public static final @NotNull String VARIABLE_STATE = "matchState";
-  public static final @NotNull String VARIABLE_MULTI_STAGE = "multiStage";
+  public static final @NotNull String VARIABLE_SUBSTATE = "subMatchState";
 
   static final @NotNull String CLASS_META_PAT = getJavaReference(MetaPatTerm.class);
   static final @NotNull String CLASS_PAT_MATCHER = getJavaReference(PatMatcher.class);
@@ -72,7 +72,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
           buildIfElse(STR."\{getCallInstance(mmTerm)} == \{getInstance(getReference(con.ref()))}",
             State.Mismatch, () -> doSerialize(con.args().view(),
               fromSeq(STR."\{mmTerm}.conArgs()",
-                con.args().size()).view(), () -> buildUpdate(VARIABLE_MULTI_STAGE, "true"))))
+                con.args().size()).view(), () -> buildUpdate(VARIABLE_SUBSTATE, "true"))))
       ), continuation);
       case Pat.Meta _ -> Panic.unreachable();
       case Pat.ShapedInt shapedInt -> multiStage(pat, term, ImmutableSeq.of(
@@ -92,7 +92,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
   /**
    * Generate multi case matching, these local variable are available:
    * <ul>
-   *   <li>{@link #VARIABLE_MULTI_STAGE}: the state of multi case matching, false means last check failed</li>
+   *   <li>{@link #VARIABLE_SUBSTATE}: the state of multi case matching, false means last check failed</li>
    *   <li>{@code tmpName}: this name is generated, they are the first argument of continuation.
    *   {@param preContinuation} may change the term be matched
    *   </li>
@@ -109,16 +109,16 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     @NotNull Runnable continuation
   ) {
     var tmpName = nameGen.nextName(null);
-    buildUpdate(VARIABLE_MULTI_STAGE, "false");
+    buildUpdate(VARIABLE_SUBSTATE, "false");
     buildLocalVar(CLASS_TERM, tmpName, term);
 
     for (var pre : preContinuation) {
-      buildIf(STR."! \{VARIABLE_MULTI_STAGE}", () -> {
+      buildIf(STR."! \{VARIABLE_SUBSTATE}", () -> {
         pre.accept(tmpName);
       });
     }
 
-    buildIf(VARIABLE_MULTI_STAGE, continuation);
+    buildIf(VARIABLE_SUBSTATE, continuation);
   }
 
   private void solveMeta(@NotNull Pat pat, @NotNull String term) {
@@ -133,7 +133,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
           exprializer.serialize(pat);
           var doSolveMetaResult = STR."\{CLASS_PAT_MATCHER}.doSolveMeta(\{exprializer.result()}, \{stillMetaTerm}.meta())";
           appendLine(STR."\{CLASS_SER_UTILS}.copyTo(\{VARIABLE_RESULT}, \{doSolveMetaResult}, \{bindCount});");
-          buildUpdate(VARIABLE_MULTI_STAGE, "true");
+          buildUpdate(VARIABLE_SUBSTATE, "true");
           // at this moment, the matching is complete,
           // but we still need to generate the code for normal matching
           // and it will increase bindCount
@@ -146,7 +146,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
     buildIfInstanceElse(term, TermExprializer.CLASS_INTEGER, intTerm -> {
       buildIf(STR."\{pat.repr()} == \{intTerm}.repr()", () -> {
         // Pat.ShapedInt provides no binds
-        buildUpdate(VARIABLE_MULTI_STAGE, "true");
+        buildUpdate(VARIABLE_SUBSTATE, "true");
       });
     }, null);
   }
@@ -206,7 +206,7 @@ public final class PatternSerializer extends AbstractSerializer<ImmutableSeq<Pat
 
     buildLocalVar(STR."\{CLASS_MUTSEQ}<\{CLASS_TERM}>", VARIABLE_RESULT, STR."\{CLASS_MUTSEQ}.fill(\{maxBindSize}, (\{CLASS_TERM}) null)");
     buildLocalVar("int", VARIABLE_STATE, "0");
-    buildLocalVar("boolean", VARIABLE_MULTI_STAGE, "false");
+    buildLocalVar("boolean", VARIABLE_SUBSTATE, "false");
 
     buildGoto(() -> unit.forEachIndexed((idx, clause) -> {
       var jumpCode = idx + 1;
