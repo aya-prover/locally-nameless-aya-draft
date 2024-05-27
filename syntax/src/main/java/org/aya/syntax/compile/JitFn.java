@@ -16,6 +16,5 @@ public abstract non-sealed class JitFn extends JitDef implements FnDefLike, Redu
   /**
    * Unfold this function
    */
-  @Override
-  public abstract Term invoke(Term stuck, @NotNull Seq<Term> args);
+  @Override public abstract Term invoke(Term stuck, @NotNull Seq<Term> args);
 }

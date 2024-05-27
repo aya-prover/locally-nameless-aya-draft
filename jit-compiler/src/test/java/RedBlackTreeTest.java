@@ -95,13 +95,13 @@ public class RedBlackTreeTest {
 
     // System.out.println(tester.code);
 
-    var List = tester.<JitData>loadInstance("baka", "List");
-    var nil = tester.<JitCon>loadInstance("baka", "List", javify("[]"));
-    var cons = tester.<JitCon>loadInstance("baka", "List", javify(":>"));
-    var Nat = tester.<JitData>loadInstance("baka", "Nat");
-    var O = tester.<JitCon>loadInstance("baka", "Nat", "O");
-    var S = tester.<JitCon>loadInstance("baka", "Nat", "S");
-    var tree_sortNat = tester.<JitFn>loadInstance("baka", "tree_sortNat");
+    JitData List = tester.loadInstance("baka", "List");
+    JitCon nil = tester.loadInstance("baka", "List", javify("[]"));
+    JitCon cons = tester.loadInstance("baka", "List", javify(":>"));
+    JitData Nat = tester.loadInstance("baka", "Nat");
+    JitCon O = tester.loadInstance("baka", "Nat", "O");
+    JitCon S = tester.loadInstance("baka", "Nat", "S");
+    JitFn tree_sortNat = tester.loadInstance("baka", "tree_sortNat");
 
     var NatCall = new DataCall(Nat, 0, ImmutableSeq.empty());
     var ListNatCall = new DataCall(List, 0, ImmutableSeq.of(NatCall));
