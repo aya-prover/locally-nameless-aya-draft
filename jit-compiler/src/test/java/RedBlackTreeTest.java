@@ -7,11 +7,8 @@ import org.aya.normalize.Normalizer;
 import org.aya.syntax.compile.JitCon;
 import org.aya.syntax.compile.JitData;
 import org.aya.syntax.compile.JitFn;
-import org.aya.syntax.core.Closure;
-import org.aya.syntax.core.term.LamTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
-import org.aya.syntax.core.term.call.FnCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.literate.CodeOptions;
@@ -86,12 +83,13 @@ public class RedBlackTreeTest {
       | nil => r
       | a cons l => aux l (repaint (insert a r dec_le)) dec_le
       def tree_sort (dec_le : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec_le) nil
+      def tree_sortNat (l : List Nat) => tree_sort le l
       """);
 
     var tester = CompileTester.make(result.defs(), result.info().shapeFactory());
     tester.compile();
 
-    System.out.println(tester.code);
+    // System.out.println(tester.code);
 
     var List = tester.<JitData>loadInstance("baka", "List");
     var nil = tester.<JitCon>loadInstance("baka", "List", "nil");
@@ -99,11 +97,7 @@ public class RedBlackTreeTest {
     var Nat = tester.<JitData>loadInstance("baka", "Nat");
     var O = tester.<JitCon>loadInstance("baka", "Nat", "O");
     var S = tester.<JitCon>loadInstance("baka", "Nat", "S");
-    var Bool = tester.<JitData>loadInstance("baka", "Bool");
-    var True = tester.<JitCon>loadInstance("baka", "Bool", "True");
-    var False = tester.<JitCon>loadInstance("baka", "Bool", "False");
-    var tree_sort = tester.<JitFn>loadInstance("baka", "tree_sort");
-    var le = tester.<JitFn>loadInstance("baka", "le");
+    var tree_sortNat = tester.<JitFn>loadInstance("baka", "tree_sortNat");
 
     var NatCall = new DataCall(Nat, 0, ImmutableSeq.empty());
     var ListNatCall = new DataCall(List, 0, ImmutableSeq.of(NatCall));
@@ -113,30 +107,17 @@ public class RedBlackTreeTest {
 
     Function<ImmutableIntSeq, Term> mkList = xs -> new ListTerm(xs.mapToObj(mkInt), nil, cons, ListNatCall);
 
-    // var decider = new LamTerm(new Closure.Jit(l -> new LamTerm(new Closure.Jit(r -> {
-    //   if (l instanceof IntegerTerm lint && r instanceof IntegerTerm rint) {
-    //      var def = lint.repr() <= rint.repr() ? True : False;
-    //      return new ConCall(def, ImmutableSeq.empty(), 0, ImmutableSeq.empty());
-    //   } else {
-    //     return Panic.unreachable();
-    //   }
-    // }))));
-
-    var leCall = new LamTerm(new Closure.Jit(x ->
-      new LamTerm(new Closure.Jit(y ->
-        new FnCall(le, 0, ImmutableSeq.of(x, y))))));
-
     var seed = 114514L;
     var random = new Random(seed);
-    var largeList = mkList.apply(ImmutableIntSeq.fill(300, () -> random.nextInt(150)));
-    var args = ImmutableSeq.of(NatCall, leCall, largeList);
+    var largeList = mkList.apply(ImmutableIntSeq.fill(200, () -> random.nextInt(150)));
+    var args = ImmutableSeq.of(largeList);
 
     var normalizer = new Normalizer(result.info().makeTyckState());
     var beginTime = System.currentTimeMillis();
-    var sortResult = normalizer.normalize(tree_sort.invoke(null, args), CodeOptions.NormalizeMode.FULL);
+    var sortResult = normalizer.normalize(tree_sortNat.invoke(null, args), CodeOptions.NormalizeMode.FULL);
     var endTime1 = System.currentTimeMillis();
     assertNotNull(sortResult);
-    normalizer.normalize(tree_sort.invoke(null, args), CodeOptions.NormalizeMode.FULL);
+    normalizer.normalize(tree_sortNat.invoke(null, args), CodeOptions.NormalizeMode.FULL);
     var endTime2 = System.currentTimeMillis();
 
     System.out.println(STR."Done first time in \{(endTime1 - beginTime)}");

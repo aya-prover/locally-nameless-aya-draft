@@ -7,8 +7,8 @@ import org.aya.compiler.AyaSerializer;
 import org.aya.compiler.ModuleSerializer;
 import org.aya.compiler.TermExprializer;
 import org.aya.generic.NameGenerator;
-import org.aya.primitive.ShapeFactory;
 import org.aya.prettier.AyaPrettierOptions;
+import org.aya.primitive.ShapeFactory;
 import org.aya.producer.AyaParserImpl;
 import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.context.EmptyContext;
@@ -43,7 +43,7 @@ public class CompileTest {
       def plus (a b : Nat) : Nat elim a
       | O => b
       | S n => S (plus n b)
-            """).defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
+      """).defs.filter(x -> x instanceof FnDef || x instanceof DataDef);
 
     var out = new ModuleSerializer(new StringBuilder(), 1, new NameGenerator(), new ShapeFactory())
       .serialize(result)

@@ -83,7 +83,7 @@ public record Normalizer(@NotNull TyckState state, @NotNull ImmutableSet<AnyVar>
           ? whnf(fnRule.toFnCall(), usePostTerm)
           : reduceRule;
       }
-      // head.ref().hasEq() must be true
+      case ConCall(var head, _) when !head.ref().hasEq() -> postTerm;
       case ConCall(var head, var args) when args.getLast() instanceof DimTerm dim ->
         head.ref().equality(args, dim == DimTerm.I0);
       case PrimCall prim -> state.primFactory().unfold(prim, state);
