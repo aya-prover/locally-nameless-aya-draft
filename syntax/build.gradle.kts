@@ -12,7 +12,3 @@ dependencies {
   testImplementation(libs.junit.jupiter)
   testImplementation(libs.hamcrest)
 }
-
-plugins {
-  id("org.graalvm.buildtools.native")
-}

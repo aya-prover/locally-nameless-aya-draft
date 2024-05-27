@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2023 Tesla (Yinsen) Zhang.
+// Copyright (c) 2020-2024 Tesla (Yinsen) Zhang.
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 plugins {
   java
@@ -27,9 +27,4 @@ tasks.named("build").configure {
 dependencies {
   api(libs.aya.build.util)
   api(libs.aya.build.jflex)
-
-  // The following is required for
-  // - extracting common parts inside `graalvmNative` block
-  // - specifying the plugin version from libs.versions.toml
-  implementation(libs.graal.nitools)
 }

@@ -13,8 +13,6 @@ kala = "0.72.0"
 # https://picocli.info
 picocli = "4.7.6"
 build-util = "0.0.22"
-# https://github.com/graalvm/native-build-tools
-graal-tools = "0.10.1"
 # https://github.com/jline/jline3
 jline = "3.26.1"
 # https://github.com/commonmark/commonmark-java
@@ -52,8 +50,6 @@ kala-common = { group = "org.glavo.kala", name = "kala-common", version.ref = "k
 
 picocli-runtime = { group = "info.picocli", name = "picocli", version.ref = "picocli" }
 picocli-codegen = { group = "info.picocli", name = "picocli-codegen", version.ref = "picocli" }
-
-graal-nitools = { group = "org.graalvm.buildtools.native", name = "org.graalvm.buildtools.native.gradle.plugin", version.ref = "graal-tools" }
 
 jline-terminal-jansi = { group = "org.jline", name = "jline-terminal-jansi", version.ref = "jline" }
 jline-terminal-api = { group = "org.jline", name = "jline-terminal", version.ref = "jline" }
