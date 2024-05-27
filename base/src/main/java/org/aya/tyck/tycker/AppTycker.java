@@ -3,7 +3,6 @@
 package org.aya.tyck.tycker;
 
 import kala.collection.immutable.ImmutableArray;
-import kala.collection.immutable.ImmutableSeq;
 import kala.function.CheckedBiFunction;
 import org.aya.syntax.compile.JitData;
 import org.aya.syntax.compile.JitFn;
@@ -103,19 +102,11 @@ public interface AppTycker {
           var conArgs = realArgs.drop(ownerTele.size());
 
           var type = fullSignature.result(realArgs);
+          var dataCall = new DataCall(dataVar, 0, ownerArgs);
           var shape = state.shapeFactory().find(new DataDef.Delegate(dataVar))
-            .mapNotNull(recog -> {
-              if (recog.shape() == AyaShape.NAT_SHAPE) {
-                var dataCall = new DataCall(dataVar, 0, ImmutableSeq.empty());
-                var head = AyaShape.ofCon(new ConDef.Delegate(conVar), recog, dataCall);
-                assert head != null : "bad ShapeFactory";
-                return new RuleReducer.Con(head, 0, ImmutableSeq.empty(), realArgs);
-              }
-
-              return null;
-            })
+            .mapNotNull(recog -> AyaShape.ofCon(new ConDef.Delegate(conVar), recog, dataCall))
             .getOrNull();
-          if (shape != null) return new Jdg.Default(shape, type);
+          if (shape != null) return new Jdg.Default(new RuleReducer.Con(shape, 0, ownerArgs, realArgs), type);
           var wellTyped = new ConCall(conVar, 0, ownerArgs, conArgs);
           return new Jdg.Default(wellTyped, type);
         });

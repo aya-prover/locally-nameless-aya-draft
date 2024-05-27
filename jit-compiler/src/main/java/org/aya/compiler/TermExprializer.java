@@ -15,6 +15,7 @@ import org.aya.syntax.core.term.call.*;
 import org.aya.syntax.core.term.marker.TyckInternal;
 import org.aya.syntax.core.term.repr.IntegerOps;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListOps;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalVar;
@@ -34,10 +35,12 @@ public class TermExprializer extends AbstractExprializer<Term> {
   public static final String CLASS_APPTERM = getName(AppTerm.class);
   public static final String CLASS_SORTKIND = getName(SortKind.class);
   public static final String CLASS_INTOPS = getName(IntegerOps.class);
+  public static final String CLASS_LISTOPS = getName(ListOps.class);
   public static final String CLASS_INTEGER = getName(IntegerTerm.class);
-  public static final String CLASS_CONRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.ConRule.class));
-  public static final String CLASS_FNRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.FnRule.class));
-  public static final String CLASS_FNRULE_KIND = makeSub(CLASS_FNRULE, getName(IntegerOps.FnRule.Kind.class));
+  public static final String CLASS_INT_CONRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.ConRule.class));
+  public static final String CLASS_INT_FNRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.FnRule.class));
+  public static final String CLASS_LIST_CONRULE = makeSub(CLASS_LISTOPS, getName(ListOps.ConRule.class));
+  public static final String CLASS_FNRULE_KIND = makeSub(CLASS_INT_FNRULE, getName(IntegerOps.FnRule.Kind.class));
   public static final String CLASS_RULEREDUCER = getName(RuleReducer.class);
   public static final String CLASS_RULE_CON = makeSub(CLASS_RULEREDUCER, getName(RuleReducer.Con.class));
   public static final String CLASS_RULE_FN = makeSub(CLASS_RULEREDUCER, getName(RuleReducer.Fn.class));
@@ -53,13 +56,18 @@ public class TermExprializer extends AbstractExprializer<Term> {
 
   private @NotNull String serializeApplicable(@NotNull Shaped.Applicable<?, ?> applicable) {
     return switch (applicable) {
-      case IntegerOps.ConRule conRule -> makeNew(CLASS_CONRULE, getInstance(getReference(conRule.ref())),
+      case IntegerOps.ConRule conRule -> makeNew(CLASS_INT_CONRULE, getInstance(getReference(conRule.ref())),
         doSerialize(conRule.zero()),
         doSerialize(conRule.paramType())
       );
-      case IntegerOps.FnRule fnRule -> makeNew(CLASS_FNRULE,
+      case IntegerOps.FnRule fnRule -> makeNew(CLASS_INT_FNRULE,
         getInstance(getReference(fnRule.ref())),
         makeSub(CLASS_FNRULE_KIND, fnRule.kind().toString())
+      );
+      case ListOps.ConRule conRule -> makeNew(CLASS_LIST_CONRULE,
+        getInstance(getReference(conRule.ref())),
+        doSerialize(conRule.empty()),
+        doSerialize(conRule.paramType())
       );
       default -> Panic.unreachable();
     };
