@@ -19,10 +19,7 @@ import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.DataDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.ref.AnyVar;
-import org.aya.syntax.ref.DefVar;
-import org.aya.syntax.ref.GeneralizedVar;
-import org.aya.syntax.ref.LocalVar;
+import org.aya.syntax.ref.*;
 import org.aya.util.error.SourcePos;
 import org.aya.util.error.WithPos;
 import org.jetbrains.annotations.NotNull;
@@ -56,13 +53,13 @@ public interface Resolver {
       case LocalVar localVar -> new WithPos<>(pos.sourcePos(), localVar);
       case ModuleVar moduleVar -> new WithPos<>(pos.sourcePos(), moduleVar);
       case GeneralizedVar gVar -> new WithPos<>(pos.sourcePos(), gVar);
-      // if (defVar.module != null) {
-      //   // defVar is an imported and serialized symbol, so we need to find the original one
-      //   yield Resolver.resolveDef(source.owner(), defVar.module.module(), defVar.name())
+      // defVar is an imported and serialized symbol, so we need to find the original one
+      // case CompiledVar cVar -> {
+      //  yield Resolver.resolveDef(source.owner(), cVar.module.module(), defVar.name())
       //     .map(target -> new WithPos<AnyVar>(pos.sourcePos(), target.ref()))
       //     .getOrNull();
       // }
-      // TODO: defVar is from a skipped module (see OrgaTycker), we can do nothing
+      // defVar is from a skipped module (see OrgaTycker), we can do nothing
       case null, default -> null;
     });
   }
@@ -77,8 +74,7 @@ public interface Resolver {
 
   static @NotNull SeqView<DefVar<?, ?>> withChildren(@NotNull Decl def) {
     return switch (def) {
-      case DataDecl data ->
-        SeqView.<DefVar<?, ?>>of(data.ref).appendedAll(data.body.map(DataCon::ref));
+      case DataDecl data -> SeqView.<DefVar<?, ?>>of(data.ref).appendedAll(data.body.map(DataCon::ref));
       // case ClassDecl struct ->
       //   SeqView.<DefVar<?, ?>>of(struct.ref).appendedAll(struct.members.map(TeleDecl.ClassMember::ref));
       default -> SeqView.of(def.ref());
