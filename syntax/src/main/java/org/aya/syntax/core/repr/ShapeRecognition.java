@@ -14,6 +14,8 @@ public record ShapeRecognition(
 ) {
   @SuppressWarnings("unchecked") public @NotNull ConDefLike
   getCon(@NotNull CodeShape.GlobalId id) {
-    return new ConDef.Delegate((DefVar<ConDef, ?>) this.captures().get(id));
+    var ref = this.captures().get(id);
+    assert ref.core instanceof ConDef : "Sanity check";
+    return new ConDef.Delegate((DefVar<ConDef, ?>) ref);
   }
 }

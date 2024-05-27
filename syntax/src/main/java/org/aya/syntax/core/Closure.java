@@ -4,6 +4,7 @@ package org.aya.syntax.core;
 
 import kala.function.IndexedFunction;
 import org.aya.syntax.core.term.FreeTerm;
+import org.aya.syntax.core.term.LocalTerm;
 import org.aya.syntax.core.term.Term;
 import org.aya.syntax.ref.LocalVar;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +15,9 @@ import java.util.function.UnaryOperator;
  * An "abstract" Lambda Term.<br/>
  * We also use it to represent a term that contains a "free" {@link org.aya.syntax.core.term.LocalTerm},
  * so we can handle them in a scope-safe manner.
+ * Note that you shouldn't supply a {@link LocalTerm} to "DeBruijn Index"-lize a {@link Closure},
+ * since it may contain another {@link Closure}, the safe way is to supply a {@link FreeTerm} then bind it,
+ * see {@link Jit#toLam()}
  */
 public sealed interface Closure extends UnaryOperator<Term> {
   static @NotNull Closure mkConst(@NotNull Term term) { return new Jit(_ -> term); }
@@ -27,6 +31,7 @@ public sealed interface Closure extends UnaryOperator<Term> {
   @Override Term apply(Term term);
   default @NotNull Term apply(LocalVar var) { return apply(new FreeTerm(var)); }
 
+  // NbE !!!!!!
   record Jit(@NotNull UnaryOperator<Term> lam) implements Closure {
     public @NotNull Idx toLam() {
       var antiMatter = new LocalVar("matter");
