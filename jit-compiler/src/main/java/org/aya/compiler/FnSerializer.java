@@ -3,6 +3,7 @@
 package org.aya.compiler;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.collection.mutable.MutableList;
 import kala.control.Either;
 import org.aya.generic.Modifier;
 import org.aya.generic.NameGenerator;
@@ -23,18 +24,19 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
     super.buildConstructor(unit, ImmutableSeq.empty());
   }
 
-  private void buildInvoke(FnDef unit, @NotNull String onStuckTerm, @NotNull String argsTerm) {
+  /**
+   * Build fixed argument `invoke`
+   */
+  private void buildInvoke(FnDef unit, @NotNull String onStuckTerm, @NotNull ImmutableSeq<String> argTerms) {
     if (unit.is(Modifier.Opaque)) {
       buildReturn(onStuckTerm);
       return;
     }
-    switch (unit.body()) {
-      case Either.Left(var expr) -> buildReturn(serializeTermUnderTele(expr, argsTerm, unit.telescope().size()));
-      case Either.Right(var clauses) -> {
-        var names = buildGenLocalVarsFromSeq(CLASS_TERM, argsTerm, unit.telescope().size());
-        appendLine();
 
-        var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, names, false,
+    switch (unit.body()) {
+      case Either.Left(var expr) -> buildReturn(serializeTermUnderTele(expr, argTerms));
+      case Either.Right(var clauses) -> {
+        var ser = new PatternSerializer(this.builder, this.indent, this.nameGen, argTerms, false,
           s -> s.buildReturn(onStuckTerm), s -> s.buildReturn(onStuckTerm));
         ser.serialize(clauses.map(matching -> new PatternSerializer.Matching(
           matching.patterns(),
@@ -44,16 +46,33 @@ public final class FnSerializer extends JitTeleSerializer<FnDef> {
     }
   }
 
+  /**
+   * Build vararg `invoke`
+   */
+  private void buildInvoke(FnDef unit, @NotNull String onStuckTerm, @NotNull String argsTerm) {
+    var teleSize = unit.telescope().size();
+
+    buildReturn(STR."this.invoke(\{fromSeq(argsTerm, teleSize).view()
+      .prepended(onStuckTerm)
+      .joinToString()})");
+  }
+
   @Override public AyaSerializer<FnDef> serialize(FnDef unit) {
     var argsTerm = "args";
     var onStuckTerm = "onStuck";
-    var params = ImmutableSeq.of(
-      new JitParam(onStuckTerm, CLASS_TERM),
-      new JitParam(argsTerm, TYPE_TERMSEQ)
-    );
+    var onStuckParam = new JitParam(onStuckTerm, CLASS_TERM);
+    var names = ImmutableSeq.fill(unit.telescope().size(), () -> nameGen.nextName(null));
+    var fixedParams = MutableList.<JitParam>create();
+    fixedParams.append(onStuckParam);
+    fixedParams.appendAll(names.view().map(x -> new JitParam(x, CLASS_TERM)));
 
-    buildFramework(unit, () -> buildMethod("invoke", params, CLASS_TERM, true,
-      () -> buildInvoke(unit, onStuckTerm, argsTerm)));
+    buildFramework(unit, () -> {
+      buildMethod("invoke", fixedParams.toImmutableSeq(),
+        CLASS_TERM, false, () -> buildInvoke(unit, onStuckTerm, names));
+      appendLine();
+      buildMethod("invoke", ImmutableSeq.of(onStuckParam, new JitParam(argsTerm, TYPE_TERMSEQ)),
+        CLASS_TERM, true, () -> buildInvoke(unit, onStuckTerm, argsTerm));
+    });
 
     return this;
   }

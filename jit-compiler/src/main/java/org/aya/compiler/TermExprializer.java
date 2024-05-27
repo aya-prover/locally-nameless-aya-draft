@@ -73,14 +73,17 @@ public class TermExprializer extends AbstractExprializer<Term> {
   }
 
   /**
-   * This code requires that {@link FnCall} and {@link RuleReducer.Fn}:
-   * {@code ulift} is the second parameter, {@code args} is the third parameter
+   * This code requires that {@link FnCall}, {@link RuleReducer.Fn} and {@link RuleReducer.Con}
+   * {@code ulift} is the second parameter, {@code args.get(i)} is the {@code i + 3}th parameter
+   *
+   * @param fixed whether {@param reducible} has fixed `invoke`
    */
   private @NotNull String buildReducibleCall(
     @NotNull String reducible,
     @NotNull String callName,
     int ulift,
-    @NotNull ImmutableSeq<ImmutableSeq<Term>> args
+    @NotNull ImmutableSeq<ImmutableSeq<Term>> args,
+    boolean fixed
   ) {
     var seredArgs = args.map(x -> x.map(this::doSerialize));
     var seredSeq = seredArgs.map(x -> makeImmutableSeq(CLASS_TERM, x));
@@ -94,8 +97,12 @@ public class TermExprializer extends AbstractExprializer<Term> {
     }
 
     var elevate = ulift > 0 ? STR.".elevate(\{ulift})" : "";
+    var onStuck = makeNew(callName, callArgs);
+    var finalArgs = fixed
+      ? flatArgs.view().prepended(onStuck).joinToString()
+      : STR."\{onStuck}, \{makeImmutableSeq(CLASS_TERM, flatArgs)}";
 
-    return STR."\{reducible}.invoke(\{makeNew(callName, callArgs)}, \{makeImmutableSeq(CLASS_TERM, flatArgs)})\{elevate}";
+    return STR."\{reducible}.invoke(\{finalArgs})\{elevate}";
   }
 
   @Override
@@ -134,17 +141,19 @@ public class TermExprializer extends AbstractExprializer<Term> {
 
         var ulift = call.ulift();
         var args = call.args();
-        yield buildReducibleCall(ref, CLASS_JITFNCALL, ulift, ImmutableSeq.of(args));
+        yield buildReducibleCall(ref, CLASS_JITFNCALL, ulift, ImmutableSeq.of(args), true);
       }
       case RuleReducer.Con conRuler -> buildReducibleCall(
         serializeApplicable(conRuler.rule()),
         CLASS_RULE_CON, conRuler.ulift(),
-        ImmutableSeq.of(conRuler.dataArgs(), conRuler.conArgs())
+        ImmutableSeq.of(conRuler.dataArgs(), conRuler.conArgs()),
+        false
       );
       case RuleReducer.Fn fnRuler -> buildReducibleCall(
         serializeApplicable(fnRuler.rule()),
         CLASS_RULE_FN, fnRuler.ulift(),
-        ImmutableSeq.of(fnRuler.args())
+        ImmutableSeq.of(fnRuler.args()),
+        false
       );
       case SortTerm(var kind, var ulift) -> makeNew(getJavaReference(SortTerm.class),
         makeSub(CLASS_SORTKIND, kind.name()),

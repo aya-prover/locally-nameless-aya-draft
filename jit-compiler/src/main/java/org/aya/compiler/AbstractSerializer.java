@@ -222,7 +222,11 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected @NotNull String serializeTermUnderTele(@NotNull Term term, @NotNull String argsTerm, int size) {
-    return new TermExprializer(this.nameGen, fromSeq(argsTerm, size))
+    return serializeTermUnderTele(term, fromSeq(argsTerm, size));
+  }
+
+  protected @NotNull String serializeTermUnderTele(@NotNull Term term, @NotNull ImmutableSeq<String> argTerms) {
+    return new TermExprializer(this.nameGen, argTerms)
       .serialize(term).result();
   }
 
