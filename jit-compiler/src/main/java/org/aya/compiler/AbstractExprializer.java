@@ -35,6 +35,10 @@ public abstract class AbstractExprializer<T> implements AyaSerializer<T> {
     }
   }
 
+  protected @NotNull String makeThunk(@NotNull String value) {
+    return STR."() -> \{value}";
+  }
+
   protected abstract @NotNull String doSerialize(@NotNull T term);
 
   @Override public AyaSerializer<T> serialize(T unit) {

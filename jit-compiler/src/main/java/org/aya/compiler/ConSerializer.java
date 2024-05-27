@@ -62,7 +62,7 @@ public final class ConSerializer extends JitTeleSerializer<ConDef> {
     buildFramework(unit, () -> {
       buildMethod("isAvailable",
         ImmutableSeq.of(new JitParam(argsTerm, TYPE_TERMSEQ)),
-        STR."\{CLASS_RESULT}<\{TYPE_IMMTERMSEQ}>, \{CLASS_BOOLEAN}>", true,
+        STR."\{CLASS_RESULT}<\{TYPE_IMMTERMSEQ}, \{CLASS_BOOLEAN}>", true,
         () -> buildIsAvailable(unit, argsTerm));
       appendLine();
       buildMethod("equality",
