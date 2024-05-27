@@ -311,7 +311,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   // TODO: can we generalize the following two functions?
   public static @NotNull Link linkIdOf(@Nullable ModulePath currentFileModule, @NotNull AnyVar ref) {
     if (ref instanceof DefVar<?, ?> defVar) {
-      var location = Link.loc(QualifiedID.join(defVar.qualifiedName()));
+      var location = Link.loc(QualifiedID.join(new QName(defVar).asStringSeq()));
       // referring to the `ref` in its own module
       if (currentFileModule == null || defVar.module == null) return location;
       var fileModule = defVar.module.fileModule();
@@ -324,7 +324,7 @@ public abstract class BasePrettier<Term extends AyaDocile> {
   }
 
   public static @NotNull Link linkIdOf(@Nullable ModulePath currentFileModule, @NotNull AnyDef ref) {
-    var location = Link.loc(QualifiedID.join(ref.qualifiedName()));
+    var location = Link.loc(QualifiedID.join(ref.qualifiedName().asStringSeq()));
     // referring to the `ref` in its own module
     if (currentFileModule == null || ref.fileModule().sameElements(currentFileModule))
       return location;

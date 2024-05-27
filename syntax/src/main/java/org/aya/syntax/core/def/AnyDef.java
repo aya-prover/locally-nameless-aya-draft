@@ -2,9 +2,9 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.core.def;
 
-import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.compile.JitDef;
 import org.aya.syntax.ref.ModulePath;
+import org.aya.syntax.ref.QName;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
 import org.jetbrains.annotations.NotNull;
@@ -41,8 +41,5 @@ public sealed interface AnyDef extends OpDecl permits JitDef, ConDefLike, DataDe
   @NotNull ModulePath module();
   @NotNull String name();
   @Nullable Assoc assoc();
-
-  default @NotNull ImmutableSeq<String> qualifiedName() {
-    return module().module().appended(name());
-  }
+  @NotNull QName qualifiedName();
 }

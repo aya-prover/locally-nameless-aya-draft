@@ -4,6 +4,7 @@ package org.aya.syntax.core.def;
 
 import org.aya.syntax.ref.DefVar;
 import org.aya.syntax.ref.ModulePath;
+import org.aya.syntax.ref.QName;
 import org.aya.util.binop.Assoc;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,6 +19,8 @@ public non-sealed class TyckAnyDef<Interface extends TyckDef> implements AnyDef 
   @Override public final @NotNull ModulePath module() { return Objects.requireNonNull(ref.module).module(); }
   @Override public final @NotNull String name() { return ref.name(); }
   @Override public final @Nullable Assoc assoc() { return ref.assoc(); }
+  @Override
+  public @NotNull QName qualifiedName() { return new QName(ref); }
   @Override public boolean equals(Object obj) {
     return obj instanceof TyckAnyDef<?> that && ref.equals(that.ref);
   }

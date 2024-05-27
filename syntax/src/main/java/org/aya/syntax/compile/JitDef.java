@@ -5,6 +5,8 @@ package org.aya.syntax.compile;
 import kala.collection.immutable.ImmutableArray;
 import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.ref.ModulePath;
+import org.aya.syntax.ref.QName;
+import org.aya.syntax.ref.QPath;
 import org.aya.util.binop.Assoc;
 import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +37,14 @@ public abstract sealed class JitDef extends JitTele implements AnyDef permits Ji
   @Override public @NotNull ModulePath module() {
     return new ModulePath(ImmutableArray.Unsafe.wrap(metadata().module()));
   }
-
+  /**
+   * @implNote use {@link #metadata} after {@link #metadata()} being called is safe,
+   * because {@link #metadata} is initialized in {@link #metadata()}.
+   */
+  @Override public @NotNull QName qualifiedName() {
+    var module = module();
+    return new QName(new QPath(module, metadata.fileModuleSize()), metadata.name());
+  }
   @Override public @NotNull String name() { return metadata().name(); }
   @Override public @Nullable Assoc assoc() {
     var idx = metadata().assoc();
