@@ -37,6 +37,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
   public static final String CLASS_INTOPS = getName(IntegerOps.class);
   public static final String CLASS_LISTOPS = getName(ListOps.class);
   public static final String CLASS_INTEGER = getName(IntegerTerm.class);
+  public static final String CLASS_LIST = getName(ListTerm.class);
   public static final String CLASS_INT_CONRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.ConRule.class));
   public static final String CLASS_INT_FNRULE = makeSub(CLASS_INTOPS, getName(IntegerOps.FnRule.class));
   public static final String CLASS_LIST_CONRULE = makeSub(CLASS_LISTOPS, getName(ListOps.ConRule.class));
@@ -57,8 +58,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
   private @NotNull String serializeApplicable(@NotNull Shaped.Applicable<?, ?> applicable) {
     return switch (applicable) {
       case IntegerOps.ConRule conRule -> makeNew(CLASS_INT_CONRULE, getInstance(getReference(conRule.ref())),
-        doSerialize(conRule.zero()),
-        doSerialize(conRule.paramType())
+        doSerialize(conRule.zero())
       );
       case IntegerOps.FnRule fnRule -> makeNew(CLASS_INT_FNRULE,
         getInstance(getReference(fnRule.ref())),
@@ -66,8 +66,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
       );
       case ListOps.ConRule conRule -> makeNew(CLASS_LIST_CONRULE,
         getInstance(getReference(conRule.ref())),
-        doSerialize(conRule.empty()),
-        doSerialize(conRule.paramType())
+        doSerialize(conRule.empty())
       );
       default -> Panic.unreachable();
     };
@@ -112,7 +111,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
 
         yield subst;
       }
-      case TyckInternal _ -> Panic.unreachable();
+      case TyckInternal i -> throw new Panic(i.getClass().toString());
       case AppTerm appTerm -> makeNew(CLASS_APPTERM, appTerm.fun(), appTerm.arg());
       case LocalTerm _ -> throw AyaRuntimeException.runtime(new Panic("LocalTerm"));
       case LamTerm lamTerm -> makeNew(CLASS_LAMTERM, serializeClosure(lamTerm.body()));
@@ -177,13 +176,18 @@ public class TermExprializer extends AbstractExprializer<Term> {
       );
       case SigmaTerm sigmaTerm -> throw new UnsupportedOperationException("TODO");
       case PrimCall primCall -> throw new UnsupportedOperationException("TODO");
-      case IntegerTerm integerTerm -> makeNew(CLASS_INTEGER,
-        Integer.toString(integerTerm.repr()),
-        getInstance(getReference(integerTerm.zero())),
-        getInstance(getReference(integerTerm.suc())),
-        doSerialize(integerTerm.type())
+      case IntegerTerm(var repr, var zero, var suc, var type) -> makeNew(CLASS_INTEGER,
+        Integer.toString(repr),
+        getInstance(getReference(zero)),
+        getInstance(getReference(suc)),
+        doSerialize(type)
       );
-      case ListTerm listTerm -> throw new UnsupportedOperationException("TODO");
+      case ListTerm(var repr, var nil, var cons, var type) -> makeNew(CLASS_LIST,
+        serializeToImmutableSeq(CLASS_TERM, repr),
+        getInstance(getReference(nil)),
+        getInstance(getReference(cons)),
+        doSerialize(type)
+      );
     };
   }
 

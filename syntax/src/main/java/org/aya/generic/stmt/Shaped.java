@@ -108,8 +108,7 @@ public interface Shaped<T> {
      */
     @Nullable T apply(@NotNull ImmutableSeq<T> args);
 
-    @Override
-    default T invoke(T onStuck, @NotNull Seq<T> args) {
+    @Override default T invoke(T onStuck, @NotNull Seq<T> args) {
       var result = apply(args.toImmutableSeq());
       if (result == null) return onStuck;
       return result;

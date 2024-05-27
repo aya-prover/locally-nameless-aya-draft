@@ -115,9 +115,9 @@ public enum AyaShape {
     @NotNull DataCall paramType
   ) {
     return switch (paramRecog.shape()) {
-      case NAT_SHAPE -> new IntegerOps.ConRule(ref, new IntegerTerm(0, paramRecog, paramType), paramType);
+      case NAT_SHAPE -> new IntegerOps.ConRule(ref, new IntegerTerm(0, paramRecog, paramType));
       case LIST_SHAPE -> new ListOps.ConRule(ref,
-        new ListTerm(ImmutableSeq.empty(), paramRecog, paramType), paramType);
+        new ListTerm(ImmutableSeq.empty(), paramRecog, paramType));
       default -> null;
     };
   }

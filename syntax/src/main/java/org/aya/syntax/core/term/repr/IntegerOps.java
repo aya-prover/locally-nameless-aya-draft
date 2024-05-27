@@ -8,7 +8,6 @@ import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.call.DataCall;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,8 +19,7 @@ import org.jetbrains.annotations.Nullable;
 public sealed interface IntegerOps<Def extends AnyDef> extends Shaped.Applicable<Term, Def> {
   record ConRule(
     @Override @NotNull ConDefLike ref,
-    @NotNull IntegerTerm zero,
-    @Override @NotNull DataCall paramType
+    @NotNull IntegerTerm zero
   ) implements IntegerOps<ConDefLike> {
     @Override public @Nullable Term apply(@NotNull ImmutableSeq<Term> args) {
       // zero

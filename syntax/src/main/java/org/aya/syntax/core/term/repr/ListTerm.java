@@ -35,7 +35,7 @@ public record ListTerm(
 
   @Override public @NotNull Term
   makeCons(@NotNull Term x, @NotNull Term last) {
-    return new RuleReducer.Con(new ListOps.ConRule(cons, makeNil(), type), 0,
+    return new RuleReducer.Con(new ListOps.ConRule(cons, makeNil()), 0,
       type.args(), ImmutableSeq.of(x, last));
   }
 
