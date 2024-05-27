@@ -108,7 +108,6 @@ public class RedBlackTreeTest {
     var NatCall = new DataCall(Nat, 0, ImmutableSeq.empty());
     var ListNatCall = new DataCall(List, 0, ImmutableSeq.of(NatCall));
 
-    // note that we didn't supply the correct shape factory, so IntegerTerm is unavailable.
     IntFunction<Term> mkInt = i -> new IntegerTerm(i, O, S, NatCall);
 
     Function<ImmutableIntSeq, Term> mkList = xs -> new ListTerm(xs.mapToObj(mkInt), nil, cons, ListNatCall);
