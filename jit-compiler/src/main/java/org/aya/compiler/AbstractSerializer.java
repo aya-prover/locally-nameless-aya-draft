@@ -2,6 +2,7 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.compiler;
 
+import com.intellij.openapi.util.text.StringUtil;
 import kala.collection.SeqLike;
 import kala.collection.SeqView;
 import kala.collection.immutable.ImmutableArray;
@@ -231,13 +232,10 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
       .serialize(term).result();
   }
 
-  /**
-   * @param raw make sure that it doesn't contain any terrible characters (i.e. '\', '"')
-   */
   protected static @NotNull String makeString(@NotNull String raw) {
     // TODO: kala bug
     // assert StringView.of(raw).anyMatch(c -> c == '\\' || c == '"');
-    return STR."\"\{raw}\"";
+    return STR."\"\{StringUtil.escapeStringCharacters(raw)}\"";
   }
 
   protected static @NotNull String isNull(@NotNull String term) {
@@ -250,7 +248,7 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
   }
 
   protected static @NotNull String getCoreReference(@NotNull DefVar<?, ?> ref) {
-    return STR."\{getModuleReference(Objects.requireNonNull(ref.module))}.\{javify(ref)}";
+    return STR."\{getModuleReference(Objects.requireNonNull(ref.module).module())}.\{javify(ref)}";
   }
 
   // TODO: produce name like "AYA_Data_Vec_Vec" rather than just "Vec", so that they won't conflict with our import

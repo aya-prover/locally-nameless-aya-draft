@@ -19,6 +19,8 @@ import org.aya.syntax.concrete.stmt.decl.FnDecl;
 import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.def.TyckAnyDef;
+import org.aya.syntax.ref.DefVar;
+import org.aya.syntax.ref.QPath;
 import org.aya.util.binop.Assoc;
 import org.aya.util.binop.OpDecl;
 import org.aya.util.error.Panic;
@@ -105,8 +107,7 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
       case DataDecl decl -> {
         var ctx = resolveTopLevelDecl(decl, context);
         var innerCtx = resolveChildren(decl, ctx, d -> d.body.view(), (con, mCtx) -> {
-          con.ref().module = mCtx.modulePath();
-          con.ref().fileModule = resolveInfo.thisModule().modulePath();
+          setupModule(mCtx, con.ref);
           mCtx.defineSymbol(con.ref(), Stmt.Accessibility.Public, con.sourcePos());
         });
         yield new ResolvingStmt.TopDecl(decl, innerCtx);
@@ -167,9 +168,11 @@ public record StmtPreResolver(@NotNull ModuleLoader loader, @NotNull ResolveInfo
   private <D extends Decl> @NotNull ModuleContext
   resolveTopLevelDecl(@NotNull D decl, @NotNull ModuleContext context) {
     var ctx = decl.isExample ? exampleContext(context) : context;
-    decl.ref().module = ctx.modulePath();
-    decl.ref().fileModule = resolveInfo.thisModule().modulePath();
+    setupModule(ctx, decl.ref());
     ctx.defineSymbol(decl.ref(), decl.accessibility(), decl.sourcePos());
     return ctx;
+  }
+  private void setupModule(ModuleContext ctx, DefVar<?, ?> ref) {
+    ref.module = new QPath(ctx.modulePath(), resolveInfo.thisModule().modulePath().size());
   }
 }

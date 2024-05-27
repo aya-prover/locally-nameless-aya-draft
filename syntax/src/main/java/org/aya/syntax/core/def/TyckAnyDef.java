@@ -14,8 +14,8 @@ public non-sealed class TyckAnyDef<Interface extends TyckDef> implements AnyDef 
   public final @NotNull DefVar<Interface , ?> ref;
   public Interface core() { return ref.core; }
   public TyckAnyDef(@NotNull DefVar<Interface, ?> ref) { this.ref = ref; }
-  @Override public final @NotNull ModulePath fileModule() { return Objects.requireNonNull(ref.fileModule); }
-  @Override public final @NotNull ModulePath module() { return Objects.requireNonNull(ref.module); }
+  @Override public final @NotNull ModulePath fileModule() { return Objects.requireNonNull(ref.module).fileModule(); }
+  @Override public final @NotNull ModulePath module() { return Objects.requireNonNull(ref.module).module(); }
   @Override public final @NotNull String name() { return ref.name(); }
   @Override public final @Nullable Assoc assoc() { return ref.assoc(); }
   @Override public boolean equals(Object obj) {

@@ -20,8 +20,7 @@ public final class DefVar<Core extends TyckDef, Concrete extends Decl> implement
   /** Initialized in type checking, so it might be null for unchecked user definitions. */
   public @UnknownNullability Core core;
   /** Initialized in the resolver or core deserialization */
-  public @Nullable ModulePath module;
-  public @Nullable ModulePath fileModule; // TODO: unify `module` and `fileModule`
+  public @Nullable QPath module;
 
   @Contract(pure = true) public @Nullable Assoc assoc() {
     if (concrete.opInfo() == null) return null;

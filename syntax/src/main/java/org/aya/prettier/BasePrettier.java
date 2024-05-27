@@ -313,10 +313,12 @@ public abstract class BasePrettier<Term extends AyaDocile> {
     if (ref instanceof DefVar<?, ?> defVar) {
       var location = Link.loc(QualifiedID.join(defVar.qualifiedName()));
       // referring to the `ref` in its own module
-      if (currentFileModule == null || defVar.fileModule == null || defVar.fileModule.sameElements(currentFileModule))
+      if (currentFileModule == null || defVar.module == null) return location;
+      var fileModule = defVar.module.fileModule();
+      if (fileModule.sameElements(currentFileModule))
         return location;
       // referring to the `ref` in another module
-      return Link.cross(defVar.fileModule.module(), location);
+      return Link.cross(fileModule.module(), location);
     }
     return Link.loc(ref.hashCode());
   }

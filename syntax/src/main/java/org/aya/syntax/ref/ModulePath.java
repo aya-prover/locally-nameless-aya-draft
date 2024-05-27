@@ -40,4 +40,5 @@ public record ModulePath(@NotNull ImmutableSeq<String> module) {
 
   @Override public String toString() { return QualifiedID.join(module); }
   public boolean isEmpty() { return module.isEmpty(); }
+  public int size() { return module.size(); }
 }
