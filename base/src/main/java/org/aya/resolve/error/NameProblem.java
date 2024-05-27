@@ -72,9 +72,7 @@ public interface NameProblem extends Problem {
         Doc.english("being exported clashes with another exported definition with the same name"));
     }
 
-    @Override @NotNull public Severity level() {
-      return Severity.ERROR;
-    }
+    @Override @NotNull public Severity level() { return Severity.ERROR; }
   }
 
   record DuplicateModNameError(
@@ -132,10 +130,7 @@ public interface NameProblem extends Problem {
     }
   }
 
-  record ModNotFoundError(
-    @NotNull ModulePath path,
-    @Override @NotNull SourcePos sourcePos
-  ) implements Error {
+  record ModNotFoundError(@NotNull ModulePath path, @Override @NotNull SourcePos sourcePos) implements Error {
     @Override public @NotNull Doc describe(@NotNull PrettierOptions options) {
       return Doc.sep(
         Doc.english("The module name"),

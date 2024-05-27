@@ -3,7 +3,6 @@
 package org.aya.ide;
 
 import kala.collection.SeqView;
-import kala.collection.immutable.ImmutableSeq;
 import kala.collection.mutable.MutableList;
 import kala.control.Option;
 import kala.value.LazyValue;
@@ -31,7 +30,7 @@ public interface Resolver {
   /** resolve a symbol by its qualified name in the whole library */
   static @NotNull Option<@NotNull TyckDef> resolveDef(
     @NotNull LibraryOwner owner,
-    @NotNull ImmutableSeq<String> module,
+    @NotNull ModulePath module,
     @NotNull String name
   ) {
     var mod = resolveModule(owner, module);
@@ -82,14 +81,14 @@ public interface Resolver {
   }
 
   /** resolve a top-level module by its qualified name */
-  static @NotNull Option<LibrarySource> resolveModule(@NotNull LibraryOwner owner, @NotNull ImmutableSeq<String> module) {
+  static @NotNull Option<LibrarySource> resolveModule(@NotNull LibraryOwner owner, @NotNull ModulePath module) {
     if (module.isEmpty()) return Option.none();
     var mod = owner.findModule(module);
     return mod != null ? Option.some(mod) : resolveModule(owner, module.dropLast(1));
   }
 
   /** resolve a top-level module by its qualified name */
-  static @NotNull Option<LibrarySource> resolveModule(@NotNull SeqView<LibraryOwner> owners, @NotNull ImmutableSeq<String> module) {
+  static @NotNull Option<LibrarySource> resolveModule(@NotNull SeqView<LibraryOwner> owners, @NotNull ModulePath module) {
     for (var owner : owners) {
       var found = resolveModule(owner, module);
       if (found.isDefined()) return found;

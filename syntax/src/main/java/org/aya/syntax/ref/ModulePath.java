@@ -18,6 +18,10 @@ public record ModulePath(@NotNull ImmutableSeq<String> module) {
     return module.sliceView(0, moduleName.size()).sameElements(moduleName);
   }
 
+  public ModulePath dropLast(int n) {
+    return new ModulePath(module.dropLast(n));
+  }
+
   public boolean sameElements(ModulePath other) {
     return module.sameElements(other.module);
   }
@@ -35,4 +39,5 @@ public record ModulePath(@NotNull ImmutableSeq<String> module) {
   }
 
   @Override public String toString() { return QualifiedID.join(module); }
+  public boolean isEmpty() { return module.isEmpty(); }
 }
