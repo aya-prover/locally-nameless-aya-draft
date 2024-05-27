@@ -1,3 +1,5 @@
+The progress has been [synced to upstream](https://github.com/aya-prover/aya-dev/pull/1042) :tada:!
+
 # Locally Nameless Aya draft
 
 This is a temporary repo for the rewrite of Aya using locally nameless with the following additional foci:
