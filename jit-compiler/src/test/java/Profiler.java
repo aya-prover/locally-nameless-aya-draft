@@ -13,16 +13,25 @@ public class Profiler {
 
   public static long profileMany(int count, @NotNull Runnable runnable) {
     assert count > 0;
-    var sum = 0L;
+    long[] times = new long[count];
     long begin, end;
 
     for (int i = 0; i < count; ++i) {
       begin = System.currentTimeMillis();
       runnable.run();
       end = System.currentTimeMillis();
-      sum += end - begin;
+      times[i] = end - begin;
     }
 
-    return sum / count;
+    long sum = 0;
+    for (var i = 0; i < count; ++i) {
+      var time = times[i];
+      sum += time;
+      System.out.println(STR."\{i}: Done in \{time}ms");
+    }
+
+    var ave = sum / count;
+    System.out.println(STR."Average: Done in \{ave}ms");
+    return ave;
   }
 }

@@ -205,7 +205,6 @@ public class TyckTest {
     var NatCall = new DataCall(Nat, 0, ImmutableSeq.empty());
     var ListNatCall = new DataCall(List, 0, ImmutableSeq.of(NatCall));
 
-    // note that we didn't supply the correct shape factory, so IntegerTerm is unavailable.
     IntFunction<Term> mkInt = i -> new IntegerTerm(i, O, S, NatCall);
 
     Function<ImmutableIntSeq, Term> mkList = xs -> new ListTerm(xs.mapToObj(mkInt::apply), nil, cons, ListNatCall);
@@ -216,7 +215,7 @@ public class TyckTest {
 
     var seed = 114514L;
     var random = new Random(seed);
-    var largeList = mkList.apply(ImmutableIntSeq.fill(10, () -> Math.abs(random.nextInt()) % 100));
+    var largeList = mkList.apply(ImmutableIntSeq.fill(50, () -> Math.abs(random.nextInt()) % 100));
     var args = ImmutableSeq.of(NatCall, leCall, largeList);
 
     var beginTime = System.currentTimeMillis();

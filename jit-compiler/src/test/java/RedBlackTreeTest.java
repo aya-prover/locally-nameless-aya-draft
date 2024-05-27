@@ -116,15 +116,12 @@ public class RedBlackTreeTest {
     var args = ImmutableSeq.of(largeList);
 
     var normalizer = new Normalizer(result.info().makeTyckState());
-    var beginTime = System.currentTimeMillis();
     var sortResult = normalizer.normalize(tree_sortNat.invoke(null, args), CodeOptions.NormalizeMode.FULL);
-    var endTime1 = System.currentTimeMillis();
     assertNotNull(sortResult);
-    normalizer.normalize(tree_sortNat.invoke(null, args), CodeOptions.NormalizeMode.FULL);
-    var endTime2 = System.currentTimeMillis();
 
-    System.out.println(STR."Done first time in \{(endTime1 - beginTime)}");
-    System.out.println(STR."Done second time in \{(endTime2 - endTime1)}");
+    Profiler.profileMany(5, () ->
+      normalizer.normalize(tree_sortNat.invoke(null, args), CodeOptions.NormalizeMode.FULL));
+
     System.out.println(sortResult.debuggerOnlyToString());
   }
 }
