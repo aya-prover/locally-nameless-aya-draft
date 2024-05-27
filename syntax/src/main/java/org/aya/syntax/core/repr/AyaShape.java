@@ -8,7 +8,6 @@ import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.repr.CodeShape.*;
-import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.repr.IntegerOps;
 import org.aya.syntax.core.term.repr.IntegerTerm;
@@ -109,7 +108,7 @@ public enum AyaShape {
 
   public @NotNull abstract CodeShape codeShape();
 
-  public static Shaped.Applicable<Term, ConDefLike> ofCon(
+  public static Shaped.Applicable<ConDefLike> ofCon(
     @NotNull ConDefLike ref,
     @NotNull ShapeRecognition paramRecog,
     @NotNull DataCall paramType
@@ -122,7 +121,7 @@ public enum AyaShape {
     };
   }
 
-  public static @Nullable Shaped.Applicable<Term, FnDefLike>
+  public static @Nullable Shaped.Applicable<FnDefLike>
   ofFn(FnDefLike ref, @NotNull AyaShape shape) {
     return switch (shape) {
       case PLUS_LEFT_SHAPE, PLUS_RIGHT_SHAPE -> new IntegerOps.FnRule(ref, IntegerOps.FnRule.Kind.Add);

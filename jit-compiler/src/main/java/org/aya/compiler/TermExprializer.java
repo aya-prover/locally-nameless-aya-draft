@@ -55,7 +55,7 @@ public class TermExprializer extends AbstractExprializer<Term> {
     this.binds = MutableMap.create();
   }
 
-  private @NotNull String serializeApplicable(@NotNull Shaped.Applicable<?, ?> applicable) {
+  private @NotNull String serializeApplicable(@NotNull Shaped.Applicable<?> applicable) {
     return switch (applicable) {
       case IntegerOps.ConRule conRule -> makeNew(CLASS_INT_CONRULE, getInstance(getReference(conRule.ref())),
         doSerialize(conRule.zero())

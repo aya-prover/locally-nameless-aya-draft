@@ -4,6 +4,7 @@ package org.aya.generic.stmt;
 
 import kala.collection.Seq;
 import kala.collection.immutable.ImmutableSeq;
+import kala.function.IndexedFunction;
 import org.aya.generic.AyaDocile;
 import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.ConDef;
@@ -97,7 +98,7 @@ public interface Shaped<T> {
    * {@link org.aya.syntax.core.def.FnDef}, {@link ConDef}, and probably {@link org.aya.syntax.core.def.DataDef}.
    * See also <code>RuleReducer</code>.
    */
-  interface Applicable<T extends Term, Def extends AnyDef> extends Reducible<T> {
+  interface Applicable<Def extends AnyDef> extends Reducible {
     @NotNull Def ref();
 
     /**
@@ -106,9 +107,9 @@ public interface Shaped<T> {
      * @param args arguments
      * @return null if failed
      */
-    @Nullable T apply(@NotNull ImmutableSeq<T> args);
-
-    @Override default T invoke(T onStuck, @NotNull Seq<T> args) {
+    @Nullable Term apply(@NotNull ImmutableSeq<Term> args);
+    @NotNull Applicable<Def> descent(@NotNull IndexedFunction<Term, Term> f);
+    @Override default Term invoke(Term onStuck, @NotNull Seq<Term> args) {
       var result = apply(args.toImmutableSeq());
       if (result == null) return onStuck;
       return result;

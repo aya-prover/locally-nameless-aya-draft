@@ -3,12 +3,13 @@
 package org.aya.generic.stmt;
 
 import kala.collection.Seq;
+import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public interface Reducible<T> {
+public interface Reducible {
   /**
    * @param fallback return this when unable to reduce, it is acceptable that fallback is null.
    * @return not null if reduce successfully, fallback if unable to reduce
    */
-  T invoke(T fallback, @NotNull Seq<@NotNull T> args);
+  Term invoke(Term fallback, @NotNull Seq<@NotNull Term> args);
 }

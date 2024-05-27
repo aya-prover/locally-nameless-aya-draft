@@ -8,7 +8,7 @@ import org.aya.syntax.core.def.FnDefLike;
 import org.aya.syntax.core.term.Term;
 import org.jetbrains.annotations.NotNull;
 
-public abstract non-sealed class JitFn extends JitDef implements FnDefLike, Reducible<Term> {
+public abstract non-sealed class JitFn extends JitDef implements FnDefLike, Reducible {
   protected JitFn(int telescopeSize, boolean[] telescopeLicit, String[] telescopeName) {
     super(telescopeSize, telescopeLicit, telescopeName);
   }

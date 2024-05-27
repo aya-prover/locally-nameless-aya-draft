@@ -15,6 +15,8 @@ import org.aya.syntax.core.term.call.RuleReducer;
 import org.aya.syntax.core.term.marker.StableWHNF;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.function.UnaryOperator;
+
 public record ListTerm(
   @Override @NotNull ImmutableSeq<Term> repr,
   @NotNull ConDefLike nil,
@@ -43,16 +45,20 @@ public record ListTerm(
     return new ListTerm(repr, nil, cons, type);
   }
 
-  public ListTerm update(@NotNull ImmutableSeq<Term> repr) {
-    return repr.sameElements(this.repr, true) ? this : new ListTerm(repr, nil, cons, type);
+  public @NotNull ListTerm map(@NotNull UnaryOperator<ImmutableSeq<Term>> f) {
+    return new ListTerm(f.apply(repr), nil, cons, type);
+  }
+
+  public @NotNull ListTerm update(@NotNull ImmutableSeq<Term> repr, @NotNull DataCall type) {
+    return repr.sameElements(this.repr, true) && type == this.type
+      ? this : new ListTerm(repr, nil, cons, type);
   }
 
   @Override public @NotNull Term descent(@NotNull IndexedFunction<Term, Term> f) {
-    return update(repr.map(term -> f.apply(0, term)));
+    return update(repr.map(term -> f.apply(0, term)), (DataCall) f.apply(0, type));
   }
 
-  @Override
-  public @NotNull ConCallLike.Head head() {
+  @Override public @NotNull ConCallLike.Head head() {
     var isNil = repr.isEmpty();
     return new Head(isNil ? nil : cons, 0, ImmutableSeq.of(type.args().getFirst()));
   }

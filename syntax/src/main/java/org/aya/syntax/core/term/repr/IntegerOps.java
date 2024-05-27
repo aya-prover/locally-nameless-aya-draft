@@ -3,6 +3,7 @@
 package org.aya.syntax.core.term.repr;
 
 import kala.collection.immutable.ImmutableSeq;
+import kala.function.IndexedFunction;
 import org.aya.generic.stmt.Shaped;
 import org.aya.syntax.core.def.AnyDef;
 import org.aya.syntax.core.def.ConDefLike;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @see org.aya.syntax.core.term.call.RuleReducer
  */
-public sealed interface IntegerOps<Def extends AnyDef> extends Shaped.Applicable<Term, Def> {
+public sealed interface IntegerOps<Def extends AnyDef> extends Shaped.Applicable<Def> {
   record ConRule(
     @Override @NotNull ConDefLike ref,
     @NotNull IntegerTerm zero
@@ -30,6 +31,9 @@ public sealed interface IntegerOps<Def extends AnyDef> extends Shaped.Applicable
       var arg = args.get(0);
       if (arg instanceof IntegerTerm intTerm) return intTerm.map(x -> x + 1);
       return null;
+    }
+    @Override public @NotNull ConRule descent(@NotNull IndexedFunction<Term, Term> f) {
+      return this;
     }
   }
 
@@ -61,6 +65,9 @@ public sealed interface IntegerOps<Def extends AnyDef> extends Shaped.Applicable
           yield null;
         }
       };
+    }
+    @Override public @NotNull FnRule descent(@NotNull IndexedFunction<Term, Term> f) {
+      return this;
     }
   }
 }
