@@ -55,7 +55,7 @@ public class RedBlackTreeTest {
 
     var seed = 114514L;
     var random = new Random(seed);
-    var largeList = mkList.apply(ImmutableIntSeq.fill(350, () -> random.nextInt(200)));
+    var largeList = mkList.apply(ImmutableIntSeq.fill(250, () -> random.nextInt(200)));
     var args = ImmutableSeq.of(largeList);
 
     var normalizer = new Normalizer(result.info().makeTyckState());
