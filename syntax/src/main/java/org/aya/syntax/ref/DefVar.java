@@ -2,7 +2,6 @@
 // Use of this source code is governed by the MIT license that can be found in the LICENSE.md file.
 package org.aya.syntax.ref;
 
-import kala.collection.immutable.ImmutableSeq;
 import org.aya.syntax.concrete.stmt.decl.Decl;
 import org.aya.syntax.core.def.Signature;
 import org.aya.syntax.core.def.TyckDef;
@@ -44,6 +43,6 @@ public final class DefVar<Core extends TyckDef, Concrete extends Decl> implement
   @Override public int hashCode() {return System.identityHashCode(this);}
 
   public boolean isInModule(@NotNull ModulePath moduleName) {
-    return module != null && module.isInModule(moduleName);
+    return module != null && module.module().isInModule(moduleName);
   }
 }

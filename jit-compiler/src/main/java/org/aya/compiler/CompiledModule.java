@@ -166,6 +166,12 @@ public record CompiledModule(
   }
 
   public @NotNull ResolveInfo toResolveInfo(
+    @NotNull ModuleLoader loader, @NotNull PhysicalModuleContext context
+  ) {
+    var state = new DeState(getClass().getClassLoader());
+    return toResolveInfo(loader, context, state, new PrimFactory(), new ShapeFactory());
+  }
+  public @NotNull ResolveInfo toResolveInfo(
     @NotNull ModuleLoader loader, @NotNull PhysicalModuleContext context, @NotNull CompiledModule.DeState state,
     @NotNull PrimFactory primFactory, @NotNull ShapeFactory shapeFactory
   ) {

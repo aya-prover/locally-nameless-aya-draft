@@ -4,13 +4,18 @@ package org.aya.cli.utils;
 
 import kala.function.CheckedRunnable;
 import org.aya.cli.single.CompilerFlags;
+import org.aya.compiler.CompiledModule;
 import org.aya.generic.InterruptException;
+import org.aya.resolve.ResolveInfo;
 import org.aya.resolve.module.FileModuleLoader;
 import org.aya.util.error.Panic;
 import org.aya.util.reporter.CountingReporter;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class CompilerUtil {
   public static int catching(
@@ -38,13 +43,8 @@ public class CompilerUtil {
     }
   }
 
-/*  public static void saveCompiledCore(
-    @NotNull Path coreFile,
-    @NotNull ResolveInfo resolveInfo,
-    @NotNull ImmutableSeq<Def> defs,
-    @NotNull Serializer.State state
-  ) throws IOException {
-    var compiledAya = CompiledAya.from(resolveInfo, defs, state);
+  public static void saveCompiledCore(@NotNull Path coreFile, @NotNull ResolveInfo resolveInfo) throws IOException {
+    var compiledAya = CompiledModule.from(resolveInfo);
     try (var outputStream = coreWriter(coreFile)) {
       outputStream.writeObject(compiledAya);
     }
@@ -53,5 +53,5 @@ public class CompilerUtil {
   private static @NotNull ObjectOutputStream coreWriter(@NotNull Path coreFile) throws IOException {
     Files.createDirectories(coreFile.toAbsolutePath().getParent());
     return new ObjectOutputStream(Files.newOutputStream(coreFile));
-  }*/
+  }
 }

@@ -6,6 +6,7 @@ module aya.cli.impl {
   requires com.google.gson;
   requires aya.md;
   requires aya.producer;
+  requires aya.compiler;
   requires org.jetbrains.annotations;
   requires org.commonmark;
 
