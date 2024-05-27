@@ -32,6 +32,7 @@ public interface Shaped<T> {
 
   sealed interface Inductive<T> extends Shaped<T> {
     @Override @NotNull DataCall type();
+    /** Usually called for patterns, not terms, so terms can implement this as identity */
     @NotNull T constructorForm();
   }
 
@@ -64,8 +65,8 @@ public interface Shaped<T> {
 
   non-sealed interface List<T extends AyaDocile> extends Inductive<T> {
     @NotNull ImmutableSeq<T> repr();
-    @NotNull T makeNil(@NotNull Term type);
-    @NotNull T makeCons(@NotNull Term type, T x, T xs);
+    @NotNull T makeNil();
+    @NotNull T makeCons(T x, T xs);
     @NotNull T destruct(@NotNull ImmutableSeq<T> repr);
 
     /**
@@ -85,11 +86,9 @@ public interface Shaped<T> {
     }
 
     @Override default @NotNull T constructorForm() {
-      var dataArg = type().args().getFirst(); // Check?
       var elements = repr();
-      if (elements.isEmpty()) return makeNil(dataArg);
-      return makeCons(dataArg, elements.getFirst(),
-        destruct(elements.drop(1)));
+      if (elements.isEmpty()) return makeNil();
+      return makeCons(elements.getFirst(), destruct(elements.drop(1)));
     }
   }
 

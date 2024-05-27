@@ -239,8 +239,13 @@ public abstract class AbstractSerializer<T> implements AyaSerializer<T> {
 
   /** Mangle an aya symbol name to a java symbol name */
   public static @NotNull String javify(@NotNull DefVar<?, ?> ayaName) {
-    return ayaName.name().codePoints().flatMap(x ->
-        Character.isJavaIdentifierPart(x) ? IntStream.of(x) : ("u" + x).chars())
+    return javify(ayaName.name());
+  }
+  public static @NotNull String javify(String name) {
+    return name.codePoints().flatMap(x ->
+        x == '$' ? "$$".chars()
+          : Character.isJavaIdentifierPart(x) ? IntStream.of(x)
+            : ("$" + x).chars())
       .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
       .toString();
   }

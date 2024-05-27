@@ -12,6 +12,8 @@ import org.aya.syntax.core.term.Term;
 import org.aya.syntax.core.term.call.DataCall;
 import org.aya.syntax.core.term.repr.IntegerOps;
 import org.aya.syntax.core.term.repr.IntegerTerm;
+import org.aya.syntax.core.term.repr.ListOps;
+import org.aya.syntax.core.term.repr.ListTerm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -112,10 +114,12 @@ public enum AyaShape {
     @NotNull ShapeRecognition paramRecog,
     @NotNull DataCall paramType
   ) {
-    if (paramRecog.shape() == AyaShape.NAT_SHAPE) {
-      return new IntegerOps.ConRule(ref, new IntegerTerm(0, paramRecog, paramType), paramType);
-    }
-    return null;
+    return switch (paramRecog.shape()) {
+      case NAT_SHAPE -> new IntegerOps.ConRule(ref, new IntegerTerm(0, paramRecog, paramType), paramType);
+      case LIST_SHAPE -> new ListOps.ConRule(ref,
+        new ListTerm(ImmutableSeq.empty(), paramRecog, paramType), paramType);
+      default -> null;
+    };
   }
 
   public static @Nullable Shaped.Applicable<Term, FnDefLike>

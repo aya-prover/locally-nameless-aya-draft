@@ -19,6 +19,7 @@ import java.util.Random;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 
+import static org.aya.compiler.AbstractSerializer.javify;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RedBlackTreeTest {
@@ -26,8 +27,8 @@ public class RedBlackTreeTest {
     open data Nat | O | S Nat
     open data Bool | True | False
     open data List Type
-    | nil
-    | A => infixr cons A (List A)
+    | []
+    | A => infixr :> A (List A)
     
     def isZero (a : Nat) : Bool
     | 0 => True
@@ -44,7 +45,7 @@ public class RedBlackTreeTest {
     
     def rbTreeToList (rb : RBTree A) (r : List A) : List A elim rb
     | rbLeaf => r
-    | rbNode x t1 a t2 => rbTreeToList t1 (a cons rbTreeToList t2 r)
+    | rbNode x t1 a t2 => rbTreeToList t1 (a :> rbTreeToList t2 r)
     
     def repaint (RBTree A) : RBTree A
     | rbNode c l a r => rbNode black l a r
@@ -80,9 +81,9 @@ public class RedBlackTreeTest {
     | rbNode c l1 a1 l2 => insert_lemma dec_le a a1 c l1 l2 (dec_le a1 a)
     
     private def aux (l : List A) (r : RBTree A) (dec_le : Decider A) : RBTree A elim l
-    | nil => r
-    | a cons l => aux l (repaint (insert a r dec_le)) dec_le
-    def tree_sort (dec_le : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec_le) nil
+    | [] => r
+    | a :> l => aux l (repaint (insert a r dec_le)) dec_le
+    def tree_sort (dec_le : Decider A) (l : List A) => rbTreeToList (aux l rbLeaf dec_le) []
     def tree_sortNat (l : List Nat) => tree_sort le l
     """;
 
@@ -95,8 +96,8 @@ public class RedBlackTreeTest {
     // System.out.println(tester.code);
 
     var List = tester.<JitData>loadInstance("baka", "List");
-    var nil = tester.<JitCon>loadInstance("baka", "List", "nil");
-    var cons = tester.<JitCon>loadInstance("baka", "List", "cons");
+    var nil = tester.<JitCon>loadInstance("baka", "List", javify("[]"));
+    var cons = tester.<JitCon>loadInstance("baka", "List", javify(":>"));
     var Nat = tester.<JitData>loadInstance("baka", "Nat");
     var O = tester.<JitCon>loadInstance("baka", "Nat", "O");
     var S = tester.<JitCon>loadInstance("baka", "Nat", "S");

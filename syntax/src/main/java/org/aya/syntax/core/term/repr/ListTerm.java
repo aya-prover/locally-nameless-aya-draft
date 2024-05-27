@@ -9,9 +9,9 @@ import org.aya.syntax.core.def.ConDefLike;
 import org.aya.syntax.core.repr.CodeShape;
 import org.aya.syntax.core.repr.ShapeRecognition;
 import org.aya.syntax.core.term.Term;
-import org.aya.syntax.core.term.call.ConCall;
 import org.aya.syntax.core.term.call.ConCallLike;
 import org.aya.syntax.core.term.call.DataCall;
+import org.aya.syntax.core.term.call.RuleReducer;
 import org.aya.syntax.core.term.marker.StableWHNF;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,13 +29,14 @@ public record ListTerm(
     this(repr, recog.getCon(CodeShape.GlobalId.NIL), recog.getCon(CodeShape.GlobalId.CONS), type);
   }
 
-  @Override public @NotNull Term makeNil(@NotNull Term dataArg) {
-    return new ConCall(nil, ImmutableSeq.of(dataArg), 0, ImmutableSeq.empty());
+  @Override public @NotNull ListTerm makeNil() {
+    return new ListTerm(ImmutableSeq.empty(), nil, cons, type);
   }
 
   @Override public @NotNull Term
-  makeCons(@NotNull Term dataArg, @NotNull Term x, @NotNull Term last) {
-    return new ConCall(cons, ImmutableSeq.of(dataArg), 0, ImmutableSeq.of(x, last));
+  makeCons(@NotNull Term x, @NotNull Term last) {
+    return new RuleReducer.Con(new ListOps.ConRule(cons, makeNil(), type), 0,
+      type.args(), ImmutableSeq.of(x, last));
   }
 
   @Override public @NotNull Term destruct(@NotNull ImmutableSeq<Term> repr) {

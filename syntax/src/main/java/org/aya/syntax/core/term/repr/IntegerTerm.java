@@ -53,7 +53,7 @@ public record IntegerTerm(
   @Override public @NotNull IntegerTerm makeZero() { return map(_ -> 0); }
   @Override public @NotNull Term makeSuc(@NotNull Term term) {
     return new RuleReducer.Con(new IntegerOps.ConRule(suc, makeZero(), type),
-      0, ImmutableSeq.empty(), ImmutableSeq.of(term));
+      0, type.args(), ImmutableSeq.of(term));
   }
 
   @Override public @NotNull Term destruct(int repr) {
