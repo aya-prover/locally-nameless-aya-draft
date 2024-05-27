@@ -20,7 +20,6 @@ import org.aya.syntax.literate.CodeOptions;
 import org.aya.syntax.ref.AnyVar;
 import org.aya.tyck.TyckState;
 import org.aya.tyck.tycker.Stateful;
-import org.aya.util.error.Panic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.UnaryOperator;
@@ -48,8 +47,7 @@ public final class Normalizer implements UnaryOperator<Term> {
     var defaultValue = usePostTerm ? postTerm : term;
 
     return switch (postTerm) {
-      case StableWHNF _ -> throw new Panic(postTerm.getClass().toString());
-      case FreeTerm free -> free;
+      case StableWHNF _, FreeTerm _ -> postTerm;
       case BetaRedex app -> {
         var result = app.make();
         yield result == app ? result : apply(result);

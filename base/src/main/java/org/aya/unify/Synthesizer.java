@@ -6,6 +6,7 @@ import kala.collection.mutable.MutableList;
 import org.aya.generic.NameGenerator;
 import org.aya.generic.term.SortKind;
 import org.aya.prettier.AyaPrettierOptions;
+import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.Callable;
@@ -13,6 +14,7 @@ import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
+import org.aya.syntax.core.term.repr.StringTerm;
 import org.aya.syntax.core.term.xtt.*;
 import org.aya.syntax.ref.LocalCtx;
 import org.aya.syntax.ref.LocalVar;
@@ -132,6 +134,7 @@ public record Synthesizer(
       case DimTerm _ -> DimTyTerm.INSTANCE;
       case DimTyTerm _ -> SortTerm.ISet;
       case MetaLitTerm mlt -> mlt.type();
+      case StringTerm str -> state().primFactory().getCall(PrimDef.ID.STRING);
     };
   }
 

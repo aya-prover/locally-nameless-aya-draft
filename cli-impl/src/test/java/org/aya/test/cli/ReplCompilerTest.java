@@ -17,6 +17,9 @@ import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ReplCompilerTest {
@@ -24,12 +27,12 @@ public class ReplCompilerTest {
 
   @BeforeEach public void setup() { compiler.getContext().clear(); }
 
-  // @Test public void library() throws IOException {
-  //   compiler.loadToContext(Path.of("../ide-lsp", "src", "test", "resources", "lsp-test-lib"));
-  //   assertNotNull(findContext("NatCore::zero"));
-  //   assertNotNull(findContext("Vec::vnil"));
-  //   assertNotNull(findContext("Vec:::>"));
-  // }
+  @Test public void library() throws IOException {
+    compiler.loadToContext(Paths.get("../ide-lsp", "src", "test", "resources", "lsp-test-lib"));
+    assertNotNull(findContext("NatCore::zero"));
+    assertNotNull(findContext("Vec::vnil"));
+    assertNotNull(findContext("Vec:::>"));
+  }
 
   @Test public void simpleExpr() { compile("Set"); }
 

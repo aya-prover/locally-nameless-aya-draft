@@ -7,11 +7,13 @@ import kala.collection.immutable.ImmutableMap;
 import kala.collection.immutable.ImmutableSeq;
 import kala.control.Option;
 import kala.tuple.Tuple;
+import org.aya.normalize.Normalizer;
 import org.aya.syntax.concrete.stmt.decl.PrimDecl;
 import org.aya.syntax.core.Closure;
 import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.term.*;
 import org.aya.syntax.core.term.call.PrimCall;
+import org.aya.syntax.core.term.repr.StringTerm;
 import org.aya.syntax.core.term.xtt.CoeTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
@@ -36,6 +38,7 @@ public class PrimFactory {
   public PrimFactory() {
     seeds = ImmutableMap.from(ImmutableSeq.of(
       stringType,
+      stringConcat,
       intervalType,
       pathType,
       coe
@@ -96,6 +99,29 @@ public class PrimFactory {
     new PrimSeed(ID.STRING, this::primCall,
       ref -> new PrimDef(ref, Type0, ID.STRING), ImmutableSeq.empty());
 
+  final @NotNull PrimSeed stringConcat =
+    new PrimSeed(ID.STRCONCAT, PrimFactory::concat, ref -> new PrimDef(
+      ref,
+      ImmutableSeq.of(
+        new Param("str1", getCall(ID.STRING), true),
+        new Param("str2", getCall(ID.STRING), true)
+      ),
+      getCall(ID.STRING),
+      ID.STRCONCAT
+    ), ImmutableSeq.of(ID.STRING));
+
+  private static @NotNull Term concat(@NotNull PrimCall prim, @NotNull TyckState state) {
+    var norm = new Normalizer(state);
+    var first = norm.apply(prim.args().get(0));
+    var second = norm.apply(prim.args().get(1));
+
+    if (first instanceof StringTerm str1 && second instanceof StringTerm str2) {
+      return new StringTerm(str1.string() + str2.string());
+    }
+
+    return new PrimCall(prim.ref(), prim.ulift(), ImmutableSeq.of(first, second));
+  }
+
   /*
   private final @NotNull PrimSeed hcomp = new PrimSeed(ID.HCOMP, this::hcomp, ref -> {
     var varA = new LocalVar("A");
@@ -117,29 +143,6 @@ public class PrimFactory {
       ID.HCOMP
     );
   }, ImmutableSeq.of(ID.I));
-
-  public final @NotNull PrimSeed stringConcat =
-    new PrimSeed(ID.STRCONCAT, Initializer::concat, ref -> new PrimDef(
-      ref,
-      ImmutableSeq.of(
-        new Term.Param(new LocalVar("str1"), getCall(ID.STRING, ImmutableSeq.empty()), true),
-        new Term.Param(new LocalVar("str2"), getCall(ID.STRING, ImmutableSeq.empty()), true)
-      ),
-      getCall(ID.STRING, ImmutableSeq.empty()),
-      ID.STRCONCAT
-    ), ImmutableSeq.of(ID.STRING));
-
-  private static @NotNull Term concat(@NotNull PrimCall prim, @NotNull TyckState state) {
-    var first = prim.args().get(0).normalize(state, NormalizeMode.WHNF);
-    var second = prim.args().get(1).normalize(state, NormalizeMode.WHNF);
-
-    if (first instanceof StringTerm str1 && second instanceof StringTerm str2) {
-      return new StringTerm(str1.string() + str2.string());
-    }
-
-    return new PrimCall(prim.ref(), prim.ulift(), ImmutableSeq.of(
-      new Arg<>(first, true), new Arg<>(second, true)));
-  }
 
   private @NotNull Term hcomp(@NotNull PrimCall prim, @NotNull TyckState state) {
     var A = prim.args().get(0);

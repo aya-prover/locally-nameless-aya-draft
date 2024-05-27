@@ -11,6 +11,7 @@ import org.aya.generic.Constants;
 import org.aya.syntax.compile.JitTele;
 import org.aya.syntax.concrete.Expr;
 import org.aya.syntax.core.def.DataDefLike;
+import org.aya.syntax.core.def.PrimDef;
 import org.aya.syntax.core.def.TyckDef;
 import org.aya.syntax.core.repr.AyaShape;
 import org.aya.syntax.core.term.*;
@@ -19,6 +20,7 @@ import org.aya.syntax.core.term.call.MetaCall;
 import org.aya.syntax.core.term.repr.IntegerTerm;
 import org.aya.syntax.core.term.repr.ListTerm;
 import org.aya.syntax.core.term.repr.MetaLitTerm;
+import org.aya.syntax.core.term.repr.StringTerm;
 import org.aya.syntax.core.term.xtt.DimTerm;
 import org.aya.syntax.core.term.xtt.DimTyTerm;
 import org.aya.syntax.core.term.xtt.EqTerm;
@@ -213,8 +215,11 @@ public final class ExprTycker extends AbstractTycker implements Unifiable {
         var type = new DataCall((DataDefLike) match.def(), 0, ImmutableSeq.empty());
         yield new Jdg.Default(new IntegerTerm(integer, match.recog(), type), type);
       }
-      case Expr.LitString litString -> throw new UnsupportedOperationException("TODO");
-
+      case Expr.LitString litStr -> {
+        if (!state.primFactory().have(PrimDef.ID.STRING))
+          yield fail(litStr, new NoRuleError(expr, null));
+        yield new Jdg.Default(new StringTerm(litStr.string()), state.primFactory().getCall(PrimDef.ID.STRING));
+      }
       case Expr.Ref(var ref, _) -> checkApplication(ref, expr.sourcePos(), ImmutableSeq.empty());
       case Expr.Sigma _, Expr.Pi _ -> lazyJdg(ty(expr));
       case Expr.Sort _ -> sort(expr);
